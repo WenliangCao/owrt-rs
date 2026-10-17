@@ -9,6 +9,8 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
+import shlex
 import subprocess
 import threading
 import time
@@ -74,9 +76,12 @@ def main():
     def stream(name, command):
         stdout = (out / (name + ".txt")).open("xb")
         stderr = (out / (name + ".stderr")).open("xb")
-        process = subprocess.Popen(SSH + [args.host, command], stdout=stdout, stderr=stderr)
-        streams.append((process, stdout, stderr))
-        event("stream_started", name=name)
+        # A non-PTY SSH disconnect can leave the remote observer alive.
+        # Record its PID before exec so cleanup can stop exactly our process.
+        wrapped = "printf 'observer_pid=%s\\n' \"$$\" >&2; exec " + command
+        process = subprocess.Popen(SSH + [args.host, wrapped], stdout=stdout, stderr=stderr)
+        streams.append((process, stdout, stderr, command))
+        event("stream_started", stream_name=name)
 
     def health(label):
         try:
@@ -141,7 +146,7 @@ def main():
         end_at = boot["boot_zero_monotonic_lower"] + 300
         next_notice = time.monotonic() + 40
         while time.monotonic() < end_at:
-            for process, _, _ in streams:
+            for process, _, _, _ in streams:
                 if process.poll() is not None:
                     raise RuntimeError("read-only stream exited before the observation ended")
             if time.monotonic() >= next_notice:
@@ -159,7 +164,7 @@ def main():
         stopped.set()
         if thread.is_alive():
             thread.join(timeout=5)
-        for process, stdout, stderr in streams:
+        for process, stdout, stderr, command in streams:
             if process.poll() is None:
                 process.terminate()
                 try:
@@ -169,6 +174,18 @@ def main():
                     process.wait()
             stdout.close()
             stderr.close()
+            match = re.search(r"^observer_pid=(\d+)$", Path(stderr.name).read_text(), re.MULTILINE)
+            if match:
+                pid = match[1]
+                expected = shlex.quote(command + " ")
+                cleanup = (f"if [ -e /proc/{pid}/cmdline ]; then "
+                           f"actual=$(tr '\\000' ' ' < /proc/{pid}/cmdline); "
+                           f"[ \"$actual\" = {expected} ] && kill -TERM {pid}; fi")
+                try:
+                    response = remote(cleanup)
+                    event("observer_cleanup", command=command, returncode=response.returncode)
+                except subprocess.TimeoutExpired:
+                    event("observer_cleanup_timeout", command=command)
         events.close()
 
 

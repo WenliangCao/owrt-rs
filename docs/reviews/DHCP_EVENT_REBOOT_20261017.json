@@ -1,0 +1,429 @@
+{
+  "raw_sha256": "f6a70c501eb615ab06d7bb0fdb5419974868cb373c3c0ff5e9b583c77de0f02f",
+  "raw_bytes": 73887,
+  "log_lines": 582,
+  "clock": {
+    "jump_before_line": 393,
+    "adjacent_jump_ms": 8764494,
+    "old_anchor_samples": 36,
+    "old_anchor_spread_ms": 30.917,
+    "post_clock_boot_zero_interval": [
+      1792264386.069177,
+      1792264386.259646
+    ]
+  },
+  "wan": {
+    "lease_events": [
+      {
+        "line": 303,
+        "epoch_ms": 1792255638258,
+        "boot_seconds_estimate": 16.435
+      },
+      {
+        "line": 474,
+        "epoch_ms": 1792264433052,
+        "boot_seconds_estimate": 46.888
+      },
+      {
+        "line": 478,
+        "epoch_ms": 1792264463128,
+        "boot_seconds_estimate": 76.964
+      },
+      {
+        "line": 546,
+        "epoch_ms": 1792264493207,
+        "boot_seconds_estimate": 107.043
+      },
+      {
+        "line": 552,
+        "epoch_ms": 1792264523285,
+        "boot_seconds_estimate": 137.121
+      },
+      {
+        "line": 561,
+        "epoch_ms": 1792264553366,
+        "boot_seconds_estimate": 167.202
+      },
+      {
+        "line": 568,
+        "epoch_ms": 1792264583445,
+        "boot_seconds_estimate": 197.281
+      },
+      {
+        "line": 571,
+        "epoch_ms": 1792264613526,
+        "boot_seconds_estimate": 227.362
+      },
+      {
+        "line": 575,
+        "epoch_ms": 1792264643602,
+        "boot_seconds_estimate": 257.438
+      },
+      {
+        "line": 580,
+        "epoch_ms": 1792264673686,
+        "boot_seconds_estimate": 287.522
+      }
+    ],
+    "initial_up": {
+      "line": 326,
+      "epoch_ms": 1792255638575,
+      "boot_seconds_estimate": 16.752
+    },
+    "initial_lease_to_up_ms": 317,
+    "renewals_without_new_up": 9,
+    "same_clock_lease_intervals_ms": {
+      "count": 8,
+      "min": 30076,
+      "mean": 30079.25,
+      "median": 30079.0,
+      "max": 30084,
+      "values": [
+        30076,
+        30079,
+        30078,
+        30081,
+        30079,
+        30081,
+        30076,
+        30084
+      ]
+    }
+  },
+  "wan6": {
+    "initial_up": {
+      "line": 379,
+      "epoch_ms": 1792255640801,
+      "boot_seconds_estimate": 18.978
+    }
+  },
+  "firewall": {
+    "trigger_count": 26,
+    "ifup_count": 3,
+    "ifupdate_count": 23,
+    "events": [
+      {
+        "line": 287,
+        "epoch_ms": 1792255637542,
+        "boot_seconds_estimate": 15.719
+      },
+      {
+        "line": 349,
+        "epoch_ms": 1792255638723,
+        "boot_seconds_estimate": 16.9
+      },
+      {
+        "line": 392,
+        "epoch_ms": 1792255640865,
+        "boot_seconds_estimate": 19.042
+      },
+      {
+        "line": 475,
+        "epoch_ms": 1792264437040,
+        "boot_seconds_estimate": 50.876
+      },
+      {
+        "line": 480,
+        "epoch_ms": 1792264474310,
+        "boot_seconds_estimate": 88.146
+      },
+      {
+        "line": 481,
+        "epoch_ms": 1792264475404,
+        "boot_seconds_estimate": 89.24
+      },
+      {
+        "line": 482,
+        "epoch_ms": 1792264475555,
+        "boot_seconds_estimate": 89.391
+      },
+      {
+        "line": 483,
+        "epoch_ms": 1792264478249,
+        "boot_seconds_estimate": 92.085
+      },
+      {
+        "line": 547,
+        "epoch_ms": 1792264501942,
+        "boot_seconds_estimate": 115.778
+      },
+      {
+        "line": 548,
+        "epoch_ms": 1792264502153,
+        "boot_seconds_estimate": 115.989
+      },
+      {
+        "line": 549,
+        "epoch_ms": 1792264502307,
+        "boot_seconds_estimate": 116.143
+      },
+      {
+        "line": 550,
+        "epoch_ms": 1792264505970,
+        "boot_seconds_estimate": 119.806
+      },
+      {
+        "line": 553,
+        "epoch_ms": 1792264527077,
+        "boot_seconds_estimate": 140.913
+      },
+      {
+        "line": 554,
+        "epoch_ms": 1792264533956,
+        "boot_seconds_estimate": 147.792
+      },
+      {
+        "line": 555,
+        "epoch_ms": 1792264534194,
+        "boot_seconds_estimate": 148.03
+      },
+      {
+        "line": 556,
+        "epoch_ms": 1792264534349,
+        "boot_seconds_estimate": 148.185
+      },
+      {
+        "line": 557,
+        "epoch_ms": 1792264537897,
+        "boot_seconds_estimate": 151.733
+      },
+      {
+        "line": 558,
+        "epoch_ms": 1792264540361,
+        "boot_seconds_estimate": 154.197
+      },
+      {
+        "line": 559,
+        "epoch_ms": 1792264544177,
+        "boot_seconds_estimate": 158.013
+      },
+      {
+        "line": 562,
+        "epoch_ms": 1792264558590,
+        "boot_seconds_estimate": 172.426
+      },
+      {
+        "line": 563,
+        "epoch_ms": 1792264562600,
+        "boot_seconds_estimate": 176.436
+      },
+      {
+        "line": 572,
+        "epoch_ms": 1792264619329,
+        "boot_seconds_estimate": 233.165
+      },
+      {
+        "line": 573,
+        "epoch_ms": 1792264623196,
+        "boot_seconds_estimate": 237.032
+      },
+      {
+        "line": 577,
+        "epoch_ms": 1792264646329,
+        "boot_seconds_estimate": 260.165
+      },
+      {
+        "line": 578,
+        "epoch_ms": 1792264650222,
+        "boot_seconds_estimate": 264.058
+      },
+      {
+        "line": 581,
+        "epoch_ms": 1792264685251,
+        "boot_seconds_estimate": 299.087
+      }
+    ],
+    "same_clock_all_intervals_ms": {
+      "count": 24,
+      "min": 151,
+      "mean": 10480.583333333334,
+      "median": 3739.5,
+      "max": 56729,
+      "values": [
+        1181,
+        2142,
+        37270,
+        1094,
+        151,
+        2694,
+        23693,
+        211,
+        154,
+        3663,
+        21107,
+        6879,
+        238,
+        155,
+        3548,
+        2464,
+        3816,
+        14413,
+        4010,
+        56729,
+        3867,
+        23133,
+        3893,
+        35029
+      ]
+    },
+    "wan6_ifupdate_intervals_ms": {
+      "count": 22,
+      "min": 151,
+      "mean": 11282.318181818182,
+      "median": 3841.5,
+      "max": 56729,
+      "values": [
+        37270,
+        1094,
+        151,
+        2694,
+        23693,
+        211,
+        154,
+        3663,
+        21107,
+        6879,
+        238,
+        155,
+        3548,
+        2464,
+        3816,
+        14413,
+        4010,
+        56729,
+        3867,
+        23133,
+        3893,
+        35029
+      ]
+    },
+    "completion_durations_ms": null
+  },
+  "dnsmasq": {
+    "starts": [
+      {
+        "line": 233,
+        "epoch_ms": 1792255635455,
+        "boot_seconds_estimate": 13.632
+      },
+      {
+        "line": 398,
+        "epoch_ms": 1792264407127,
+        "boot_seconds_estimate": 20.963
+      }
+    ],
+    "terminations": [
+      {
+        "line": 397,
+        "epoch_ms": 1792264406571,
+        "boot_seconds_estimate": 20.407
+      }
+    ],
+    "observed_restarts": 1,
+    "hosts_read_batches": [
+      {
+        "line": 422,
+        "epoch_ms": 1792264407131,
+        "boot_seconds_estimate": 20.967
+      },
+      {
+        "line": 424,
+        "epoch_ms": 1792264407138,
+        "boot_seconds_estimate": 20.974
+      },
+      {
+        "line": 433,
+        "epoch_ms": 1792264410445,
+        "boot_seconds_estimate": 24.281
+      }
+    ],
+    "reported_lost_messages": 3
+  },
+  "script_timing": {
+    "pure_total_ms": null,
+    "reason": "No complete DHCP script/hotplug entry and exit markers",
+    "protocol_setup_sum_ms": 4357,
+    "protocol_setup_union_ms": 3297,
+    "qualification": "Protocol setup envelopes include network waits and netifd; not a total-script-time bound"
+  },
+  "scope": "One authorized reboot of unchanged v0.2.2; five-minute boot log plus later readonly CPU observation and Oracle offline rules comparison.",
+  "client": {
+    "first_verified_external_https_boot_seconds_interval": [
+      32.98957419395447,
+      33.18004322052002
+    ],
+    "reboot_request_to_verified_https_seconds": 49.43608117103577,
+    "fresh_dhcp_ack": true,
+    "direct_ipv4_https": true,
+    "direct_ipv6_https": true,
+    "direct_dns_noerror": true,
+    "resumed_samples": 172,
+    "resumed_passed": 172,
+    "resumed_window_seconds": [
+      128.19918751716614,
+      300.0113854408264
+    ],
+    "observation_gap": true,
+    "observation_gap_reason": "Controller logging keyword collision after first SSH reconnect; resumed without another reboot; original error evidence retained."
+  },
+  "renew_cpu": {
+    "duration_uptime_seconds": 35.29,
+    "new_lease_events": 1,
+    "self_cpu_ticks": 0,
+    "waited_child_cpu_ticks": 4,
+    "clock_ticks_per_second": 100,
+    "waited_child_cpu_ms_estimate": 40,
+    "qualification": "One steady-state sample, 10 ms ticks; script descendants CPU excludes netifd and is not boot wall-clock script time."
+  },
+  "wan_monitor": {
+    "identical_renew_inputs": 7,
+    "interface_updates": 0,
+    "firewall_ifupdates": 0,
+    "source_implied_redundant_address_requests": 7,
+    "source_implied_redundant_route_requests": 7,
+    "netlink_timing_measured": false
+  },
+  "wan6_monitor": {
+    "notify_proto_requests": 25,
+    "logical_interface_updates": 20,
+    "address_updates": 19,
+    "prefix_only_updates": 1,
+    "requests_without_update": 5,
+    "fw4_render_sessions": 18,
+    "identical_consecutive_render_input_pairs": 1,
+    "identical_pair_log_gap_ms": 238,
+    "full_monitor_sha256": "f77ccc6bebfc41dfea1231b8f21b04cfa86c8e8b17edc0a2d6857d46182207de",
+    "monitor_covers_early_boot": false
+  },
+  "fw4_replay": {
+    "executable_sha256": "ee5a9c5685f7363be3fc2bd5039546b2f01327633afc24031b446fc0fb7f5b55",
+    "unique_full_outputs": 8,
+    "unique_effective_outputs": 1,
+    "all_stderr_empty": true,
+    "comments_only_include_sha256": "af5cbfeb3e3b61d32ce134ae33d15330ee27da838e6f4fb9c717f034923b8b16",
+    "removed_only_unreferenced_define": "wan_subnets",
+    "fixed_inputs": "Other interfaces held at first dump; modern kernel branch; existing flowtable; br-lan/wan devices; no service firewall data. One actual /etc/nftables.d include contains comments only; no /usr/share/nftables.d includes.",
+    "not_measured": "reload side effects, runtime timing, nft installation",
+    "cases": 21,
+    "effective_rules_sha256": "310395b2cbbdbe38bfafa481e5c085c5ef2f10c3d93b9470fd5b91179ece2f1a",
+    "full_receipt_sha256": "8a148c8d33dd791485f6043ba5ca3e2a16d4511ac6c847e9680e596e72c8781a"
+  },
+  "safety": {
+    "reboot_submissions": 1,
+    "offline_recovery_files_verified": 14,
+    "fresh_backup_members": 46,
+    "configuration_files_unchanged": 19,
+    "final_health_passed": true,
+    "same_new_boot_at_finish": true,
+    "no_production_implementation_or_config_change": true,
+    "owned_observers_stopped": true,
+    "oracle_owned_scratch_removed": true
+  },
+  "decision": {
+    "script_total_lt_2s": null,
+    "initial_wan_event_lt_100ms": false,
+    "automatic_abandon_condition_met": false,
+    "implementation_started": false,
+    "recommendation": "Investigate eliminating demonstrated local redundant work before deciding on a DHCP script rewrite; no claim that replacing shell removes all 317 ms."
+  }
+}
