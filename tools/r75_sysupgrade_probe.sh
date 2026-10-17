@@ -12,13 +12,16 @@
 #   3. valid + backup denied + backup asked -> error reply, procd stays
 #   4. valid, with backup/command/options   -> exec: upgraded.txt written
 #
+# Optional R75_FAKE_WATCHDOG=1 adds a private regular-file watchdog and
+# validates its actual FD handover through PID1 exec. No hardware is exposed.
 # Usage: r75_sysupgrade_probe.sh <rootfs> <candidate> <outdir>
 set -eu
 root=$1; cand=$2; out=$3
+case "${R75_FAKE_WATCHDOG:-0}" in 0|1) ;; *) exit 2 ;; esac
 mkdir -p "$out"
 work=$(mktemp -d /tmp/rv-r75-XXXXXX)
 trap 'rm -rf "$work"' EXIT
-{ echo "candidate: $cand"; md5sum "$cand"; echo "rootfs: $root"; date +%Y-%m-%dT%H:%M:%S; } > "$out/inputs.txt"
+{ echo "candidate: $cand"; md5sum "$cand"; echo "rootfs: $root"; date +%Y-%m-%dT%H:%M:%S; echo "fake_watchdog: ${R75_FAKE_WATCHDOG:-0}"; } > "$out/inputs.txt"
 
 for tag in ${SIDES:-c rs}; do
 	r="$work/$tag-root"
@@ -41,6 +44,16 @@ X
 	echo "pid: $$"
 	env | grep -E '^(UPGRADE_|WDTFD)' | sort
 } > /tmp/out/upgraded.txt
+if [ -f /dev/watchdog ]; then
+    # The namespace creates a regular file, never a hardware device. Seeing
+    # this same open FD after PID1 exec proves the real handover cleared
+    # CLOEXEC; only its number is normalized in the cross-side comparison.
+    case "${WDTFD:-}" in ''|*[!0-9]*) exit 9 ;; esac
+    [ "$(readlink /proc/1/fd/$WDTFD)" = /dev/watchdog ] || exit 10
+    [ -f /proc/1/fd/$WDTFD ] || exit 11
+    cat /proc/1/fdinfo/$WDTFD > /tmp/out/watchdog-fdinfo.txt
+    echo 'watchdog: inherited regular fixture' >> /tmp/out/upgraded.txt
+fi
 exit 0
 X
 	chmod 0755 "$r/sbin/upgraded"
@@ -97,14 +110,16 @@ X
 		mknod -m 666 "$root/dev/urandom" c 1 9
 		mknod -m 666 "$root/dev/zero" c 1 5
 		ip link set lo up
+		# This file exists only under the fresh private /dev tmpfs.
+		[ "$3" != 1 ] || : > "$root/dev/watchdog"
 		if [ "$2" = c ]; then
 			exec chroot "$root" /sbin/procd -S
 		else
 			exec chroot "$root" /sbin/procd-rs
 		fi
-	' sh "$r" "$tag" > "$out/$tag-pid1.log" 2>&1 || echo "ns exit $?" >> "$out/$tag-pid1.log"
+	' sh "$r" "$tag" "${R75_FAKE_WATCHDOG:-0}" > "$out/$tag-pid1.log" 2>&1 || echo "ns exit $?" >> "$out/$tag-pid1.log"
 	umount "$r/proc" "$r/dev" 2>/dev/null || true
-	for f in drive.txt upgraded.txt handover-client.txt; do
+	for f in drive.txt upgraded.txt handover-client.txt watchdog-fdinfo.txt; do
 		cp "$r/tmp/out/$f" "$out/$tag-$f" 2>/dev/null || true
 	done
 done
@@ -133,10 +148,17 @@ for tag in ${SIDES:-c rs}; do
 		&& fail "an invalid option name leaked into the environment"
 	grep -q "UPGRADE_OPT_STR" "$out/$tag-upgraded.txt" 2>/dev/null \
 		&& fail "a string option leaked into the environment"
-	grep -q "WDTFD=" "$out/$tag-upgraded.txt" 2>/dev/null \
-		&& fail "WDTFD exported with no watchdog open"
+	if [ "${R75_FAKE_WATCHDOG:-0}" = 1 ]; then
+		grep -q '^WDTFD=[0-9][0-9]*$' "$out/$tag-upgraded.txt" 2>/dev/null || fail "watchdog FD missing after exec"
+		grep -q '^watchdog: inherited regular fixture$' "$out/$tag-upgraded.txt" 2>/dev/null || fail "watchdog FD did not survive PID1 exec"
+		[ -s "$out/$tag-watchdog-fdinfo.txt" ] || fail "watchdog FD metadata missing"
+	else
+		grep -q "WDTFD=" "$out/$tag-upgraded.txt" 2>/dev/null \
+			&& fail "WDTFD exported with no watchdog open"
+	fi
+	sed 's/^WDTFD=[0-9][0-9]*$/WDTFD=<inherited>/' "$out/$tag-upgraded.txt" > "$out/$tag-upgraded-normalized.txt"
 done
-if ! diff -u "$out/c-upgraded.txt" "$out/rs-upgraded.txt" > "$out/upgraded.diff" 2>&1; then
+if ! diff -u "$out/c-upgraded-normalized.txt" "$out/rs-upgraded-normalized.txt" > "$out/upgraded.diff" 2>&1; then
 	echo "r75: FAIL: upgraded.txt differs across sides (see $out/upgraded.diff)" >&2
 	rc=1
 fi
