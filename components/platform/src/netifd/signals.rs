@@ -6,7 +6,6 @@ use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 static CHILD_PIPE_W: AtomicI32 = AtomicI32::new(-1);
 static EXIT_REQUESTED: AtomicBool = AtomicBool::new(false);
 unsafe extern "C" {
-    fn signal(number: i32, handler: extern "C" fn(i32)) -> usize;
     fn write(fd: i32, bytes: *const u8, count: usize) -> isize;
     fn __errno_location() -> *mut i32;
 }
@@ -40,13 +39,10 @@ impl ChildSignal {
         )?;
         // As before, the handler's write descriptor lives until process exit.
         CHILD_PIPE_W.store(write.into_raw_fd(), Ordering::Relaxed);
-        // SAFETY: startup registers only these static C-ABI handlers. They use
-        // lock-free atomics, one bounded write and no allocation or unwinding.
-        unsafe {
-            signal(17, on_sigchld);
-            for number in [2, 15, 10, 12] {
-                signal(number, on_exit_signal);
-            }
+        // Fixed atomic/self-pipe handlers; startup remains best-effort, as K.
+        let _ = crate::unix::set_signal_handler(17, on_sigchld);
+        for number in [2, 15, 10, 12] {
+            let _ = crate::unix::set_signal_handler(number, on_exit_signal);
         }
         Ok(Self { read })
     }

@@ -4,14 +4,15 @@
 //! the small libc string emulations (atoi/strtol/strtok/fgets) the backend
 //! needs to keep the C parsing rules byte for byte.
 
-use super::sys::{self, Ifreq, AF_INET, IFF_RUNNING, IFF_UP, SIOCGIFFLAGS, SIOCGIFHWADDR, SIOCSIFFLAGS, SIOCSIFHWADDR, SOCK_DGRAM};
+use super::sys::{Ifreq, IFF_RUNNING, IFF_UP, SIOCGIFFLAGS, SIOCGIFHWADDR, SIOCSIFFLAGS, SIOCSIFHWADDR};
 use super::tables::{IWINFO_80211_NAMES, IWINFO_BAND_NAMES, IWINFO_HTMODE_NAMES};
 use super::*;
 use owrt_ubus::convert::fields_to_json;
 use owrt_ubus::json::Json;
 use owrt_ubus::Connection;
 use owrt_uci::model::{OptionValue, Ptr, Section, LOOKUP_EXTENDED};
-use std::cell::Cell;
+use std::cell::RefCell;
+use std::os::fd::OwnedFd;
 use std::io::Read;
 
 pub const LOG10_MAGIC: f64 = 1.25892541179;
@@ -132,40 +133,28 @@ pub fn readdir(path: &str) -> Option<Vec<String>> {
 // ------------------------------------------------------------- ioctl socket
 
 thread_local! {
-    /// `static int ioctl_socket = -1`
-    static IOCTL_SOCKET: Cell<i32> = const { Cell::new(-1) };
+    static IOCTL_SOCKET: RefCell<Option<OwnedFd>> = const { RefCell::new(None) };
 }
 
-/// iwinfo_ioctl_socket
-fn iwinfo_ioctl_socket() -> i32 {
-    IOCTL_SOCKET.with(|c| {
-        if c.get() == -1 {
-            // SAFETY: plain socket(2); fd ownership stays in the cell.
-            let fd = unsafe { sys::socket(AF_INET, SOCK_DGRAM, 0) };
-            sys::set_cloexec(fd);
-            c.set(fd);
+/// iwinfo_ioctl: the cached descriptor remains owned throughout the call.
+pub fn iwinfo_ioctl(cmd: u64, ifr: &mut Ifreq) -> i32 {
+    IOCTL_SOCKET.with(|cell| {
+        let mut socket = cell.borrow_mut();
+        if socket.is_none() {
+            let Ok(fd) = rustix::net::socket(rustix::net::AddressFamily::INET, rustix::net::SocketType::DGRAM, None) else { return -1; };
+            if let Ok(flags) = rustix::io::fcntl_getfd(&fd) {
+                let _ = rustix::io::fcntl_setfd(&fd, flags | rustix::io::FdFlags::CLOEXEC);
+            }
+            *socket = Some(fd);
         }
-        c.get()
+        match owrt_platform::rpcd::interface_ioctl(socket.as_ref().unwrap(), cmd, &ifr.name, &mut ifr.data) {
+            Ok(()) => 0,
+            Err(_) => -1,
+        }
     })
 }
 
-/// iwinfo_ioctl
-pub fn iwinfo_ioctl(cmd: u64, ifr: &mut Ifreq) -> i32 {
-    let s = iwinfo_ioctl_socket();
-    // SAFETY: ioctl on our socket with a properly sized struct ifreq.
-    unsafe { sys::ioctl(s, cmd, ifr as *mut Ifreq as *mut u8) }
-}
-
-/// iwinfo_close
-pub fn iwinfo_close() {
-    IOCTL_SOCKET.with(|c| {
-        if c.get() > -1 {
-            // SAFETY: closing the descriptor we opened.
-            unsafe { sys::close(c.get()) };
-        }
-        c.set(-1);
-    });
-}
+pub fn iwinfo_close() { IOCTL_SOCKET.with(|cell| cell.borrow_mut().take()); }
 
 // --------------------------------------------------------------- conversions
 

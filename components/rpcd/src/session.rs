@@ -10,7 +10,7 @@ use owrt_ubus::blob::{self, Field, MsgType};
 use owrt_ubus::json::Json;
 use owrt_ubus::{status, BlobBuf};
 use std::collections::BTreeMap;
-use std::ffi::{c_char, CStr, CString};
+use std::ffi::CString;
 use std::fs;
 use std::io::Read;
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
@@ -24,11 +24,6 @@ pub const DEFAULT_SID: &str = "00000000000000000000000000000000";
 pub const RUN_DIR: &str = "/var/run/rpcd-rs";
 pub const SESSION_DIR: &str = "/var/run/rpcd-rs/sessions";
 pub const ACL_DIR: &str = "/usr/share/rpcd/acl.d";
-
-#[cfg_attr(target_env = "gnu", link(name = "crypt"))]
-extern "C" {
-    fn crypt(key: *const c_char, salt: *const c_char) -> *mut c_char;
-}
 
 /// A stored session data value with its original blobmsg type.
 #[derive(Clone, Debug)]
@@ -460,18 +455,7 @@ fn test_password(hash: &str, password: &str) -> bool {
         return false;
     }
     let (Ok(key), Ok(salt)) = (CString::new(password), CString::new(hash)) else { return false };
-    // SAFETY: crypt takes two NUL-terminated strings and returns either NULL
-    // or a pointer to libc's static result buffer, valid until the next call
-    // (we are single-threaded here and copy it out immediately).
-    let out = unsafe { crypt(key.as_ptr(), salt.as_ptr()) };
-    if out.is_null() {
-        return false;
-    }
-    // SAFETY: crypt returned non-null (checked above); the string it points at
-    // is NUL-terminated and stays valid until the next crypt call, and it is
-    // compared before anything else can call crypt.
-    let s = unsafe { CStr::from_ptr(out) };
-    s.to_bytes() == hash.as_bytes()
+    owrt_platform::rpcd::crypt_matches(&key, &salt, hash.as_bytes())
 }
 
 /// rpc_login_test_login: find a `login` section whose username matches and

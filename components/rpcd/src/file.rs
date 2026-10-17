@@ -672,10 +672,6 @@ mod tests {
         assert_eq!(PathArgs::from_blob(&[]), PathArgs { path: None, sid: None });
     }
 
-    extern "C" {
-        fn umask(mask: u32) -> u32;
-    }
-
     /// rpc_file_exec_run measures each parameter with blobmsg_data_len(), which
     /// counts the string's NUL terminator, so the last command line that still
     /// passes the ACL check is 1023 bytes long. Dropping that byte let a
@@ -706,16 +702,14 @@ mod tests {
     fn write_creates_with_the_exact_mode_and_leaves_the_umask_alone() {
         let path = format!("{}/r83-mode-{}", std::env::temp_dir().display(), std::process::id());
         let _ = std::fs::remove_file(&path);
-        // SAFETY: umask(2) has no preconditions; restored below.
-        let prev = unsafe { umask(0o077) };
+        let prev = rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o077));
         let mode_of = |p: &str| std::fs::metadata(p).unwrap().permissions().mode() & 0o7777;
         open_for_write(&path, 0o666, false).expect("create");
         assert_eq!(mode_of(&path), 0o666, "a new file must get the requested mode, not mode & ~umask");
         std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
         open_for_write(&path, 0o666, false).expect("reopen");
         assert_eq!(mode_of(&path), 0o600, "an existing file keeps its mode");
-        // SAFETY: restoring the value read above; also asserts nothing moved it.
-        let during = unsafe { umask(prev) };
+        let during = rustix::process::umask(prev).as_raw_mode();
         assert_eq!(during, 0o077, "the process umask must be untouched");
         let _ = std::fs::remove_file(&path);
     }

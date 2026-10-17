@@ -1,7 +1,6 @@
 //! Small self-contained helpers: MD5, Base64, file.c path canonicalisation,
 //! passwd/group lookups, statvfs/uname via FFI.
 
-use std::ffi::CString;
 use std::io::{BufRead, BufReader};
 
 pub use owrt_ubus::digest::md5;
@@ -193,60 +192,18 @@ impl IdentityNames {
     }
 }
 
-// ----------------------------------------------------------- FFI bits
+// ----------------------------------------------------------- system metadata
 
-#[repr(C)]
-#[derive(Default)]
-pub struct StatVfs {
-    pub f_bsize: u64,
-    pub f_frsize: u64,
-    pub f_blocks: u64,
-    pub f_bfree: u64,
-    pub f_bavail: u64,
-    pub f_files: u64,
-    pub f_ffree: u64,
-    pub f_favail: u64,
-    pub f_fsid: u64,
-    pub f_flag: u64,
-    pub f_namemax: u64,
-    _spare: [u32; 6],
-}
-
-extern "C" {
-    fn statvfs(path: *const std::os::raw::c_char, buf: *mut StatVfs) -> i32;
-    fn uname(buf: *mut [u8; 6 * 65]) -> i32;
-    fn sync();
-}
-
-pub fn statvfs_of(path: &str) -> Option<StatVfs> {
-    let c = CString::new(path).ok()?;
-    let mut st = StatVfs::default();
-    // SAFETY: a NUL-terminated path and a live, correctly sized struct. The
-    // layout is asserted against the target's headers by `make check-abi`.
-    if unsafe { statvfs(c.as_ptr(), &mut st) } == 0 {
-        Some(st)
-    } else {
-        None
-    }
+pub fn statvfs_of(path: &str) -> Option<rustix::fs::StatVfs> {
+    rustix::fs::statvfs(path).ok()
 }
 
 /// `uname().machine`
 pub fn machine() -> String {
-    let mut buf = [0u8; 6 * 65];
-    // SAFETY: buf is exactly sizeof(struct utsname) for this target, which
-    // `make check-abi` asserts.
-    if unsafe { uname(&mut buf) } != 0 {
-        return String::new();
-    }
-    let m = &buf[4 * 65..5 * 65];
-    let end = m.iter().position(|&b| b == 0).unwrap_or(m.len());
-    String::from_utf8_lossy(&m[..end]).into_owned()
+    rustix::system::uname().machine().to_string_lossy().into_owned()
 }
 
-pub fn sync_all() {
-    // SAFETY: sync(2) takes no arguments and touches no memory of ours.
-    unsafe { sync() }
-}
+pub fn sync_all() { rustix::fs::sync(); }
 
 #[cfg(test)]
 mod tests {

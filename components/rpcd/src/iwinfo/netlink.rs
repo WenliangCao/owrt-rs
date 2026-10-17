@@ -5,8 +5,10 @@
 //! `nl80211_send` receive loop with libnl's default callback semantics
 //! (sequence check, NLMSG_DONE => finish, NLMSG_ERROR => error/ack).
 
-use super::sys::{self, SockaddrNl, AF_NETLINK, EINVAL, ENOENT, ENOLINK, ENOMEM, NETLINK_GENERIC, SOCK_RAW};
-use std::cell::Cell;
+use super::sys::{EINVAL, ENOENT, ENOLINK, ENOMEM};
+use std::cell::RefCell;
+use std::os::fd::OwnedFd;
+use std::rc::Rc;
 
 pub const NLMSG_NOOP: u16 = 0x1;
 pub const NLMSG_ERROR: u16 = 0x2;
@@ -276,9 +278,9 @@ pub fn nla_parse_nested<'a>(attr: Attr<'a>, maxtype: usize, policy: &Policy) -> 
 }
 
 /// struct nl80211_state: socket plus resolved family ids.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Nls {
-    pub fd: i32,
+    pub fd: Rc<OwnedFd>,
     pub nl80211: u16,
     pub nlctrl: u16,
     seq: u32,
@@ -287,11 +289,11 @@ pub struct Nls {
 thread_local! {
     /// `static struct nl80211_state *nls` (per thread, as the callers are
     /// plain functions and rpcd-rs serves requests from worker threads).
-    static NLS: Cell<Option<Nls>> = const { Cell::new(None) };
+    static NLS: RefCell<Option<Nls>> = const { RefCell::new(None) };
 }
 
 pub fn nls() -> Option<Nls> {
-    NLS.with(|c| c.get())
+    NLS.with(|c| c.borrow().clone())
 }
 
 /// genl_ctrl_resolve(): CTRL_CMD_GETFAMILY by name -> CTRL_ATTR_FAMILY_ID.
@@ -318,46 +320,27 @@ pub fn nl80211_init() -> i32 {
     if nls().is_some() {
         return 0;
     }
-    // SAFETY: plain socket(2)/bind(2) on a fresh descriptor.
-    let fd = unsafe { sys::socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC) };
-    if fd < 0 {
-        return -ENOMEM;
-    }
-    let addr = SockaddrNl { family: AF_NETLINK as u16, pad: 0, pid: 0, groups: 0 };
-    // SAFETY: addr lives across the call and the length describes it.
-    let rc = unsafe { sys::bind(fd, &addr as *const SockaddrNl, std::mem::size_of::<SockaddrNl>() as u32) };
-    if rc < 0 {
-        // SAFETY: setup failed; fd came from socket(2) here and nothing else
-        // has taken ownership of it.
-        unsafe { sys::close(fd) };
+    let Ok(fd) = rustix::net::socket(rustix::net::AddressFamily::NETLINK,
+        rustix::net::SocketType::RAW, Some(rustix::net::netlink::GENERIC)) else { return -ENOMEM; };
+    if rustix::net::bind(&fd, &rustix::net::netlink::SocketAddrNetlink::new(0, 0)).is_err() {
         return -ENOLINK;
     }
-    if sys::set_cloexec(fd) < 0 {
-        // SAFETY: setup failed; fd came from socket(2) here and nothing else
-        // has taken ownership of it.
-        unsafe { sys::close(fd) };
+    if rustix::io::fcntl_getfd(&fd).and_then(|flags| rustix::io::fcntl_setfd(&fd, flags | rustix::io::FdFlags::CLOEXEC)).is_err() {
         return -EINVAL;
     }
+    let fd = Rc::new(fd);
     let mut st = Nls { fd, nl80211: 0, nlctrl: GENL_ID_CTRL, seq: 1 };
     match genl_ctrl_resolve(&mut st, "nl80211") {
         Some(id) => st.nl80211 = id,
-        None => {
-            // SAFETY: setup failed; fd came from socket(2) here and nothing else
-        // has taken ownership of it.
-        unsafe { sys::close(fd) };
-            return -ENOENT;
-        }
+        None => return -ENOENT,
     }
-    NLS.with(|c| c.set(Some(st)));
+    NLS.with(|c| *c.borrow_mut() = Some(st));
     0
 }
 
 /// nl80211_close
 pub fn nl80211_close() {
-    if let Some(st) = NLS.with(|c| c.take()) {
-        // SAFETY: closing our own descriptor once.
-        unsafe { sys::close(st.fd) };
-    }
+    NLS.with(|c| c.borrow_mut().take());
 }
 
 /// One nl_recvmsgs() pass with libnl's default handlers wired the way
@@ -378,12 +361,10 @@ pub fn recvmsgs(st: &Nls, expect_seq: Option<u32>, err: &mut i32, cb: &mut dyn F
 }
 
 fn recvmsgs_into(buf: &mut [u8], st: &Nls, expect_seq: Option<u32>, err: &mut i32, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
-    // SAFETY: recv into a live buffer of the stated length.
-    let n = unsafe { sys::recv(st.fd, buf.as_mut_ptr(), buf.len(), 0) };
-    if n < 0 {
-        return -sys::errno();
-    }
-    let n = n as usize;
+    let (_, n) = match rustix::net::recv(st.fd.as_ref(), &mut *buf, rustix::net::RecvFlags::empty()) {
+        Ok(result) => result,
+        Err(error) => return -error.raw_os_error(),
+    };
     let mut off = 0;
     while off + NLMSG_HDRLEN <= n {
         let len = u32::from_ne_bytes([buf[off], buf[off + 1], buf[off + 2], buf[off + 3]]) as usize;
@@ -426,20 +407,9 @@ fn send_on(st: &mut Nls, mut msg: Msg, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
     let seq = st.seq;
     st.seq = st.seq.wrapping_add(1);
     msg.complete(seq, 0);
-    let dst = SockaddrNl { family: AF_NETLINK as u16, pad: 0, pid: 0, groups: 0 };
-    // SAFETY: sendto with a fully initialised buffer and address.
-    let sent = unsafe {
-        sys::sendto(
-            st.fd,
-            msg.buf.as_ptr(),
-            msg.buf.len(),
-            0,
-            &dst as *const SockaddrNl as *const u8,
-            std::mem::size_of::<SockaddrNl>() as u32,
-        )
-    };
-    if sent < 0 {
-        return -sys::errno();
+    let dst = rustix::net::netlink::SocketAddrNetlink::new(0, 0);
+    if let Err(error) = rustix::net::sendto(st.fd.as_ref(), &msg.buf, rustix::net::SendFlags::empty(), &dst) {
+        return -error.raw_os_error();
     }
     let mut err = 1;
     while err > 0 {
@@ -461,10 +431,9 @@ pub fn nl80211_send(msg: Msg, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
     let rc = send_on(&mut st, msg, cb);
     // Callbacks never touch the state, only the sequence counter moved.
     NLS.with(|c| {
-        if let Some(cur) = c.get() {
-            if cur.fd == st.fd {
-                c.set(Some(st));
-            }
+        let mut current = c.borrow_mut();
+        if current.as_ref().is_some_and(|cur| Rc::ptr_eq(&cur.fd, &st.fd)) {
+            *current = Some(st);
         }
     });
     rc
@@ -475,14 +444,10 @@ pub fn nl_socket_add_membership(group: i32) -> i32 {
     let Some(st) = nls() else {
         return -ENOLINK;
     };
-    // SAFETY: setsockopt with a 4-byte integer option value.
-    let rc = unsafe {
-        sys::setsockopt(st.fd, sys::SOL_NETLINK, sys::NETLINK_ADD_MEMBERSHIP, &group as *const i32 as *const u8, 4)
-    };
-    if rc < 0 {
-        return -sys::errno();
+    match owrt_platform::rpcd::netlink_membership(st.fd.as_ref(), group) {
+        Ok(()) => 0,
+        Err(error) => -error.raw_os_error().unwrap_or(0),
     }
-    0
 }
 
 #[cfg(test)]

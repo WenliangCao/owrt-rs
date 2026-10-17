@@ -207,11 +207,6 @@ fn password_set(raw: &[u8]) -> Reply {
     code(0)
 }
 
-extern "C" {
-    fn fork() -> i32;
-    fn sleep(secs: u32) -> u32;
-}
-
 pub enum Outcome {
     Now(Request, Reply),
     Deferred,
@@ -257,25 +252,7 @@ pub fn call(req: Request, ctx: &Ctx, deferrer: &Deferrer) -> Outcome {
             code(0)
         }
         "reboot" => {
-            extern "C" {
-                fn reboot(cmd: i32) -> i32;
-            }
-            // C: `if (!fork()) { sync(); sleep(2); reboot(RB_AUTOBOOT); while (1); }`
-            // SAFETY: fork(2); the child only calls sync/sleep/reboot.
-            let pid = unsafe {
-                let pid = fork();
-                if pid == 0 {
-                    crate::util::sync_all();
-                    sleep(2);
-                    reboot(0x0123_4567);
-                    // C spins here; reboot(2) does not return for a privileged
-                    // caller, and idling beats burning a core if it ever does.
-                    loop {
-                        sleep(3600);
-                    }
-                }
-                pid
-            };
+            let pid = owrt_platform::rpcd::delayed_reboot();
             ctx.delayed.borrow_mut().track(pid);
             code(0)
         }

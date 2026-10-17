@@ -3,13 +3,6 @@
 
 use std::path::Path;
 
-// fnmatch(3) comes from the same musl linked into the exact OpenWrt image.
-// Keep the allocation-free literal / star path for normal ACL requests.
-unsafe extern "C" {
-    #[link_name = "fnmatch"]
-    fn libc_fnmatch(pattern: *const std::ffi::c_char, name: *const std::ffi::c_char, flags: i32) -> i32;
-}
-
 pub fn fnmatch(pattern: &[u8], name: &[u8]) -> bool {
     match_with_flags(pattern, name, 2) // FNM_NOESCAPE: session ACL entries
 }
@@ -43,15 +36,13 @@ fn match_with_flags(pattern: &[u8], name: &[u8], flags: i32) -> bool {
         let mut n = [0u8; STACK];
         p[..pattern.len()].copy_from_slice(pattern);
         n[..name.len()].copy_from_slice(name);
-        // SAFETY: both arrays are NUL-terminated (zero-filled past the copied
-        // bytes, which contain no NUL) and outlive this synchronous call.
-        return unsafe { libc_fnmatch(p.as_ptr().cast(), n.as_ptr().cast(), flags) == 0 };
+        return owrt_platform::rpcd::fnmatch(
+            std::ffi::CStr::from_bytes_until_nul(&p).unwrap(),
+            std::ffi::CStr::from_bytes_until_nul(&n).unwrap(), flags);
     }
     let pattern = std::ffi::CString::new(pattern).unwrap();
     let name = std::ffi::CString::new(name).unwrap();
-    // SAFETY: both NUL-terminated strings live through this synchronous call;
-    // flags are the image's FNM_NOESCAPE or zero, with no pointer outputs.
-    unsafe { libc_fnmatch(pattern.as_ptr(), name.as_ptr(), flags) == 0 }
+    owrt_platform::rpcd::fnmatch(&pattern, &name, flags)
 }
 
 fn has_magic(s: &str) -> bool {

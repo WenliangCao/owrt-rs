@@ -4,7 +4,8 @@
 //! is an `Err(())`, every `return 0` an `Ok(..)`.
 
 use super::netlink::{self, nla_parse, nla_parse_nested, Attr, Msg, Nlmsg, Policy, Tb, NLM_F_DUMP};
-use super::sys::{self, SockaddrUn, AF_UNIX, ENOENT, ENOMEM, IFNAMSIZ, SOCK_DGRAM};
+use super::sys::{self, ENOENT, ENOMEM, IFNAMSIZ};
+use std::os::fd::OwnedFd;
 use super::utils::{self, atoi, cstr, fgets_chunks, readdir, strtok, strtok_all, strtol16, strtoul16};
 use super::*;
 use std::fs::File;
@@ -367,8 +368,7 @@ fn nl80211_is_ifname(name: &str) -> bool {
 
 fn if_nametoindex(name: &str) -> u32 {
     let c = sys::cpath(name.as_bytes());
-    // SAFETY: NUL-terminated name buffer.
-    unsafe { sys::if_nametoindex(c.as_ptr()) }
+    owrt_platform::rpcd::interface_index(std::ffi::CStr::from_bytes_until_nul(&c).unwrap())
 }
 
 /// nl80211_msg: a request addressed by ifindex (real or "mon." interface)
@@ -758,77 +758,37 @@ fn nl80211_hostapd_query(ifname: &str, keys: &[(&str, usize)]) -> (i32, Vec<Vec<
 
 /// nl80211_wpactl_recv: select() with a 256 ms timeout, then recv() into a
 /// zeroed `buf[blen]` (at most blen - 1 bytes). Returns (result, buffer).
-fn nl80211_wpactl_recv(sock: i32, blen: usize) -> (isize, Vec<u8>) {
+fn nl80211_wpactl_recv(sock: &OwnedFd, blen: usize) -> (isize, Vec<u8>) {
     let mut buf = vec![0u8; blen];
-    let mut rfds = sys::FdSet::zero();
-    rfds.set(sock);
-    let mut tv = sys::Timeval { sec: 0, usec: 256000 };
-    // SAFETY: select on our socket; recv into an owned buffer of blen bytes.
-    let r = unsafe { sys::select(sock + 1, &mut rfds, std::ptr::null_mut(), std::ptr::null_mut(), &mut tv) };
-    if r < 0 {
-        return (-1, buf);
-    }
-    if !rfds.is_set(sock) {
-        return (-1, buf);
-    }
-    // SAFETY: buf is live and `blen - 1` is within it, leaving room for the
-    // terminator the caller appends.
-    let n = unsafe { sys::recv(sock, buf.as_mut_ptr(), blen - 1, 0) };
+    if !owrt_platform::rpcd::select_readable(sock, 256000).unwrap_or(false) { return (-1, buf); }
+    let n = rustix::net::recv(sock, &mut buf[..blen - 1], rustix::net::RecvFlags::empty())
+        .map_or(-1, |(_, n)| n as isize);
     (n, buf)
 }
 
-/// nl80211_wpactl_connect: a datagram client socket connected to
-/// /var/run/wpa_supplicant/<ifname>, bound to /var/run/iwinfo-<ifname>-<pid>.
-/// Err carries the C return value (< 0).
-fn nl80211_wpactl_connect(ifname: &str) -> Result<(i32, Vec<u8>), i32> {
-    // SAFETY: socket/fchmod/fcntl/connect/bind/lchown on our own descriptor
-    // with fully initialised sockaddr_un buffers.
-    unsafe {
-        let sock = sys::socket(AF_UNIX, SOCK_DGRAM, 0);
-        if sock < 0 {
-            return Err(sock);
-        }
-        let mut remote = SockaddrUn::zeroed();
-        remote.family = AF_UNIX as u16;
-        let remote_length = remote.set_path(format!("/var/run/wpa_supplicant/{ifname}").as_bytes());
-
-        /* Set client socket file permissions so that bind() creates the client
-         * socket with these permissions (see the C comment). */
-        sys::fchmod(sock, 0o660);
-
-        if sys::set_cloexec(sock) < 0 {
-            sys::close(sock);
-            return Err(-1);
-        }
-        if sys::connect(sock, &remote as *const SockaddrUn as *const u8, remote_length) != 0 {
-            sys::close(sock);
-            return Err(-1);
-        }
-        let mut local = SockaddrUn::zeroed();
-        local.family = AF_UNIX as u16;
-        let path = format!("/var/run/iwinfo-{ifname}-{}", sys::getpid());
-        let local_length = local.set_path(path.as_bytes());
-        if sys::bind(sock, &local as *const SockaddrUn as *const sys::SockaddrNl, local_length) < 0 {
-            sys::close(sock);
-            return Err(-1);
-        }
-        /* Set group even if we do not have privileges to change owner */
-        let cp = sys::cpath(path.as_bytes());
-        sys::lchown(cp.as_ptr(), u32::MAX, 101);
-        sys::lchown(cp.as_ptr(), 101, 101);
-        Ok((sock, path.into_bytes()))
-    }
+/// Preserve the C's connect-before-bind order, address lengths and ownership.
+fn nl80211_wpactl_connect(ifname: &str) -> Result<(OwnedFd, Vec<u8>), i32> {
+    let sock = rustix::net::socket(rustix::net::AddressFamily::UNIX, rustix::net::SocketType::DGRAM, None).map_err(|_| -1)?;
+    let remote = format!("/var/run/wpa_supplicant/{ifname}");
+    let _ = rustix::fs::fchmod(&sock, rustix::fs::Mode::from_raw_mode(0o660));
+    let flags = rustix::io::fcntl_getfd(&sock).map_err(|_| -1)?;
+    rustix::io::fcntl_setfd(&sock, flags | rustix::io::FdFlags::CLOEXEC).map_err(|_| -1)?;
+    owrt_platform::rpcd::connect_unix_path(&sock, remote.as_bytes()).map_err(|_| -1)?;
+    let path = format!("/var/run/iwinfo-{ifname}-{}", std::process::id());
+    owrt_platform::rpcd::bind_unix_path(&sock, path.as_bytes()).map_err(|_| -1)?;
+    let gid = rustix::process::Gid::from_raw(101);
+    let _ = rustix::fs::chownat(rustix::fs::CWD, path.as_str(), None, Some(gid), rustix::fs::AtFlags::SYMLINK_NOFOLLOW);
+    let _ = rustix::fs::chownat(rustix::fs::CWD, path.as_str(), Some(rustix::process::Uid::from_raw(101)), Some(gid), rustix::fs::AtFlags::SYMLINK_NOFOLLOW);
+    Ok((sock, path.into_bytes()))
 }
 
-fn wpactl_close(sock: i32, local: &[u8]) {
-    // SAFETY: closing our own descriptor.
-    unsafe { sys::close(sock) };
+fn wpactl_close(sock: OwnedFd, local: &[u8]) {
+    drop(sock);
     let _ = std::fs::remove_file(String::from_utf8_lossy(local).as_ref());
 }
 
-fn wpactl_send(sock: i32, cmd: &[u8]) -> isize {
-    // SAFETY: send of an immutable slice.
-    unsafe { sys::send(sock, cmd.as_ptr(), cmd.len(), 0) }
+fn wpactl_send(sock: &OwnedFd, cmd: &[u8]) -> isize {
+    rustix::net::send(sock, cmd, rustix::net::SendFlags::empty()).map_or(-1, |n| n as isize)
 }
 
 /// The STATUS reply parsing of __nl80211_wpactl_query: `key=value` lines,
@@ -867,9 +827,9 @@ fn nl80211_wpactl_query(ifname: &str, keys: &[(&str, usize)]) -> (i32, Vec<Vec<u
         return (0, out);
     };
     let mut result = (0, out);
-    wpactl_send(sock, b"STATUS");
+    wpactl_send(&sock, b"STATUS");
     loop {
-        let (n, buf) = nl80211_wpactl_recv(sock, 512);
+        let (n, buf) = nl80211_wpactl_recv(&sock, 512);
         if n <= 0 {
             break;
         }
@@ -921,8 +881,7 @@ fn nl80211_hostapd_hup(ifname: &str) {
         }
     }
     if pid > 0 {
-        // SAFETY: kill(2) with a pid read from hostapd's pid file.
-        unsafe { sys::kill(pid, sys::SIGHUP) };
+        let _ = rustix::process::kill_process(rustix::process::Pid::from_raw(pid).unwrap(), rustix::process::Signal::HUP);
     }
 }
 
@@ -2397,13 +2356,13 @@ fn nl80211_get_scanlist_wpactl(ifname: &str) -> Result<Vec<ScanlistEntry>, i32> 
     let mut ready = false;
     let mut list = Vec::new();
 
-    wpactl_send(sock, b"ATTACH");
-    wpactl_send(sock, b"SCAN");
+    wpactl_send(&sock, b"ATTACH");
+    wpactl_send(&sock, b"SCAN");
 
     /* wait for scan results (see the C comment on the 75 tries) */
     let mut tries: i32 = 0;
     while tries < 75 {
-        let (n, reply) = nl80211_wpactl_recv(sock, 4096);
+        let (n, reply) = nl80211_wpactl_recv(&sock, 4096);
         if n > 0 {
             let reply = cstr(&reply);
             /* got an event notification */
@@ -2411,7 +2370,7 @@ fn nl80211_get_scanlist_wpactl(ifname: &str) -> Result<Vec<ScanlistEntry>, i32> 
                 /* scan results are ready */
                 if reply.windows(23).any(|w| w == b"CTRL-EVENT-SCAN-RESULTS") {
                     /* send "SCAN_RESULTS" command */
-                    ready = wpactl_send(sock, b"SCAN_RESULTS") == 12;
+                    ready = wpactl_send(&sock, b"SCAN_RESULTS") == 12;
                     break;
                 }
                 /* is another unrelated event, retry */
@@ -2433,7 +2392,7 @@ fn nl80211_get_scanlist_wpactl(ifname: &str) -> Result<Vec<ScanlistEntry>, i32> 
      * (C: `while (ready)`; the body always breaks except on event lines) */
     if ready {
         loop {
-            let (n, reply) = nl80211_wpactl_recv(sock, 4096);
+            let (n, reply) = nl80211_wpactl_recv(&sock, 4096);
             if n <= 0 {
                 break;
             }

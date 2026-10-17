@@ -2,6 +2,7 @@
 //! plugin-layer objects (`file`, `luci`; contract C5) as one ubus object server.
 //! Runtime state lives under /var/run/rpcd-rs (decision 0013).
 
+#![forbid(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
@@ -123,57 +124,21 @@ impl Deferrer {
     }
 }
 
-extern "C" {
-    fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-    fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
-    fn umask(mask: u32) -> u32;
-}
-
 static SIGNAL: AtomicI32 = AtomicI32::new(0);
 static WAKE_FD: AtomicI32 = AtomicI32::new(-1);
 const SIGHUP: i32 = 1;
 const SIGUSR1: i32 = 10;
 const SIGCHLD: i32 = 17;
 
-fn wake(fd: RawFd) {
-    let b = [1u8];
-    // SAFETY: plain write(2) of one byte to our own pipe; async-signal-safe.
-    unsafe {
-        write(fd, b.as_ptr(), 1);
-    }
-}
+fn wake(fd: RawFd) { owrt_platform::rpcd::wake(fd); }
 
 extern "C" fn handle_signal(sig: i32) {
-    #[cfg(target_os = "linux")]
-    // SAFETY: errno belongs to this thread; preserve the interrupted call's
-    // error across write(2), including EAGAIN from an already-full wake pipe.
-    let (errno, saved_errno) = unsafe {
-        extern "C" { fn __errno_location() -> *mut i32; }
-        let errno = __errno_location();
-        (errno, *errno)
-    };
-    if sig != SIGCHLD {
-        SIGNAL.store(sig, Ordering::SeqCst);
-    }
+    if sig != SIGCHLD { SIGNAL.store(sig, Ordering::SeqCst); }
     let fd = WAKE_FD.load(Ordering::SeqCst);
-    if fd >= 0 {
-        wake(fd);
-    }
-    #[cfg(target_os = "linux")]
-    // SAFETY: the thread-local errno pointer above remains live in this handler.
-    unsafe { *errno = saved_errno; }
+    if fd >= 0 { wake(fd); }
 }
 
-fn drain(fd: RawFd) {
-    let mut buf = [0u8; 64];
-    loop {
-        // SAFETY: non-blocking read into a local buffer.
-        let n = unsafe { read(fd, buf.as_mut_ptr(), buf.len()) };
-        if n <= 0 {
-            break;
-        }
-    }
-}
+fn drain(fd: RawFd) { owrt_platform::rpcd::drain_pipe(fd); }
 
 fn wake_pipe() -> std::io::Result<(std::os::fd::OwnedFd, std::os::fd::OwnedFd)> {
     let (read, write) = sys::pipe()?;
@@ -320,10 +285,7 @@ fn main() {
     if std::fs::metadata(session::RUN_DIR).is_err() {
         let _ = std::fs::DirBuilder::new().mode(0o700).create(session::RUN_DIR);
     }
-    // SAFETY: umask(2) has no preconditions.
-    unsafe {
-        umask(0o077);
-    }
+    rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o077));
     sys::ignore_signal(sys::SIGPIPE);
     let (pipe_r, pipe_w) = wake_pipe().unwrap_or_else(|e| {
         eprintln!("pipe: {e}");
@@ -566,37 +528,21 @@ mod wake_tests {
     fn saturated_wake_pipe_keeps_signal_handling_live() {
         const CHILD: &str = "OWRT_RPCD_WAKE_TEST_CHILD";
         if std::env::var_os(CHILD).is_some() {
-            extern "C" {
-                fn fcntl(fd: i32, command: i32, value: i32) -> i32;
-                fn __errno_location() -> *mut i32;
-            }
             let (read_end, write_end) = wake_pipe().unwrap();
             let fd = write_end.as_raw_fd();
-            // SAFETY: F_GETFL reads the flags of our live pipe descriptor.
-            let original_flags = unsafe { fcntl(fd, 3, 0) };
-            assert!(original_flags >= 0);
+            let original_flags = rustix::fs::fcntl_getfl(&write_end).unwrap();
             sys::set_nonblocking(fd).unwrap();
             let bytes = [0u8; 4096];
             loop {
-                // SAFETY: the live pipe and buffer remain valid during write.
-                let n = unsafe { write(fd, bytes.as_ptr(), bytes.len()) };
-                if n < 0 {
-                    assert_eq!(std::io::Error::last_os_error().kind(), std::io::ErrorKind::WouldBlock);
-                    break;
+                match rustix::io::write(&write_end, &bytes) {
+                    Ok(n) => assert!(n > 0),
+                    Err(error) => { assert_eq!(error, rustix::io::Errno::AGAIN); break; }
                 }
-                assert!(n > 0);
             }
-            // Restore the production flags before exercising the real handler.
-            // SAFETY: F_SETFL accepts the flags obtained from this descriptor.
-            assert_eq!(unsafe { fcntl(fd, 4, original_flags) }, 0);
+            rustix::fs::fcntl_setfl(&write_end, original_flags).unwrap();
             WAKE_FD.store(fd, Ordering::SeqCst);
-            // SAFETY: this thread owns its errno cell for the test duration.
-            let errno = unsafe { __errno_location() };
-            // SAFETY: the live thread-local cell accepts any saved error code.
-            unsafe { *errno = 22; }
-            handle_signal(SIGCHLD);
-            // SAFETY: errno is still this thread's live error cell.
-            assert_eq!(unsafe { *errno }, 22, "signal handler changed interrupted errno");
+            let (_, after) = owrt_platform::rpcd::with_errno(22, || handle_signal(SIGCHLD));
+            assert_eq!(after, 22, "signal handler changed interrupted errno");
             drain(read_end.as_raw_fd());
             handle_signal(SIGCHLD);
             assert!(sys::wait_readable(read_end.as_raw_fd(), 100).unwrap());

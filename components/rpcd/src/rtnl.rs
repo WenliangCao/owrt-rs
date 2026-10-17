@@ -3,13 +3,6 @@
 //! from the link and address dumps (luci-rpc.c consumes getifaddrs()).
 
 use std::io;
-use std::os::fd::{FromRawFd, OwnedFd, AsRawFd};
-
-const AF_NETLINK: i32 = 16;
-const SOCK_RAW: i32 = 3;
-const SOCK_CLOEXEC: i32 = 0o2000000;
-const NETLINK_ROUTE: i32 = 0;
-
 pub const AF_INET: u8 = 2;
 pub const AF_INET6: u8 = 10;
 pub const AF_PACKET: u8 = 17;
@@ -45,21 +38,6 @@ pub const IFF_NOARP: u32 = 0x80;
 pub const IFF_PROMISC: u32 = 0x100;
 pub const IFF_MULTICAST: u32 = 0x1000;
 
-#[repr(C)]
-struct SockaddrNl {
-    family: u16,
-    pad: u16,
-    pid: u32,
-    groups: u32,
-}
-
-extern "C" {
-    fn socket(domain: i32, ty: i32, proto: i32) -> i32;
-    fn bind(fd: i32, addr: *const SockaddrNl, len: u32) -> i32;
-    fn send(fd: i32, buf: *const u8, len: usize, flags: i32) -> isize;
-    fn recv(fd: i32, buf: *mut u8, len: usize, flags: i32) -> isize;
-}
-
 /// One netlink message of a dump: type, flags, payload after the 16-byte header.
 pub struct Msg {
     pub ty: u16,
@@ -89,20 +67,9 @@ pub fn attrs(data: &[u8]) -> Vec<(u16, &[u8])> {
 /// header `hdr` (ifinfomsg/ifaddrmsg/ndmsg, zero-filled by the callers);
 /// returns every multipart message until NLMSG_DONE.
 pub fn dump(ty: u16, hdr: &[u8]) -> io::Result<Vec<Msg>> {
-    // SAFETY: plain socket(2)/bind(2)/send(2)/recv(2) on a netlink socket we own.
-    let fd = unsafe { socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_ROUTE) };
-    if fd < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: socket(2) just returned this descriptor and nothing else holds
-    // it, so OwnedFd may take over closing it.
-    let fd = unsafe { OwnedFd::from_raw_fd(fd) };
-    let sa = SockaddrNl { family: AF_NETLINK as u16, pad: 0, pid: 0, groups: 0 };
-    // SAFETY: bind(2) with an address that lives across the call and a length
-    // that describes it.
-    if unsafe { bind(fd.as_raw_fd(), &sa, std::mem::size_of::<SockaddrNl>() as u32) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
+    let fd = rustix::net::socket_with(rustix::net::AddressFamily::NETLINK,
+        rustix::net::SocketType::RAW, rustix::net::SocketFlags::CLOEXEC, None)?;
+    rustix::net::bind(&fd, &rustix::net::netlink::SocketAddrNetlink::new(0, 0))?;
     let seq: u32 = 1;
     let total = (16 + hdr.len() + 3) & !3;
     let mut req = Vec::with_capacity(total);
@@ -113,23 +80,15 @@ pub fn dump(ty: u16, hdr: &[u8]) -> io::Result<Vec<Msg>> {
     req.extend_from_slice(&0u32.to_le_bytes());
     req.extend_from_slice(hdr);
     req.resize(total, 0);
-    // SAFETY: req is live and its length is passed alongside.
-    if unsafe { send(fd.as_raw_fd(), req.as_ptr(), req.len(), 0) } < 0 {
-        return Err(io::Error::last_os_error());
-    }
+    rustix::net::send(&fd, &req, rustix::net::SendFlags::empty())?;
     let mut out = Vec::new();
     let mut buf = vec![0u8; 65536];
     loop {
-        // SAFETY: buf is live and its length bounds what the kernel may write.
-        let n = unsafe { recv(fd.as_raw_fd(), buf.as_mut_ptr(), buf.len(), 0) };
-        if n < 0 {
-            let e = io::Error::last_os_error();
-            if e.kind() == io::ErrorKind::Interrupted {
-                continue;
-            }
-            return Err(e);
-        }
-        let n = n as usize;
+        let (_, n) = match rustix::net::recv(&fd, &mut buf, rustix::net::RecvFlags::empty()) {
+            Ok(result) => result,
+            Err(rustix::io::Errno::INTR) => continue,
+            Err(error) => return Err(error.into()),
+        };
         let mut off = 0;
         let mut done = false;
         while off + 16 <= n {

@@ -11,7 +11,6 @@ use std::sync::mpsc::{self, RecvTimeoutError};
 use std::thread;
 use std::time::{Duration, Instant};
 
-const SIGKILL: i32 = 9;
 
 pub enum Outcome {
     Exited(ExitStatus),
@@ -41,8 +40,7 @@ pub fn wait(child: &mut Child, timeout: Duration) -> io::Result<Outcome> {
                 }
             }
             if started.elapsed() >= timeout {
-                // SAFETY: plain kill(2); ESRCH (already gone) is harmless here.
-                unsafe { crate::iwinfo::sys::kill(pid, SIGKILL) };
+                let _ = rustix::process::kill_process(rustix::process::Pid::from_raw(pid).unwrap(), rustix::process::Signal::KILL);
                 let _ = rx.recv();
                 return Ok(Outcome::TimedOut);
             }
@@ -53,25 +51,16 @@ pub fn wait(child: &mut Child, timeout: Duration) -> io::Result<Outcome> {
 /// waitpid(WNOHANG) every 50 ms until exit or timeout; used only when the
 /// helper thread could not be created.
 fn wait_polling(pid: i32, timeout: Duration, started: Instant) -> io::Result<Outcome> {
-    unsafe extern "C" {
-        fn waitpid(pid: i32, status: *mut i32, options: i32) -> i32;
-    }
-    const WNOHANG: i32 = 1;
+    let pid = rustix::process::Pid::from_raw(pid).unwrap();
     loop {
-        let mut status = 0i32;
-        // SAFETY: plain waitpid(2) on our own child with a valid status pointer.
-        let r = unsafe { waitpid(pid, &mut status, WNOHANG) };
-        if r == pid {
-            return Ok(Outcome::Exited(std::os::unix::process::ExitStatusExt::from_raw(status)));
-        }
-        if r < 0 {
-            return Err(io::Error::last_os_error());
+        match rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::NOHANG) {
+            Ok(Some((_, status))) => return Ok(Outcome::Exited(std::os::unix::process::ExitStatusExt::from_raw(status.as_raw()))),
+            Ok(None) => {},
+            Err(error) => return Err(error.into()),
         }
         if started.elapsed() >= timeout {
-            // SAFETY: plain kill(2); ESRCH (already gone) is harmless here.
-            unsafe { crate::iwinfo::sys::kill(pid, SIGKILL) };
-            // SAFETY: as above, blocking until the killed child is reaped.
-            unsafe { waitpid(pid, &mut status, 0) };
+            let _ = rustix::process::kill_process(pid, rustix::process::Signal::KILL);
+            let _ = rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::empty());
             return Ok(Outcome::TimedOut);
         }
         std::thread::sleep(Duration::from_millis(50));
