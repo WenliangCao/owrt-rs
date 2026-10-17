@@ -1,0 +1,966 @@
+{
+  "schema": 1,
+  "scope": "Historical non-raw execution tools and preparation note; not an active runner.",
+  "source_tree_label": "retired-dnsmasq-safe-v022/private",
+  "source_file_count": 72,
+  "path_bindings": [
+    {
+      "id": "previous-session-record",
+      "placeholder": "prior-session-record.jsonl"
+    },
+    {
+      "id": "runtime-01",
+      "placeholder": "/tmp/owrt-archive-v022-slot-01"
+    },
+    {
+      "id": "runtime-02",
+      "placeholder": "/tmp/owrt-archive-v022-slot-02"
+    },
+    {
+      "id": "runtime-03",
+      "placeholder": "/tmp/owrt-archive-v022-slot-03"
+    },
+    {
+      "id": "runtime-04",
+      "placeholder": "/tmp/owrt-archive-v022-slot-04"
+    },
+    {
+      "id": "dnsmasq-work",
+      "placeholder": "/srv/owrt-archive/dnsmasq-work"
+    },
+    {
+      "id": "unified-work",
+      "placeholder": "/srv/owrt-archive/unified-work"
+    },
+    {
+      "id": "runtime-05",
+      "placeholder": "/tmp/owrt-archive-v022-slot-05"
+    },
+    {
+      "id": "runtime-06",
+      "placeholder": "/tmp/owrt-archive-v022-slot-06"
+    },
+    {
+      "id": "runtime-07",
+      "placeholder": "/tmp/owrt-archive-v022-slot-07"
+    },
+    {
+      "id": "runtime-08",
+      "placeholder": "/tmp/owrt-archive-v022-slot-08"
+    },
+    {
+      "id": "image-bases",
+      "placeholder": "/srv/owrt-archive/image-bases"
+    },
+    {
+      "id": "runtime-09",
+      "placeholder": "/tmp/owrt-archive-v022-slot-09"
+    },
+    {
+      "id": "rustup-home",
+      "placeholder": "/srv/owrt-archive/rustup"
+    },
+    {
+      "id": "cargo-home",
+      "placeholder": "/srv/owrt-archive/cargo"
+    },
+    {
+      "id": "sdk",
+      "placeholder": "/srv/owrt-archive/sdk"
+    }
+  ],
+  "files": [
+    {
+      "source": "device-v021-readonly-20261017/snapshot.sh",
+      "original_sha256": "aa171777260da628d22ac23e47f0e87b1f127cff9f6bbd0e36b8919d20d3e9e2",
+      "original_bytes": 4391,
+      "strategy": "archived",
+      "archive_path": "sources/device-v021-readonly-20261017/snapshot.sh",
+      "archived_sha256": "aa171777260da628d22ac23e47f0e87b1f127cff9f6bbd0e36b8919d20d3e9e2",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "device-v022-tool-recovery-20261017/modules/device_perf_case.sh",
+      "original_sha256": "4bbbe15238b55e1c2e11c89e7535afb0d304047dbbb5b55a903cd07162fa5f95",
+      "original_bytes": 8830,
+      "strategy": "existing-generator",
+      "git_commit": "e21245d2404f6542759f45d064214ac3696c355f",
+      "tool": "tools/dnsmasq/prepare_safe_v022_device.py",
+      "output": "modules/device_perf_case.sh",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "device-v022-tool-recovery-20261017/runtime/safe_v022_dual_case.sh",
+      "original_sha256": "522046f4d404638281007135430ed9debeceab3002f0ccd2eb4628c31a18abee",
+      "original_bytes": 9328,
+      "strategy": "existing-generator",
+      "git_commit": "e21245d2404f6542759f45d064214ac3696c355f",
+      "tool": "tools/dnsmasq/prepare_safe_v022_device.py",
+      "output": "runtime/safe_v022_dual_case.sh",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "device-v022-tool-recovery-20261017/runtime/safe_v022_full_case.sh",
+      "original_sha256": "4bbbe15238b55e1c2e11c89e7535afb0d304047dbbb5b55a903cd07162fa5f95",
+      "original_bytes": 8830,
+      "strategy": "existing-generator",
+      "git_commit": "e21245d2404f6542759f45d064214ac3696c355f",
+      "tool": "tools/dnsmasq/prepare_safe_v022_device.py",
+      "output": "runtime/safe_v022_full_case.sh",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "device-v022-tool-recovery-20261017/runtime/safe_v022_group.sh",
+      "original_sha256": "b21b0b2fab626844cf7a2162707f246ee9cd91df9e01a274d9156d946ed6365d",
+      "original_bytes": 961,
+      "strategy": "existing-generator",
+      "git_commit": "e21245d2404f6542759f45d064214ac3696c355f",
+      "tool": "tools/dnsmasq/prepare_safe_v022_device.py",
+      "output": "runtime/safe_v022_group.sh",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "device-v022-tool-recovery-20261017/runtime/safe_v022_public_case.sh",
+      "original_sha256": "0f48d7829065813c277dec06fea5edecbc0f23e65997ba11a264281d4abe2ff7",
+      "original_bytes": 9022,
+      "strategy": "existing-generator",
+      "git_commit": "e21245d2404f6542759f45d064214ac3696c355f",
+      "tool": "tools/dnsmasq/prepare_safe_v022_device.py",
+      "output": "runtime/safe_v022_public_case.sh",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "oracle-unified-v022/e21245d2/dnsmasq-final/runtime/run.py",
+      "original_sha256": "51f6fcca253769bab9f6d5a006cfdb41ac0255c234975eff6c412301b541cbb8",
+      "original_bytes": 5690,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-unified-v022/e21245d2/dnsmasq-final/runtime/run.py",
+      "archived_sha256": "7f4cc198030acc3f22ccdefd53dd2b8c2c8e7773b79aa4557013d67e859a3cf2",
+      "substitutions": [
+        "dnsmasq-work",
+        "unified-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-unified-v022/e21245d2/dnsmasq-native/run_native.py",
+      "original_sha256": "d89c1286727bb4792df7c15d82807a26650908bf65bd94834cbe5b336ce8732c",
+      "original_bytes": 7252,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-unified-v022/e21245d2/dnsmasq-native/run_native.py",
+      "archived_sha256": "1620c3df2718ee833963fd83618cdc008e6931f2ee45f9aba02d4a2fb4e62966",
+      "substitutions": [
+        "unified-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/device-tools-887976f8/build.py",
+      "original_sha256": "9971f9de1d6596d62de1b362552b48a013475fd8915d721ecd0eab430979a557",
+      "original_bytes": 2027,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/device-tools-887976f8/build.py",
+      "archived_sha256": "6d96504b1de67c021cfeee1b3c0b67b858a0df437a0e756d6275c64296e819e5",
+      "substitutions": [
+        "dnsmasq-work",
+        "sdk"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/ci39027546957/verification/verify.py",
+      "original_sha256": "0dba943cae410ba3a1edd15f33e21f38c0be78bb30f428b9ae01b8913933a9a6",
+      "original_bytes": 7966,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/ci39027546957/verification/verify.py",
+      "archived_sha256": "0dba943cae410ba3a1edd15f33e21f38c0be78bb30f428b9ae01b8913933a9a6",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/native/run_native.py",
+      "original_sha256": "fc92633231e222eacc686825bd9cab755a2c8d3413be6ccf56800ec629641337",
+      "original_bytes": 7617,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/native/run_native.py",
+      "archived_sha256": "01f46eaf4717680ef605ae2e5744a9ea80a24a04da35f9b716e5dc58e5af23ec",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/pgo-input-tools/PREPARATION.md",
+      "original_sha256": "01bbc7d0e859e0bc9fa3b756998f99002ef0911569d62a666b4c9d19ca38cdf9",
+      "original_bytes": 6296,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/pgo-input-tools/PREPARATION.md",
+      "archived_sha256": "78af66666c5a442c949269e9e7655e47555b9bbbdb8bbdb7db7ae7e9395dd79f",
+      "substitutions": [
+        "previous-session-record"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/pgo-input-tools/rebuild-workload.sh",
+      "original_sha256": "992901cf293b8940fea66fdefdffda97287a428f1065d5df5315a2c7f3a673d2",
+      "original_bytes": 1274,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/pgo-input-tools/rebuild-workload.sh",
+      "archived_sha256": "992901cf293b8940fea66fdefdffda97287a428f1065d5df5315a2c7f3a673d2",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/pgo/prepare-generate-attempt1.py",
+      "original_sha256": "63285ce3d2eb3dd2ce34163af2d5d37e9fc5f710a62b2ec03138a935c248f626",
+      "original_bytes": 4649,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/pgo/prepare-generate-attempt1.py",
+      "archived_sha256": "8e25d3bb2b753ac6b9f4facd3682c5a931ff55f04fea16256b5e88d430757c76",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home",
+        "sdk"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/pgo/prepare_generate.py",
+      "original_sha256": "149a1d023e0ae88d77fc89f34642fe96fcd5fd44af8450caa58714bc73320870",
+      "original_bytes": 4797,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/pgo/prepare_generate.py",
+      "archived_sha256": "dac576bb38caa3ace39860eac403d190e573b96e7abaf6467446fcd1e3842f0d",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home",
+        "sdk"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/pgo/prepare_train.py",
+      "original_sha256": "67fa5a881fe41021f9a88640d3324ac674a9f4bebe5c30e509c80b867e09bed6",
+      "original_bytes": 4970,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/pgo/prepare_train.py",
+      "archived_sha256": "a6a4c3a986251ddd823c2c3b4d023f48bf2fd6ebc9083c767e90378712d78ba2",
+      "substitutions": [
+        "dnsmasq-work",
+        "runtime-07",
+        "rustup-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/sdk-smoke/run_smoke.py",
+      "original_sha256": "5f230f5ad5f16205d88a30167cafba2d799c744460274f36617193f2c28be9a2",
+      "original_bytes": 1958,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/sdk-smoke/run_smoke.py",
+      "archived_sha256": "788106a736bd969b26242b50d32c651d0d99d46c8cb9b978d1a3ccdb76bf5e59",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/final-b8617f57/sdk-smoke/startup_smoke.py",
+      "original_sha256": "4579f3db6972815c60d91e1bdda1f636802f2897dc43c8881c802cc669914ae3",
+      "original_bytes": 3917,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/final-b8617f57/sdk-smoke/startup_smoke.py",
+      "archived_sha256": "1af18ee3c5634ec47f67255f9bf64e31a8a710c84eae08266646d27aff4c3f5e",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_boundaries.py",
+      "original_sha256": "e2ba31c518b3ef0eb8dc80fbb4cac48ddcb6fcedc228243d83cfc9fddddb5442",
+      "original_bytes": 5589,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_boundaries.py",
+      "archived_sha256": "4bb5e00b675fef65dd7a3c0c0879a7977921e755caa756d367b913b2fc2af4bc",
+      "substitutions": [
+        "dnsmasq-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_preview.py",
+      "original_sha256": "8ebed58b831a0f0e7e42a675389da7cf73e349b5f5c1662b21b55215c2e03584",
+      "original_bytes": 3937,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_preview.py",
+      "archived_sha256": "8d1a19702e04e3a7659328362a5ab34d89a1926f142330035ccfd55d42afb7c0",
+      "substitutions": [
+        "runtime-01",
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_shipping.py",
+      "original_sha256": "1cf820b66b150e3cba87c427ce6cc1a39505275eb6bc2a9f56c621964095a500",
+      "original_bytes": 2040,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_shipping.py",
+      "archived_sha256": "f3b88073cfdb758047c39c17f4e8ce5ce473367972edf857dde9f95667708a84",
+      "substitutions": [
+        "dnsmasq-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/canonical-qualification-prep/prepare.py",
+      "original_sha256": "05002408f6ee8cc5c5ddd3f3e6b638f76bef09e004e1828c41555e361f078a01",
+      "original_bytes": 9781,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/prepare.py",
+      "archived_sha256": "031f632d7e2ddb46847ec6e26d2b4f1f97aaadb5529fc1674504e1f414618c47",
+      "substitutions": [
+        "runtime-01",
+        "dnsmasq-work",
+        "runtime-08"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/canonical-qualification-prep/run_all.py",
+      "original_sha256": "f46e72b3e0957ae93ce85e513abb1f2cea77b9d784ecdf02e91204bf119bec13",
+      "original_bytes": 4541,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/run_all.py",
+      "archived_sha256": "71960bb0468233ecc6623b563821e8e51834e0b45bd6e6435ec71668175f906a",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/canonical_ci_prepare.py",
+      "original_sha256": "05002408f6ee8cc5c5ddd3f3e6b638f76bef09e004e1828c41555e361f078a01",
+      "original_bytes": 9781,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/prepare.py",
+      "archived_sha256": "031f632d7e2ddb46847ec6e26d2b4f1f97aaadb5529fc1674504e1f414618c47",
+      "substitutions": [
+        "runtime-01",
+        "dnsmasq-work",
+        "runtime-08"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/canonical_ci_qualify.py",
+      "original_sha256": "f46e72b3e0957ae93ce85e513abb1f2cea77b9d784ecdf02e91204bf119bec13",
+      "original_bytes": 4541,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/run_all.py",
+      "archived_sha256": "71960bb0468233ecc6623b563821e8e51834e0b45bd6e6435ec71668175f906a",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/ci39038020454/verification/verify.py",
+      "original_sha256": "1ecef317990c04fa64c70cb654b90276bbce33eb7969c24b8229880102c508cc",
+      "original_bytes": 7947,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/ci39038020454/verification/verify.py",
+      "archived_sha256": "1ecef317990c04fa64c70cb654b90276bbce33eb7969c24b8229880102c508cc",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/ci39045487550/download_verify.py",
+      "original_sha256": "f808dca9369c3723b2fc770d72b2e1dfa28b4bcef965e962e03668d9b050de89",
+      "original_bytes": 3836,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/ci39045487550/download_verify.py",
+      "archived_sha256": "f808dca9369c3723b2fc770d72b2e1dfa28b4bcef965e962e03668d9b050de89",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/ci39046178426/download_verify.py",
+      "original_sha256": "3d09db66df97ce599976a6b17e57caa2babf815285c5494dbb651f208651681a",
+      "original_bytes": 5275,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/ci39046178426/download_verify.py",
+      "archived_sha256": "3d09db66df97ce599976a6b17e57caa2babf815285c5494dbb651f208651681a",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/corpus/run_corpus.py",
+      "original_sha256": "a95a6d65283a0f76e11869c3160d6d550a369e46e38790c0df7f10f1bfc7b3e0",
+      "original_bytes": 4261,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/corpus/run_corpus.py",
+      "archived_sha256": "abaf3e73ce150864a7d12cab4b37c02dbda24f51974c94e6cf684e5a28014557",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/correctness/continue_families.py",
+      "original_sha256": "6e288db8aefc8c77fb7cc8f3fa53e35501e48650b199a0f20598c70dfebed171",
+      "original_bytes": 5782,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/correctness/continue_families.py",
+      "archived_sha256": "8391650bda91aaf008e820c100eb983abf569a3c878f7111a4b9fe1835974a97",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/correctness/run_shipping.py",
+      "original_sha256": "1cf820b66b150e3cba87c427ce6cc1a39505275eb6bc2a9f56c621964095a500",
+      "original_bytes": 2040,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_shipping.py",
+      "archived_sha256": "f3b88073cfdb758047c39c17f4e8ce5ce473367972edf857dde9f95667708a84",
+      "substitutions": [
+        "dnsmasq-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/final-runtime/run.py",
+      "original_sha256": "e2ba31c518b3ef0eb8dc80fbb4cac48ddcb6fcedc228243d83cfc9fddddb5442",
+      "original_bytes": 5589,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_boundaries.py",
+      "archived_sha256": "4bb5e00b675fef65dd7a3c0c0879a7977921e755caa756d367b913b2fc2af4bc",
+      "substitutions": [
+        "dnsmasq-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/native-full/run_native.py",
+      "original_sha256": "f042ede389a1d76f2cc4fcd99989cc2f717eadb586573a267324f334d683fc67",
+      "original_bytes": 7826,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/native-full/run_native.py",
+      "archived_sha256": "c37e71ad9d25536008641cd7f8b6df532f7cfa877330d2965de068835b54bf35",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/native/run_native.py",
+      "original_sha256": "2762688e6f64824bc40ec65beed9cf710436df8435197f0c184ec84f86fa82be",
+      "original_bytes": 5841,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/native/run_native.py",
+      "archived_sha256": "db2cfe3fb3dfd20f7c3ccff5a0708e85bfe18bcd90a0e30db0fe2805c1bb8e7b",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/pgo/canonical-tools/canonical_smoke_train.py",
+      "original_sha256": "034f78df94e02c52131b1ce4c41a60c1605f998a1b13b1f51ea191a1e74f88dd",
+      "original_bytes": 9203,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/pgo/canonical-tools/canonical_smoke_train.py",
+      "archived_sha256": "034f78df94e02c52131b1ce4c41a60c1605f998a1b13b1f51ea191a1e74f88dd",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/pgo/prepare_generate.py",
+      "original_sha256": "67302640e5be4efcb1dd21adc589bf501444f677e345033b456ff97d35d4c896",
+      "original_bytes": 4958,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/pgo/prepare_generate.py",
+      "archived_sha256": "8929a1fcfa4c9c0ddbad08363410912d3374b3902724d9c8c993a20737a677f1",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home",
+        "sdk"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/pgo/prepare_train.py",
+      "original_sha256": "68903e2e0b9831f2ca0cbeb978bb3faaff56ff75da6e11f37e8794b14a834638",
+      "original_bytes": 4976,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/pgo/prepare_train.py",
+      "archived_sha256": "ac697ba90765cdeef49fd8c018cd948fa60f41a52f589b4d743f7a8b6d666cff",
+      "substitutions": [
+        "dnsmasq-work",
+        "runtime-06",
+        "rustup-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/plain-runtime/run.py",
+      "original_sha256": "de382c79289efc95df713ad147fa03947c119c89498a53508d92c522f0749697",
+      "original_bytes": 5365,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/plain-runtime/run.py",
+      "archived_sha256": "cbb45bc5d8d9b7e04c5bacf401e1787184a5b990da54029d8c20278dbd7ef72d",
+      "substitutions": [
+        "dnsmasq-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/startup-tools-7a6f3b0e/build.py",
+      "original_sha256": "4b8878cba65b7ef487d622d0d7be5b6e7ed3f2f35b0eadc40c4505715fcebc7d",
+      "original_bytes": 1440,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/startup-tools-7a6f3b0e/build.py",
+      "archived_sha256": "80edd521f040b2e4d7c00407df3d23819d48151dc6730b42b567d915d92d01bc",
+      "substitutions": [
+        "dnsmasq-work",
+        "sdk"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/startup-tools-7a6f3b0e/run_preview.py",
+      "original_sha256": "8ebed58b831a0f0e7e42a675389da7cf73e349b5f5c1662b21b55215c2e03584",
+      "original_bytes": 3937,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/canonical-qualification-prep/original/run_preview.py",
+      "archived_sha256": "8d1a19702e04e3a7659328362a5ab34d89a1926f142330035ccfd55d42afb7c0",
+      "substitutions": [
+        "runtime-01",
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/startup-tools-7a6f3b0e/safe_v022_startup_case.sh",
+      "original_sha256": "438a9c1446242578f1c88c7b89611e3623a8769ef49e23278d0a03329f207396",
+      "original_bytes": 2416,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_case.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "runtime-01",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/startup-tools-7a6f3b0e/safe_v022_startup_group.sh",
+      "original_sha256": "60c80fcf3f03046eb0f145bdf7b9d32c1334a30277f16753409ecd22604a6496",
+      "original_bytes": 864,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_group.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "runtime-01",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/startup-tools-final/run_preview.py",
+      "original_sha256": "9933037db3ed6cbe58712cb74421c35839d954008bd094a0e52725bc0c860110",
+      "original_bytes": 3925,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-a97edbc1/startup-tools-final/run_preview.py",
+      "archived_sha256": "67f532d053e620bf0c4aee11db777b1243478d87f081473d03b7ef157a9df8d4",
+      "substitutions": [
+        "runtime-04",
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/startup-tools-final/safe_v022_startup_case.sh",
+      "original_sha256": "02fe37654b7f5044515e7929256a076831232ece30b1b7d4243e0585485a2daf",
+      "original_bytes": 2407,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_case.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "runtime-04",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-a97edbc1/startup-tools-final/safe_v022_startup_group.sh",
+      "original_sha256": "7cf4fc32bb8d03e36ea48dce53662d6dfa73ae7deaf5067db4395818d82eb5b3",
+      "original_bytes": 855,
+      "strategy": "git-template",
+      "git_commit": "7a6f3b0ef0dbfef6739831588c8e162b1218d637",
+      "path": "tools/dnsmasq/safe_v022_startup_group.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "runtime-04",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "oracle-v022/fork-guard-probes/retired-launcher-tool-checks/libtest-no-threads-check/check_filter.py",
+      "original_sha256": "0f8b597cb615797ca218c0dd934a332ac327e23c9afab5356d4bfa261764e645",
+      "original_bytes": 3053,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/fork-guard-probes/retired-launcher-tool-checks/libtest-no-threads-check/check_filter.py",
+      "archived_sha256": "0f8b597cb615797ca218c0dd934a332ac327e23c9afab5356d4bfa261764e645",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/lookup-sigpipe-b8617f57/observe-attempt1.py",
+      "original_sha256": "6ee379b4975e0816d4956add049965ea259677efaf7b59620a4d3ed9369d73d5",
+      "original_bytes": 2273,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/lookup-sigpipe-b8617f57/observe-attempt1.py",
+      "archived_sha256": "bfd1f3caae8f6f73dfe5e9a6d78950f3a8ac410c8ddae62edf2d5cf68db0a544",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/lookup-sigpipe-b8617f57/observe.py",
+      "original_sha256": "c0e5b39a50f23c380d13021445ab3c692c91ae6946e5a0b1221b06bad340dfd3",
+      "original_bytes": 2338,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/lookup-sigpipe-b8617f57/observe.py",
+      "archived_sha256": "d5973db91c555ac1d93d02bd5595b2237a92a3dad6f7d16595198a95293b8592",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/native-79849777-attempt2/run_native.py",
+      "original_sha256": "10e677c03569f3f5d60ca4cf9a253c7e9c5c66cb6935ec88d0c21062eab79cbc",
+      "original_bytes": 6595,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/native-79849777-attempt2/run_native.py",
+      "archived_sha256": "95685945025b3e2edb6e8f3ae9f55d807ece41deaf9c39428fd4ea10df5fe0aa",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/native-79849777-attempt2/run_structural.py",
+      "original_sha256": "3bb2cca5943b3ecd3231cd9a1f33921c757a8e1862d4bad541c0cb34a7150875",
+      "original_bytes": 6612,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/native-79849777-attempt2/run_structural.py",
+      "archived_sha256": "d40a3cb3096ff7a2edde9e8ce4d09821bb58c727ba8c2101997da2df014b37da",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/native-79849777/run_native.py",
+      "original_sha256": "321780ac9f7e7531c73d323b11096571d855394d0c879fe8189ac087a9f0726c",
+      "original_bytes": 6471,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/native-79849777/run_native.py",
+      "archived_sha256": "10f2c9d87fa2ba4a1195d259b66e9a48038f47d9c9cc15abb6d9dc37bfd053f0",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/native-7deed209/run_focused.py",
+      "original_sha256": "29c8cae06d5808aecb2ed5303dd4e02655ed513e4a314b8481a5a96231d6ada4",
+      "original_bytes": 4783,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/native-7deed209/run_focused.py",
+      "archived_sha256": "3b9ae790ce3ca0455a50946caa48c4e97f2f68a53925ae0e069c51f880060d9d",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/comm-observation/observe_comm.py",
+      "original_sha256": "fe3c760a06ef7e70de3e079a46a25a3c776c79d54886e4615f8fadd716824def",
+      "original_bytes": 2892,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/comm-observation/observe_comm.py",
+      "archived_sha256": "47914116aaeae37b9ce6562997cb661e199070e6a04a277bd73a98edea1b6ceb",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/corpus-preparation/run_corpus.py",
+      "original_sha256": "4c864292947b7b7051923c108e31a373ae688450381f03734d1f90543d70e422",
+      "original_bytes": 3572,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/corpus-preparation/run_corpus.py",
+      "archived_sha256": "88917ece669ad6aa0b276e5b42cdd538be5c60756f5a986afcca2adc1a674749",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/corpus-preparation/run_corpus_tail.py",
+      "original_sha256": "71d3056f92a90fa170dc1503ea532a36b1f31a449ed9b2bfc0c9cc2a15634601",
+      "original_bytes": 2508,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/corpus-preparation/run_corpus_tail.py",
+      "archived_sha256": "199a529cfaadcffcd48f8ffaf50353afe54d10ce5bbe777cdfa37c940a9d6e16",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/correctness/drain_stopped_families.py",
+      "original_sha256": "37e17e74e7feab1496f255d6ef5a4075410aef57220f3c6c3105db13b291ae6c",
+      "original_bytes": 2132,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/correctness/drain_stopped_families.py",
+      "archived_sha256": "68f2e72aea0667e7ea9299d18e77317b8198cce48204d1ebef67592fd798a221",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/correctness/rebind_image_runner.py",
+      "original_sha256": "e829a6b18f0939424dafbfe2f56edab8dfb48390059f99576f83b5ce8d1e084e",
+      "original_bytes": 1936,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/correctness/rebind_image_runner.py",
+      "archived_sha256": "e0be6e977ec7d4aadf483e9d55d16193e88987b057c80e8edab053bb43aa406a",
+      "substitutions": [
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/correctness/run_family_gates.py",
+      "original_sha256": "264bcdf6869cdeefc4166275f59637a32bdefd526f4d46046582ff4a94122e76",
+      "original_bytes": 8201,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/correctness/run_family_gates.py",
+      "archived_sha256": "264bcdf6869cdeefc4166275f59637a32bdefd526f4d46046582ff4a94122e76",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/correctness/run_helper_fd_supplement.py",
+      "original_sha256": "3b0f3d448526d55dcbc67f218a57f6989508b57aa1e6ef6dc97c189842025a61",
+      "original_bytes": 2087,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/correctness/run_helper_fd_supplement.py",
+      "archived_sha256": "b516adc61c5a01fffde4b9214e4ba8d1c13b6ff2b04a5f77bb8a49d278bdd659",
+      "substitutions": [
+        "dnsmasq-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/final-runtime/run_final_runtime.py",
+      "original_sha256": "29a6f5cd0218b59696e9b5d9925e1a3a44fd1d42efbdda5164237e270bc4b4e4",
+      "original_bytes": 4293,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/final-runtime/run_final_runtime.py",
+      "archived_sha256": "cfa0104bbc4bdd62719cb6e455b8c0002164d0442eefaecade6e347d8e6ae684",
+      "substitutions": [
+        "dnsmasq-work",
+        "image-bases"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/native-full/run_native.py",
+      "original_sha256": "91f365629a5176f5dd37477416c65bf9a9dac8d99ce5365f6552990063a9d096",
+      "original_bytes": 7841,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/native-full/run_native.py",
+      "archived_sha256": "b93dfc66f6a04f74f36bdedf8b76884947320f640ddd907e1b4813ed7e253198",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/native/run_native.py",
+      "original_sha256": "72663f79367d1a20fa7aaecf3492e8e4358e58a0b3550b6eb79b00582451c493",
+      "original_bytes": 5846,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/native/run_native.py",
+      "archived_sha256": "55f8fdc82c3599778d78136ac85b5c254d07eab55a526438d151baa6d4e3b4cf",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/pgo/prepare_generate.py",
+      "original_sha256": "4d46129045290e1f2deb8f74aad1114ff898fa9dfbc2f04854afe89e2490369d",
+      "original_bytes": 4940,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/pgo/prepare_generate.py",
+      "archived_sha256": "1422250d5bc15ac6dc198cecb2c0b999584d7f7261d30df709bb302ef265af15",
+      "substitutions": [
+        "dnsmasq-work",
+        "rustup-home",
+        "cargo-home",
+        "sdk"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/proc-free-8adcdeaf/pgo/prepare_train.py",
+      "original_sha256": "6b0e6ed374e894143dcba9ae23fd30ee5fef162a0d99f6467c9fe5b0192924f7",
+      "original_bytes": 4978,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/proc-free-8adcdeaf/pgo/prepare_train.py",
+      "archived_sha256": "66c4306b130130f731fb6fe5967c667ebc88d87d66edf611dc3587326e4221ed",
+      "substitutions": [
+        "dnsmasq-work",
+        "runtime-05",
+        "rustup-home"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/stage1-x86-ci-39025157505/verify.py",
+      "original_sha256": "24198321d78cef10d2140ba0c3c2512860719da67560dbba5c6d34bdf62a7d5c",
+      "original_bytes": 4494,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/stage1-x86-ci-39025157505/verify.py",
+      "archived_sha256": "24198321d78cef10d2140ba0c3c2512860719da67560dbba5c6d34bdf62a7d5c",
+      "substitutions": [],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/startup-preview-575690aa/build.py",
+      "original_sha256": "99b0e2692d56d82854df6005c0d879dacf1dbc6de2339479ac569f3cac09bca0",
+      "original_bytes": 1428,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/startup-preview-575690aa/build.py",
+      "archived_sha256": "86a2b9b8edfee93903e40c26b557fd8238acde606c7c6b789747ef912aea3286",
+      "substitutions": [
+        "dnsmasq-work",
+        "sdk"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/startup-preview-575690aa/run_preview.py",
+      "original_sha256": "2d13ad5b7efd2cfdfc122b08407f0af3e1a5809d7e6aa29279a874aafa2b1e05",
+      "original_bytes": 3784,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/startup-preview-575690aa/run_preview.py",
+      "archived_sha256": "1e92f781cd33343aece630981fe348d06343a9aa49cff49355aabc9bb84df9e7",
+      "substitutions": [
+        "runtime-02",
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/startup-preview-575690aa/safe_v022_startup_case.sh",
+      "original_sha256": "e9f93d1226db121451a109a4e8d99a20d492e8db245bb9b7ea0f2040ab79d525",
+      "original_bytes": 2411,
+      "strategy": "git-template",
+      "git_commit": "575690aaca00c41ea2f35076d91e5d1ecc666f88",
+      "path": "tools/dnsmasq/safe_v022_startup_case.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "runtime-02",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "oracle-v022/startup-preview-575690aa/safe_v022_startup_group.sh",
+      "original_sha256": "f0ca73def9b0c9be2b8389813d5c7276204a96c2c4a915a6c7ab7b0f236722b5",
+      "original_bytes": 859,
+      "strategy": "git-template",
+      "git_commit": "575690aaca00c41ea2f35076d91e5d1ecc666f88",
+      "path": "tools/dnsmasq/safe_v022_startup_group.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "runtime-02",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "oracle-v022/startup-preview-f8a4e9bf/run_preview.py",
+      "original_sha256": "6b91c86c74eb1ca2291b9bfd3c25cb66187f49ac601549468843e4428d4dae6d",
+      "original_bytes": 3750,
+      "strategy": "archived",
+      "archive_path": "sources/oracle-v022/startup-preview-f8a4e9bf/run_preview.py",
+      "archived_sha256": "6f0c1a9e457048b8ca8e1bf7e79da4a98b6984320314ff7a48928447ed6b502d",
+      "substitutions": [
+        "runtime-03",
+        "dnsmasq-work"
+      ],
+      "exact_inverse_verified": true
+    },
+    {
+      "source": "oracle-v022/startup-preview-f8a4e9bf/safe_v022_startup_case.sh",
+      "original_sha256": "b5c40b3bab9dc414eb55e35006ff5fb77db686030f5398a7241b194a20dc8c80",
+      "original_bytes": 2160,
+      "strategy": "git-template",
+      "git_commit": "f8a4e9bf3bb7473c97dd351e5cbec1102a7ea2ba",
+      "path": "tools/dnsmasq/safe_v022_startup_case.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "runtime-03",
+      "exact_reconstruction_verified": true
+    },
+    {
+      "source": "oracle-v022/startup-preview-f8a4e9bf/safe_v022_startup_group.sh",
+      "original_sha256": "324bba2b4ff42bdd377af30283f180eda0291c11ec1491139424a02c048dda8d",
+      "original_bytes": 859,
+      "strategy": "git-template",
+      "git_commit": "f8a4e9bf3bb7473c97dd351e5cbec1102a7ea2ba",
+      "path": "tools/dnsmasq/safe_v022_startup_group.sh",
+      "replace_literal": "/tmp/dnsmasq-perf-v022-20261017",
+      "replacement_binding": "runtime-03",
+      "exact_reconstruction_verified": true
+    }
+  ],
+  "counts": {
+    "existing-generator": 5,
+    "git-template": 8,
+    "archived": 59
+  },
+  "unique_archived_files": 54,
+  "archived_source_bytes": 255797
+}
