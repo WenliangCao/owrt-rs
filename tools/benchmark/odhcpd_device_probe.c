@@ -437,7 +437,7 @@ static void idle(int capture) {
     fflush(stdout);
 }
 
-static void run(pid_t pid, const char *command) {
+static void run(pid_t pid, const char *command, int idle_renew) {
     daemon_pid = pid;
     initial_identity = identity();
     int error = clock_getcpuclockid(daemon_pid, &daemon_clock);
@@ -446,33 +446,40 @@ static void run(pid_t pid, const char *command) {
     if (clock_getres(CLOCK_MONOTONIC, &wall_resolution) || clock_getres(daemon_clock, &cpu_resolution)) die("clock resolution");
     long page_size = sysconf(_SC_PAGESIZE);
     require(page_size > 0, "page size unavailable");
-    int capture = capture_socket(), raw = client_socket(IPPROTO_ICMPV6), udp = client_socket(IPPROTO_UDP);
+    int capture = capture_socket(), raw = idle_renew ? -1 : client_socket(IPPROTO_ICMPV6);
+    int udp = client_socket(IPPROTO_UDP);
+    const char *profile_json = idle_renew ? ",\"profile\":\"idle-renew\"" : "";
     printf("{\"kind\":\"instrument\",\"schema_version\":1,\"pid\":%ld,\"start_ticks\":%" PRIu64
         ",\"exe_dev\":%" PRIu64 ",\"exe_ino\":%" PRIu64
         ",\"clock_quantum_ns\":%" PRIu64 ",\"cpu_clock_quantum_ns\":%" PRIu64
-        ",\"cpu_clock_kind\":\"process\",\"page_size_bytes\":%ld,\"path\":\"empty_bridge_local_client\"}\n",
+        ",\"cpu_clock_kind\":\"process\",\"page_size_bytes\":%ld,\"path\":\"empty_bridge_local_client\"%s}\n",
         (long)pid, initial_identity.start_ticks, initial_identity.exe_dev, initial_identity.exe_ino,
-        nanoseconds(wall_resolution), nanoseconds(cpu_resolution), page_size);
+        nanoseconds(wall_resolution), nanoseconds(cpu_resolution), page_size, profile_json);
     fflush(stdout);
     pause_ns(UINT64_C(2000000000));
     idle(capture);
-    memory("empty");
-    for (unsigned index = 0; index < 16; index++) rs_reply(raw, index);
+    if (!idle_renew) {
+        memory("empty");
+        for (unsigned index = 0; index < 16; index++) rs_reply(raw, index);
+    }
     for (unsigned index = 0; index < 16; index++) bind_client(udp, index % 3, index, 3);
     // This empty-bridge topology cannot install a PD route through a local
     // client address. Memory population is the actual router's three NA
     // bindings; PD is covered by the separate real-veth functional evidence.
     /* Same one-millisecond post-reply drain on each side, outside latency. */
     pause_ns(UINT64_C(1000000));
-    memory("populated");
-    for (unsigned index = 0; index < 8; index++) update(capture, command, index);
+    if (!idle_renew) {
+        memory("populated");
+        for (unsigned index = 0; index < 8; index++) update(capture, command, index);
+    }
     same_process();
     printf("{\"kind\":\"complete\",\"schema_version\":1,\"pid\":%ld,\"start_ticks\":%" PRIu64
         ",\"exe_dev\":%" PRIu64 ",\"exe_ino\":%" PRIu64
-        ",\"rs_count\":16,\"dhcp_count_each\":16,\"updates\":8,\"na_count\":3,\"pd_count\":0}\n",
-        (long)pid, initial_identity.start_ticks, initial_identity.exe_dev, initial_identity.exe_ino);
+        ",\"rs_count\":%u,\"dhcp_count_each\":16,\"updates\":%u,\"na_count\":3,\"pd_count\":0%s}\n",
+        (long)pid, initial_identity.start_ticks, initial_identity.exe_dev, initial_identity.exe_ino,
+        idle_renew ? 0u : 16u, idle_renew ? 0u : 8u, profile_json);
     fflush(stdout);
-    close(capture); close(raw); close(udp);
+    close(capture); if (raw >= 0) close(raw); close(udp);
 }
 
 static void floor_measurement(void) {
@@ -557,12 +564,13 @@ int main(int argc, char **argv) {
         && inet_pton(AF_INET6, "fe80::1", &server_address) == 1, "address parsing");
     if (argc == 2 && !strcmp(argv[1], "floor")) {
         floor_measurement();
-    } else if (argc == 4 && !strcmp(argv[1], "run")) {
+    } else if ((argc == 4 && !strcmp(argv[1], "run"))
+               || (argc == 3 && !strcmp(argv[1], "run-idle-renew"))) {
         char *end; long pid = strtol(argv[2], &end, 10);
         require(*argv[2] && !*end && pid > 1 && pid <= INT32_MAX, "invalid target PID");
-        run((pid_t)pid, argv[3]);
+        run((pid_t)pid, argc == 4 ? argv[3] : NULL, argc == 3);
     } else {
-        require(0, "usage: odhcpd-device-probe floor | run PID UPDATE_COMMAND");
+        require(0, "usage: odhcpd-device-probe floor | run PID UPDATE_COMMAND | run-idle-renew PID");
     }
     return 0;
 }

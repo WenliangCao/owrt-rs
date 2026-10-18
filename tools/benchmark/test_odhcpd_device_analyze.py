@@ -3,6 +3,7 @@ import copy
 from fractions import Fraction
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 
@@ -61,6 +62,14 @@ def sample(latency=100, cpu=100, rss=100):
     records.append({**{key: instrument[key] for key in ('schema_version', 'pid', 'start_ticks', 'exe_dev', 'exe_ino')},
                     'kind': 'complete', 'rs_count': 16, 'dhcp_count_each': 16,
                     'updates': 8, 'na_count': 3, 'pd_count': 0})
+    return records
+
+
+def idle_renew_sample(latency=100):
+    records = [record for record in sample(latency=latency)
+               if record['kind'] not in ('rs', 'update', 'memory')]
+    records[0]['profile'] = records[-1]['profile'] = 'idle-renew'
+    records[-1].update(rs_count=0, updates=0)
     return records
 
 
@@ -252,6 +261,99 @@ class GateTests(unittest.TestCase):
         self.change('formal', 0, records)
         with self.assertRaisesRegex(ValueError, 'completion count differs: pd_count'):
             analysis.analyze(self.root)
+
+
+class IdleRenewTests(unittest.TestCase):
+    write = staticmethod(GateTests.write)
+    change = GateTests.change
+    candidate = 'b' * 64
+
+    def setUp(self):
+        GateTests.setUp(self)
+        (self.root / 'profile.txt').write_text('idle-renew')
+        (self.root / 'candidate.sha256').write_text(self.candidate)
+        for path in self.root.glob('*/identity.json'):
+            identity = json.loads(path.read_text())
+            identity['profile'] = 'idle-renew'
+            if identity['side'] == 'B':
+                identity['elf_sha256'] = self.candidate
+            path.write_text(json.dumps(identity))
+            self.write(path.with_name('measurements.jsonl'), idle_renew_sample())
+            path.with_name('provider-final.json').write_text(json.dumps(
+                {'sequence': 0, 'notifications': 0, 'subscribed': True, 'dumps': 1}))
+
+    def analyze(self):
+        return analysis.analyze(self.root, 'idle-renew', self.candidate)
+
+    def test_only_idle_and_renew_are_gated_setup_packets_remain_raw(self):
+        records = idle_renew_sample()
+        for record in records:
+            if record['kind'] in ('solicit', 'request'):
+                record['elapsed_ns'] += 1000
+                record['end_ns'] += 1000
+        self.change('formal', 1, records)
+        result = self.analyze()
+        self.assertEqual(result['decision'], 'pass')
+        self.assertEqual(set(result['metrics']), {'idle_cpu_ns_per_s', 'renew_latency_ns'})
+        self.assertEqual(len(result['samples'][7]['records']), 51)
+        self.assertEqual(result['samples'][7]['records'][2]['elapsed_ns'], 1100)
+        self.assertEqual(analysis.ELFS['B'], analysis.CONTRACT['elf_sha256']['B'])
+        self.assertNotEqual(analysis.ELFS['B'], self.candidate)
+
+    def test_each_selected_metric_can_stop_the_batch(self):
+        for kind in ('renew', 'idle'):
+            records = idle_renew_sample()
+            for record in records:
+                if record['kind'] == kind:
+                    if kind == 'renew':
+                        record['elapsed_ns'] += 3
+                        record['end_ns'] += 3
+                    else:
+                        record['cpu_after_ns'] += 3
+            self.change('formal', 2, records)  # BA pair, Rust first.
+            result = self.analyze()
+            with self.subTest(kind=kind):
+                self.assertEqual(result['decision'], 'stop_and_report')
+                self.assertEqual(len(result['failures']), 1)
+                self.assertEqual(result['failures'][0]['pair'], 1)
+
+    def test_candidate_and_profile_must_be_explicit_and_consistent(self):
+        for sha in (None, '', 'bad', 'A' * 64):
+            with self.subTest(sha=sha), self.assertRaises(ValueError):
+                analysis.contract_for('idle-renew', sha)
+        with self.assertRaises(ValueError):
+            analysis.analyze(self.root)  # Never infer profile/candidate from untrusted input.
+        with self.assertRaises(ValueError):
+            analysis.analyze(self.root, 'idle-renew', 'c' * 64)
+        path = self.root / 'formal-1-B' / 'identity.json'
+        identity = json.loads(path.read_text())
+        identity['elf_sha256'] = analysis.ELFS['B']
+        path.write_text(json.dumps(identity))
+        with self.assertRaisesRegex(ValueError, 'ELF identity mismatch'):
+            self.analyze()
+        with self.assertRaises(ValueError):
+            analysis.contract_for('full', self.candidate)
+
+    def test_unselected_work_and_bad_setup_packets_are_still_rejected(self):
+        records = idle_renew_sample()
+        records.insert(2, next(record for record in sample() if record['kind'] == 'rs'))
+        self.change('formal', 0, records)
+        with self.assertRaisesRegex(ValueError, 'record kind'):
+            self.analyze()
+        records = idle_renew_sample()
+        records[2]['hex'] = '02000001'  # Wrong xid and no successful IA.
+        self.change('formal', 0, records)
+        with self.assertRaises(ValueError):
+            self.analyze()
+
+    def test_driver_rejects_missing_candidate_before_any_setup(self):
+        driver = Path(__file__).with_name('odhcpd_device_ab.sh')
+        for args in (['--profile', 'idle-renew'],
+                     ['--profile', 'idle-renew', '--candidate-sha', 'bad'],
+                     ['--profile', 'full', '--candidate-sha', self.candidate]):
+            result = subprocess.run(['/bin/sh', str(driver), *args], capture_output=True, text=True)
+            with self.subTest(args=args):
+                self.assertEqual(result.returncode, 2)
 
 
 if __name__ == '__main__':

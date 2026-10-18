@@ -1,6 +1,6 @@
 #!/bin/sh
 # One frozen C/Rust batch, with a fresh private namespace for every sample.
-# Usage: odhcpd_device_ab.sh IMAGE_ROOT BUNDLE NEW_OUTPUT [smoke]
+# Usage: odhcpd_device_ab.sh [--profile idle-renew --candidate-sha SHA] IMAGE_ROOT BUNDLE NEW_OUTPUT [smoke]
 # BUNDLE: ns-exec, odhcpd-probe, odhcpd-c, odhcpd-rs, this driver,
 # odhcpd_device_provider.uc, odhcpd_device_update.sh, and bundle.sha256.
 # "smoke" is Oracle-only functional validation (one A and one B), never data
@@ -8,6 +8,24 @@
 set -eu
 C_SHA=53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82
 R_SHA=c7c5f1f9e79ea80febe696d6c758db8d3463d1e4b94c7a002f1aa597b9c3ea30
+profile=full candidate_sha=
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --profile) [ "$#" -ge 2 ] || exit 2; profile=$2; shift 2;;
+        --candidate-sha) [ "$#" -ge 2 ] || exit 2; candidate_sha=$2; shift 2;;
+        *) break;;
+    esac
+done
+case "$profile" in
+    full) [ -z "$candidate_sha" ] || [ "$candidate_sha" = "$R_SHA" ] || exit 2;;
+    idle-renew)
+        [ "${#candidate_sha}" -eq 64 ] || { echo 'idle-renew requires --candidate-sha' >&2; exit 2; }
+        case "$candidate_sha" in *[!0-9a-f]*) echo 'invalid candidate SHA256' >&2; exit 2;; esac
+        R_SHA=$candidate_sha;;
+    *) echo 'unknown measurement profile' >&2; exit 2;;
+esac
+profile_json=
+[ "$profile" = full ] || profile_json=',"profile":"idle-renew"'
 start_ticks() { sed 's/^.*) //' "/proc/$1/stat" 2>/dev/null | awk '{print $20}'; }
 
 if [ "${1:-}" = --namespace ]; then
@@ -39,7 +57,7 @@ if [ "${1:-}" = --namespace ]; then
     ln -s /proc/self/fd/1 "$root/dev/stdout"
     ln -s /proc/self/fd/2 "$root/dev/stderr"
     mount --bind "$root/dev/null" "$root/proc/kmsg"
-    exec chroot "$root" /bin/sh /tmp/bin/odhcpd_device_ab.sh --sample "$side" "$phase" "$ordinal"
+    exec chroot "$root" /bin/sh /tmp/bin/odhcpd_device_ab.sh --profile "$profile" --candidate-sha "$R_SHA" --sample "$side" "$phase" "$ordinal"
 fi
 
 if [ "${1:-}" = --sample ]; then
@@ -117,7 +135,7 @@ SYSTEM
     fi
     case "$side" in A) elf=/tmp/bin/odhcpd-c; expected=$C_SHA;; B) elf=/tmp/bin/odhcpd-rs; expected=$R_SHA;; *) exit 2;; esac
     [ "$(sha256sum "$elf" | cut -d' ' -f1)" = "$expected" ]
-    printf '{"schema_version":1,"phase":"%s","ordinal":%s,"side":"%s","elf_sha256":"%s"}\n' "$phase" "$ordinal" "$side" "$expected" > identity.json
+    printf '{"schema_version":1,"phase":"%s","ordinal":%s,"side":"%s","elf_sha256":"%s"%s}\n' "$phase" "$ordinal" "$side" "$expected" "$profile_json" > identity.json
     /sbin/ubusd > ubusd.log 2>&1 & bus=$!
     tries=0
     while [ ! -S /var/run/ubus/ubus.sock ]; do kill -0 "$bus"; tries=$((tries+1)); [ "$tries" -lt 10 ]; sleep 1; done
@@ -130,13 +148,18 @@ SYSTEM
     while [ "$(ubus -S -t 1 list dhcp 2>/dev/null || true)" != dhcp ]; do
         kill -0 "$subject"; tries=$((tries+1)); [ "$tries" -lt 10 ]; sleep 1
     done
-    /tmp/bin/odhcpd-probe run "$subject" /tmp/bin/odhcpd_device_update.sh > measurements.jsonl 2> probe.stderr
+    if [ "$profile" = idle-renew ]; then
+        /tmp/bin/odhcpd-probe run-idle-renew "$subject" > measurements.jsonl 2> probe.stderr
+    else
+        /tmp/bin/odhcpd-probe run "$subject" /tmp/bin/odhcpd_device_update.sh > measurements.jsonl 2> probe.stderr
+    fi
     kill -0 "$subject"; kill -0 "$provider"; kill -0 "$bus"
     [ "$(sha256sum /proc/$subject/exe | cut -d' ' -f1)" = "$expected" ]
     [ "$(cat subject.id)" = "$subject $(start_ticks "$subject")" ]
     ubus -S -t 2 call fixture stats > provider-final.json
-    [ "$(jsonfilter -i provider-final.json -e '@.sequence')" = 8 ]
-    [ "$(jsonfilter -i provider-final.json -e '@.notifications')" = 8 ]
+    updates=8; [ "$profile" = full ] || updates=0
+    [ "$(jsonfilter -i provider-final.json -e '@.sequence')" = "$updates" ]
+    [ "$(jsonfilter -i provider-final.json -e '@.notifications')" = "$updates" ]
     [ "$(jsonfilter -i provider-final.json -e '@.subscribed')" = true ]
     ubus -S -t 2 call dhcp ipv6leases > leases-final.json
     ubus -S -t 2 call dhcp ipv6ra > ra-final.json
@@ -171,6 +194,10 @@ cat /proc/meminfo > "$out/meminfo-before.txt"
 readlink /proc/self/ns/net > "$out/parent-netns.txt"
 cp "$bundle/bundle.sha256" "$out/bundle.sha256"
 printf '%s\n' "$mode" > "$out/mode.txt"
+if [ "$profile" != full ]; then
+    printf '%s\n' "$profile" > "$out/profile.txt"
+    printf '%s\n' "$R_SHA" > "$out/candidate.sha256"
+fi
 child= watchdog=
 cleanup() {
     result=$?
@@ -206,7 +233,7 @@ sample() {
     side=$1 phase=$2 ordinal=$3 id=$4
     directory=$out/$id
     mkdir "$directory" "$directory/root"
-    "$bundle/ns-exec" /bin/sh "$bundle/odhcpd_device_ab.sh" --namespace "$image" "$bundle" "$directory" "$directory/root" "$side" "$phase" "$ordinal" > "$directory/driver.log" 2>&1 &
+    "$bundle/ns-exec" /bin/sh "$bundle/odhcpd_device_ab.sh" --profile "$profile" --candidate-sha "$R_SHA" --namespace "$image" "$bundle" "$directory" "$directory/root" "$side" "$phase" "$ordinal" > "$directory/driver.log" 2>&1 &
     child=$!
     printf '%s %s\n' "$child" "$(start_ticks "$child")" > "$out/active-namespace.id"
     wait "$child"; child=
