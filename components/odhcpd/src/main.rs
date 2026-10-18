@@ -626,7 +626,9 @@ impl App {
                 }
             }
         }
-        self.files.reap();
+        if let Err(error) = self.files.poll_trigger(&self.config, now) {
+            self.logger.message(4, &format!("lease trigger: {error}"));
+        }
     }
 
     fn reconcile(&mut self, now: Clock, write: bool) {
@@ -696,6 +698,7 @@ impl App {
                     self.kernel_retry_at,
                     self.service_retry_at,
                     self.file_flush_at,
+                    self.files.trigger_deadline(),
                     self.route_retry_at
                         .filter(|_| self.kernel_retry_at.is_none()),
                     (self.kernel_dirty && self.kernel_retry_at.is_none()).then_some(0),
@@ -1072,7 +1075,6 @@ impl App {
             }
             if descriptors[1].revents != 0 {
                 signals.drain()?;
-                self.files.reap();
             }
             if STOP.load(Ordering::Relaxed) {
                 break;
@@ -1102,7 +1104,7 @@ impl App {
         if let Some(bus) = &mut self.bus {
             bus.stop()?;
         }
-        self.files.reap();
+        self.files.stop_trigger()?;
         Ok(())
     }
 }
