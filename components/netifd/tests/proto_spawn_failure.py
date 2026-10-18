@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Protocol exec-failure differential in disposable Linux mount/net/PID namespaces.
+"""Protocol recovery differential in disposable Linux mount/net/PID namespaces.
 
 Compare the exact image's netifd with a candidate. Each case starts from
 the same image and requires a live daemon and a reached precondition. Raw
@@ -17,9 +17,10 @@ import sys
 import tempfile
 import time
 
-CASES = ("healthy_spawn", "fail_spawn")
+CASES = ("healthy_spawn", "fail_spawn", "dependency")
 ORIGINAL_CHECKS = {}
 CHECKS = {case: {"recovered", "same_daemon"} for case in CASES}
+CHECKS["dependency"] = {"initially_unavailable", "recovered", "loss_detected", "recovered_again", "same_daemon"}
 
 PROTO = r'''#!/bin/sh
 . /lib/functions.sh
@@ -33,6 +34,9 @@ proto_probe_setup() {
     local cfg="$1" iface="$2" token
     json_get_var token token
     echo "setup:$token" >> /tmp/out/actions
+    if [ -e /tmp/dependency ]; then
+        proto_add_host_dependency "$cfg" "" under || return
+    fi
     proto_run_command "$cfg" /bin/sh /tmp/helper.sh
     proto_init_update "$iface" 1
     proto_add_ipv4_address 10.90.0.1 24
@@ -105,6 +109,8 @@ def inner(root, side, case):
     run("ip", "link", "add", "veth0", "type", "veth", "peer", "name", "veth1")
     run("ip", "link", "set", "veth0", "up")
 
+    if case == "dependency":
+        run("ip", "link", "add", "under0", "type", "dummy")
     output = root / "tmp/out"
     processes = []
 
@@ -138,18 +144,32 @@ def inner(root, side, case):
     assert daemon.poll() is None
     assert Path(f"/proc/{daemon.pid}/exe").resolve() == root / binary.lstrip("/")
     result = {}
-    script = root / "lib/netifd/proto/probe.sh"
-    saved = script.read_text()
-    if case == "fail_spawn":
-        script.unlink()
-    call("network.interface.wan", "up")
-    time.sleep(0.5)
-    snapshot("before-repair")
-    if case == "fail_spawn":
-        write(script, saved, True)
-    time.sleep(3)
-    result["recovered"] = snapshot("after-repair").get("up") is True
-    result["same_daemon"] = daemon.poll() is None
+    if case == "dependency":
+        time.sleep(0.5)
+        result["initially_unavailable"] = snapshot("initial").get("available") is False
+        call("network.interface.under", "up")
+        time.sleep(1)
+        result["recovered"] = snapshot("first-recovery").get("up") is True
+        call("network.interface.under", "down")
+        time.sleep(1)
+        result["loss_detected"] = snapshot("dependency-lost").get("available") is False
+        call("network.interface.under", "up")
+        time.sleep(1)
+        result["recovered_again"] = snapshot("second-recovery").get("up") is True
+        result["same_daemon"] = daemon.poll() is None
+    else:
+        script = root / "lib/netifd/proto/probe.sh"
+        saved = script.read_text()
+        if case == "fail_spawn":
+            script.unlink()
+        call("network.interface.wan", "up")
+        time.sleep(0.5)
+        snapshot("before-repair")
+        if case == "fail_spawn":
+            write(script, saved, True)
+        time.sleep(3)
+        result["recovered"] = snapshot("after-repair").get("up") is True
+        result["same_daemon"] = daemon.poll() is None
     assert daemon.poll() is None, "daemon died"
     call("network", "get_proto_handlers")
     write(output / "result.json", json.dumps(result, indent=2) + "\n")
@@ -186,6 +206,9 @@ def main():
                 for component in components:
                     shutil.copy2(args.bins / (component + "-rs"), root / "tmp" / (component + "-rs"))
                 write(root / "etc/config/network", config() + " option auto '0'\n")
+                if case == "dependency":
+                    write(root / "etc/config/network", config() + "config interface 'under'\n option device 'under0'\n option proto 'static'\n option auto '0'\n option ipaddr '10.91.0.1/24'\n")
+                    write(root / "tmp/dependency", "")
                 write(root / "etc/config/wireless", "")
                 write(root / "lib/netifd/proto/probe.sh", PROTO, True)
                 write(root / "tmp/helper.sh", HELPER, True)
