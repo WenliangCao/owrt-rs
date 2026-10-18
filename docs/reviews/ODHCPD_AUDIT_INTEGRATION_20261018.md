@@ -109,3 +109,29 @@ SHA256 为 `24eab4a77e16c1ab862c0bb0d274e02516b8da1498102c3c2cf9321b71633401`。
 
 本范围完成。后续只需处置上述恢复缺陷并把必要的配置 reload/调用方断言纳入
 受影响功能门；是否继续上线还须合并其余独立审计结论。
+
+## 定向复验：恢复 P2 在修复脚本上关闭
+
+2026-10-18 独立复核修复 commit `974cfee55de072468b7c4cd9c572e88b54213566`：
+脚本先读取 `release.json.layout` 决定必需数量，再核对已有
+`stock_manifest_sha256`，之后才检查恢复集合与写入文件。该 P2 **closed**。
+修复后的 `/usr/sbin/owrt-recover-c` SHA256：
+`96d6677abebc2a14012f1ab43f885cf614c96f73bcc189005674bfbda0d81abc`。
+
+复用原负控的输入变更与真实 BusyBox/jsonfilter、mount/net/PID namespace，
+独立新脚本在每个新 rootfs 副本仅替换修复后的恢复脚本。三个场景一次通过：
+
+| 输入 | 实测结果 |
+|---|---|
+| 精确 native-eleven，仍只删除 odhcpd 恢复清单行 | 退出 1，报 `stock recovery manifest identity mismatch`；11 个活动 ELF 和两个 integration 文件的哈希全部未变，无 staging 文件 |
+| 精确 native-eleven，完整清单 | 退出 0，13 个目标的内容和模式全部匹配 stock 副本，无 staging 文件 |
+| 精确历史 v0.2.3 native-ten rootfs，source `0a925bcc2ec065eebaae51811c1a6252007b9d56` | 退出 0，12 个目标的内容和模式全部匹配 stock 副本，无 staging 文件 |
+
+两份共享源 rootfs 的活动/stock 文件、清单与原恢复脚本在运行前后均未变化。
+Oracle 原件为 `/home/ubuntu/odhcpd-audit-integration-20261018/recovery-fix-01/`；
+本地 ignored `audit-integration/` 保存 `recover_recheck.py` 和
+`recovery-fix-result.json`。未构建产品、访问路由器或采集性能。
+
+关闭的是该脚本修复，不把旧 v0.2.4 镜像重新认定为已修复；最终新镜像仍须包含
+上述脚本并运行受影响恢复门。配置 reload 与 LuCI 消费者的新增夹具结果等待
+最终新 SDK/镜像后另核，不在此次定向复验中重跑。
