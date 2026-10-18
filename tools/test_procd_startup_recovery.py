@@ -69,11 +69,15 @@ def run_case(rootfs, candidate, output, side, fail_at):
         probe.write_text("#!/bin/sh\ntouch /tmp/boot-ready\n")
         probe.chmod(0o755)
         path = root / "tmp/run/ubus/ubus.sock"
-        listener = socket.socket(socket.AF_UNIX)
-        listener.bind(str(path))
-        listener.listen(4)
-        listener.settimeout(8)
-        path.chmod(0o666)
+        listener = None
+        if fail_at:
+            listener = socket.socket(socket.AF_UNIX)
+            listener.bind(str(path))
+            listener.listen(4)
+            listener.settimeout(8)
+            path.chmod(0o666)
+        else:
+            (root / "sbin/ubusd").unlink()
         command = ["unshare", "--mount", "--net", "--pid", "--fork", "--kill-child",
                    "/bin/sh", "-c", '''
 set -eu
@@ -92,28 +96,17 @@ exec chroot "$1" /sbin/procd -S
             try:
                 daemon = subprocess.Popen(command, stdout=log, stderr=log,
                                           env={**os.environ, "container": "1"})
-                with listener.accept()[0] as connection:
-                    connection.settimeout(4)
-                    connection.sendall(struct.pack(">BBHII", 0, 0, 0, 1025, 4))
-                    observed["request_types"] = []
-                    for index in range(1, fail_at + 1):
-                        request = receive_frame(connection)
-                        kind = request[1]
-                        observed["request_types"].append(kind)
-                        if index == fail_at:
-                            break
-                        sequence = struct.unpack_from(">H", request, 2)[0]
-                        if kind == 6:
-                            fields = struct.pack(">IIII", 0x03000008, 2000 + index,
-                                                 0x05000008, 3000 + index)
-                            send_frame(connection, 2, sequence, fields)
-                        send_frame(connection, 1, sequence, struct.pack(">II", 0x01000008, 0))
-                # A new, healthy bus is available immediately after the failed
-                # registration. The same PID 1 must survive and reach sysinit.
-                listener.close()
-                path.unlink(missing_ok=True)
-                bus = subprocess.Popen(["chroot", str(root), "/tmp/ubusd-real"],
-                                       stdout=bus_log, stderr=bus_log)
+                if not fail_at:
+                    # No process exists to reap after Rust's failed exec.
+                    # Restore the dependency without signaling PID 1.
+                    time.sleep(1.2)
+                    shutil.copy2(root / "tmp/ubusd-real", root / "sbin/ubusd")
+                else:
+                    inject_registration_failure(listener, fail_at, observed)
+                    listener.close()
+                    path.unlink(missing_ok=True)
+                    bus = subprocess.Popen(["chroot", str(root), "/tmp/ubusd-real"],
+                                           stdout=bus_log, stderr=bus_log)
                 deadline = time.monotonic() + 8
                 observed["service_registered"] = False
                 while time.monotonic() < deadline and daemon.poll() is None:
@@ -127,12 +120,32 @@ exec chroot "$1" /sbin/procd -S
                 observed["pid1_alive"] = daemon.poll() is None
                 observed["exit_code"] = daemon.poll()
                 observed["sysinit_reached"] = (root / "tmp/boot-ready").exists()
-                observed["healthy_bus_alive"] = bus.poll() is None
+                observed["healthy_bus_alive"] = bus.poll() is None if bus else path.exists()
             finally:
-                listener.close()
+                if listener:
+                    listener.close()
                 stop(daemon)
                 stop(bus)
         return observed
+
+
+def inject_registration_failure(listener, fail_at, observed):
+    with listener.accept()[0] as connection:
+        connection.settimeout(4)
+        connection.sendall(struct.pack(">BBHII", 0, 0, 0, 1025, 4))
+        observed["request_types"] = []
+        for index in range(1, fail_at + 1):
+            request = receive_frame(connection)
+            kind = request[1]
+            observed["request_types"].append(kind)
+            if index == fail_at:
+                break
+            sequence = struct.unpack_from(">H", request, 2)[0]
+            if kind == 6:
+                fields = struct.pack(">IIII", 0x03000008, 2000 + index,
+                                     0x05000008, 3000 + index)
+                send_frame(connection, 2, sequence, fields)
+            send_frame(connection, 1, sequence, struct.pack(">II", 0x01000008, 0))
 
 
 def main():
@@ -140,7 +153,8 @@ def main():
     parser.add_argument("--rootfs", required=True, type=Path)
     parser.add_argument("--candidate", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--fail-at", type=int, choices=range(1, 7), default=1)
+    parser.add_argument("--fail-at", type=int, choices=range(0, 7), default=1,
+                        help="registration request to disconnect; 0 tests a late ubusd executable")
     parser.add_argument("--sides", nargs="+", choices=("c", "rust"), default=["c", "rust"])
     args = parser.parse_args()
     if os.geteuid() != 0:
@@ -154,7 +168,7 @@ def main():
     # an object whose first registration failed. Record that limitation rather
     # than treating it as the desired Rust recovery behavior.
     assert all(r["pid1_alive"] and r["sysinit_reached"] and r["healthy_bus_alive"]
-               and (r["side"] == "c" or r["service_registered"])
+               and (r["side"] == "c" and r["fail_at"] != 0 or r["service_registered"])
                for r in results), "PID 1 did not recover from startup bus loss"
 
 

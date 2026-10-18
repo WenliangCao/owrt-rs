@@ -2569,21 +2569,29 @@ fn run() -> io::Result<()> {
             inst.user = Some("ubus".to_string());
             inst.group = Some("ubus".to_string());
         }
-        let mut pid = match proc::start(&inst, "ubus") {
-            Ok((pid, _, _)) => pid,
-            Err(e) => {
-                log!(sys::LOG_ERR, "failed to start ubusd: {e}");
-                0
-            }
-        };
+        let mut pid = 0;
+        let mut spawn_at = Instant::now();
         let conn = loop {
+            if pid == 0 && Instant::now() >= spawn_at {
+                pid = match proc::start(&inst, "ubus") {
+                    Ok((pid, _, _)) => pid,
+                    Err(error) => {
+                        log!(sys::LOG_ERR, "failed to start ubusd: {error}");
+                        0
+                    }
+                };
+                // Command::spawn can fail without leaving a child to reap.
+                // Retry those failures as well as exited children, while
+                // keeping the watchdog serviced between attempts.
+                spawn_at = Instant::now() + std::time::Duration::from_secs(1);
+            }
             match Connection::connect(None) {
                 Ok(c) => break c,
                 Err(_) => {
                     while let Some((dead, wstatus)) = proc::reap_any() {
                         if dead == pid {
-                            std::thread::sleep(std::time::Duration::from_secs(1));
-                            pid = proc::start(&inst, "ubus").map(|(p, _, _)| p).unwrap_or(0);
+                            pid = 0;
+                            spawn_at = Instant::now() + std::time::Duration::from_secs(1);
                         } else {
                             // A coldplug command may still be running here;
                             // its exit belongs to the hotplug queue, or the
@@ -2597,9 +2605,12 @@ fn run() -> io::Result<()> {
                 }
             }
         };
-        inst.state = Run::Running;
+        inst.state = if pid > 0 { Run::Running } else { Run::Stopped };
         inst.pid = pid;
         inst.started = base.elapsed().as_millis() as i64;
+        if pid == 0 {
+            inst.deadline = Some(inst.started + 1000);
+        }
         early_ubus = Some((inst, pid));
         conn
     } else {
