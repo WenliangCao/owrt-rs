@@ -53,6 +53,12 @@ impl Logger {
             unsafe { syslog(level as c_int, c"%s".as_ptr(), message.as_ptr()) };
         }
     }
+
+    fn configuration_diagnostics(&self, config: &mut Config) {
+        for diagnostic in config.diagnostics.drain(..) {
+            self.message(4, &diagnostic);
+        }
+    }
 }
 
 #[derive(Default)]
@@ -211,11 +217,13 @@ impl App {
     fn new(options: Options) -> Result<Self, Box<dyn std::error::Error>> {
         // Reject unsupported modes before opening any service socket or
         // exporting files. Later reloads validate a complete replacement too.
-        let config = Config::load(options.directory.as_deref())?;
+        let mut config = Config::load(options.directory.as_deref())?;
         let logger = Logger {
             stderr: options.stderr,
             level: options.log_level.unwrap_or(config.log_level),
         };
+        logger.configuration_diagnostics(&mut config);
+        config.validate_devices()?;
         let mut kernel = Kernel::open()?;
         let state = kernel.snapshot(clock())?;
         let bus = if options.no_ubus {
@@ -223,6 +231,9 @@ impl App {
         } else {
             Some(Bus::start(None)?)
         };
+        if let Some(bus) = &bus {
+            bus.set_ignored_interfaces(config.ignored_interfaces());
+        }
         let mut app = Self {
             options,
             logger,
@@ -245,7 +256,7 @@ impl App {
             #[cfg(test)]
             next_snapshot_error: None,
         };
-        app.services(true, &Changes::default(), None, clock())?;
+        app.services(true, &Changes::default(), None, clock());
         Ok(app)
     }
 
@@ -258,7 +269,11 @@ impl App {
     fn reload(&mut self, now: Clock) -> Result<(), Box<dyn std::error::Error>> {
         let candidate =
             match Config::load(self.options.directory.as_deref()).and_then(|mut config| {
-                config.apply_network(&self.networks)?;
+                self.logger.configuration_diagnostics(&mut config);
+                let result = config.apply_network(&self.networks);
+                self.logger.configuration_diagnostics(&mut config);
+                result?;
+                config.validate_devices()?;
                 Ok(config)
             }) {
                 Ok(candidate) => candidate,
@@ -285,8 +300,11 @@ impl App {
         self.pending_config = None;
         self.logger.level = self.options.log_level.unwrap_or(candidate.log_level);
         self.config = candidate;
+        if let Some(bus) = &self.bus {
+            bus.set_ignored_interfaces(self.config.ignored_interfaces());
+        }
         self.state = state;
-        self.services(true, &Changes::default(), None, now)?;
+        self.services(true, &Changes::default(), None, now);
         self.reconcile(now, false);
         Ok(())
     }
@@ -297,22 +315,7 @@ impl App {
         changes: &Changes,
         previous: Option<&KernelState>,
         now: Clock,
-    ) -> io::Result<()> {
-        let mut assigned = Vec::new();
-        for pool in self.config.pools.iter().filter(|pool| pool.enabled()) {
-            if let Some(link) = self
-                .state
-                .link(pool.ifname.as_deref().unwrap_or(&pool.name))
-            {
-                if assigned.contains(&link.index) {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        "multiple IPv6 service pools on one device are unsupported",
-                    ));
-                }
-                assigned.push(link.index);
-            }
-        }
+    ) {
         let mut old = std::mem::take(&mut self.services);
         for pool in self.config.pools.iter().filter(|pool| pool.enabled()) {
             let device = pool.ifname.as_deref().unwrap_or(&pool.name);
@@ -426,7 +429,6 @@ impl App {
                 }
             }
         }
-        Ok(())
     }
 
     fn refresh_kernel(&mut self, changes: &Changes, now: Clock) -> io::Result<()> {
@@ -438,6 +440,9 @@ impl App {
         let reloaded = if let Some(candidate) = self.pending_config.take() {
             self.logger.level = self.options.log_level.unwrap_or(candidate.log_level);
             self.config = candidate;
+            if let Some(bus) = &self.bus {
+                bus.set_ignored_interfaces(self.config.ignored_interfaces());
+            }
             true
         } else {
             false
@@ -467,7 +472,7 @@ impl App {
             if retrying { &recovered } else { changes },
             Some(&previous),
             now,
-        )?;
+        );
         self.reconcile(now, address_change);
         Ok(())
     }
@@ -1140,5 +1145,94 @@ mod tests {
         let mut pool = PoolConfig::new("test");
         pool.ra_hop_limit = 123;
         assert_eq!(ra_hop_limit(&pool, "missing-device"), 123);
+    }
+
+    #[test]
+    fn alias_reload_is_rejected_before_snapshot_and_preserves_active_services() {
+        let mut fixture = Fixture::new();
+        let mut active = PoolConfig::new("active");
+        active.ifname = Some("existing-device".into());
+        active.ra = true;
+        active.ignore_updates = false;
+        fixture.app.config.pools = vec![active.clone()];
+        fixture.app.services.push(Service {
+            pool: active,
+            index: 123,
+            ra: None,
+            dhcp: None,
+        });
+        let previous = fixture.app.config.clone();
+        fixture.app.pending_config = Some(previous.clone());
+        fs::write(
+            fixture.directory.join("dhcp"),
+            "config dhcp lan\n option ra server\nconfig dhcp lan6\n option dhcpv6 server\n",
+        )
+        .unwrap();
+        fixture.app.networks = ["lan", "lan6"]
+            .into_iter()
+            .map(|name| NetworkInterface {
+                name: name.into(),
+                device: Some("br-lan".into()),
+                up: true,
+                data: owrt_ubus::json::Json::Object(Vec::new()),
+            })
+            .collect();
+        fixture.app.next_snapshot_error = Some(9);
+        fixture.app.reload(at(10_000)).unwrap();
+        assert_eq!(fixture.app.config, previous);
+        assert!(fixture.app.pending_config.is_none());
+        assert_eq!(fixture.app.next_snapshot_error, Some(9));
+        assert_eq!(fixture.app.services.len(), 1);
+        assert_eq!(fixture.app.services[0].pool.name, "active");
+        assert_eq!(fixture.app.services[0].index, 123);
+
+        // The same unsupported topology is a startup configuration error when
+        // the two device names are already known from explicit UCI bindings.
+        fs::write(fixture.directory.join("dhcp"), "config dhcp lan\n option ra server\n option ifname br-lan\nconfig dhcp lan6\n option dhcpv6 server\n option ifname br-lan\n").unwrap();
+        assert!(App::new(Options {
+            directory: Some(fixture.directory.clone()),
+            no_ubus: true,
+            stderr: true,
+            log_level: Some(0)
+        })
+        .is_err());
+    }
+
+    #[test]
+    fn unrelated_client_data_and_bad_host_do_not_block_a_runtime_lan_binding() {
+        let mut fixture = Fixture::new();
+        fs::write(fixture.directory.join("dhcp"), "config dhcp lan\n option ra server\n option dhcpv6 server\nconfig host broken\n option duid 0001000123456\nconfig host valid\n option name valid\n option hostid 123\n").unwrap();
+        fixture.app.networks = vec![
+            NetworkInterface {
+                name: "wwan".into(),
+                device: Some("fixture-client".into()),
+                up: true,
+                data: owrt_ubus::json::parse(r#"{"dhcpserver":"192.0.2.1","leasetime":60}"#)
+                    .unwrap(),
+            },
+            NetworkInterface {
+                name: "lan".into(),
+                device: Some("fixture-lan".into()),
+                up: true,
+                data: owrt_ubus::json::Json::Object(Vec::new()),
+            },
+        ];
+        fixture.app.reload(at(10_000)).unwrap();
+        let lan = fixture
+            .app
+            .config
+            .pools
+            .iter()
+            .find(|pool| pool.name == "lan")
+            .unwrap();
+        assert_eq!(lan.ifname.as_deref(), Some("fixture-lan"));
+        assert!(lan.ra && lan.dhcpv6);
+        assert_eq!(fixture.app.config.hosts.len(), 1);
+        assert_eq!(
+            fixture.app.config.hosts[0].hostname.as_deref(),
+            Some("valid")
+        );
+        assert!(fixture.app.config.diagnostics.is_empty()); // Consumed by Logger.
+        assert_eq!(fixture.app.config.ignored_interfaces(), vec!["wwan"]);
     }
 }

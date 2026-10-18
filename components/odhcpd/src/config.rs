@@ -41,6 +41,7 @@ pub struct PoolConfig {
     pub ifname: Option<String>,
     pub ra: bool,
     pub dhcpv6: bool,
+    pub ignore_updates: bool,
     pub dynamic_dhcp: bool,
     pub lease_time: u32,
     pub max_preferred_lifetime: u32,
@@ -75,6 +76,7 @@ impl PoolConfig {
             ifname: None,
             ra: false,
             dhcpv6: false,
+            ignore_updates: true,
             dynamic_dhcp: true,
             lease_time: 43_200,
             max_preferred_lifetime: 2700,
@@ -112,6 +114,7 @@ impl PoolConfig {
 pub struct Config {
     pub pools: Vec<PoolConfig>,
     pub hosts: Vec<HostConfig>,
+    pub diagnostics: Vec<String>,
     pub lease_file: Option<PathBuf>,
     pub hosts_dir: Option<PathBuf>,
     pub pio_dir: Option<PathBuf>,
@@ -128,6 +131,7 @@ impl Default for Config {
         Self {
             pools: Vec::new(),
             hosts: Vec::new(),
+            diagnostics: Vec::new(),
             lease_file: None,
             hosts_dir: None,
             pio_dir: None,
@@ -212,6 +216,15 @@ impl Config {
             if !matches!(section.ty.as_str(), "dhcp" | "host" | "boot6") {
                 continue;
             }
+            if section.ty == "host" {
+                match section_json(section).and_then(|data| host_from_json(&data)) {
+                    Ok(host) => config.hosts.push(host),
+                    Err(error) => config
+                        .diagnostics
+                        .push(format!("static host {} skipped: {error}", section.name)),
+                }
+                continue;
+            }
             let data = section_json(section)?;
             match section.ty.as_str() {
                 "dhcp" => {
@@ -220,7 +233,6 @@ impl Config {
                     apply_pool(&mut pool, &data)?;
                     config.pools.push(pool);
                 }
-                "host" => config.hosts.push(host_from_json(&data)?),
                 "boot6" => {
                     return Err(ConfigError(
                         "DHCPv6 PXE is outside the supported configuration".into(),
@@ -242,6 +254,7 @@ impl Config {
                 }
             }
         }
+        config.validate_devices()?;
         Ok(config)
     }
 
@@ -249,22 +262,132 @@ impl Config {
     /// Callers must not repeatedly apply patches to an already patched Config.
     pub fn apply_network(&mut self, interfaces: &[NetworkInterface]) -> Result<()> {
         for network in interfaces {
-            if let Some(pool) = self.pools.iter_mut().find(|pool| pool.name == network.name) {
-                if pool.enabled() {
-                    apply_pool(pool, &network.data)?;
-                }
-                pool.ifname = network.device.clone();
+            let index = self.pools.iter().position(|pool| pool.name == network.name);
+            let mut candidate = index
+                .map(|i| self.pools[i].clone())
+                .unwrap_or_else(|| PoolConfig::new(network.name.clone()));
+            // l3_device is the independently typed netifd interface binding.
+            // A bad optional data patch must not prevent resolving the UCI pool.
+            candidate.ifname = network.device.clone().or(candidate.ifname);
+            if let Some(i) = index {
+                self.pools[i].ifname = candidate.ifname.clone();
             } else {
-                let mut pool = PoolConfig::new(network.name.clone());
-                apply_pool(&mut pool, &network.data)?;
-                pool.ifname = network.device.clone();
-                if pool.enabled() {
-                    self.pools.push(pool);
+                // DHCP clients publish unrelated data such as integer leasetime.
+                // First inspect only whether an unknown interface requests one
+                // of our services; do not parse its client state as server UCI.
+                if let Err(error) = apply_pool(&mut candidate, &network_data(&network.data, true)) {
+                    self.diagnostics
+                        .push(format!("netifd {} data skipped: {error}", network.name));
+                    continue;
                 }
             }
+            if !candidate.enabled() {
+                if index.is_none() && candidate.ifname.is_some() {
+                    self.pools.push(candidate);
+                }
+                continue;
+            }
+            if let Err(error) = apply_pool(&mut candidate, &network_data(&network.data, false)) {
+                self.diagnostics
+                    .push(format!("netifd {} data skipped: {error}", network.name));
+                continue;
+            }
+            candidate.ifname = network.device.clone().or(candidate.ifname);
+            if let Some(i) = index {
+                self.pools[i] = candidate;
+            } else if candidate.enabled() {
+                self.pools.push(candidate);
+            }
+        }
+        self.validate_devices()
+    }
+
+    pub fn ignored_interfaces(&self) -> Vec<String> {
+        self.pools
+            .iter()
+            .filter(|pool| pool.ignore_updates)
+            .map(|pool| pool.name.clone())
+            .collect()
+    }
+
+    /// Validate before committing a candidate, never while replacing sockets.
+    pub fn validate_devices(&self) -> Result<()> {
+        let mut assigned = Vec::new();
+        for pool in self.pools.iter().filter(|pool| pool.enabled()) {
+            let device = pool.ifname.as_deref().unwrap_or(&pool.name);
+            if assigned.contains(&device) {
+                return Err(ConfigError(format!(
+                    "multiple IPv6 service pools on device {device} are unsupported"
+                )));
+            }
+            assigned.push(device);
         }
         Ok(())
     }
+}
+
+/// config.c iface_attrs uses typed blobmsg_parse: a wrong-typed netifd field
+/// is absent, unlike a malformed explicitly configured UCI value.
+fn network_data(data: &Json, modes_only: bool) -> Json {
+    let Json::Object(fields) = data else {
+        return Json::Object(Vec::new());
+    };
+    Json::Object(
+        fields
+            .iter()
+            .filter(|(name, value)| {
+                if modes_only
+                    && !matches!(
+                        name.as_str(),
+                        "ra" | "dhcpv6" | "ndp" | "master" | "ifname" | "networkid"
+                    )
+                {
+                    return false;
+                }
+                match name.as_str() {
+                    "ra"
+                    | "dhcpv6"
+                    | "ndp"
+                    | "ifname"
+                    | "networkid"
+                    | "leasetime"
+                    | "max_preferred_lifetime"
+                    | "max_valid_lifetime"
+                    | "ra_preference"
+                    | "dhcpv6_raw"
+                    | "ra_pref64"
+                    | "prefix_filter"
+                    | "captive_portal_uri" => matches!(value, Json::Str(_) | Json::Bytes(_)),
+                    "master"
+                    | "dynamicdhcp"
+                    | "dhcpv6_assignall"
+                    | "dhcpv6_na"
+                    | "dhcpv6_pd"
+                    | "dhcpv6_pd_preferred"
+                    | "ra_slaac"
+                    | "ra_offlink"
+                    | "ra_dns"
+                    | "dns_service"
+                    | "ra_advrouter" => matches!(value, Json::Bool(_)),
+                    "dhcpv6_pd_min_len"
+                    | "dhcpv6_hostidlength"
+                    | "ra_default"
+                    | "ra_maxinterval"
+                    | "ra_mininterval"
+                    | "ra_lifetime"
+                    | "ra_reachabletime"
+                    | "ra_retranstime"
+                    | "ra_hoplimit"
+                    | "ra_mtu" => matches!(value, Json::Int(_)),
+                    "dns" | "domain" | "ra_flags" | "upstream" | "dnr" | "ntp" => {
+                        matches!(value, Json::Array(_))
+                    }
+                    _ => false,
+                }
+            })
+            .cloned()
+            .collect(),
+    )
 }
 
 fn timezone(value: String) -> Option<String> {
@@ -427,9 +550,15 @@ fn apply_pool(pool: &mut PoolConfig, data: &Json) -> Result<()> {
     }
     if let Some(value) = mode(data, "ra")? {
         pool.ra = value;
+        if value {
+            pool.ignore_updates = false;
+        }
     }
     if let Some(value) = mode(data, "dhcpv6")? {
         pool.dhcpv6 = value;
+        if value {
+            pool.ignore_updates = false;
+        }
     }
     // maindhcp=0: dhcpv4/start/limit are shared dnsmasq input, not a v4 request.
     for (key, target) in [
@@ -723,14 +852,18 @@ mod tests {
     fn runtime_scope_is_checked_and_device_is_resolved() {
         let mut config = parse(LOCAL, None).unwrap();
         let data = owrt_ubus::json::parse("{\"dhcpv6\":\"relay\"}").unwrap();
-        assert!(config
+        config
             .apply_network(&[NetworkInterface {
                 name: "lan".into(),
                 device: Some("br-lan".into()),
                 up: true,
-                data
+                data,
             }])
-            .is_err());
+            .unwrap();
+        assert!(config.pools[0].dhcpv6);
+        assert_eq!(config.pools[0].ifname.as_deref(), Some("br-lan"));
+        assert_eq!(config.diagnostics.len(), 1);
+        assert!(config.diagnostics[0].contains("netifd lan data skipped"));
     }
 
     #[test]
@@ -767,5 +900,156 @@ mod tests {
             &owrt_ubus::json::parse("{\"duid\":\"000102\"}").unwrap(),
         );
         assert!(host_from_blob(&payload).is_err());
+    }
+
+    fn interface(name: &str, device: &str, data: &str) -> NetworkInterface {
+        NetworkInterface {
+            name: name.into(),
+            device: Some(device.into()),
+            up: true,
+            data: owrt_ubus::json::parse(data).unwrap(),
+        }
+    }
+
+    #[test]
+    fn client_data_without_a_uci_pool_cannot_disable_lan_server_configuration() {
+        let lan = "config dhcp 'lan'\n option ra 'server'\n option dhcpv6 'server'\n";
+        for client_first in [false, true] {
+            let mut config = parse(lan, None).unwrap();
+            let client = interface(
+                "wwan",
+                "eth1",
+                r#"{"dhcpserver":"192.0.2.1","leasetime":60,"dns":[9],"ra":false}"#,
+            );
+            let lan = interface(
+                "lan",
+                "br-lan",
+                r#"{"dns":["2001:db8::53"],"leasetime":60,"ra_mtu":"9000","ra_slaac":1}"#,
+            );
+            config
+                .apply_network(&if client_first {
+                    vec![client, lan]
+                } else {
+                    vec![lan, client]
+                })
+                .unwrap();
+            let pool = config.pools.iter().find(|pool| pool.name == "lan").unwrap();
+            assert!(pool.ra && pool.dhcpv6);
+            assert_eq!(pool.ifname.as_deref(), Some("br-lan"));
+            assert_eq!(pool.lease_time, 43200); // netifd integer is not server duration text.
+            assert_eq!(pool.dns, vec!["2001:db8::53".parse::<Ipv6Addr>().unwrap()]);
+            assert_eq!(pool.ra_mtu, None); // Wrong-typed netifd scalar is absent.
+            assert!(pool.ra_slaac);
+            let client = config
+                .pools
+                .iter()
+                .find(|pool| pool.name == "wwan")
+                .unwrap();
+            assert!(!client.enabled());
+            assert!(config.diagnostics.is_empty());
+            assert_eq!(config.ignored_interfaces(), vec!["wwan"]);
+        }
+    }
+
+    #[test]
+    fn malformed_network_patch_is_skipped_per_interface_without_partial_mutation() {
+        let mut config = parse(LOCAL, None).unwrap();
+        config
+            .apply_network(&[
+                interface("bad", "eth2", r#"{"ra":"server","leasetime":"invalid"}"#),
+                interface("lan", "br-lan", r#"{"dhcpv6_na":false,"dns":["invalid"]}"#),
+                interface("good", "eth3", r#"{"ra":"server","leasetime":"600"}"#),
+            ])
+            .unwrap();
+        assert!(!config.pools.iter().any(|pool| pool.name == "bad"));
+        assert_eq!(config.diagnostics.len(), 2);
+        assert!(config.pools[0].dhcpv6_na); // Earlier fields in the rejected patch rolled back.
+        assert!(config.pools[0].dns.is_empty());
+        assert_eq!(config.pools[0].ifname.as_deref(), Some("br-lan"));
+        let good = config
+            .pools
+            .iter()
+            .find(|pool| pool.name == "good")
+            .unwrap();
+        assert!(good.ra);
+        assert_eq!(good.lease_time, 600);
+        assert!(parse(
+            "config dhcp lan\n option ra server\n option leasetime invalid\n",
+            None
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn duplicate_enabled_devices_are_a_configuration_error_before_commit() {
+        assert!(parse("config dhcp lan\n option ra server\n option ifname br-lan\nconfig dhcp lan6\n option dhcpv6 server\n option ifname br-lan\n", None).is_err());
+        let mut config = parse(
+            "config dhcp lan\n option ra server\nconfig dhcp lan6\n option dhcpv6 server\n",
+            None,
+        )
+        .unwrap();
+        let error = config
+            .apply_network(&[
+                interface("lan", "br-lan", "{}"),
+                interface("lan6", "br-lan", "{}"),
+            ])
+            .unwrap_err();
+        assert!(error
+            .0
+            .contains("multiple IPv6 service pools on device br-lan"));
+        let mut disabled = parse(LOCAL, None).unwrap();
+        disabled
+            .apply_network(&[
+                interface("lan", "br-lan", "{}"),
+                interface("wan", "br-lan", "{}"),
+            ])
+            .unwrap();
+    }
+
+    #[test]
+    fn invalid_uci_hosts_are_individual_diagnostics_but_ubus_stays_strict() {
+        for invalid in [
+            "option duid 0001000123456",
+            "option mac zz:00:11:22:33:44",
+            "option ip not-an-ip",
+            "option name '-bad'",
+        ] {
+            let text = format!("{LOCAL}\nconfig host before\n option duid 00030001020000000002\n option name before\nconfig host broken\n {invalid}\nconfig host after\n option duid 00030001020000000003\n option name after\n");
+            let config = parse(&text, None).unwrap();
+            assert_eq!(
+                config
+                    .hosts
+                    .iter()
+                    .filter_map(|host| host.hostname.as_deref())
+                    .collect::<Vec<_>>(),
+                vec!["before", "after"]
+            );
+            assert_eq!(config.diagnostics.len(), 1);
+            assert!(config.diagnostics[0].starts_with("static host broken skipped:"));
+            assert!(config.pools[0].enabled());
+        }
+        let fields = owrt_ubus::convert::object_to_payload(
+            &owrt_ubus::json::parse(r#"{"duid":["0001000123456"]}"#).unwrap(),
+        );
+        assert!(host_from_blob(&fields).is_err());
+    }
+
+    #[test]
+    fn notification_ignore_tracks_c_service_modes_and_is_sticky_within_a_load() {
+        let source = "config dhcp lan\n option ra server\n option ignore 1\nconfig dhcp wan\n option ignore 1\n";
+        let mut config = parse(source, None).unwrap();
+        assert_eq!(config.ignored_interfaces(), vec!["wan"]);
+        config
+            .apply_network(&[
+                interface("lan", "br-lan", r#"{"ra":"disabled"}"#),
+                interface("wan", "eth1", r#"{"ra":"server"}"#),
+            ])
+            .unwrap();
+        assert!(!config.pools[0].enabled());
+        assert!(!config.pools[0].ignore_updates); // A UCI server was enabled earlier in this load.
+        assert!(!config.pools[1].enabled()); // Known C ignored interface does not consume data.
+        assert_eq!(config.ignored_interfaces(), vec!["wan"]);
+        let reset = parse("config dhcp lan\n option ra disabled\n", None).unwrap();
+        assert_eq!(reset.ignored_interfaces(), vec!["lan"]);
     }
 }
