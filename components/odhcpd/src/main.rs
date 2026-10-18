@@ -277,6 +277,7 @@ struct App {
     kernel_dirty: bool,
     kernel_retry_at: Option<u64>,
     route_retry_at: Option<u64>,
+    service_retry_at: Option<u64>,
     last_expiry_seconds: u64,
     pending_config: Option<Config>,
     services: Vec<Service>,
@@ -322,6 +323,7 @@ impl App {
             kernel_dirty: false,
             kernel_retry_at: None,
             route_retry_at: None,
+            service_retry_at: None,
             last_expiry_seconds: clock().seconds(),
             pending_config: None,
             services: Vec::new(),
@@ -406,6 +408,7 @@ impl App {
                 service.pool.ifname.as_deref().unwrap_or(&service.pool.name) == device
                     && service.index == link.index
             });
+            let report_socket_error = reload || found.is_none();
             let mut service = if let Some(index) = found {
                 old.remove(index)
             } else {
@@ -428,12 +431,11 @@ impl App {
                         }
                         service.ra = Some(RaService { socket, router });
                     }
-                    Err(error) => self.logger.message(
+                    Err(error) if report_socket_error => self.logger.message(
                         4,
-                        &format!(
-                            "{device}: RA socket: {error}; retry on interface update or reload"
-                        ),
+                        &format!("{device}: RA socket: {error}; retrying in one second"),
                     ),
+                    Err(_) => {}
                 }
             } else if !pool.ra {
                 if let Some(mut ra) = service.ra.take() {
@@ -457,12 +459,11 @@ impl App {
             if pool.dhcpv6 && service.dhcp.is_none() {
                 match Socket::open(Kind::Dhcp6, link) {
                     Ok(socket) => service.dhcp = Some(socket),
-                    Err(error) => self.logger.message(
+                    Err(error) if report_socket_error => self.logger.message(
                         4,
-                        &format!(
-                            "{device}: DHCPv6 socket: {error}; retry on interface update or reload"
-                        ),
+                        &format!("{device}: DHCPv6 socket: {error}; retrying in one second"),
                     ),
+                    Err(_) => {}
                 }
             } else if !pool.dhcpv6 {
                 service.dhcp = None;
@@ -484,6 +485,14 @@ impl App {
             service.pool = pool.clone();
             self.services.push(service);
         }
+        self.service_retry_at = self
+            .services
+            .iter()
+            .any(|service| {
+                service.pool.ra && service.ra.is_none()
+                    || service.pool.dhcpv6 && service.dhcp.is_none()
+            })
+            .then_some(now.monotonic_ms.saturating_add(KERNEL_RETRY_MS));
         // A removed pool withdraws what it advertised if its old link still
         // exists. A vanished ifindex cannot transmit; its PIO file is retained.
         for mut service in old {
@@ -685,6 +694,7 @@ impl App {
                 [
                     self.expiry_deadline(),
                     self.kernel_retry_at,
+                    self.service_retry_at,
                     self.file_flush_at,
                     self.route_retry_at
                         .filter(|_| self.kernel_retry_at.is_none()),
@@ -996,6 +1006,15 @@ impl App {
                     .is_none_or(|deadline| now.monotonic_ms >= deadline)
             {
                 self.refresh_kernel(&Changes::default(), now)?;
+            }
+            if self
+                .service_retry_at
+                .is_some_and(|deadline| now.monotonic_ms >= deadline)
+            {
+                // Retry only absent sockets; services retains healthy sockets
+                // and their RA timers. A transient bind/open failure must not
+                // leave a running daemon permanently unable to serve clients.
+                self.services(false, &Changes::default(), None, now);
             }
             if self
                 .expiry_deadline()
