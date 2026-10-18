@@ -135,3 +135,24 @@ Oracle 原件为 `/home/ubuntu/odhcpd-audit-integration-20261018/recovery-fix-01
 关闭的是该脚本修复，不把旧 v0.2.4 镜像重新认定为已修复；最终新镜像仍须包含
 上述脚本并运行受影响恢复门。配置 reload 与 LuCI 消费者的新增夹具结果等待
 最终新 SDK/镜像后另核，不在此次定向复验中重跑。
+
+## 最终新镜像：两项调用链覆盖关闭
+
+2026-10-18 只读复核 `4c4339b5` 的工具断言和最终镜像 boot 原件，两项 coverage
+均 **closed**。输入为 source `e1cf7890f5ec2edbf5670f97e035f328fa569685`，image
+SHA256 `e669c44cd5eadbf29605304fbe295c73673502d32a8e0364ad9e0692f12315a8`，
+odhcpd SDK ELF `c7c5f1f9e79ea80febe696d6c758db8d3463d1e4b94c7a002f1aa597b9c3ea30`。
+
+工具实际修改并提交 UCI，经原 `/etc/init.d/odhcpd reload` 后发送同一 NA/PD
+的 Renew。独立解析归档原始报文，确认原租期 120 秒变为 600 秒、T1/T2 为
+300/480、原地址/前缀不变且新 DNS 为 `2001:db8:53::1`。前后 PID/start/ELF
+一致，并与归档 `/proc` stat 和最终 rootfs 的候选身份相符。实际
+`luci-rpc.getDHCPLeases` 的两项租约地址/前缀及期限匹配报文；
+`luci.getFeatures` 返回 `ra/dhcpv6/ubus=true, ndp/dhcpv4=false`。
+
+原件为 Oracle `/home/ubuntu/odhcpd-image-fable-v024-20261018/boot-final/`，本地
+`private/odhcpd-20261018/image-fable-v024-e1cf7890/boot-final/`；独立解析的
+`client-result.json` SHA256 为
+`c09989d582d144e257733d8d098ca9f1f0a4528902e401995f4380fdffe3ec72`。
+此次只分析保存的配置、报文、进程身份和消费者输出，无测试重跑、性能采集或
+物理访问；未用旧 `79f1349e...` 客户端试运行代替新候选的证据。
