@@ -1,212 +1,136 @@
 # owrt-control-plane-rs
 
-在一台**真实运行**的 OpenWrt 路由器上，把控制面逐个换成 Rust 实现。目标设备是 Xiaomi Mi Router
-AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5dae5ece4` 官方 `sysupgrade.bin`，
-内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
-保留精确 C 原件与离线恢复材料。
+逐步用 Rust 替换 OpenWrt 中能够替换的部分。当前在 Xiaomi Mi Router AX3000T 上运行，
+基于 OpenWrt 25.12.5；已发布版本为 [v0.3.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.0)，
+包含 procd、ubusd、netifd、rpcd、logd、httpd、fw4、uci、reload_config、dnsmasq、odhcpd 共 11 个 Rust 组件。
 
-**现状（2026-10-18）：[v0.3.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.0) 已保配置刷入并发布为正式 Latest，新增 odhcpd-rs；真实客户端续租通过，撤销报文与精确 C 一致。**
-默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。最终 SDK `589226a1…` 的完整
-10 项指标真机对照已通过：40 个正式配对中 39 个改善、1 个 Renew 在噪声内，
-没有退步。3 个 NA 租约时 RSS 为 C/Rust 1106/806 KiB；空闲 CPU 为
-18.0509/0 µs/s，Rust 的 0 是测量窗口内无进程 CPU 增量，不是所有负载零开销。
-初始连续客户端健康通过 187.711 秒。获准的一次 20 秒 WAN6 断开已自动恢复，
-IPv4 HTTPS 59/59 通过；路由器及时发出旧前缀零寿命 RA，但客户端直到恢复初期
-才记录撤销并短暂 deprecated，随后取回同一前缀。用户接受这一客户端行为；
-[离线 C 对照](docs/reviews/ODHCPD_WITHDRAWAL_C_PARITY_20261018.md)确认报文一致，13 个发布附件已全部回读核验，PR #1 已合并。
-详见[部署与客户端验收](docs/reviews/ODHCPD_V030_DEPLOYMENT_20261018.md)；不追加性能轮次或重复 WAN6 断开。
-见[最终全指标结果](docs/reviews/ODHCPD_FINAL_FULL_AB_RESULT_20261018.md)；
-[两项复测](docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md)与
-[首批停止结果](docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)保留原样。
-此前标为 v0.2.4 的候选保留原版本、源码和产物哈希：其 Fable 修复 ELF 已通过
-129 项 SDK 实包检查、完整镜像夹具和真实客户端 123.74 秒短时试运行，确认后已恢复 C。
-这些历史产物不改名为 v0.3.0。新组件沿用原 init 和 leasetrigger，仅支持本机
-RA/SLAAC、DHCPv6 IA_NA/IA_PD、租约、UCI 和 ubus/netifd。旧候选首主动 RA 约
-1 ms 差距的接受决定仍保留，最终十项对照的范围以新报告为准。详见[功能报告](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)、
-[Fable 修复及新客户端试运行](docs/reviews/ODHCPD_FABLE_RESULT_20261018.md)与
-[v0.2.3 部署记录](docs/reviews/DEPLOYMENT_V0_2_3_20261017.md)。
+以下按时间倒序记录，日期统一使用 Europe/Berlin。链接指向当时的报告与发布记录。
 
-**历史里程碑（2026-09-29）：完整九组件 Rust 固件已保留配置刷入，客户端验收与用户物理断电复测通过，试验工具已清理。**
-固定回溯节点：[AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)，
-构建源码 `a4053dd`；Release 保存实际刷入镜像、完整组件身份和校验资料。
-见[部署记录](docs/reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)与[镜像验收](docs/reviews/NATIVE_IMAGE_20260929.md)。
-前一次分层部署的断电修复和清理见
-[修复记录](docs/reviews/POWER_RECOVERY_20260929_FIX.md)与[清理记录](docs/reviews/POWER_RECOVERY_20260929_CLEANUP.md)。
-统一安装布局、配置迁移和 C 恢复方式见[发布说明](docs/RELEASE.md)。
+## 2026-10-18
 
-**历史状态（2026-09-20）：当时路由器运行精确 C 原版；R95 只做隔离测试。**
-[R94 审计](docs/reviews/R94_COMPLETION_AUDIT.md)发现四项实际缺陷及性能/内存证据缺口；
-[R95 修复](docs/reviews/R95_DEFECT_FIXES.md)已逐项提交并在路由器验证。
-九组件“全面胜 C、尽可能胜 R89”的目标尚未完成，后续遵循
-[实机研究与验收规则](docs/R95_PERFORMANCE_RESEARCH.md)。
+- 发布并刷入 [v0.3.0：新增 odhcpd](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.0)。
+  odhcpd-rs 接管本机 RA/SLAAC、DHCPv6 IA_NA/IA_PD、租约与 leasetrigger、ubus dhcp 对象、
+  UCI 配置和 netifd 前缀订阅。[功能记录](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)
+- 修复 odhcpd 独立审计发现的接口错误隔离、配置更新和前缀撤销等问题，最终 SDK 程序通过
+  129 项实包夹具检查。[审计修复与验收](docs/reviews/ODHCPD_FABLE_RESULT_20261018.md)
+- 去掉 odhcpd 空闲轮询，改为按事件和实际到期时间唤醒；租约导出移到回复之后。
+  最终程序完成路由器隔离 C/Rust 对照，10 项指标均未越过预定退步门槛。
+  [完整性能结果](docs/reviews/ODHCPD_FINAL_FULL_AB_RESULT_20261018.md)
+- 刷机后验证真实客户端 DHCPv6 自然续租，以及一次 20 秒 WAN6 断开/恢复；离线确认撤销报文与 C 一致。
+  客户端撤销标记延迟和一次孤立 DNS 查询失败保留在[部署报告](docs/reviews/ODHCPD_V030_DEPLOYMENT_20261018.md)，
+  报文对照见[C 一致性记录](docs/reviews/ODHCPD_WITHDRAWAL_C_PARITY_20261018.md)。
+- 发布并刷入 [v0.2.3：减少防火墙重建和续租写入](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.3)。
+  刷机后的 300 秒观察中，WAN6 出现 4 种地址集合，防火墙规则和 flowtable handles 保持不变。
+  [部署记录](docs/reviews/DEPLOYMENT_V0_2_3_20261017.md)
 
-**历史里程碑（2026-09-15）：R92 九组件曾通过 Wi-Fi 部署，原计划第 2–5 批和该轮实机验收完成。
-内核、驱动、数据面和无线 handler 脚本保留，本轮没有刷写固件。**
-运行时固定为 `ca1a9121df0380448a19d474e29796066b6734e8`，
-[正式构建 34874442503](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/34874442503)；
-后续工具、注释和报告提交没有替换这份运行时。
-[R92 验收](reports/ax3000t-stock-openwrt-25.12.5/R92_REMAINING_BATCHES.md)包含异常恢复、兼容修复、
-R91 日志、插件与无线复核：68 道必需门、四个冷启动、74 负载×三侧×四轮的 888 条测量通过。
-每个剩余问题的修复或保留理由见 [逐项处置](reports/ax3000t-stock-openwrt-25.12.5/R92_COVERAGE.md)。
+## 2026-10-17
 
-相对本轮精确 C，固定整批 CPU 低 23.39%，mixed 吞吐高 12.05%，idle-before 守护进程 RSS
-中位数之和为 9606→5320 KiB。相对历史正式 R89，HTTP lane CPU **+9.38%**、log **+29.49%**、
-mixed **+4.35%**，mixed 吞吐 **−3.73%**；不能宣称全面无回退。MemAvailable 少 6.31 MiB，
-副本缓存控制不支持把全部差额归于静态二进制。[性能报告](reports/ax3000t-stock-openwrt-25.12.5/R92_PERFORMANCE.md)
-保留各轮范围、同机 HTTP 控制、尾延迟、停放成本及内存边界。
+- fw4-rs 在有效规则与已加载规则可确认相同时跳过 reload 下发；有用户 include 脚本或无法确认时照常重载。
+  首次 start 不建立规则比较状态；规则变化 reload 保留必要快照，较 v0.2.2 多约 14.58 ms CPU 的代价已接受。
+  [实现与原版差异](docs/reviews/FW4_RELOAD_V023_20261017.md)、[定向复测](docs/reviews/V023_FW4_FOLLOWUP_20261017.md)
+- netifd-rs 按 C 的 keep 逻辑处理续租，跳过未变化地址和路由的内核写入。
+  [实现与验证](docs/reviews/NETIFD_KEEP_V023_20261017.md)
+- 测量 v0.2.2 开机和续租事件：WAN 约 16.75 秒 up，客户端约 33 秒可联网；
+  确认重复 WAN6 更新未改变有效防火墙规则。决定不重写 DHCP 脚本，改做上述两项优化。
+  [测量报告](docs/reviews/DHCP_EVENT_REBOOT_20261017.md)
+- 发布并刷入 [v0.2.2：十组件安全整理](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.2)。
+  业务代码中的 unsafe 集中到系统接口封装，业务 crate 启用 `forbid(unsafe_code)`；
+  路由器目标构建零编译警告，CI 将编译警告视为失败。[验收报告](docs/reviews/CORE_SAFE_20261017.md)
+- 发布并刷入 [v0.2.1：dnsmasq 缓存查询优化](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.1)。
+  纳入普通缓存命中快路径、UDP 接收优化、同名 A/AAAA 缓存提示与固定 PGO；
+  完成一小时运行观察。[版本记录](docs/reviews/RELEASE_V0_2_1_20261017_NOTES.md)、[部署记录](docs/reviews/DEPLOYMENT_V0_2_1_20261017.md)
 
-该轮保留精确 C、正式 R89、已接受 R90 和 R92；诊断文件在当时核验清理。
-[回退与包保留](docs/R92_RELEASE_AND_ROLLBACK.md)、[续接说明](docs/R92_RESUME.md)记录该轮身份与复核入口。
-[R90](reports/ax3000t-stock-openwrt-25.12.5/R90_BATCH1_LIFECYCLE.md)记录已经完成的第一批生命周期修复。
+## 2026-10-14
 
-历史 [R86 报告](reports/ax3000t-stock-openwrt-25.12.5/R86_PERFORMANCE_REVIEW.md)（发布提交 `f612e30`）记录了信号唤醒、HTTPD资源耗尽和
-netifd子进程回收检查的修复。九组件代表负载的平均延迟和CPU均下降；完整74项负载中，平均延迟
-73项下降、1项上升，CPU73项下降、1项持平。整机混合吞吐较原版高9.49%，控制面CPU/次低9.90%，
-固定整批CPU低20.29%。
+- 发布并刷入 [v0.2.0：新增 dnsmasq](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0)，
+  Rust 组件从 9 个增加到 10 个；dnsmasq-rs 接管 DNS 与 DHCPv4 服务。
+  完成保留配置升级、正常重启和用户物理断电复测。
+  [版本记录](docs/reviews/RELEASE_V0_2_0_20261014_NOTES.md)、[部署记录](docs/reviews/DEPLOYMENT_V0_2_0_20261014.md)
+- 完成 dnsmasq 候选的隔离真机性能比较；UDP 查询 CPU 和内存高于 C，TCP 未命中与 DHCPv4 续租有改善。
+  此轮候选与最终发布程序不同，测量结果按报告中的对象保留。[性能报告](docs/dnsmasq/PERF_DEVICE_20261014.md)
 
-这些结果不表示全面提升：整机独立服务列表查询CPU高18.96%，HTTPD保持64连接RSS增量为原版452→Rust2096 KiB，
-部分尾延迟仍上升。每侧只有两次整机启动；有限测试也不能证明任意输入无bug。
-[部署证明](reports/ax3000t-stock-openwrt-25.12.5/R86_parts/deployment.json)、
-[完整表格与图](reports/ax3000t-stock-openwrt-25.12.5/R86_parts/rendered/system_results.md)及
-[所有回退与持平事实清单](reports/ax3000t-stock-openwrt-25.12.5/R86_REGRESSIONS_COMPLETE.md)以及
-[R85优化日志](reports/ax3000t-stock-openwrt-25.12.5/R85_OPTIMIZATION_LOG.md)保留全部有效样本和历史失败。
+## 2026-10-09
 
-[R87算法复核](reports/ax3000t-stock-openwrt-25.12.5/R87_ALGORITHM_REVIEW.md)（2026-09-12）把整机CPU回退定位到
-ubusd事件循环每条消息轮询全部客户端（实机约18个），把HTTPD保持连接内存定位到每连接一线程，并提交了
-ubusd就绪集合、HTTPD空闲连接停放和rpcd ACL匹配快路径三项改动；构建机上64连接RSS增量1944→100 KiB、
-ubusd CPU不再随客户端数增长；正式构建随后走完隔离矩阵与四个冷启动窗口，整机13条lane全部快于原版
-（procd lane −12.5%、活动CPU −27.6%，64连接RSS增量+260 KiB对原版+452）。
+- 发布并刷入 [v0.1.1：修复 CLI 断管道与 IPv6 路由](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.1.1)。
+  fw4、uci 等命令在输出端关闭时不再 panic；netifd 补齐 IPv6 offlink 保护路由、
+  下游前缀 source rule 及 PD 自然到期清理。
+  [CLI 修复](docs/reviews/health-20261008-cli.md)、[netifd 修复](docs/reviews/health-20261008-netifd.md)
+- 正式产物完成离线协议、配置迁移、恢复与启动检查；九组件运行和保留配置通过真机快速验收。
+  [离线验收](docs/reviews/HEALTH_20261008_FORMAL_VALIDATION.md)、[部署记录](docs/reviews/DEPLOYMENT_V0_1_1_20261009_RESULT.md)
 
-[R88完整审计](reports/ax3000t-stock-openwrt-25.12.5/R88_FULL_AUDIT.md)（2026-09-13）用9个只读子代理逐组件对照原版源码审计，
-根代理复核：唯一的P1出在R87自己的procd节拍优化里（总线持续可读时维护饿死，看门狗不喂），连同13项P2/P3在R89修复轮
-（提交d9c1048，release-image 34724293710）修掉并重走全部流水线；报告给出逐组件正确性/性能/资源/稳定性结论、
-未修复的已知差异清单与“可整体替代、附条件”的判定。
+## 2026-09-29
 
-## 分层与边界
+- 发布并刷入 [v0.1.0：九组件集成固件](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)。
+  九个 Rust 程序由统一包安装到标准路径，结束此前的独立包与覆盖挂载部署；
+  保留配置升级、连续客户端验收和用户物理断电复测通过。[部署记录](docs/reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)
+- 修复 netifd 在 WAN carrier 延迟到达时丢失设备 claim 的问题，完成重新部署和断电恢复检查。
+  [修复记录](docs/reviews/POWER_RECOVERY_20260929_FIX.md)
+- reload_config 复用规范化和基线缓冲，直接通过 ubus 顺序投递配置事件并复用连接，
+  保留取消、超时与失败处理；完成九组件本轮优化收尾。
+  [reload_config 报告](docs/reviews/RELOAD_CONFIG_20260929_RESEARCH.md)、[九组件记录](docs/reviews/NINE_COMPONENT_20260928_CLOSEOUT.md)
 
-| 层 | 内容 | 处置 |
-|---|---|---|
-| 内核与驱动 | Linux 6.12、mt798x-wmac/mt76 无线、an8855 DSA 交换机、nftables、netlink | **保留** |
-| 数据面 / 执行面 | hostapd（wpad）、udhcpc/odhcp6c、dropbear、busybox、apk、sysupgrade stage2（`upgraded`） | **保留**——成熟、失败边界清楚、与本项目无接口冲突 |
-| DNS 与地址服务 | dnsmasq、odhcpd | 按各自实测范围实现；odhcpd 的 NDP 代理、中继和 DHCPv4 模式拒绝启动 |
-| 脚本层（被控制面调用） | `/lib/netifd/proto/*.sh`（dhcp/dhcpv6/ppp）、`/lib/netifd/wireless/mac80211.sh`（ucode wifi-scripts）、`/etc/init.d/*`、`/etc/hotplug.d/*`、`/etc/board.json` | **保留**——Rust daemon 按上游的调用合同（argv、环境、notify 协议）驱动它们 |
-| **控制面（管理层）** | procd、ubusd、netifd、rpcd、uci、firewall4 生成器、uhttpd、logd、reload_config | **全部 Rust**（下表） |
-| UI | LuCI（ucode，经 CGI 与 `/ubus`） | **保留**——跑在 httpd-rs + rpcd-rs 上 |
+## 2026-09-28
 
-分层的判据不是"能不能用 Rust 写"，而是接口面是否清楚、失败边界是否可控、以及有没有办法在
-一台唯一的生产设备上验证并回退。内核转发和无线执行面保留；按明确授权的范围逐个接管用户态组件。
+- httpd 减少 RPC 回复复制和中间 JSON 对象，优化编码及大块写入。
+  [httpd 报告](docs/reviews/HTTPD_20260928_RESEARCH.md)
+- fw4 直接向输出缓冲格式化规则；rpcd 复用 UCI 模型和载荷，缩小 ACL 扫描范围。
+  [fw4 报告](docs/reviews/FW4_20260928_RESEARCH.md)、[rpcd 报告](docs/reviews/RPCD_20260928_RESEARCH.md)
+- procd 精确匹配 meminfo 字段；logd 单次解析 syslog 优先级；uci 减少参数与配置复制，按片段输出转义内容。
+  [procd 报告](docs/reviews/PROCD_20260928_RESEARCH.md)、[logd 报告](docs/reviews/LOGD_NEXT_RESEARCH.md)、[uci 报告](docs/reviews/UCI_20260928_RESEARCH.md)
+- 这些改动完成各自隔离验证，随后纳入 9 月 29 日的九组件固件；各项测量中的局部退步保留在原报告。
 
-## 控制面组件
+## 2026-09-27
 
-下表的安装形态记录首次分层上线。当前九个标准入口均由统一 `owrt-control-plane` 包原位提供。
+- netifd 优化状态查询，复用未变化的无线配置和接口对象类型，减少 sysctl 探测。
+  保留 H10 方案并结束本轮研究；事件处理、尾延迟和资源项中的未决结果一并记录。
+  [工程结果](docs/reviews/NETIFD_20260927_ENGINEERING_RESULTS.md)
 
-| 组件（crate） | 替代 | 上游参考 | 首次上线形态 | 首次上线 | 报告 |
-|---|---|---|---|---|---|
-| `components/reload-config` | `/sbin/reload_config`（procd 配置变更分发） | procd 触发链 | apk `owrt-reload-config`，bind mount | 2026-09-02 | R05_GO_LIVE |
-| `components/logd` | logd | ubox | apk `owrt-logd`，服务替换 | 2026-09-02 | R15_LOGD |
-| `components/httpd` | uhttpd（静态、CGI、`/ubus` JSON-RPC、TLS） | uhttpd 7b1bec45 | apk `owrt-httpd`，服务替换 80/443 | 2026-09-02 | R14_HTTPD |
-| `components/fw4` | firewall4 规则生成器（`fw4.uc` + 模板） | firewall4 b6e51575 | apk `owrt-fw4`，bind mount `/sbin/fw4` | 2026-09-02 | R09_FW4 |
-| `components/rpcd` | rpcd 全部对象：session/uci/rc、file/luci、luci-rpc/iwinfo/rpc-sys/network.rrdns | rpcd 28faf640 | apk `owrt-rpcd`，服务替换 | 2026-09-02 | R13/R17/R18 |
-| `components/uci` | libuci + `/sbin/uci` | uci 66127cd7 | apk `owrt-uci`，bind mount `/sbin/uci` | 2026-09-02 | R16_UCI |
-| `components/procd` | procd：服务监管、trigger、PID 1、rcS、hotplug/coldplug、watchdog、sysupgrade 移交 | procd 58eb263d | 直接替换 `/sbin/procd`，原件在 stock `/rom` | 2026-09-09 | R65–R75 |
-| `components/ubusd` | ubusd（系统消息总线） | ubus 24864e78 | 直接替换 `/sbin/ubusd`，原件在 stock `/rom` | 2026-09-09 | R36–R42、R76 |
-| `components/netifd` | netifd：设备/接口/协议/路由/DHCP 生命周期 + 无线编排状态机 | netifd cbb83a18、wifi-scripts f0a60eee | 直接替换 `/sbin/netifd`，原件在 stock `/rom` | 2026-09-09 | R45–R64、R77–R80 |
-| `components/ubus` | libubus/libubox 客户端与对象服务器、blobmsg、json_script | ubus 24864e78 | 库，被上述 crate 使用 | — | — |
+## 2026-09-26
 
-前六个通过 apk 包安装，`owrt-<name>-switch enable|disable|boot-enable` 显式切换，`owrt-switch status`
-一处查看；后三个是"失效即失联"的组件，在 bind mount 生效之前就已运行，所以改为在 overlay 上直接
-替换 `/sbin/<x>`。冗余 `.c-orig` 已在 2026-09-29 清理，stock `/rom` 原件与离线备份保留。
-这段描述的是此前的分层部署；当前集成固件中九个程序均原位安装，C 救援原件另存于 `/usr/libexec/owrt-stock/`。
+- ubusd 性能研究结束，保留 R136：复用消息存储、减少注册分配与重复查找。
+  18 项负载的 daemon CPU 均下降，注册及对象事件仍有 4 项尾延迟退步；当时只做隔离测试。
+  [测量结果](docs/reviews/R136_UBUSD_COMPLETION_RESULT.md)、[九组件收尾记录](docs/reviews/NINE_COMPONENT_20260928_CLOSEOUT.md)
 
-第三方直接依赖保留 httpd 的 rustls/ring（TLS），v0.2.2 新增固定 rustix 1.1.5。
-业务 crate 强制 `forbid(unsafe_code)`；必要的系统 ABI、信号、fork 和 FD 边界集中在
-platform 封装内，UCI/fw4 保留极薄的 libc 启动入口。目标平台编译警告为零，CI 有编译
-警告即失败。具体范围见[统一验收报告](docs/reviews/CORE_SAFE_20261017.md)。发布构建 opt-level 3、
-静态 musl（决策 0017），正式发布由 GitHub Actions `release-image` 生成（决策 0018）。
+## 2026-09-20
 
-整体基线 [R84 实机对照](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md) 使用四次冷启动和
-72 次单组件隔离运行，基线是精确原版 OpenWrt。整体替换后的四客户端混合吞吐下降约 3.9%，控制面
-CPU/请求增加约 12.4%；fw4 规则生成、UCI 命令及 HTTPS 则有明显收益。六个常驻进程 RSS 合计约
-9.18→4.61 MiB，但共享页重复计数及文件缓存差异使其不能等同于整机独占内存节省。内核转发吞吐未测量。
-R84 版本的逐组件、CPU、延迟、内存、存储和测量边界以该报告为准；[R82](reports/ax3000t-stock-openwrt-25.12.5/R82_BENCHMARK_FULL.md)
-及 [09-03 六组件数据](reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md) 保留为历史记录。
+- 修复 reload_config、uci 的正式打包输入，以及 UCI 短读丢尾等审计问题；
+  候选在路由器隔离验证，生产保持 C。[修复记录](docs/reviews/R95_DEFECT_FIXES.md)
 
-## 方法：每个组件怎么被证明可以上线
+## 2026-09-15
 
-1. **合同**（`docs/contracts/<组件>.md`）：从上游源码和设备实测里写下要复刻的语义，包括不显然的
-   怪癖（有符号/无符号、truthiness、avl 排序、通知顺序……）和**有意偏离**（每条都写明理由）。
-2. **差分门槛**（`tools/r*_*.sh`）：在 aarch64 构建机上，把设备的精确 rootfs 复制两份，在各自的
-   mount/net/pid namespace 里跑 C 原件和 Rust 候选，同一客户端打同一串调用，逐字节比对输出、
-   内核状态、写出的文件。每个门槛都有**红证**——注入故障（换成 `/bin/false`、改掉一行）必须判红，
-   否则这个门槛不算存在。netifd 31 例（`tools/netifd_suite.sh`）、procd 272 标记（`r65`）、
-   ubusd（`r36`–`r42`）、rpcd/uci/fw4/httpd/logd 各有自己的套件。
-3. **设备窗口**：stage → 重启 → **站在客户端**验收（本机租约、经路由器解析、经路由器出网、
-   运行中二进制 = 候选）→ 连续观察 ≥ 3 分钟 → confirm；设备侧带自动回退（无人 confirm 则还原 C 并重启）。
-   窗口编排器（`tools/p6_window.sh`）脱离聊天会话运行——控制机就在被测路由器的 Wi-Fi 上。
-4. **报告**（`reports/…/R<nn>_*.md`）：每次窗口和每轮审计的证据、失败与修法。失败也写：P6 跑了
-   四次窗口，两个只有真机才暴露的缺口（DSA 口晚 16 秒注册、`resolv.conf.auto` 没写）都在 R78–R80。
-5. **外部审计**：R68/R70（procd）、R73（全量）由不同会话/模型对抗审计；每条发现先复现再修，
-   复现不了的连理由一起写回。[R81 冷审计](docs/reviews/R81_COLD_AUDIT.md) 的逐项修复与最终验证见
-   [R83 报告](reports/ax3000t-stock-openwrt-25.12.5/R83_R81_FIXES.md)。
+- 九组件 R92 完成异常恢复、协议兼容和日志修复后部署；通过 68 项必需检查、
+  四个冷启动和整栈对照。性能结果同时保留相对 C 与历史 Rust R89 的增减。
+  [部署与验收](reports/ax3000t-stock-openwrt-25.12.5/R92_REMAINING_BATCHES.md)、[性能报告](reports/ax3000t-stock-openwrt-25.12.5/R92_PERFORMANCE.md)
 
-## 回退
+## 2026-09-12
 
-当前 v0.2.2 使用 `owrt-recover-c` 成套准备十个 C 程序及 dnsmasq 原 init/ACL，共十二份文件，再单独重启；failsafe 中先 `mount_root`。
-原件位于 `/usr/libexec/owrt-stock/`，当前 `/rom` 内对应入口已是 Rust，不能作为 C 原件。
-这不等同于回退版本；v0.2.2 的版本回滚使用已核验的 v0.2.1 镜像和当次独立配置备份。
-详见[当前恢复说明](docs/RELEASE.md#恢复路径)及[硬件救援手册](docs/RUNBOOK_AX3000T_RECOVERY.md)。
+- 在九组件性能研究中，ubusd 改为处理就绪客户端，httpd 停放空闲连接，rpcd 增加 ACL 匹配快路径。
+  [算法复核](reports/ax3000t-stock-openwrt-25.12.5/R87_ALGORITHM_REVIEW.md)
+- 完成 R86 九组件实机对照，记录信号唤醒、HTTP 资源耗尽和子进程回收修复后的结果。
+  [性能与限制](reports/ax3000t-stock-openwrt-25.12.5/R86_PERFORMANCE_REVIEW.md)
 
-下表仅记录历史 stock + overlay 部署的恢复方式，已删除的 `/root/r84` 工具需要从离线备份恢复后才可使用。
-历史 [R92 整栈冷回退流程](docs/R92_RELEASE_AND_ROLLBACK.md)不适用于当前原生镜像。
+## 2026-09-10
 
-| 组件 | 回退 |
-|---|---|
-| uci / fw4 / reload_config / logd / httpd / rpcd | `owrt-<name>-switch disable`（立即）；`boot-enable off`（开机不再接管） |
-| procd / ubusd / netifd | `/bin/sh /root/r84/stack-switch.sh stage stock` 后冷启动，按身份与客户端健康门核验 |
-| 全部 | failsafe（mesh 键 + lan4）→ `/rom` 原封系统；再不行走 [救援手册](docs/RUNBOOK_AX3000T_RECOVERY.md) |
+- 修复 R81 全组件审计发现的问题，完成九组件部署和与原版 OpenWrt 的整机、单组件对照。
+  [审计修复](reports/ax3000t-stock-openwrt-25.12.5/R83_R81_FIXES.md)、[首轮部署性能报告](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md)
 
-## 仓库结构
+## 2026-09-09
 
-```
-components/      十个 crate（上表），各自 README/Cargo.toml；工作区 rust-toolchain 1.98.1
-docs/contracts/  每个组件的语义合同与有意偏离
-docs/decisions/  编号决策（0001–0018），过时的带"现状"横幅
-docs/reviews/    外部审计原文与复审
-docs/RELEASE.md  发布流水线；docs/RUNBOOK_AX3000T_RECOVERY.md 救援手册
-reports/         按设备 (ax3000t-stock-openwrt-25.12.5/) 的全部证据报告，R<nn> 递增
-tools/           差分门槛、探针、bench、设备窗口脚本（r*_*.sh 与 netifd_suite.sh 是回归入口）
-tests/reference/ 合同 C1 的参考用例
-packaging/       OpenWrt SDK 打包配方（owrt-* apk）
-manifests/       发布与验证的机器记录
-archive/         已完成/已被推翻的计划与 I0 过程文档（只供追溯）
-private/         镜像、rootfs、设备备份、bench 原始输出——不进 Git
-```
+- procd-rs 接管 PID 1、服务监管、启动与 sysupgrade 移交。
+  [接管记录](reports/ax3000t-stock-openwrt-25.12.5/R75_P4_SYSUPGRADE_LIVE.md)
+- ubusd-rs 经冷切换接管系统消息总线。[接管记录](reports/ax3000t-stock-openwrt-25.12.5/R76_P5_UBUSD_COLD_SWITCH.md)
+- netifd-rs 接管网络管理；修复延迟出现的桥端口和上游 DNS 文件生成后，客户端联网验收通过。
+  至此共 9 个组件在设备上运行 Rust 实现。[接管记录](reports/ax3000t-stock-openwrt-25.12.5/R80_P6_NETIFD_LIVE.md)
 
-## 构建与验证
+## 2026-09-02
 
-```sh
-# 构建（任一 crate）：pinned 1.98.1，静态 musl
-cargo +1.98.1 build --release --bins --examples --target aarch64-unknown-linux-musl
+- reload_config 接管配置变更分发，logd 接管系统日志，httpd 接管 HTTP/HTTPS 与 LuCI 访问。
+  [reload_config](reports/ax3000t-stock-openwrt-25.12.5/R05_GO_LIVE.md)、[logd](reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md)、[httpd](reports/ax3000t-stock-openwrt-25.12.5/R14_HTTPD.md)
+- fw4 接管 firewall4 规则生成，uci 接管配置库与命令行。
+  [fw4](reports/ax3000t-stock-openwrt-25.12.5/R09_FW4.md)、[uci](reports/ax3000t-stock-openwrt-25.12.5/R16_UCI.md)
+- rpcd 先接管 file/luci 插件，再接管 session/uci/rc 与其余插件对象，停止原 rpcd。
+  [插件接管](reports/ax3000t-stock-openwrt-25.12.5/R13_RPCD.md)、[核心接管](reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md)、[完整接管](reports/ax3000t-stock-openwrt-25.12.5/R18_RPCD_PLUGINS.md)
 
-# 差分门槛需要 Linux + sudo + 设备精确 rootfs（不在仓库内），例如：
-sudo bash tools/netifd_suite.sh <rootfs> <netifd-rs> <outdir> <examples-dir>
-sudo sh   tools/r65_procd_diff.sh <rootfs> <procd-rs> <outdir> <examples-dir>
-```
-
-一条项目内反复验证过的纪律：**构建、门槛、提交必须出自同一棵树的同一瞬间**（注释也算改动），
-引用哪份二进制就记录它的 SHA256；开发构建、正式构建和实机身份分别核验。
-
-## 明确不做
-
-不重写内核、驱动、hostapd、sysupgrade stage2、无线 handler 脚本和 LuCI；不扩展 odhcpd 的 NDP 代理、中继或 DHCPv4 模式。不做
-ubusd 的**热**切换（客户端 odhcpd/dnsmasq/netifd 的重连语义不允许，决策 0015；上线走的是随重启的
-冷切换）。不在没有回退路径的情况下碰设备。
-
-## 历史
-
-I0（镜像与源码基线、职责边界）→ 阶段 1–5（reload_config、logd、httpd、fw4、rpcd 插件层，2026-09-02，
-[FINAL_REPORT](reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)）→ 第二至五轮（uci、rpcd 核心、
-开机路径、找 bug、模糊测试，09-03）→ 发布流水线（09-04–06）→ P3–P6（procd、sysupgrade、ubusd、
-netifd，09-07–09，R63–R80）→ R81 冷审计修复与部署/对照测试（09-10，R83–R84）→
-R85–R89 性能与审计 → R90 生命周期 → R91 日志 → R92 第 2–5 批修复、部署与整体验收（09-15）。
-被推翻的计划与结论在 [archive/](archive/README.md)。
+[发布记录](https://github.com/WenliangCao/owrt-control-plane-rs/releases) ·
+[组件源码](components/) · [发布与恢复说明](docs/RELEASE.md) ·
+[审计及测量报告](docs/reviews/) · [早期报告](reports/ax3000t-stock-openwrt-25.12.5/)
