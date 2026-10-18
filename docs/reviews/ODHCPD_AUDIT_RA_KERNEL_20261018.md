@@ -5,6 +5,9 @@
 `NLM_F_DUMP_INTR` 会伴随缺项，但精确 C 依赖也有这一边界，不把它列为
 Rust 独有回归或当前两个前缀场景的发布阻断。本报告不授权发布、刷机或路由器操作。
 
+**后续状态：两项 P2 已在 e33fa56c 的最终 SDK 上定向复验关闭，见文末。
+以下原始发现及原 ELF 证据保留，不以修复结果覆盖历史。**
+
 审计者未参与此前实现。独立读取了 `AGENTS.md`、研究指导、实现和精确 C 源码，
 合同仅用于确认范围，没有沿用已有报告的 passed 结论。冻结 Rust 源码为
 `d0ef9f04d8533c174c5177301b3f479e11d6e4d0`；本次审查文件与该提交无差异。
@@ -156,3 +159,56 @@ sudo unshare --mount --net python3 snapshot_error.py --rootfs "$ROOT" --out "$OU
 `f468694cfabab4b2b36e1c449484e54b1313dbc95e65c5f86e9fe0de7a83a9c1`；
 `snapshot_error.py` 为
 `386bd419abf0372d8176994de9d39483f6c5941e714016f4ab08bc5477b10c44`。
+
+## 修复复核：RA-1、KERNEL-1 均关闭
+
+2026-10-18 08:57 UTC，独立静态复核及最终 SDK 的两个目标用例完成。
+源码：`e33fa56c426f51931251df022228cd7ab905b63d`；canonical CI：
+`39112918594`；实际复验 ELF 为
+`oracle:/home/ubuntu/odhcpd-validation-20261018/sdk-e33fa56c/odhcpd-rs`，
+执行前及夹具副本重新核对 SHA256：
+`c4a7c2731e02cb14fca5f94e4cbe940e0f9c91f64ca45be2e98ab19281250048`。
+没有构建或运行中间候选，没有改动共享 netlink transport。
+
+静态核对结果：`main.rs:117` 的 helper 在显式配置非零时直接使用配置，
+默认值在实际构包时重新读 sysctl；RS、周期 RA 和两种停用路径均使用它。
+`main.rs:475` 对指定瞬时快照错误保留状态，设置 1000 ms 后重试；
+`:523` 在 retry 期间不根据旧 `kernel.routes` reconcile；`:432` 成功后才
+替换状态、提交 pending config，并触发所有 router 重同步。pending reload
+期间的 `add_lease` 同时更新 active/pending 配置，未发现本范围的新状态丢失路径。
+
+| 原发现 | 冻结 SDK 的目标复验 | 结论 |
+|---|---|---|
+| RA-1 | 原 `hop_limit.py` 同输入得到 64 → 123 → 123，与保留的精确 C 结果一致 | closed |
+| KERNEL-1 | 一次 command socket ENOBUFS 后 PID 不变；原 bound NA/PD 身份、地址与 PD 路由在错误窗口和恢复后相同；窗口内 RS、DHCPv6 Information-request 仍有回复；恢复后两份原绑定 Renew 成功 | closed |
+
+KERNEL-1 复验使用新增 `snapshot_recovery.py`，保留原退出反例脚本不变。
+在注入前绑定一个 NA 和一个 PD；MTU 1500 → 1499 的事件触发失败 dump，
+检测到一次 INJECTED ENOBUFS 后立即删除 WAN 默认路由，使该通知发生在
+retry 窗口。窗口内 RA 仍使用保留快照的 MTU 1500、router lifetime 1800；
+成功重同步后 RA 变为 MTU 1499、router lifetime 0，无需再生成一个变化事件。
+原 PD 路由没有被守护进程删除或重新安装；trace 中的 NEWROUTE dump 响应
+和 DELROUTE 通知不算 route 写操作。
+
+实际 command 序列是 GETLINK seq 14 遇一次注入 ENOBUFS；约一秒后 seq 15
+因前次 dump 尚未消费完而收到真实内核 EBUSY；再下一秒 seq 16/17/18 完成
+LINK/ADDR/ROUTE 快照。没有第二次故障注入，进程在这两个重试间隔均继续服务。
+这同时验证了 EBUSY 的重试分支，而不是仅验证“没有退出”。时间仅用于判断
+重试顺序，没有性能结论。重试代码没有有限总次数，本次仅验证上述有限瞬时故障。
+
+本次只运行这两个目标用例。没有重新运行 DUMP_INTR 实验；共同既存 dump
+一致性边界仍未增强，原报告的限制继续有效。未访问路由器、刷机或发布。
+
+新证据仍在独立目录 `/home/ubuntu/odhcpd-audit-ra-kernel-20261018/`：
+
+| 相对路径 | SHA256 |
+|---|---|
+| `hop-sdk-e33fa56c/results.json` | `ee09c2d4d55266233e5a15766b85154ff90afbd3f56cd148634736cac9d487ee` |
+| `recovery-sdk-e33fa56c/results.json` | `f8d6507331a304e5d0ef33582158c28186ee8259878903ad31d4187a87d560a8` |
+| `recovery-sdk-e33fa56c/strace.log` | `5dc35650cb45a75e5e9ef63f3d5009bd19ad2f5b58842719e0d513dce8aa59c4` |
+| `snapshot_recovery.py` | `54319b555b067de89ab9e5d83b68e1a9ea2fac03a3b9fb0af7a2c1c72e063021` |
+
+恢复用例与上文相同私有命名空间命令执行，将脚本换成
+`snapshot_recovery.py`，额外传入 `--candidate-sha` 和上文完整 SDK SHA。
+当前没有本审计范围的未关闭新增发现；后续决定只需纳入其他独立审计结果，
+不需要继续扩展本报告的场景。
