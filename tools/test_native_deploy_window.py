@@ -15,6 +15,12 @@ import native_deploy_window as driver
 
 class ObserveOnly(unittest.TestCase):
     def test_observe_confirms_new_boot_without_flash_or_reboot(self):
+        self.exercise_observe()
+
+    def test_eleven_observation_also_checks_live_odhcpd(self):
+        self.exercise_observe(odhcpd=True)
+
+    def exercise_observe(self, odhcpd=False):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)
             old_boot = "11111111-1111-1111-1111-111111111111"
@@ -24,7 +30,9 @@ class ObserveOnly(unittest.TestCase):
                      ("procd", "ubusd", "netifd", "rpcd", "logd", "uci", "fw4")}
             paths.update({"httpd": "/usr/sbin/uhttpd", "dnsmasq": "/usr/sbin/dnsmasq",
                           "reload-config": "/sbin/reload_config"})
-            manifest = {"deployment_layout": "native-ten", "source_commit": "a" * 40,
+            if odhcpd:
+                paths["odhcpd"] = "/usr/sbin/odhcpd"
+            manifest = {"deployment_layout": "native-eleven" if odhcpd else "native-ten", "source_commit": "a" * 40,
                         "components": {name: {"path": path, "rust_sha256": digest,
                                                "stock_sha256": "b" * 64} for name, path in paths.items()},
                         "integration_files": {path: {"path": path, "replacement_sha256": digest}
@@ -60,8 +68,11 @@ class ObserveOnly(unittest.TestCase):
                 elif command == "cat /usr/share/owrt-control-plane/release.json":
                     output = json.dumps(manifest)
                 elif command.startswith("set -eu\nsha256sum"):
-                    output = "\n".join(name + " " + digest for name in
-                                       ("procd", "ubusd", "netifd", "rpcd", "logd", "uhttpd", "dnsmasq"))
+                    names = ("procd", "ubusd", "netifd", "rpcd", "logd", "uhttpd", "dnsmasq")
+                    if odhcpd:
+                        self.assertIn("uhttpd odhcpd;", command)
+                        names += ("odhcpd",)
+                    output = "\n".join(name + " " + digest for name in names)
                 elif command.startswith("sha256sum "):
                     output = "\n".join(digest + "  " + path for path in command.split()[1:])
                 elif command == "ubus -S -t 3 call luci getMountPoints":

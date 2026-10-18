@@ -166,6 +166,9 @@ for name in procd ubusd netifd rpcd logd uhttpd; do
     printf '%s %s\n' "$name" "$(sha256sum /proc/$pid/exe | cut -d' ' -f1)"
 done
 '''
+        if "odhcpd" in manifest["components"]:
+            code = code.replace("for name in procd ubusd netifd rpcd logd uhttpd;",
+                                "for name in procd ubusd netifd rpcd logd uhttpd odhcpd;")
         observed = {}
         for line in remote(code).splitlines():
             process, digest = line.split()
@@ -193,7 +196,7 @@ done
         mounts = json.loads(remote("ubus -S -t 3 call luci getMountPoints"))["result"]
         require(not any(m["mount"] in paths for m in mounts), "executable bind mount remains")
         remote('''set -eu
-for s in log rpcd uhttpd network dnsmasq; do /etc/init.d/$s enabled; done
+for s in log rpcd uhttpd network dnsmasq odhcpd; do /etc/init.d/$s enabled; done
 for name in uci fw4 reload-config rpcd logd httpd; do
     test ! -e /etc/owrt-$name.boot-enable
     test ! -e /etc/init.d/owrt-$name
