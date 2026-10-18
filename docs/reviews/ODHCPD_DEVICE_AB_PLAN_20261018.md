@@ -35,16 +35,21 @@ A53 的绝对值。本轮预测 Rust 请求路径不出现超过校准噪声的�
 和客户端 TCP DNS/双栈 HTTPS。先核验离线备份、v0.2.3 恢复镜像及救援材料。
 
 空 bridge 上收发是同硬件服务端对照，不是远端 Wi-Fi 客户端端到端时延。
+保留内核生成的随机 bridge MAC 并逐样本记录：Oracle 工具验证发现手动设置
+MAC 会让无端口 bridge 失去载波；固定 link-local 地址和客户端 DUID 不变。
+两侧都使用相同生成方式，变化只在固定长度的 SLLA/服务端 DUID 字节内容，不以
+伪造 flags 或增加物理端口维持链路。精确 BusyBox 不支持 `nodad`，因此只在
+新 netns 的 br-lan 上禁用 DAD 后加地址；生产 IPv6 参数不变。
 私有 provider 提供真正的 `network.interface` 对象、订阅通知与 dump；其 DNS
 变化触发原始 C/Rust 更新路径。不是实际 netifd 进程，也不测前缀变更成本。
 
 ## 固定采样
 
-先在独立 namespace 测时钟和 UDP echo 地板，不启动产品，不扣除地板。
+先在独立 namespace 各测 16 次时钟读取和 UDP echo 地板，不启动产品，不扣除地板。
 之后校准 `ABBAAB`，正式 `ABBABAAB`，共十四个全新实例；不并发测两个产品。
 每个实例按以下顺序：
 
-1. 对象就绪后安静 2 秒，零租约 RSS/RssAnon；固定 3 秒空闲 CPU 窗。
+1. 对象就绪后安静 2 秒，固定 3 秒空闲 CPU 窗；然后取零租约 RSS/RssAnon。
    空闲指无测试请求/通知，产品自身到期检查和周期 RA 照常运行。
 2. 16 个 RS→RA；16 组 Solicit→Advertise、Request→Reply、Renew→Reply。
    三个固定 IA_NA 客户端轮换；保存所有请求、响应和逐事件时间，不删除离群值。
