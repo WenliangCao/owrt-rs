@@ -1,4 +1,4 @@
-# dnsmasq K：固定 PGO 构建输入 · OpenWrt 25.12.5
+# v0.2.1（构建输入）：dnsmasq K PGO · OpenWrt 25.12.5
 
 本发布保存 dnsmasq K 的固定 PGO 构建输入，供 v0.2.1 固件构建使用。它不是固件，不替换路由器组件，也不是新的产品版本。
 
