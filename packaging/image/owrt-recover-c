@@ -5,9 +5,21 @@ set -eu
 [ "$#" -eq 0 ] || { echo 'usage: owrt-recover-c (then reboot)' >&2; exit 2; }
 base=/usr/libexec/owrt-stock
 manifest=/usr/share/owrt-control-plane/stock.sha256
+release=/usr/share/owrt-control-plane/release.json
 test -r /proc/self/mountinfo
+layout=$(jsonfilter -i "$release" -e '@.layout')
+case "$layout" in
+    native-ten) expected_count=12 ;;
+    native-eleven) expected_count=13 ;;
+    *) echo 'unknown native recovery layout' >&2; exit 1 ;;
+esac
+manifest_sha=$(jsonfilter -i "$release" -e '@.stock_manifest_sha256')
+test "${#manifest_sha}" -eq 64
+case "$manifest_sha" in *[!0-9a-f]*) echo 'invalid stock manifest identity' >&2; exit 1 ;; esac
+actual_sha=$(sha256sum "$manifest")
+test "${actual_sha%% *}" = "$manifest_sha" || { echo 'stock recovery manifest identity mismatch' >&2; exit 1; }
 count=$(wc -l < "$manifest")
-case "$count" in 12|13) ;; *) echo 'expected a complete native-ten or native-eleven recovery set' >&2; exit 1 ;; esac
+test "$count" -eq "$expected_count" || { echo "incomplete $layout recovery set" >&2; exit 1; }
 test "$(awk 'NF != 2 { exit 1 } {print $2}' "$manifest" | sort -u | wc -l)" -eq "$count"
 # The twelve historic paths are mandatory; odhcpd is the only permitted
 # thirteenth path. A 12-line subset of the 13-path allowlist is not sufficient.

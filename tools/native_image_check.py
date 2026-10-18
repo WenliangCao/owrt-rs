@@ -146,6 +146,16 @@ if /etc/init.d/cron enabled; then exit 1; fi
         self.passed("corrupt_program_init_or_ACL_rejected_before_any_replacement")
         sums = root / "usr/share/owrt-control-plane/stock.sha256"
         valid_sums = sums.read_text()
+        if self.manifest["layout"] == "native-eleven":
+            odhcpd_source = self.manifest["components"]["odhcpd"]["recovery_path"]
+            rows = [row for row in valid_sums.splitlines() if row.split()[1] != odhcpd_source]
+            assert len(rows) == 12
+            sums.write_text("\n".join(rows) + "\n")
+            self.shell("recovery-missing-odhcpd", root, "/usr/sbin/owrt-recover-c\n", success=False)
+            self.identities(root)
+            assert not list(root.rglob("*.owrt-recovery-new"))
+            sums.write_text(valid_sums)
+            self.passed("eleven_component_recovery_cannot_downgrade_to_ten_before_any_replacement")
         # A correct hash of an active target must never be accepted as a
         # recovery original outside the pinned stock directory.
         rows = valid_sums.splitlines()

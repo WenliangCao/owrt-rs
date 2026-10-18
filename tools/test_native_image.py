@@ -3,6 +3,7 @@
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -68,7 +69,8 @@ class NativeDnsmasqTests(unittest.TestCase):
         # Run the actual shell against owned temporary paths, replacing only its
         # fixed root-path bindings. No chroot, active executable or router is used.
         source = (REPO / "packaging/image/owrt-recover-c").read_text()
-        for variant in ("ten", "eleven", "missing", "substituted", "duplicate", "unknown"):
+        for variant in ("ten", "eleven", "missing", "substituted", "duplicate", "unknown",
+                        "missing-odhcpd", "missing-odhcpd-rehashed", "bad-layout", "bad-digest"):
             with self.subTest(variant=variant), tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
                 stock = root / "stock"
@@ -95,16 +97,35 @@ class NativeDnsmasqTests(unittest.TestCase):
                     lines.append(hashlib.sha256(file.read_bytes()).hexdigest() + "  " + str(file) + "\n")
                 manifest = root / "stock.sha256"
                 manifest.write_text("".join(lines))
+                release = root / "release.json"
+                metadata = {"layout": "native-ten" if variant == "ten" else "native-eleven",
+                            "stock_manifest_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest()}
+                if variant in ("missing-odhcpd", "missing-odhcpd-rehashed"):
+                    manifest.write_text("".join(row for row in lines if not row.endswith("/usr/sbin/odhcpd\n")))
+                if variant == "missing-odhcpd-rehashed":
+                    metadata["stock_manifest_sha256"] = hashlib.sha256(manifest.read_bytes()).hexdigest()
+                if variant == "bad-layout": metadata["layout"] = "native-unknown"
+                if variant == "bad-digest": metadata["stock_manifest_sha256"] = "0" * 64
+                release.write_text(json.dumps(metadata))
+                # The host unit fixture substitutes only JSON field extraction;
+                # native_image_check uses the exact rootfs jsonfilter executable.
+                reader = root / "jsonfilter"
+                reader.write_text("#!/usr/bin/env python3\nimport json,sys\n"
+                                  "data=json.load(open(sys.argv[sys.argv.index('-i')+1]))\n"
+                                  "print(data[sys.argv[sys.argv.index('-e')+1][2:]])\n")
+                reader.chmod(0o755)
                 mounts = root / "mountinfo"
                 mounts.write_text("")
                 script = source.replace("base=/usr/libexec/owrt-stock", "base=" + str(stock))
                 script = script.replace("manifest=/usr/share/owrt-control-plane/stock.sha256", "manifest=" + str(manifest))
+                script = script.replace("release=/usr/share/owrt-control-plane/release.json", "release=" + str(release))
                 script = script.replace("/proc/self/mountinfo", str(mounts))
                 script = script.replace('    cp -p "$source"', '    target="' + str(active) + '$target"\n    cp -p "$source"')
                 script = script.replace('    mv -f "$target.owrt-recovery-new"', '    target="' + str(active) + '$target"\n    mv -f "$target.owrt-recovery-new"')
                 script = script.replace('rm -f "${source#"$base"}', 'rm -f "' + str(active) + '${source#"$base"}')
                 script = script.replace("\nsync\n", "\n: # fixture: no global sync\n")
-                result = subprocess.run(["sh", "-eu"], input=script, text=True, capture_output=True)
+                result = subprocess.run(["sh", "-eu"], input=script, text=True, capture_output=True,
+                                        env=dict(os.environ, PATH=str(root) + os.pathsep + os.environ["PATH"]))
                 accepted = variant in ("ten", "eleven")
                 self.assertEqual(result.returncode == 0, accepted, result.stderr)
                 for name in set(paths):
