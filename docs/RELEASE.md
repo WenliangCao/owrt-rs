@@ -1,11 +1,15 @@
 # 集成固件的发布与维护
 
-2026-10-18 更新：新增 odhcpd-rs 组件的下一版本改为
-**v0.3.0 / `0.3.0-r1` / `native-eleven`**。最终 SDK `589226a1…` 的完整
-10 项指标真机对照已通过；40 个正式配对中 39 个改善、1 个 Renew 在噪声内，
-没有退步。后续镜像构建、有限客户端试运行、刷机与发布已获用户授权，尚待执行，
-无需重复请示；不再追加性能轮次。PR #1 仍为草稿，未合并、刷机或发布；
-现网 v0.2.3 和 C odhcpd 未变。
+2026-10-18 更新：新增 odhcpd-rs 的 **v0.3.0 / `0.3.0-r1` / `native-eleven`**
+已完成保配置刷写、187.711 秒初始客户端健康、真实客户端自然 Renew，以及唯一
+一次 20 秒 WAN6 断开/自动恢复。用户接受 Mac 的撤销处理延迟；离线核对精确 C
+同场景报文一致后，发布条件已满足。孤立的续租窗口外 dig 失败保留在
+[部署报告](reviews/ODHCPD_V030_DEPLOYMENT_20261018.md)，不改写为全程零失败。
+正式镜像来自 [CI 39124795974](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39124795974)，
+源码及标签目标 `6fb236a3d3cae4c1fa2e0c80e8f0aae552437bd2`，镜像 SHA256
+`75c55bd57fd5908b89dce4e0239e1ec1cada36f3b94ae6d141a69b0a83472cfd`。
+发布使用这份已刷入的 CI 原字节，不重新构建；离线回滚目标为 v0.2.3，
+干净配置和原始证据仅存私有备份。临时部署及 WAN6 守卫已退出、归档和清理。
 新配方有十一程序、两个 dnsmasq 集成文件、十三份 C 恢复文件，保留原 odhcpd
 init、配置和 `odhcpd-update`。
 
@@ -14,14 +18,14 @@ SHA256 `589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e`。
 最终全指标正式中位数 C/Rust：空闲 CPU 18.0509/0 µs/s，Renew
 574.12375/221.767 µs，更新 CPU 2.30896075/1.6476925 ms，3 个 NA 租约时
 RSS 1106/806 KiB（Rust 为 C 的 72.9%）。空闲 0 仅指测量窗口内无进程 CPU 增量。
-整批 14 个样本、218.668192 秒、498 份原始文件哈希核验通过并归档；生产 C 的
-PID/boot、配置与客户端健康保持不变，任务临时材料已清理。见
+整批 14 个样本、218.668192 秒、498 份原始文件哈希核验通过并归档；该隔离
+性能测试期间生产 C 的 PID/boot、配置与客户端健康保持不变，任务临时材料已清理。见
 [最终全指标结果](reviews/ODHCPD_FINAL_FULL_AB_RESULT_20261018.md)。
 
 [两项复测](reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md)和
 [首批停止报告](reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)保持原样。
 之前提前启动的镜像 CI `39123811190`（source `346470cd`）已取消；最终门通过后
-再构建 v0.3.0 镜像，版本和 SDK 绑定不变，不增加产品优化。
+构建上述最终 v0.3.0 镜像，版本和 SDK 绑定不变，没有增加产品优化。
 
 此前 v0.2.4 候选的测量、镜像与历史报告保持原版本和哈希，不重命名为 v0.3.0。
 其 Fable 修复 ELF 已完成 129 项 SDK 实包检查、完整镜像夹具及 123.739 秒真实
@@ -30,11 +34,11 @@ PID/boot、配置与客户端健康保持不变，任务临时材料已清理。
 证据不替代新 SDK 的资格或 v0.3.0 的正式构建资格；下方历史版本的验收与回滚目标
 同样保留其原适用范围。
 
-2026-10-17。当前配方交付十组件统一 **`v0.2.2`**，同一正式 CI 镜像已完成一次保配置部署与健康观察。生成一个小米 AX3000T sysupgrade 镜像，十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.2-r1`** APK 管理；dnsmasq 的既有 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权与当次恢复核验；已有当次刷机授权不重复询问。构建成功不代表真机验收完成，实现与验收见[统一报告](reviews/CORE_SAFE_20261017.md)，现场记录见[v0.2.2 部署报告](reviews/DEPLOYMENT_V0_2_2_20261017.md)。
+历史状态（2026-10-17）：当时配方交付十组件统一 **`v0.2.2`**，同一正式 CI 镜像已完成一次保配置部署与健康观察。生成一个小米 AX3000T sysupgrade 镜像，十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.2-r1`** APK 管理；dnsmasq 的既有 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权与当次恢复核验；已有当次刷机授权不重复询问。构建成功不代表真机验收完成，实现与验收见[统一报告](reviews/CORE_SAFE_20261017.md)，现场记录见[v0.2.2 部署报告](reviews/DEPLOYMENT_V0_2_2_20261017.md)。
 
 适配范围固定为 OpenWrt **25.12.5**、`mediatek/filogic`、`xiaomi_mi-router-ax3000t`。[配方](../packaging/image/native-25.12.5.json)固定标准路径、C 原件哈希、原软件包所有者及 dnsmasq 的构建输入。[镜像配方说明](../packaging/image/README.md)描述安装与迁移约定。
 
-历史版本保持原身份与验收范围：首份九组件镜像 [AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0) 使用 `0.1.0-r2`，完成保留配置刷写和物理断电复测，见[镜像验收](reviews/NATIVE_IMAGE_20260929.md)与[部署记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)。[v0.1.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.1.1) 使用 `0.1.0-r3`；其[快速部署记录](reviews/DEPLOYMENT_V0_1_1_20261009_RESULT.md)明确未执行断电测试。两者均仍使用原版 C dnsmasq，不能把十组件资格倒填给历史版本。现役 v0.2.2 的整镜像回滚基线为 [v0.2.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.1)。
+历史版本保持原身份与验收范围：首份九组件镜像 [AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0) 使用 `0.1.0-r2`，完成保留配置刷写和物理断电复测，见[镜像验收](reviews/NATIVE_IMAGE_20260929.md)与[部署记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)。[v0.1.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.1.1) 使用 `0.1.0-r3`；其[快速部署记录](reviews/DEPLOYMENT_V0_1_1_20261009_RESULT.md)明确未执行断电测试。两者均仍使用原版 C dnsmasq，不能把十组件资格倒填给历史版本。历史 v0.2.2 的整镜像回滚基线为 [v0.2.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.1)。
 
 ## 安装布局
 
