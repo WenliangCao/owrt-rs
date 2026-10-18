@@ -394,5 +394,23 @@
     "bytes": 1790,
     "blob": "71b42415378760ec3a8324110f0234eac39bbdbe",
     "sha256": "ba6995a26600e96ff2ae4c956a9b5382266f5ec9056a57e510efcebb4091467a"
+  },
+  {
+    "path": "odhcpd-socket-20261018/private/socket-check/Cargo.toml",
+    "bytes": 96,
+    "blob": "3aa8e33234168c7b810539184ffb14873fc9c1bd",
+    "sha256": "18b6f40f9160b622f3957727a014fff7cc962f3d33b7fd14e1d9b4d34961fec4"
+  },
+  {
+    "path": "odhcpd-socket-20261018/private/socket-check/lib.rs",
+    "bytes": 202,
+    "blob": "5822ecc5e8b71070253c9a080440edb63d7a3f2e",
+    "sha256": "2fbf1be1c87ee57fce46e43f0d7c9379518416672a1b8108afef6b08dfe3406a"
+  },
+  {
+    "path": "odhcpd-socket-20261018/private/socket-check/Cargo.lock",
+    "bytes": 163,
+    "blob": "144805ee4a1a526ade1961b3fdf9eb7ba0f2a3ad",
+    "sha256": "cf37c7eeae4ce6d177f750de3170099848394cd20a170b13eab885fee2a0b44f"
   }
 ]
