@@ -54,18 +54,30 @@ def main():
     parser.add_argument("--rootfs", required=True)
     parser.add_argument("--daemon", required=True)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--candidate-sha", help="require this exact SHA-256 instead of the frozen C/Rust identities")
     parser.add_argument("--inside", action="store_true")
     args = parser.parse_args()
+    if args.candidate_sha is not None:
+        args.candidate_sha = args.candidate_sha.lower()
+        if len(args.candidate_sha) != 64 or any(c not in "0123456789abcdef" for c in args.candidate_sha):
+            parser.error("--candidate-sha must contain exactly 64 hexadecimal characters")
+    expected = {args.candidate_sha} if args.candidate_sha else {
+        base.C_SHA, "79f1349e845722d3824fab855b18f39e86e0ed5a1fb87cdc32374dc734302b55"
+    }
+    actual = hashlib.sha256(Path(args.daemon).read_bytes()).hexdigest()
+    if actual not in expected:
+        parser.error(f"daemon SHA-256 {actual} does not match expected {sorted(expected)}")
     if not args.inside:
         Path(args.out).mkdir(mode=0o700, parents=True, exist_ok=False)
         shutil.copy2(__file__, Path(args.out) / "instrument.py")
-        expected = {base.C_SHA, "79f1349e845722d3824fab855b18f39e86e0ed5a1fb87cdc32374dc734302b55"}
-        assert hashlib.sha256(Path(args.daemon).read_bytes()).hexdigest() in expected
         command = ["unshare", "--mount", "--net", "--pid", "--fork", "--kill-child=KILL", "--mount-proc",
                    sys.executable, str(Path(__file__).resolve()), "--inside", "--rootfs", args.rootfs,
                    "--daemon", args.daemon, "--out", args.out]
+        if args.candidate_sha:
+            command += ["--candidate-sha", args.candidate_sha]
         sys.exit(subprocess.run(command, timeout=120).returncode)
     fixture = base.Fixture(args)
+    fixture.record("expected_elf_sha256", sorted(expected))
     try:
         fixture.setup()
         exercise(fixture)
