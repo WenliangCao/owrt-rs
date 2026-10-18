@@ -60,6 +60,53 @@ def probes(host, port, interface, source, seconds, stop=None):
     return rows
 
 
+def curl_probes(url, endpoint, interface, source, seconds, stop=None):
+    parsed = urlsplit(url)
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    command = ["/usr/bin/curl", "--ipv4", "--interface", interface, "--noproxy", "*",
+               "--resolve", f"{parsed.hostname}:{port}:{endpoint}", "--http1.1",
+               "--connect-timeout", "1", "--max-time", "1",
+               "--silent", "--show-error", "--output", "/dev/null", "--write-out", "%{json}",
+               "--url", url]
+    started = time.monotonic()
+    rows = []
+    while time.monotonic() - started < seconds and not (stop and stop.is_set()):
+        attempt = time.monotonic()
+        row = {"at_s": attempt - started}
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=3)
+            data = json.loads(result.stdout)
+            row.update({"returncode": result.returncode, "http_code": data["http_code"],
+                        "time_connect_ms": data["time_connect"] * 1000,
+                        "time_total_ms": data["time_total"] * 1000,
+                        "remote_ip": data["remote_ip"], "local_ip": data["local_ip"]})
+            if result.returncode:
+                row["error"] = result.stderr.strip() or f"curl exited {result.returncode}"
+            elif data["remote_ip"] != endpoint or data["local_ip"] != source:
+                row["error"] = "probe local/remote address differs from fixed path"
+            elif not 200 <= data["http_code"] < 400:
+                row["error"] = f"HTTP {data['http_code']}"
+            else:
+                row["ms"] = row["time_connect_ms"]
+        except (OSError, subprocess.TimeoutExpired, ValueError, KeyError) as error:
+            row["error"] = str(error)
+        rows.append(row)
+        pause = max(0, min(.5 - (time.monotonic() - attempt),
+                           seconds - (time.monotonic() - started)))
+        if stop:
+            stop.wait(pause)
+        else:
+            time.sleep(pause)
+    return rows
+
+
+def selected_probes(args, name, host, port, seconds, stop=None):
+    if args.probe_mode == "curl":
+        url = f"http://{host}/" if name == "router" else args.probe_url
+        return curl_probes(url, host, args.interface, args.source_ip, seconds, stop)
+    return probes(host, port, args.interface, args.source_ip, seconds, stop)
+
+
 def shell_sampler(source, endpoint, seconds):
     # Only validated IPv4 literals reach this awk expression.
     matcher = f"src={source} dst={endpoint} "
@@ -217,6 +264,8 @@ def main():
     parser.add_argument("--endpoint-ip", required=True)
     parser.add_argument("--source-ip", required=True)
     parser.add_argument("--probe-host", required=True, help="Router LAN IPv4 address")
+    parser.add_argument("--probe-mode", choices=("python", "curl"), default="python")
+    parser.add_argument("--probe-url", help="Small HTTPS response URL, required for curl probes")
     parser.add_argument("--router", default="openwrt")
     parser.add_argument("--interface", default="en0")
     parser.add_argument("--direction", choices=("download", "upload"), default="download")
@@ -235,15 +284,22 @@ def main():
         ipaddress.IPv4Address(value)
     if args.direction == "upload":
         assert args.upload_file and args.upload_file.is_file()
+    if args.probe_mode == "curl":
+        probe_url = urlsplit(args.probe_url or "")
+        assert probe_url.scheme == "https" and probe_url.hostname and probe_url.port in (None, 443)
+        assert not probe_url.username and not probe_url.password
     args.output.mkdir(parents=True, exist_ok=False)
     write(args.output / "plan.json", {**{k: str(v) if isinstance(v, Path) else v
                                         for k, v in vars(args).items()},
           "curl_version": subprocess.check_output(["curl", "--version"], text=True),
-          "latency": "TCP connect, one sample per 0.5 s, 1 s timeout; p95 nearest rank",
+          "latency": ("TCP connect, one sample per 0.5 s, 1 s timeout; p95 nearest rank"
+                      if args.probe_mode == "python" else
+                      "curl TCP connect + HTTP total; 0.5 s cadence, 1 s max per request; "
+                      "p95 nearest rank, failed HTTP probes counted separately"),
           "cpu": "first/last router snapshots strictly inside load; total and per core",
           "validity": "all streams sustain max-time; pinned local/remote IP; direct conntrack proof required"})
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-        futures = {name: pool.submit(probes, host, port, args.interface, args.source_ip, 10)
+        futures = {name: pool.submit(selected_probes, args, name, host, port, 10)
                    for name, host, port in (("router", args.probe_host, 80),
                                             ("endpoint", args.endpoint_ip, 443))}
         idle = {name: future.result() for name, future in futures.items()}
@@ -259,8 +315,8 @@ def main():
         print("START", trial, args.direction, flush=True)
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=args.streams + 2) as pool:
-                probe_futures = {name: pool.submit(probes, host, port, args.interface,
-                                                   args.source_ip, args.seconds + 8, stop)
+                probe_futures = {name: pool.submit(selected_probes, args, name, host, port,
+                                                   args.seconds + 8, stop)
                                  for name, host, port in (("router", args.probe_host, 80),
                                                           ("endpoint", args.endpoint_ip, 443))}
                 started = time.monotonic()

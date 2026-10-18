@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Offline checks for the metrics used by the offload decision."""
+import json
+import subprocess
+import threading
 import unittest
 from unittest.mock import patch
 
-from http_network_profile import distribution, mac_counters, summarize_samples
+from http_network_profile import curl_probes, distribution, mac_counters, summarize_samples
 
 
 def sample(at, uptime, user, idle, rx, tx):
@@ -24,6 +27,30 @@ ipv4 2 tcp 6 100 ESTABLISHED src=192.0.2.1 dst=198.51.100.1 sport=45123 dport=44
 
 
 class Measurements(unittest.TestCase):
+    def test_curl_probes_pin_path_and_preserve_failures(self):
+        for code, actual_ip, success in ((0, "198.51.100.1", True),
+                                        (28, "198.51.100.1", False),
+                                        (0, "127.0.0.1", False)):
+            with self.subTest(code=code, actual_ip=actual_ip):
+                stop = threading.Event()
+                data = {"http_code": 200, "time_connect": .01, "time_total": .03,
+                        "remote_ip": actual_ip, "local_ip": "192.0.2.1"}
+                def run(command, **kwargs):
+                    stop.set()
+                    self.assertEqual(command[0], "/usr/bin/curl")
+                    self.assertIn("test.example:443:198.51.100.1", command)
+                    self.assertIn("https://test.example/small", command)
+                    return subprocess.CompletedProcess(command, code, json.dumps(data),
+                                                       "request timeout" if code else "")
+                with patch('subprocess.run', side_effect=run):
+                    rows = curl_probes("https://test.example/small", "198.51.100.1",
+                                       "en0", "192.0.2.1", 5, stop)
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]["time_connect_ms"], 10)
+                self.assertEqual(rows[0]["time_total_ms"], 30)
+                self.assertEqual("ms" in rows[0], success)
+                self.assertEqual("error" in rows[0], not success)
+
     def test_interior_window_cpu_and_counters(self):
         rows = [sample(0, 99, 0, 500, 5, 10),
                 sample(1, 100, 0, 500, 10, 20),
