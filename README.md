@@ -8,7 +8,10 @@
 
 ## 2026-10-18
 
-- 保留硬件流卸载开、WED 关的组合，184 秒客户端健康通过：Wi-Fi 正式流未观察到 PPE 绑定，LAN p95
+- 用户日常只用 Wi-Fi，已恢复纯软件卸载（SFO=1、HFO=0、WED=N）。折中方案的 Wi-Fi 流
+  未获得硬件 CPU 收益，有线 CPU 收益不适用于日常使用；恢复后 183 秒客户端健康通过，无需重启。
+  [最终选择与测试记录](docs/reviews/HFO_WITHOUT_WED_20261018_RESULT.md)
+- 测试硬件流卸载开、WED 关的组合，当轮通过 184 秒客户端健康并保留候选：Wi-Fi 正式流未观察到 PPE 绑定，LAN p95
   变化在既定波动范围内；有线流双向硬件绑定，CPU/GiB 降低 85.2%，公网下载吞吐
   中位数低 6.8%。[折中配置与验收](docs/reviews/HFO_WITHOUT_WED_20261018_RESULT.md)
 - 完成一次正式 20 秒 WAN 抓包：3 次超时连接的 SYN 均已出现在 WAN，SYN-ACK
