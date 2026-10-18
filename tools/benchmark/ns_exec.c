@@ -21,10 +21,16 @@ static int status_code(int status) {
 }
 
 int main(int argc, char **argv) {
-    pid_t init, command, reaped;
+    pid_t init, command, reaped, owner;
     int lifetime[2];
     int status;
     if (argc < 2) { fputs("usage: ns-exec COMMAND [ARGS...]\n", stderr); return 125; }
+    /* Preserve ownership all the way to the caller, not only from this
+     * launcher to namespace PID 1. A dead controller must not leave its
+     * namespace running until an external watchdog reaches its deadline. */
+    owner = getppid();
+    if (prctl(PR_SET_PDEATHSIG, SIGKILL)) die("owner pdeathsig");
+    if (getppid() != owner) return 125;
     if (unshare(CLONE_NEWNS | CLONE_NEWNET | CLONE_NEWPID | CLONE_NEWIPC | CLONE_NEWUTS)) die("unshare");
     if (mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL)) die("private mounts");
     if (pipe2(lifetime, O_CLOEXEC | O_NONBLOCK)) die("lifetime pipe");
