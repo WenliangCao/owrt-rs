@@ -14,7 +14,12 @@ from source `162d9ba8` and SDK CI `39122603394` (802936 bytes, static). Idle CPU
 medians were C 18.858681 µs/s and Rust 0 measured increment; Renew medians were
 544.46225/288.5715 µs, with all four pairs improved. The idle result covers seven
 three-second Rust windows; it is not a zero-cost claim for all workloads.
-The authorized v0.3.0 image build, deployment and publication are pending.
+The latest shipping gate requires one full device comparison of all metrics on
+this final SDK before the authorized v0.3.0 image build, deployment and
+publication can continue. That gate is pending; the two-metric PASS above
+remains valid. Image CI `39123811190` (source `346470cd`) was cancelled, with no
+new physical trial or flash. The SDK and recipe stay fixed without additional
+product optimization; see the [full comparison plan](../../docs/reviews/ODHCPD_FINAL_FULL_AB_PLAN_20261018.md).
 PR #1 remains draft and production v0.2.3 with C odhcpd is unchanged. See the
 [limited comparison](../../docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md);
 the [first batch's failure](../../docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)
