@@ -5,7 +5,7 @@ use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::net::UnixStream;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver, SyncSender, TryRecvError, TrySendError};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
@@ -16,6 +16,9 @@ use owrt_ubus::{blob, status, Connection, Incoming, MsgType, Request};
 use crate::config::NetworkInterface;
 
 const IO_MS: i32 = 100;
+// A full netifd dump may wait behind interface work during boot. Keep its
+// deadline separate from short replies/notifications; only this worker waits.
+const DUMP_MS: i32 = 2000;
 const RETRY: Duration = Duration::from_secs(1);
 const CAPACITY: usize = 8;
 const MAX_REQUEST_BYTES: usize = 16 * 1024;
@@ -74,6 +77,7 @@ pub struct Bus {
     events: Receiver<Event>,
     wake: UnixStream,
     stop: Arc<AtomicBool>,
+    ignored_interfaces: Arc<RwLock<Vec<String>>>,
     worker: Option<JoinHandle<()>>,
     #[cfg(test)]
     before_wake_read: Option<Box<dyn FnOnce() + Send>>,
@@ -88,15 +92,27 @@ impl Bus {
         let (event_tx, events) = mpsc::sync_channel(CAPACITY);
         let stop = Arc::new(AtomicBool::new(false));
         let worker_stop = stop.clone();
+        let ignored_interfaces = Arc::new(RwLock::new(Vec::new()));
+        let worker_ignored = ignored_interfaces.clone();
         let worker = thread::Builder::new()
             .name("odhcpd-ubus".into())
             .stack_size(128 * 1024)
-            .spawn(move || run(socket, worker_wake, command_rx, event_tx, worker_stop))?;
+            .spawn(move || {
+                run(
+                    socket,
+                    worker_wake,
+                    command_rx,
+                    event_tx,
+                    worker_stop,
+                    worker_ignored,
+                )
+            })?;
         Ok(Self {
             commands,
             events,
             wake,
             stop,
+            ignored_interfaces,
             worker: Some(worker),
             #[cfg(test)]
             before_wake_read: None,
@@ -148,6 +164,17 @@ impl Bus {
         self.command(Command::Refresh)
     }
 
+    /// Replace the notification policy even when the bounded command queue is
+    /// full. The worker holds a read lock only while comparing one interface
+    /// name; neither side performs I/O while holding this lock.
+    pub fn set_ignored_interfaces(&self, names: Vec<String>) {
+        let mut ignored = self
+            .ignored_interfaces
+            .write()
+            .unwrap_or_else(|poison| poison.into_inner());
+        *ignored = names;
+    }
+
     fn command(&self, command: Command) -> io::Result<()> {
         self.commands
             .try_send(command)
@@ -163,8 +190,9 @@ impl Bus {
         Ok(())
     }
 
-    /// All worker operations have a 100 ms I/O bound and check this stop flag
-    /// between steps. This joins only the owned worker, never another service.
+    /// Worker operations check this stop flag between steps. A pending dump
+    /// has a two-second bound; other operations use 100 ms. This joins only the
+    /// owned worker, never another service or the protocol event loop.
     pub fn stop(&mut self) -> io::Result<()> {
         self.stop.store(true, Ordering::Release);
         notify(&self.wake);
@@ -217,6 +245,20 @@ fn check_stop(stop: &AtomicBool) -> io::Result<()> {
     }
 }
 
+fn notification_ignored(fields: &[u8], ignored_interfaces: &RwLock<Vec<String>>) -> bool {
+    let Some(name) = blob::fields(fields)
+        .filter(|field| field.name == "interface")
+        .find_map(|field| field.as_str())
+    else {
+        return false;
+    };
+    ignored_interfaces
+        .read()
+        .unwrap_or_else(|poison| poison.into_inner())
+        .iter()
+        .any(|ignored| ignored == name)
+}
+
 struct Session {
     connection: Connection,
     dhcp: u32,
@@ -265,7 +307,7 @@ impl Session {
         let Some(id) = self.netifd else {
             return Ok(None);
         };
-        let reply = self.connection.invoke(id, "dump", &[], IO_MS)?;
+        let reply = self.connection.invoke(id, "dump", &[], DUMP_MS)?;
         let data = owrt_ubus::convert::fields_to_json(&reply.fields());
         parse_network_dump(&data).map(Some)
     }
@@ -275,6 +317,7 @@ impl Session {
         incoming: Incoming,
         generation: u64,
         stop: &AtomicBool,
+        ignored_interfaces: &RwLock<Vec<String>>,
     ) -> io::Result<Option<Call>> {
         let Incoming::Invoke(request) = incoming else {
             return Ok(None);
@@ -298,7 +341,9 @@ impl Session {
             }));
         }
         if request.objid == self.subscriber {
-            self.dump_needed = true;
+            if !notification_ignored(&request.data, ignored_interfaces) {
+                self.dump_needed = true;
+            }
         } else if request.objid == self.events {
             let data = owrt_ubus::convert::fields_to_json(&request.data);
             if data.get("path").and_then(Json::as_str) == Some("network.interface") {
@@ -361,6 +406,7 @@ fn run(
     commands: Receiver<Command>,
     events: SyncSender<Event>,
     stop: Arc<AtomicBool>,
+    ignored_interfaces: Arc<RwLock<Vec<String>>>,
 ) {
     let Ok(mut poller) = Poller::new() else {
         return;
@@ -432,7 +478,7 @@ fn run(
                             break;
                         }
                     };
-                    match session.incoming(incoming, generation, &stop) {
+                    match session.incoming(incoming, generation, &stop, &ignored_interfaces) {
                         Ok(Some(call)) => {
                             if let Some(Event::Request(call)) =
                                 emit(&events, &wake, Event::Request(call))
@@ -523,6 +569,7 @@ mod tests {
                 events,
                 wake,
                 stop: Arc::new(AtomicBool::new(false)),
+                ignored_interfaces: Arc::new(RwLock::new(Vec::new())),
                 worker: None,
                 before_wake_read: None,
             },
@@ -588,6 +635,34 @@ mod tests {
         assert!(bus.try_event().unwrap().is_none());
         poller.wait(0, &mut ready).unwrap();
         assert!(ready.is_empty());
+    }
+
+    #[test]
+    fn ignored_notification_policy_updates_even_when_commands_are_full() {
+        let (mut bus, _events, _wake) = test_bus();
+        let (commands, _command_rx) = mpsc::sync_channel(1);
+        assert!(commands.try_send(Command::Refresh).is_ok());
+        bus.commands = commands;
+        assert_eq!(bus.refresh().unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        let mut fields = owrt_ubus::BlobBuf::new();
+        fields.msg_string("interface", "wan");
+        bus.set_ignored_interfaces(vec!["wan".into()]);
+        assert!(notification_ignored(
+            fields.payload(),
+            &bus.ignored_interfaces
+        ));
+        bus.set_ignored_interfaces(vec!["lan".into()]);
+        assert!(!notification_ignored(
+            fields.payload(),
+            &bus.ignored_interfaces
+        ));
+        assert!(!notification_ignored(&[], &bus.ignored_interfaces));
+        fields.reset();
+        fields.msg_u32("interface", 1);
+        assert!(!notification_ignored(
+            fields.payload(),
+            &bus.ignored_interfaces
+        ));
     }
 
     #[test]
@@ -660,6 +735,9 @@ mod tests {
             }
         };
         fn serve(connection: &mut Connection, device: &str) -> bool {
+            serve_delayed(connection, device, Duration::ZERO)
+        }
+        fn serve_delayed(connection: &mut Connection, device: &str, delay: Duration) -> bool {
             let mut served = false;
             while let Some(incoming) = connection.incoming_if_complete().unwrap() {
                 if let Incoming::Invoke(request) = incoming {
@@ -674,6 +752,9 @@ mod tests {
                         ])]),
                     )]);
                     let fields = owrt_ubus::convert::object_to_payload(&value);
+                    // Functional fault injection: a provider takes longer than
+                    // the short reply deadline, but within the full dump bound.
+                    thread::sleep(delay);
                     connection
                         .reply_data_status(&request, &fields, status::OK)
                         .unwrap();
@@ -683,9 +764,17 @@ mod tests {
             served
         }
         fn wait_network(bus: &mut Bus, netifd: &mut Connection, device: &str) -> u64 {
+            wait_network_delayed(bus, netifd, device, Duration::ZERO)
+        }
+        fn wait_network_delayed(
+            bus: &mut Bus,
+            netifd: &mut Connection,
+            device: &str,
+            delay: Duration,
+        ) -> u64 {
             let deadline = Instant::now() + Duration::from_secs(4);
             loop {
-                serve(netifd, device);
+                serve_delayed(netifd, device, delay);
                 while let Some(event) = bus.try_event().unwrap() {
                     if let Event::Network {
                         generation,
@@ -740,6 +829,13 @@ mod tests {
         }
         assert_eq!(request_thread.join().unwrap().unwrap().status, status::OK);
 
+        netifd.notify(netifd_id, "interface.update", &[]).unwrap();
+        assert_eq!(
+            wait_network_delayed(&mut bus, &mut netifd, "br-slow", Duration::from_millis(250)),
+            generation
+        );
+        assert_eq!(observer.lookup_id("dhcp", 1000).unwrap(), dhcp);
+
         netifd.remove_object(netifd_id, 1000).unwrap();
         netifd_id = netifd
             .add_object("network.interface", &[("dump", &[])], 1000)
@@ -776,5 +872,112 @@ mod tests {
         let started = Instant::now();
         bus.stop().unwrap();
         assert!(started.elapsed() < Duration::from_secs(1));
+
+        // Exercise the actual subscriber dispatcher without scheduling guesses.
+        // No socket I/O is needed for a no-reply notification, so inspect exactly
+        // whether it requested a dump. Main dhcp calls and object events use
+        // different object IDs and must not enter this filter.
+        let stop = AtomicBool::new(false);
+        let mut session = Session::connect(Some(socket_text), &stop).unwrap();
+        let notification = |objid, method: &str, interface: Option<&str>| {
+            let mut fields = owrt_ubus::BlobBuf::new();
+            if let Some(name) = interface {
+                fields.msg_string("interface", name);
+            }
+            Incoming::Invoke(Request {
+                peer: 0,
+                seq: 0,
+                objid,
+                method: method.into(),
+                user: None,
+                group: None,
+                data: fields.into_payload(),
+                fd: None,
+                no_reply: true,
+            })
+        };
+        bus.set_ignored_interfaces(vec!["wan".into()]);
+        for (name, expected) in [
+            (Some("wan"), false),
+            (Some("lan"), true),
+            (Some("unknown"), true),
+            (None, true),
+        ] {
+            session.dump_needed = false;
+            session
+                .incoming(
+                    notification(session.subscriber, "interface.update", name),
+                    generation,
+                    &stop,
+                    &bus.ignored_interfaces,
+                )
+                .unwrap();
+            assert_eq!(session.dump_needed, expected, "interface {name:?}");
+        }
+        bus.set_ignored_interfaces(Vec::new());
+        session.dump_needed = false;
+        session
+            .incoming(
+                notification(session.subscriber, "interface.update", Some("wan")),
+                generation,
+                &stop,
+                &bus.ignored_interfaces,
+            )
+            .unwrap();
+        assert!(session.dump_needed);
+        bus.set_ignored_interfaces(vec!["network.interface".into(), "wan".into()]);
+        let mut fields = owrt_ubus::BlobBuf::new();
+        fields.msg_string("path", "network.interface");
+        fields.msg_string("interface", "wan");
+        let netifd_id = session.netifd.unwrap();
+        session
+            .connection
+            .unsubscribe(session.subscriber, netifd_id, IO_MS)
+            .unwrap();
+        let event = Incoming::Invoke(Request {
+            peer: 0,
+            seq: 0,
+            objid: session.events,
+            method: "ubus.object.remove".into(),
+            user: None,
+            group: None,
+            data: fields.into_payload(),
+            fd: None,
+            no_reply: true,
+        });
+        assert!(session.netifd.is_some());
+        session
+            .incoming(event, generation, &stop, &bus.ignored_interfaces)
+            .unwrap();
+        assert!(session.netifd.is_none());
+        let mut fields = owrt_ubus::BlobBuf::new();
+        fields.msg_string("path", "network.interface");
+        fields.msg_string("interface", "wan");
+        fields.msg_u32("id", netifd_id);
+        let event = Incoming::Invoke(Request {
+            peer: 0,
+            seq: 0,
+            objid: session.events,
+            method: "ubus.object.add".into(),
+            user: None,
+            group: None,
+            data: fields.into_payload(),
+            fd: None,
+            no_reply: true,
+        });
+        session
+            .incoming(event, generation, &stop, &bus.ignored_interfaces)
+            .unwrap();
+        assert_eq!(session.netifd, Some(netifd_id));
+        assert!(session.dump_needed);
+        assert!(session
+            .incoming(
+                notification(session.dhcp, "ipv6leases", Some("wan")),
+                generation,
+                &stop,
+                &bus.ignored_interfaces
+            )
+            .unwrap()
+            .is_some());
     }
 }
