@@ -139,6 +139,20 @@ class GateTests(unittest.TestCase):
         self.assertEqual(result['metrics']['update_cpu_ns']['noise'], 30)
         self.assertEqual(result['decision'], 'pass')
 
+    def test_idle_rate_and_quantum_use_actual_window(self):
+        records = sample()
+        idle = records[1]
+        idle['end_ns'] = 6_000_000_000
+        for record in records:
+            if record.get('kind') in analysis.CONTRACT['counts']:
+                record['start_ns'] += 3_000_000_000
+                record['end_ns'] += 3_000_000_000
+                if 'ra_received_ns' in record:
+                    record['ra_received_ns'] += 3_000_000_000
+        values = analysis.aggregate({'schema_version': 1, 'side': 'A',
+                                     'elf_sha256': analysis.ELFS['A']}, records)
+        self.assertEqual(values['idle_cpu_ns_per_s'], (50, Fraction(1, 6)))
+
     def test_missing_event_restart_bad_cpu_and_false_completion_are_invalid(self):
         variants = []
         missing = sample()

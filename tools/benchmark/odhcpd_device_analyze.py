@@ -185,10 +185,10 @@ def aggregate(identity, records):
     integer(idle, 'periodic_ra_count')  # Natural periodic work stays in the measurement.
     idle_cpu = span(idle, 'cpu_before_ns', 'cpu_after_ns')
     require(integer(by_kind['rs'][0], 'start_ns') >= idle['end_ns'], 'RS overlaps idle window')
-    # Use the fixed minimum window for a conservative rate quantum, frozen
-    # before formal samples. A delayed sample cannot loosen the noise gate.
+    # Rate values and their CPU-clock quantum use the same actual wall span.
+    # The aggregation and quantum formula are fixed before device sampling.
     values = {'idle_cpu_ns_per_s': (Fraction(idle_cpu * 10**9, elapsed),
-                                    Fraction(cpu_quantum * 10**9, CONTRACT['idle_requested_ns']))}
+                                    Fraction(cpu_quantum * 10**9, elapsed))}
     for kind in ('rs', 'solicit', 'request', 'renew'):
         values[f'{kind}_latency_ns'] = (median(event['elapsed_ns'] for event in by_kind[kind]), wall_quantum)
     previous_dns = None
@@ -283,7 +283,7 @@ def analyze(root):
     for name in CONTRACT['aggregation']:
         a = [sample['metrics'][name][0] for sample in calibration if sample['identity']['side'] == 'A']
         b = [sample['metrics'][name][0] for sample in calibration if sample['identity']['side'] == 'B']
-        quantum = max(sample['metrics'][name][1] for sample in calibration)
+        quantum = max(sample['metrics'][name][1] for sample in ordered)
         noise = max(max(a) - min(a), max(b) - min(b), 2 * quantum)
         pairs = []
         for index in range(0, 8, 2):
