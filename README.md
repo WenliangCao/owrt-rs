@@ -6,13 +6,15 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 保留精确 C 原件与离线恢复材料。
 
 **现状（2026-10-18）：现网为已发布的 [v0.2.3](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.3)，下一版本 v0.3.0 加入新组件 odhcpd-rs。**
-默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。性能 A/B 门仍待完成；通过后再构建
-v0.3.0 镜像。PR #1 保持草稿，尚未合并、刷机或发布。
+默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。唯一一批真机 A/B 未过性能门，
+已停止并等待用户决定：空闲 CPU 四对均退步，Renew 一对超出校准噪声。没有优化重测；
+v0.3.0 镜像构建、合并和发布暂停，PR #1 保持草稿，现网 v0.2.3 与 C odhcpd 未变。
+完整数值与改善项见[本轮 A/B 结果](docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)。
 此前标为 v0.2.4 的候选保留原版本、源码和产物哈希：其 Fable 修复 ELF 已通过
 129 项 SDK 实包检查、完整镜像夹具和真实客户端 123.74 秒短时试运行，确认后已恢复 C。
 这些历史产物不改名为 v0.3.0。新组件沿用原 init 和 leasetrigger，仅支持本机
 RA/SLAAC、DHCPv6 IA_NA/IA_PD、租约、UCI 和 ubus/netifd。旧候选首主动 RA 约
-1 ms 差距的接受决定仍保留，不代替当前性能门。详见[功能报告](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)、
+1 ms 差距的接受决定仍保留，不覆盖本轮性能退步。详见[功能报告](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)、
 [Fable 修复及新客户端试运行](docs/reviews/ODHCPD_FABLE_RESULT_20261018.md)与
 [v0.2.3 部署记录](docs/reviews/DEPLOYMENT_V0_2_3_20261017.md)。
 
