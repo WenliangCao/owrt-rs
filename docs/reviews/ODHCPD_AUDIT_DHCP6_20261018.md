@@ -1,7 +1,7 @@
 # odhcpd-rs DHCPv6 / lease 独立审计（2026-10-18）
 
-复验结论：**两项 P2 已在统一源码 `e33fa56c` 的 canonical SDK ELF 上闭合。**
-原五个目标事件的 IA 完整内容均与既有精确 C 证据一致，见文末闭合记录。
+复验结论：**两项 P2 已闭合，最终 Fable 源码 `e2adbe1c` 的 SDK ELF 定向回归也通过。**
+原五个目标事件的 IA 完整内容均与既有精确 C 证据一致，见文末闭合及最终 ELF 回归记录。
 
 初审结论（旧 ELF `79f1349e`）：2 项 P2，未发现 P0/P1。
 两项均由精确 C ELF 与旧冻结 SDK ELF 的真实 UDP 请求独立复现，审计未修改产品代码。
@@ -180,3 +180,25 @@ IA 对象，包括 IA payload 十六进制、T1/T2 和全部子选项。
 重放使用前述命令，将 `--daemon` 换成 `sdk-e33fa56c/odhcpd-rs`，加
 `--candidate-sha c4a7c2731e02cb14fca5f94e4cbe940e0f9c91f64ca45be2e98ab19281250048`，
 并指定全新 `--out`。原 C、旧 Rust 和初审数据均未覆盖。
+
+## 最终 Fable ELF 定向回归
+
+按新 ELF 重新执行原场景一次，检查 F3 host parser 变化是否回归已闭合的两项 P2。
+预期仍为既存 NA Renew/Rebind 1200 秒、PD `/128` 撤销为 IAPREFIX（26）；
+未增加场景、重跑 C、做性能实验或访问物理 router。
+
+- 源码：`e2adbe1c`。
+- ELF：`/home/ubuntu/odhcpd-validation-20261018/sdk-fable-e2adbe1c/odhcpd-rs`。
+- 严格 `--candidate-sha`：`c7c5f1f9e79ea80febe696d6c758db8d3463d1e4b94c7a002f1aa597b9c3ea30`。
+- 新目录：`/home/ubuntu/odhcpd-audit-dhcp6-20261018/rust-fable-e2adbe1c-01`。
+- 工具与比较器沿用上节版本及哈希；C 数据继续沿用未修改的 `c-01/results.json`。
+
+**结果：5/5 原目标事件的 IA 完整内容均与 C 一致，`complete=true`，两项 P2 未回归。**
+比较包含 IA payload 十六进制、T1/T2 和全部子选项，范围与上节相同。
+
+本地 ignored 证据在 `private/odhcpd-audit-dhcp6-20261018/`：
+
+| 文件 | SHA-256 |
+|---|---|
+| `rust-fable-e2adbe1c-01.json` | `3620db08acf15181e6888194baf589f53e04f975871009caa832908dfa81e613` |
+| `closure-fable-e2adbe1c.json` | `06c72b5c49ffaeeb08862128fd449312384d9899e0305151a3200bd651aee9dd` |
