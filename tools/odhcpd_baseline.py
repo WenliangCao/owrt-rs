@@ -6,6 +6,7 @@ import ipaddress
 import json
 import os
 from pathlib import Path
+import re
 import select
 import shutil
 import signal
@@ -21,6 +22,38 @@ C_SHA = "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82"
 DUID = bytes.fromhex("00030001020000000002")
 GUA = "2001:db8:1::1/64"
 ULA = "fd12:3456:789a::1/60"
+
+
+def network_input(shape="typed", control=False):
+    interfaces = [{"interface": "lan", "up": True, "l3_device": "br-lan", "data": {}}]
+    if shape == "typed" or not control:
+        interfaces.append({"interface": "wan", "up": True, "l3_device": "wan0",
+                           "data": {"dhcpserver": "192.0.2.1", "leasetime": 60} if shape == "typed" else {}})
+    return {"interface": interfaces}
+
+
+FABLE_PROVIDER = """import { connect } from 'ubus';
+import { readfile, writefile } from 'fs';
+import { init, run, timer } from 'uloop';
+init(); let bus=connect(); if (!bus) die('private ubus unavailable');
+let calls=0, completed=0, pending=0, version=0, timers=[];
+let obj=bus.publish('network.interface', { dump: { call: req => {
+ let snapshot=json(readfile('/tmp/fable-state.json')); calls++;
+ if (snapshot.delay_ms > 0) {
+  req.defer(); pending++;
+  push(timers, timer(snapshot.delay_ms, () => {
+   req.reply(snapshot.network); completed++; pending--; version=snapshot.version;
+  }));
+  return;
+ }
+ completed++; version=snapshot.version; return snapshot.network;
+} } });
+bus.publish('fixture', {
+ stats: {call: () => ({calls, completed, pending, version, subscribed: obj.subscribed()})},
+ notify: {args: {interface:''}, call: req => {obj.notify('update', {interface:req.args.interface}); return {};}}
+});
+writefile('/tmp/fixture.ready', 'ready'); run();
+"""
 
 
 def run(*args, check=True):
@@ -288,7 +321,8 @@ class Fixture:
         self.record("identity", {"sha256": sha, "reference_sha256": C_SHA,
                                  "instrument_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                                  "rootfs": self.args.rootfs, "uname": run("uname", "-a").stdout.strip(),
-                                 "server_netns": os.readlink("/proc/self/ns/net")})
+                                 "server_netns": os.readlink("/proc/self/ns/net"),
+                                 "provider_shape": getattr(self.args, "provider_shape", "typed")})
         for name, content in {
             "dhcp": """config odhcpd 'odhcpd'
  option maindhcp '0'
@@ -322,11 +356,11 @@ config dhcp 'wan'
 import { writefile } from 'fs';
 import { init, run } from 'uloop';
 init(); let bus = connect(); if (!bus) die('ubus unavailable');
-let state = { interface: [{ interface: 'lan', up: true, l3_device: 'br-lan', data: {} }, { interface: 'wan', up: true, l3_device: 'wan0', data: {} }] };
+let state = __NETWORK__;
 let obj = bus.publish('network.interface', { dump: { call: () => state } });
 bus.publish('fixture', { notify: { call: () => { obj.notify('update', {interface:'lan'}); return {}; } } });
 writefile('/tmp/fixture.ready', 'ready'); run();
-""")
+""".replace("__NETWORK__", json.dumps(network_input(getattr(self.args, "provider_shape", "typed")))))
         run("ip", "link", "set", "lo", "up")
         run("sysctl", "-q", "-w", "net.ipv6.conf.all.forwarding=1")
         run("ip", "link", "add", "br-lan", "type", "veth", "peer", "name", "client0")
@@ -642,7 +676,7 @@ writefile('/tmp/fixture.ready', 'ready'); run();
         self.provider.terminate()
         self.provider.wait(3)
         state_path = self.root / "tmp/control-state.json"
-        state = {"interface": [{"interface": "lan", "up": True, "l3_device": "br-lan", "data": {}}]}
+        state = network_input(getattr(self.args, "provider_shape", "typed"), control=True)
         state_path.write_text(json.dumps(state))
         (self.root / "tmp/provider.uc").write_text("""import { connect } from 'ubus';
 import { readfile, writefile } from 'fs'; import { init, run } from 'uloop';
@@ -712,6 +746,202 @@ bus.publish('fixture', {
         self.enhancement("bus_restored_dump", json.loads(stats["stdout"])["dumps"] > 0)
         self.enhancement("bus_restored_dns", dns_request("dns_after_bus_reconnect") == ["fd12:3456:789a::55"])
         self.snapshot("control_complete")
+
+    def dhcp_object_id(self):
+        listing = self.chroot("/bin/ubus", "-v", "list", "dhcp").stdout
+        match = re.search(r"['\"]dhcp['\"]\s+@([0-9a-fA-F]+)", listing)
+        if not match:
+            raise RuntimeError("dhcp object ID missing from private ubus lookup")
+        return match[1]
+
+    def case_fable(self):
+        if getattr(self.args, "provider_shape", "typed") != "typed":
+            raise ValueError("Fable cases require typed WAN/WWAN data")
+        self.provider.terminate()
+        self.provider.wait(3)
+        config_path = self.root / "etc/config/dhcp"
+        original = config_path.read_text()
+        state_path = self.root / "tmp/fable-state.json"
+        network = network_input()
+        network["interface"].append({"interface": "wwan", "up": True, "l3_device": "wan0",
+                                     "data": {"dhcpserver": "198.51.100.1", "leasetime": 60}})
+        provider_state = {"network": network, "delay_ms": 0, "version": 1}
+
+        def store_state():
+            state_path.write_text(json.dumps(provider_state))
+            self.record("provider_input_v" + str(provider_state["version"]), json.loads(json.dumps(provider_state)))
+
+        def stats():
+            return json.loads(self.bus("fixture", "stats")["stdout"])
+
+        def notified(name, interface, should_dump=True):
+            before = stats()
+            self.bus("fixture", "notify", {"interface": interface})
+            time.sleep(.35)
+            after = stats()
+            self.record(name + "_counts", {"before": before, "after": after})
+            self.expect(name, after["completed"] > before["completed"] if should_dump else after["calls"] == before["calls"])
+
+        def start(name):
+            self.start_daemon()
+            self.record(name + "_pid", self.daemon.pid)
+            first = self.request(name + "_active_ra", "ra", drain=True)
+            self.expect(name + "_active_ra", not first.get("timeout"))
+            self.expect(name + "_live", self.daemon.poll() is None)
+            return self.daemon.pid, self.dhcp_object_id()
+
+        def alive(name, identity):
+            self.expect(name + "_same_pid", self.daemon.poll() is None and self.daemon.pid == identity[0])
+            self.expect(name + "_same_dhcp_object", self.dhcp_object_id() == identity[1])
+            self.expect(name + "_rs", not self.request(name + "_rs", "rs").get("timeout"))
+
+        def dns(name):
+            packet = self.dhcp(name, 11, duid=None)
+            return [socket.inet_ntop(socket.AF_INET6, bytes.fromhex(item["hex"])[i:i + 16])
+                    for item in packet.get("decoded", {}).get("options", []) if item["code"] == 23
+                    for i in range(0, len(bytes.fromhex(item["hex"])), 16)]
+
+        def host(duid, hostid, name):
+            return ("\nconfig host\n list duid '" + duid.hex() + "'\n option hostid '" + hostid +
+                    "'\n option name '" + name + "'\n")
+
+        def fixed(name, duid, hostid, iaid):
+            packet = self.dhcp(name, 1, [(3, struct.pack("!III", iaid, 0, 0))], extra=opt(14, b""), duid=duid)
+            actual = {item.get("address") for item in self.ia_items(packet, 3)}
+            expected = {"2001:db8:1::" + hostid, "fd12:3456:789a::" + hostid}
+            self.expect(name + "_addresses", actual == expected)
+            return packet
+
+        # F1: no UCI WAN section, two DHCP-client-shaped non-service records.
+        config_path.write_text(original.split("config dhcp 'wan'", 1)[0])
+        store_state()
+        (self.root / "tmp/provider.uc").write_text(FABLE_PROVIDER)
+        self.start_provider()
+        identity = start("f1_unknown_clients")
+        packet = self.dhcp("f1_lan_na", 1, [(3, struct.pack("!III", 101, 0, 0))], extra=opt(14, b""))
+        self.expect("f1_lan_na", packet.get("decoded", {}).get("type") == 7 and len(self.ia_items(packet, 3)) == 2)
+        self.server = self.raw_option(packet, 2)
+        na = self.raw_option(packet, 3)
+        state = self.snapshot("f1_unknown_clients_state")
+        devices = json.loads(state["leases"]["stdout"])["device"]
+        self.expect("f1_only_lan_serves_dhcp", set(devices) == {"br-lan"})
+
+        # F2: prove failed candidate validation does not partly apply DNS or
+        # destroy active sockets. The succeeding reload must apply that DNS.
+        original_dns = dns("f2_dns_before")
+        config_path.write_text(original + "\nconfig dhcp 'alias'\n option interface 'alias'\n option ra 'server'\n option dhcpv6 'server'\n")
+        network["interface"][0]["data"] = {"dns": ["fd12:3456:789a::53"]}
+        network["interface"].append({"interface": "alias", "up": True, "l3_device": "br-lan", "data": {}})
+        provider_state["version"] += 1
+        store_state()
+        notified("f2_conflict_dump", "lan")
+        alive("f2_rejected_reload", identity)
+        self.expect("f2_dns_not_partly_applied", dns("f2_dns_after_rejected") == original_dns)
+        renewed = self.dhcp("f2_original_binding", 5, [(3, na)], server=self.server)
+        self.expect("f2_original_binding", len(self.ia_items(renewed, 3)) == 2)
+        self.snapshot("f2_rejected_state")
+        config_path.write_text(original)
+        network["interface"] = [entry for entry in network["interface"] if entry["interface"] != "alias"]
+        provider_state["version"] += 1
+        store_state()
+        notified("f2_corrected_dump", "lan")
+        self.expect("f2_corrected_dns", dns("f2_dns_corrected") == ["fd12:3456:789a::53"])
+
+        # F3: bad UCI hosts are skipped independently, including on startup.
+        self.daemon.terminate()
+        self.daemon.wait(3)
+        first_duid = bytes.fromhex("000300010200000000a1")
+        second_duid = bytes.fromhex("000300010200000000a2")
+        invalid_hosts = ("\nconfig host\n option duid '0001000123456'\n"
+                         "config host\n option mac 'not-a-mac'\n"
+                         "config host\n option ip '999.1.2.3'\n")
+        valid_first = host(first_duid, "a11", "valid-first")
+        valid_last = host(second_duid, "a12", "valid-last")
+        config_path.write_text(original + valid_first + invalid_hosts + valid_last)
+        identity = start("f3_invalid_host_startup")
+        fixed("f3_valid_first", first_duid, "a11", 111)
+        fixed("f3_valid_last", second_duid, "a12", 112)
+        self.snapshot("f3_startup_state")
+        config_path.write_text(original + host(first_duid, "a11", "changed-first") + invalid_hosts +
+                               "config host\n option name 'bad name'\n" + valid_last)
+        self.daemon.send_signal(signal.SIGHUP)
+        time.sleep(.25)
+        alive("f3_reload", identity)
+        fixed("f3_reload_first", first_duid, "a11", 111)
+        fixed("f3_reload_last", second_duid, "a12", 112)
+        state = self.snapshot("f3_reload_state")
+        hosts = state["files"].get("tmp/hosts/odhcpd.hosts.lan", "")
+        self.expect("f3_valid_host_edit_applied", "changed-first" in hosts and "valid-last" in hosts and "valid-first" not in hosts)
+        code = self.chroot("/usr/bin/ucode", "-e", "import {connect} from 'ubus'; let b=connect(); b.call('dhcp','add_lease',{hostid:'zz'}); print(b.error(true));").stdout.strip()
+        self.record("f3_ubus_invalid_status", code)
+        self.expect("f3_ubus_invalid_status_2", code == "2")
+
+        # F4 follows C's effective-mode ignore state, not the shared UCI flag.
+        ignored_config = original.replace(" option interface 'lan'", " option interface 'lan'\n option ignore '1'")
+        aux_disabled = "\nconfig dhcp 'aux'\n option interface 'aux'\n"
+        config_path.write_text(ignored_config + aux_disabled)
+        run("ip", "link", "add", "aux0", "type", "dummy")
+        run("sysctl", "-q", "-w", "net.ipv6.conf.aux0.addr_gen_mode=1")
+        run("ip", "link", "set", "aux0", "up")
+        run("ip", "-6", "addr", "add", "fe80::5/64", "dev", "aux0", "nodad")
+        network["interface"].append({"interface": "aux", "up": True, "l3_device": "aux0", "data": {}})
+        provider_state["version"] += 1
+        store_state()
+        notified("f4_prepare_dump", "lan")
+        notified("f4_disabled_wan_ignored", "wan", False)
+        notified("f4_active_lan_shared_ignore_not_filtered", "lan")
+        notified("f4_unknown_triggers_dump", "unconfigured-ghost")
+        notified("f4_aux_disabled_ignored", "aux", False)
+        config_path.write_text(ignored_config + aux_disabled + " option ra 'server'\n option dhcpv6 'server'\n")
+        self.daemon.send_signal(signal.SIGHUP)
+        time.sleep(.25)
+        notified("f4_aux_server_triggers_dump", "aux")
+        config_path.write_text(ignored_config + aux_disabled)
+        self.daemon.send_signal(signal.SIGHUP)
+        time.sleep(.25)
+        notified("f4_aux_disabled_again_ignored", "aux", False)
+        alive("f4_lan_survives_modes", identity)
+
+        # F5: the provider is asynchronous, so stats/object lookups remain
+        # responsive while its complete network dump is deliberately delayed.
+        self.daemon.terminate()
+        self.daemon.wait(3)
+        config_path.write_text(original)
+        network["interface"] = [entry for entry in network["interface"] if entry["interface"] != "aux"]
+        network["interface"][0]["data"] = {"dns": ["fd12:3456:789a::54"]}
+        provider_state.update(delay_ms=250, version=provider_state["version"] + 1)
+        store_state()
+        before = stats()
+        identity = start("f5_delayed_startup")
+        after = stats()
+        self.record("f5_startup_counts", {"before": before, "after": after})
+        self.expect("f5_startup_full_dump", after["completed"] > before["completed"] and after["version"] == provider_state["version"])
+        self.expect("f5_startup_dns", dns("f5_startup_info") == ["fd12:3456:789a::54"])
+        packet = self.dhcp("f5_startup_na", 1, [(3, struct.pack("!III", 151, 0, 0))], extra=opt(14, b""))
+        self.expect("f5_startup_na", packet.get("decoded", {}).get("type") == 7 and len(self.ia_items(packet, 3)) == 2)
+        network["interface"][0]["data"] = {"dns": ["fd12:3456:789a::55"]}
+        provider_state["version"] += 1
+        store_state()
+        before = stats()
+        self.bus("fixture", "notify", {"interface": "lan"})
+        deadline = time.monotonic() + 1
+        while time.monotonic() < deadline:
+            pending = stats()
+            if pending["pending"]:
+                break
+            time.sleep(.01)
+        else:
+            raise RuntimeError("provider never entered the configured delayed dump")
+        self.record("f5_pending_counts", pending)
+        alive("f5_pending", identity)
+        self.expect("f5_dhcp_during_dump", bool(dns("f5_pending_info")))
+        time.sleep(.35)
+        after = stats()
+        self.record("f5_runtime_counts", {"before": before, "after": after})
+        self.expect("f5_runtime_full_dump", after["completed"] == before["completed"] + 1 and after["pending"] == 0 and after["version"] == provider_state["version"])
+        self.expect("f5_runtime_dns", dns("f5_runtime_info") == ["fd12:3456:789a::55"])
+        alive("f5_complete", identity)
+        self.snapshot("fable_complete")
 
     def case_reject(self):
         config_path = self.root / "etc/config/dhcp"
@@ -828,7 +1058,8 @@ def summarize(results):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--summarize", help="derive checks from an existing results.json, without rerunning")
-    parser.add_argument("--case", choices=("baseline", "finite", "link", "control", "reject", "extended"), default="baseline")
+    parser.add_argument("--case", choices=("baseline", "finite", "link", "control", "reject", "extended", "fable"), default="baseline")
+    parser.add_argument("--provider-shape", choices=("typed", "legacy"), default="typed")
     parser.add_argument("--rootfs")
     parser.add_argument("--daemon", help="candidate ELF; omit for hash-checked exact C")
     parser.add_argument("--out")
@@ -855,7 +1086,7 @@ def main():
             statuses = {}
             for name in ("finite", "link", "control", "reject"):
                 command = [sys.executable, str(Path(__file__).resolve()), "--rootfs", args.rootfs,
-                           "--out", str(Path(args.out) / name), "--case", name]
+                           "--out", str(Path(args.out) / name), "--case", name, "--provider-shape", args.provider_shape]
                 if args.daemon:
                     command += ["--daemon", args.daemon]
                 status = subprocess.run(command, timeout=190).returncode
@@ -865,7 +1096,7 @@ def main():
                     break
             sys.exit(0 if all(status == 0 for status in statuses.values()) else 1)
         command = ["unshare", "--mount", "--net", "--pid", "--fork", "--kill-child=KILL", "--mount-proc",
-                   sys.executable, str(Path(__file__).resolve()), "--inside", "--rootfs", args.rootfs, "--out", args.out, "--case", args.case]
+                   sys.executable, str(Path(__file__).resolve()), "--inside", "--rootfs", args.rootfs, "--out", args.out, "--case", args.case, "--provider-shape", args.provider_shape]
         if args.daemon:
             command += ["--daemon", args.daemon]
         result = subprocess.run(command, timeout=180)
