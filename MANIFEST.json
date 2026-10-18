@@ -412,5 +412,29 @@
     "bytes": 163,
     "blob": "144805ee4a1a526ade1961b3fdf9eb7ba0f2a3ad",
     "sha256": "cf37c7eeae4ce6d177f750de3170099848394cd20a170b13eab885fee2a0b44f"
+  },
+  {
+    "path": "odhcpd-rs-20261018/private/control-check/Cargo.toml",
+    "bytes": 182,
+    "blob": "312e73e0dbf968238ba8e9d875d8b4d23ef678a8",
+    "sha256": "01253b5cdf2d6040a80cb802fb5c03d26295a858d60f2ba135b23e6651ca6d30"
+  },
+  {
+    "path": "odhcpd-rs-20261018/private/control-check/Cargo.lock",
+    "bytes": 2007,
+    "blob": "3f4bcd82420f3a19ecb3be7b7f7ba9f8a07de070",
+    "sha256": "1a25bdef6fbb929eec697fbdb846352b879a6a8004a923464362fa8d60f80b91"
+  },
+  {
+    "path": "odhcpd-rs-20261018/private/control-check/src/lib.rs",
+    "bytes": 33,
+    "blob": "69036e6c0d10e9193cc0fb17b9b819800c6f27f3",
+    "sha256": "368ad2c16b3448990975227c964a4745c95d34f6d21a6be2ad3dedf970c81393"
+  },
+  {
+    "path": "odhcpd-rs-20261018/private/v024-deploy-prepared/assemble_gate.py",
+    "bytes": 5472,
+    "blob": "1b73adc393ff74382cc5c9019c84351a0f5b664b",
+    "sha256": "638f6af32016aeb9998d0b11a5558cafc44b81280a8833a8e359697fc7e4ead1"
   }
 ]
