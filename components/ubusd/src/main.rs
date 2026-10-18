@@ -283,8 +283,8 @@ fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; clie
         if !c.flush() {
             return false;
         }
-        if c.tx_empty() {
-            server.process_cmd_queue(id);
+        if c.tx_empty() && !server.process_cmd_queue(id) {
+            return false;
         }
         if server.clients.get(&id).is_some_and(|c| c.eof && c.tx_empty()) {
             return false;

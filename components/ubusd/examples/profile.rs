@@ -131,7 +131,7 @@ fn backpressure(n: u64, filter: &str) {
                     assert!(c.flush());
                     if c.tx_empty() && !c.cmd_queue.is_empty() {
                         parked += 1;
-                        s.process_cmd_queue(CALLER);
+                        assert!(s.process_cmd_queue(CALLER));
                     }
                     s.touched.clear();
                 }
