@@ -49,7 +49,7 @@ def main():
         stubs = {
             "sbin/uci": '#!/bin/sh\ncase "$*" in *get*) cat /etc/config/firewall;; *revert*) rm -f /tmp/pending;; changes) cat /tmp/pending 2>/dev/null || true;; esac\n',
             "sbin/fw4": '#!/bin/sh\necho reload >> /tmp/reloads\n[ ! -e /tmp/fail-reload ] || exit 1\ncp /etc/config/firewall /tmp/runtime-hw\n',
-            "usr/sbin/nft": '#!/bin/sh\necho "table inet fw4 { flowtable ft {"\n[ "$(cat /tmp/runtime-hw)" != 1 ] || echo "flags offload;"\necho "} }"\n',
+            "usr/sbin/nft": '#!/bin/sh\necho "table inet fw4 {"\necho "  flowtable ft {"\necho "    hook ingress priority filter"\necho "    devices = { br-lan, wan }"\nif [ "$(cat /tmp/runtime-hw)" = 1 ]; then\n  if [ -e /tmp/semicolon ]; then echo "    flags offload;"; else echo "    flags offload"; fi\nfi\necho "    counter"\necho "  }"\necho "}"\n',
             "bin/sleep": '#!/bin/sh\necho 700.00 > /proc/uptime\n',
         }
         # After arming, sleep emulates only the caller's authorized temporary
@@ -71,6 +71,8 @@ if [ ! -e /tmp/changed ]; then
             target.write_text(content)
             target.chmod(0o755)
         (root / "tmp/runtime-hw").write_text("1\n")
+        if name == "explicit_finish_restores":
+            (root / "tmp/semicolon").touch()
         manifest = base / "bundle.sha256"
         manifest.write_text("".join(hashlib.sha256((base / p).read_bytes()).hexdigest() + "  " + p + "\n"
                                     for p in ("guard.sh", "bounded", "original-firewall", "unchanged.sha256")))

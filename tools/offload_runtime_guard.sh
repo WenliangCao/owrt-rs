@@ -38,9 +38,9 @@ runtime() {
     bounded nft -s list flowtable inet fw4 ft > "$BASE/runtime-$wanted.nft" || return 1
     grep -q 'flowtable ft' "$BASE/runtime-$wanted.nft" || return 1
     if [ "$wanted" = 1 ]; then
-        grep -Eq 'flags[[:space:]]+offload;' "$BASE/runtime-$wanted.nft"
+        grep -Eq '^[[:space:]]*flags[[:space:]]+offload;?[[:space:]]*$' "$BASE/runtime-$wanted.nft"
     else
-        ! grep -Eq 'flags[[:space:]]+offload;' "$BASE/runtime-$wanted.nft"
+        ! grep -Eq '^[[:space:]]*flags[[:space:]]+offload;?[[:space:]]*$' "$BASE/runtime-$wanted.nft"
     fi
 }
 preflight() {
