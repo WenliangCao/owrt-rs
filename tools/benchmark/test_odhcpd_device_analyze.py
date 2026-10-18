@@ -331,8 +331,6 @@ class IdleRenewTests(unittest.TestCase):
         path.write_text(json.dumps(identity))
         with self.assertRaisesRegex(ValueError, 'ELF identity mismatch'):
             self.analyze()
-        with self.assertRaises(ValueError):
-            analysis.contract_for('full', self.candidate)
 
     def test_unselected_work_and_bad_setup_packets_are_still_rejected(self):
         records = idle_renew_sample()
@@ -350,10 +348,55 @@ class IdleRenewTests(unittest.TestCase):
         driver = Path(__file__).with_name('odhcpd_device_ab.sh')
         for args in (['--profile', 'idle-renew'],
                      ['--profile', 'idle-renew', '--candidate-sha', 'bad'],
-                     ['--profile', 'full', '--candidate-sha', self.candidate]):
+                     ['--profile', 'full', '--candidate-sha', 'bad']):
             result = subprocess.run(['/bin/sh', str(driver), *args], capture_output=True, text=True)
             with self.subTest(args=args):
                 self.assertEqual(result.returncode, 2)
+
+
+class FullCandidateTests(unittest.TestCase):
+    write = staticmethod(GateTests.write)
+    change = GateTests.change
+    candidate = '589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e'
+
+    def setUp(self):
+        GateTests.setUp(self)
+        (self.root / 'profile.txt').write_text('full')
+        (self.root / 'candidate.sha256').write_text(self.candidate)
+        for path in self.root.glob('*/identity.json'):
+            identity = json.loads(path.read_text())
+            if identity['side'] == 'B':
+                identity['elf_sha256'] = self.candidate
+            path.write_text(json.dumps(identity))
+
+    def test_new_candidate_changes_only_full_elf_identity(self):
+        contract = analysis.contract_for('full', self.candidate)
+        restored = copy.deepcopy(contract)
+        restored['elf_sha256']['B'] = analysis.ELFS['B']
+        self.assertEqual(restored, analysis.CONTRACT)
+        self.assertIs(analysis.contract_for(), analysis.CONTRACT)
+        result = analysis.analyze(self.root, 'full', self.candidate)
+        self.assertEqual(result['decision'], 'pass')
+        self.assertEqual(len(result['metrics']), 10)
+        self.assertEqual(len(result['samples'][0]['records']), 77)
+        self.assertEqual(result['contract']['schedule'], analysis.SCHEDULE)
+        with self.assertRaisesRegex(ValueError, 'batch candidate mismatch'):
+            analysis.analyze(self.root)  # Never infer the new candidate from the batch.
+
+    def test_full_still_checks_non_renew_metrics_and_exact_candidate(self):
+        self.change('formal', 1, sample(rss=109))
+        result = analysis.analyze(self.root, 'full', self.candidate)
+        self.assertEqual(result['decision'], 'stop_and_report')
+        self.assertIn('empty_rss_kib', {failure['metric'] for failure in result['failures']})
+        path = self.root / 'formal-1-B' / 'identity.json'
+        identity = json.loads(path.read_text())
+        identity['elf_sha256'] = analysis.ELFS['B']
+        path.write_text(json.dumps(identity))
+        with self.assertRaisesRegex(ValueError, 'ELF identity mismatch'):
+            analysis.analyze(self.root, 'full', self.candidate)
+        for invalid in ('', 'bad', 'A' * 64):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                analysis.contract_for('full', invalid)
 
 
 if __name__ == '__main__':

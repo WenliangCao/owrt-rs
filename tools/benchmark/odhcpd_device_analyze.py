@@ -50,9 +50,12 @@ def require(condition, message):
 
 
 def contract_for(profile='full', candidate_sha=None):
+    if candidate_sha is not None:
+        require(isinstance(candidate_sha, str) and re.fullmatch(r'[0-9a-f]{64}', candidate_sha),
+                'candidate SHA256 must be 64 lowercase hex digits')
     if profile == 'full':
-        require(candidate_sha in (None, ELFS['B']), 'full profile is bound to the original candidate')
-        return CONTRACT
+        return CONTRACT if candidate_sha is None else {
+            **CONTRACT, 'elf_sha256': {**ELFS, 'B': candidate_sha}}
     require(profile == 'idle-renew', 'unknown measurement profile')
     require(isinstance(candidate_sha, str) and re.fullmatch(r'[0-9a-f]{64}', candidate_sha),
             'idle-renew requires an explicit candidate SHA256')
@@ -298,8 +301,9 @@ def analyze(root, profile='full', candidate_sha=None):
     profile_path = root / 'profile.txt'
     recorded_profile = profile_path.read_text().strip() if profile_path.exists() else 'full'
     require(recorded_profile == profile, 'batch profile mismatch')
-    if profile == 'idle-renew':
-        require((root / 'candidate.sha256').read_text().strip() == candidate_sha, 'batch candidate mismatch')
+    candidate_path = root / 'candidate.sha256'
+    if profile == 'idle-renew' or candidate_sha is not None or candidate_path.exists():
+        require(candidate_path.read_text().strip() == contract['elf_sha256']['B'], 'batch candidate mismatch')
     boot = (root / 'boot-before.txt').read_text().strip()
     require(boot and boot == (root / 'boot-after.txt').read_text().strip(), 'boot identity changed')
     parent_netns = (root / 'parent-netns.txt').read_text().strip()
@@ -375,7 +379,7 @@ def main():
     parser.add_argument('--output', type=Path, help='new JSON file; never overwrite evidence')
     parser.add_argument('--contract', action='store_true')
     parser.add_argument('--profile', choices=('full', 'idle-renew'), default='full')
-    parser.add_argument('--candidate-sha', help='required candidate identity for idle-renew')
+    parser.add_argument('--candidate-sha', help='explicit candidate identity; required for idle-renew, full defaults to the original c7 ELF')
     args = parser.parse_args()
     try:
         contract = contract_for(args.profile, args.candidate_sha)

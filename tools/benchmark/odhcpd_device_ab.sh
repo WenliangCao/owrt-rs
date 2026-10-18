@@ -1,6 +1,6 @@
 #!/bin/sh
 # One frozen C/Rust batch, with a fresh private namespace for every sample.
-# Usage: odhcpd_device_ab.sh [--profile idle-renew --candidate-sha SHA] IMAGE_ROOT BUNDLE NEW_OUTPUT [smoke]
+# Usage: odhcpd_device_ab.sh [--profile full|idle-renew --candidate-sha SHA] IMAGE_ROOT BUNDLE NEW_OUTPUT [smoke]
 # BUNDLE: ns-exec, odhcpd-probe, odhcpd-c, odhcpd-rs, this driver,
 # odhcpd_device_provider.uc, odhcpd_device_update.sh, and bundle.sha256.
 # "smoke" is Oracle-only functional validation (one A and one B), never data
@@ -17,13 +17,14 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 case "$profile" in
-    full) [ -z "$candidate_sha" ] || [ "$candidate_sha" = "$R_SHA" ] || exit 2;;
+    full) candidate_sha=${candidate_sha:-$R_SHA};;
     idle-renew)
-        [ "${#candidate_sha}" -eq 64 ] || { echo 'idle-renew requires --candidate-sha' >&2; exit 2; }
-        case "$candidate_sha" in *[!0-9a-f]*) echo 'invalid candidate SHA256' >&2; exit 2;; esac
-        R_SHA=$candidate_sha;;
+        [ -n "$candidate_sha" ] || { echo 'idle-renew requires --candidate-sha' >&2; exit 2; };;
     *) echo 'unknown measurement profile' >&2; exit 2;;
 esac
+[ "${#candidate_sha}" -eq 64 ] || { echo 'invalid candidate SHA256' >&2; exit 2; }
+case "$candidate_sha" in *[!0-9a-f]*) echo 'invalid candidate SHA256' >&2; exit 2;; esac
+R_SHA=$candidate_sha
 profile_json=
 [ "$profile" = full ] || profile_json=',"profile":"idle-renew"'
 start_ticks() { sed 's/^.*) //' "/proc/$1/stat" 2>/dev/null | awk '{print $20}'; }
@@ -194,10 +195,8 @@ cat /proc/meminfo > "$out/meminfo-before.txt"
 readlink /proc/self/ns/net > "$out/parent-netns.txt"
 cp "$bundle/bundle.sha256" "$out/bundle.sha256"
 printf '%s\n' "$mode" > "$out/mode.txt"
-if [ "$profile" != full ]; then
-    printf '%s\n' "$profile" > "$out/profile.txt"
-    printf '%s\n' "$R_SHA" > "$out/candidate.sha256"
-fi
+printf '%s\n' "$profile" > "$out/profile.txt"
+printf '%s\n' "$R_SHA" > "$out/candidate.sha256"
 child= watchdog=
 cleanup() {
     result=$?
