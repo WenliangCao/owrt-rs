@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qualify the unchanged guard with image BusyBox in isolated Linux chroots."""
+"""Qualify the guard with image BusyBox in isolated Linux chroots."""
 import argparse
 import hashlib
 import json
@@ -23,7 +23,16 @@ def main():
     rel = "tmp/owrt-offload-runtime-" + token
     guard = Path(__file__).with_name("offload_runtime_guard.sh")
     results = {}
-    for name in ("timeout_restores", "explicit_finish_restores", "bounded_reload_failure", "corrupt_original_rejected"):
+    cases = (
+        "timeout_restores", "explicit_finish_restores", "bounded_reload_failure", "corrupt_original_rejected",
+        "hybrid_timeout_restores", "hybrid_accepts", "hybrid_wrong_wed_rejected",
+        "hybrid_wrong_file_rejected", "hybrid_wrong_runtime_rejected", "hybrid_expired_rejected",
+        "hybrid_deadline_wins", "hybrid_finish_wins", "hybrid_unsigned_setting_rejected", "hybrid_invalid_setting_rejected",
+    )
+    for name in cases:
+        hybrid = name.startswith("hybrid_")
+        original_hfo, expected_wed = ("0", "N") if hybrid else ("1", "Y")
+        candidate_hfo = str(1 - int(original_hfo))
         root = args.output / (name + "-root")
         subprocess.run(["cp", "-a", str(args.rootfs), str(root)], check=True)
         base = root / rel
@@ -34,13 +43,24 @@ def main():
             (root / directory).mkdir(parents=True, exist_ok=True)
         (root / "proc/sys/kernel/random/boot_id").write_text(boot + "\n")
         (root / "proc/uptime").write_text("1.00 0.00\n")
-        (root / "sys/module/mt7915e/parameters/wed_enable").write_text("Y\n")
+        (root / "sys/module/mt7915e/parameters/wed_enable").write_text(expected_wed + "\n")
         if not (root / "dev/null").exists():
             subprocess.run(["mknod", "-m", "666", str(root / "dev/null"), "c", "1", "3"], check=True)
         original = base / "original-firewall"
-        original.write_text("1\n")
+        original.write_text(original_hfo + "\n")
         original.chmod(0o640)
         shutil.copy2(original, root / "etc/config/firewall")
+        bundle_files = ["guard.sh", "bounded", "original-firewall", "unchanged.sha256"]
+        if hybrid:
+            (base / "original-hfo").write_text(original_hfo + "\n")
+            (base / "expected-wed").write_text(expected_wed + "\n")
+            (base / "candidate-firewall").write_text(candidate_hfo + "\n")
+            (base / "candidate-firewall").chmod(0o640)
+            bundle_files += ["original-hfo", "expected-wed", "candidate-firewall"]
+            if name == "hybrid_unsigned_setting_rejected":
+                bundle_files.remove("expected-wed")
+            if name == "hybrid_invalid_setting_rejected":
+                (base / "expected-wed").write_text("invalid\n")
         (root / "etc/config/network").write_text("unchanged network\n")
         (root / "etc/modules.conf").write_text("unchanged modules\n")
         (base / "unchanged.sha256").write_text("".join(
@@ -54,49 +74,85 @@ def main():
         }
         # After arming, sleep emulates only the caller's authorized temporary
         # firewall change; no production script source is patched for testing.
-        stubs["bin/sleep"] = '''#!/bin/sh
+        stubs["bin/sleep"] = f'''#!/bin/sh
 if [ ! -e /tmp/changed ]; then
   touch /tmp/changed
-  echo 0 > /etc/config/firewall
-  echo 0 > /tmp/runtime-hw
+  echo {candidate_hfo} > /etc/config/firewall
+  echo {candidate_hfo} > /tmp/runtime-hw
+  echo 10.00 > /proc/uptime
 '''
         if name == "explicit_finish_restores":
             stubs["bin/sleep"] += f"  touch /{rel}/finish-requested\n"
         elif name == "bounded_reload_failure":
             stubs["bin/sleep"] += "  touch /tmp/fail-reload\n"
-        stubs["bin/sleep"] += "fi\necho 700.00 > /proc/uptime\n"
+        if name in ("hybrid_accepts", "hybrid_wrong_wed_rejected", "hybrid_wrong_file_rejected",
+                    "hybrid_wrong_runtime_rejected", "hybrid_expired_rejected", "hybrid_deadline_wins", "hybrid_finish_wins"):
+            stubs["bin/sleep"] += {
+                "hybrid_wrong_wed_rejected": "  echo Y > /sys/module/mt7915e/parameters/wed_enable\n",
+                "hybrid_wrong_file_rejected": "  echo unexpected >> /etc/config/firewall\n",
+                "hybrid_wrong_runtime_rejected": "  echo 0 > /tmp/runtime-hw\n",
+                "hybrid_expired_rejected": "  echo 700.00 > /proc/uptime\n",
+            }.get(name, "")
+            stubs["bin/sleep"] += f'''  manifest=$(sha256sum /{rel}/bundle.sha256 | cut -d' ' -f1)
+  /bin/sh /{rel}/guard.sh confirm {token} {boot} "$manifest" > /tmp/confirm.log 2>&1
+  echo $? > /tmp/confirm-status
+'''
+            if name == "hybrid_finish_wins":
+                stubs["bin/sleep"] += f'  /bin/sh /{rel}/guard.sh finish {token} {boot} "$manifest"\n'
+            if name != "hybrid_accepts":
+                stubs["bin/sleep"] += f'''  echo N > /sys/module/mt7915e/parameters/wed_enable
+  cp -p /{rel}/candidate-firewall /etc/config/firewall
+  echo 1 > /tmp/runtime-hw
+'''
+        stubs["bin/sleep"] += "fi\n"
+        if name not in ("hybrid_accepts", "hybrid_finish_wins"):
+            stubs["bin/sleep"] += "echo 700.00 > /proc/uptime\n"
         for path, content in stubs.items():
             target = root / path
             target.unlink(missing_ok=True)
             target.write_text(content)
             target.chmod(0o755)
-        (root / "tmp/runtime-hw").write_text("1\n")
+        (root / "tmp/runtime-hw").write_text(original_hfo + "\n")
         if name == "explicit_finish_restores":
             (root / "tmp/semicolon").touch()
         manifest = base / "bundle.sha256"
         manifest.write_text("".join(hashlib.sha256((base / p).read_bytes()).hexdigest() + "  " + p + "\n"
-                                    for p in ("guard.sh", "bounded", "original-firewall", "unchanged.sha256")))
+                                    for p in bundle_files))
         sha = hashlib.sha256(manifest.read_bytes()).hexdigest()
         action = "run"
         if name == "corrupt_original_rejected":
             original.write_text("corrupt\n")
+            action = "check"
+        if name in ("hybrid_unsigned_setting_rejected", "hybrid_invalid_setting_rejected"):
             action = "check"
         result = subprocess.run(["chroot", str(root), "/bin/sh", "/" + rel + "/guard.sh", action, token, boot, sha, "60"],
                                 capture_output=True, text=True, timeout=10)
         (args.output / (name + ".log")).write_text(result.stdout + result.stderr)
         state = (base / "state").read_text().strip() if (base / "state").exists() else None
         reloads = (root / "tmp/reloads").read_text().splitlines() if (root / "tmp/reloads").exists() else []
-        if name == "corrupt_original_rejected":
+        if action == "check":
             assert result.returncode != 0 and state is None and not reloads
-        else:
+        elif name == "hybrid_accepts":
+            assert result.returncode == 0 and state == "accepted" and not reloads, (name, result, state)
             assert (root / "etc/config/firewall").read_bytes() == b"1\n"
+            assert (root / "tmp/runtime-hw").read_text() == "1\n"
+            assert (root / "tmp/confirm-status").read_text() == "0\n"
+            assert not (root / "tmp/owrt-offload-runtime.lock").exists()
+        else:
+            assert (root / "etc/config/firewall").read_text() == original_hfo + "\n"
             assert (root / "etc/config/firewall").stat().st_mode & 0o777 == 0o640
             if name == "bounded_reload_failure":
                 assert result.returncode != 0 and state == "recovery-failed" and len(reloads) == 3
             else:
                 assert result.returncode == 0 and state == "restored" and len(reloads) == 1, (name, result, state)
-                assert (root / "tmp/runtime-hw").read_text() == "1\n"
+                assert (root / "tmp/runtime-hw").read_text() == original_hfo + "\n"
                 assert not (root / "tmp/owrt-offload-runtime.lock").exists()
+            if name in ("hybrid_wrong_wed_rejected", "hybrid_wrong_file_rejected",
+                        "hybrid_wrong_runtime_rejected", "hybrid_expired_rejected"):
+                assert (root / "tmp/confirm-status").read_text() != "0\n", name
+                assert not (base / "accept-requested").exists(), name
+            if name in ("hybrid_deadline_wins", "hybrid_finish_wins"):
+                assert (root / "tmp/confirm-status").read_text() == "0\n"
         assert (root / "etc/config/network").read_text() == "unchanged network\n"
         assert (root / "etc/modules.conf").read_text() == "unchanged modules\n"
         results[name] = True

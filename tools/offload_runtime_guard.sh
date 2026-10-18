@@ -1,12 +1,12 @@
 #!/bin/sh
-# Temporary HFO-off measurement; always restore the original HFO-on firewall.
+# Temporary HFO toggle; restore the original firewall unless explicitly accepted.
 # No reboot, module, network or Wi-Fi operations. Stage all inputs before arm.
 set -eu
 umask 077
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 export PATH
 BASE=$(CDPATH= cd -- "$(dirname "$0")" && pwd -P)
-ACTION=${1:?check|arm|run|verify-off|finish}
+ACTION=${1:?check|arm|run|verify-candidate|verify-off|confirm|finish}
 TOKEN=${2:?token}
 BOOT=${3:?expected boot}
 MANIFEST=${4:?bundle manifest SHA256}
@@ -21,7 +21,22 @@ identity() {
     [ "$(cat /proc/sys/kernel/random/boot_id)" = "$BOOT" ] &&
     [ "$(sha "$BASE/bundle.sha256")" = "$MANIFEST" ] &&
     (cd "$BASE"; sha256sum -c bundle.sha256 >/dev/null) &&
-    [ "$(sha "$BASE/bounded")" = "$HELPER_SHA" ]
+    [ "$(sha "$BASE/bounded")" = "$HELPER_SHA" ] || return 1
+    # Optional settings are trusted only when covered by the supplied manifest.
+    for file in original-hfo expected-wed candidate-firewall; do
+        if [ -e "$BASE/$file" ] || [ -L "$BASE/$file" ]; then
+            [ -f "$BASE/$file" ] && [ ! -L "$BASE/$file" ] &&
+            grep -Fxq "$(sha "$BASE/$file")  $file" "$BASE/bundle.sha256" || return 1
+        fi
+    done
+}
+settings() {
+    ORIGINAL_HFO=1; EXPECTED_WED=Y
+    [ ! -f "$BASE/original-hfo" ] || ORIGINAL_HFO=$(cat "$BASE/original-hfo")
+    [ ! -f "$BASE/expected-wed" ] || EXPECTED_WED=$(cat "$BASE/expected-wed")
+    case "$ORIGINAL_HFO" in 0|1) ;; *) return 1;; esac
+    case "$EXPECTED_WED" in Y|N) ;; *) return 1;; esac
+    CANDIDATE_HFO=$((1 - ORIGINAL_HFO))
 }
 original_matches() {
     [ ! -L /etc/config/firewall ] &&
@@ -30,7 +45,7 @@ original_matches() {
 }
 unchanged() {
     sha256sum -c "$BASE/unchanged.sha256" >/dev/null &&
-    [ "$(cat /sys/module/mt7915e/parameters/wed_enable)" = Y ]
+    [ "$(cat /sys/module/mt7915e/parameters/wed_enable)" = "$EXPECTED_WED" ]
 }
 runtime() {
     wanted=$1
@@ -45,7 +60,20 @@ runtime() {
 }
 preflight() {
     [ -f "$BASE/original-firewall" ] && [ ! -L "$BASE/original-firewall" ] &&
-    [ -z "$(uci changes)" ] && original_matches && unchanged && runtime 1
+    [ -z "$(uci changes)" ] && original_matches && unchanged && runtime "$ORIGINAL_HFO"
+}
+candidate_matches() {
+    [ -f "$BASE/candidate-firewall" ] && [ ! -L /etc/config/firewall ] &&
+    cmp -s "$BASE/candidate-firewall" /etc/config/firewall &&
+    [ "$(ls -ldn "$BASE/candidate-firewall" | awk '{print $1 ":" $3 ":" $4}')" = "$(ls -ldn /etc/config/firewall | awk '{print $1 ":" $3 ":" $4}')" ]
+}
+verify_candidate() {
+    [ "$(cat "$BASE/state")" = armed ] &&
+    [ "$(now)" -lt "$(cat "$BASE/deadline")" ] &&
+    [ ! -e "$BASE/finish-requested" ] &&
+    identity && [ -z "$(uci changes)" ] && candidate_matches &&
+    unchanged && runtime "$CANDIDATE_HFO" &&
+    [ "$(now)" -lt "$(cat "$BASE/deadline")" ] && [ ! -e "$BASE/finish-requested" ]
 }
 restore() {
     restored=1
@@ -62,9 +90,9 @@ restore() {
     for attempt in 1 2 3; do
         record "restore fw4 reload attempt=$attempt"
         if bounded fw4 reload > "$BASE/restore-$attempt.log" 2>&1 &&
-           original_matches && unchanged && runtime 1; then
+           original_matches && unchanged && runtime "$ORIGINAL_HFO"; then
             put state restored
-            record 'original firewall bytes/mode and actual hardware flowtable restored; WED unchanged'
+            record "original firewall bytes/mode and actual HFO=$ORIGINAL_HFO restored; WED unchanged"
             return 0
         fi
         [ "$attempt" = 3 ] || sleep 2
@@ -77,6 +105,7 @@ restore() {
 case "$TOKEN" in ''|*[!a-f0-9-]*) exit 2;; esac
 [ "$BASE" = "/tmp/owrt-offload-runtime-$TOKEN" ]
 identity
+settings
 case "$ACTION" in
     check)
         [ ! -e "$LOCK" ] && [ ! -e "$BASE/state" ]
@@ -98,10 +127,10 @@ case "$ACTION" in
         [ "$seconds" -ge 60 ] && [ "$seconds" -le 600 ]
         mkdir "$LOCK"
         printf '%s %s\n' "$$" "$TOKEN" > "$LOCK/owner"
-        armed=0; restored=0; finish_requested=0
+        armed=0; restored=0; accepted=0; finish_requested=0
         trap '' HUP
         trap 'finish_requested=1' INT TERM
-        trap 'rc=$?; trap - EXIT; if [ "$armed" = 1 ] && [ "$restored" = 0 ]; then restore || rc=1; fi; if [ "$armed" = 0 ] || [ "$(cat "$BASE/state" 2>/dev/null || true)" = restored ]; then rm -f "$LOCK/owner"; rmdir "$LOCK"; else put state recovery-failed || true; fi; exit "$rc"' EXIT
+        trap 'rc=$?; trap - EXIT; if [ "$armed" = 1 ] && [ "$restored" = 0 ] && [ "$accepted" = 0 ]; then restore || rc=1; fi; if [ "$armed" = 0 ] || [ "$accepted" = 1 ] || [ "$(cat "$BASE/state" 2>/dev/null || true)" = restored ]; then rm -f "$LOCK/owner"; rmdir "$LOCK"; else put state recovery-failed || true; fi; exit "$rc"' EXIT
         preflight
         put guard.pid "$$"
         deadline=$(( $(now) + seconds ))
@@ -109,13 +138,36 @@ case "$ACTION" in
         armed=1
         put state armed
         record "armed; restore starts at deadline=$deadline or explicit finish; at most three bounded reload/read attempts"
-        while [ "$(now)" -lt "$deadline" ] && [ "$finish_requested" = 0 ] && [ ! -e "$BASE/finish-requested" ]; do sleep 2; done
+        while [ "$(now)" -lt "$deadline" ] && [ "$finish_requested" = 0 ] && [ ! -e "$BASE/finish-requested" ]; do
+            if [ -f "$BASE/accept-requested" ]; then
+                # Only this process decides acceptance versus timeout/rollback.
+                if [ "$(cat "$BASE/accept-requested")" = "$TOKEN $BOOT $MANIFEST" ] &&
+                   verify_candidate && [ "$finish_requested" = 0 ] && [ ! -e "$BASE/finish-requested" ]; then
+                    put state accepted
+                    accepted=1
+                    record "candidate HFO=$CANDIDATE_HFO accepted; WED=$EXPECTED_WED unchanged"
+                    exit 0
+                fi
+                record 'accept request rejected; rollback remains armed'
+                rm -f "$BASE/accept-requested"
+            fi
+            sleep 2
+        done
         restore
         ;;
+    verify-candidate)
+        verify_candidate
+        ;;
     verify-off)
+        # Compatibility for original HFO-on/WED-on measurement bundles.
         [ "$(cat "$BASE/state")" = armed ]
         [ "$(now)" -lt "$(cat "$BASE/deadline")" ]
         unchanged && runtime 0
+        ;;
+    confirm)
+        verify_candidate
+        put accept-requested "$TOKEN $BOOT $MANIFEST"
+        printf '%s\n' 'requested; wait for state accepted and guard exit before removing the bundle'
         ;;
     finish)
         [ "$(cat "$BASE/state")" = armed ]
