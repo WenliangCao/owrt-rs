@@ -1,4 +1,7 @@
-# Fable F1–F5 实包夹具补充计划
+# Fable F1–F5 实包夹具：计划与结果
+
+**最终SDK一次通过129/129项：baseline 20、extended 62、Fable 47。**
+身份、原始计数和证据边界见文末；本轮没有真机或性能验证。
 
 旧20＋62项及其原始输入脚本不变更归档。新工具默认provider增加本机字段类型形状：
 LAN之外的WAN带`dhcpserver`字符串与整数`leasetime=60`，使用合成地址；UCI的WAN
@@ -42,3 +45,41 @@ Oracle Python语法检查、typed/legacy/control输入形状断言、精确rootf
 最终SDK到达后的调用保持同一rootfs与全新out：先默认baseline，再`--case extended`，
 最后`--case fable`；均传精确`--daemon ELF`。首次最终运行前核对ELF SHA，任何
 失败保存后报告，不自行改产品。短时真实trial及新镜像资格另由主线程安排。
+
+## 最终 Fable SDK 固定批次结果
+
+source `e2adbe1c2bc32cdfbaef5ea4fa01acc81e9385ba`，canonical SDK CI `39114432614`，
+ELF 802928字节，SHA256
+`c7c5f1f9e79ea80febe696d6c758db8d3463d1e4b94c7a002f1aa597b9c3ea30`。
+先核对该SHA，再使用上述冻结工具和默认typed WAN输入，串行运行一次
+baseline→extended→fable。全部129项通过，无失败、无重跑、未改变产品或阈值。
+
+| 组别 | 通过 | 原始报文离线比较 |
+|---|---:|---|
+| baseline | 20/20 | 19条payload与精确C06逐字节相同 |
+| extended | 62/62 | 33条payload与此前SDK资格轮原件逐字节相同 |
+| Fable F1–F5 | 47/47 | 新场景按本页冻结断言验收，不冒称与C全包等价 |
+
+F1无WAN dhcp段及新增typed WWAN时，LAN首RA/NA正常且只有LAN服务DHCP。
+F2双server别名冲突被拒绝，原PID、dhcp对象、DNS及NA绑定保留；纠正reload后
+新DNS生效。F3非法host不阻断启动或重读，两条合法host分配和合法改名导出均生效，
+ubus非法host实测协议状态为2。
+
+F4以provider实际dump调用次数验证：disabled WAN通知 **6→6**；active LAN即使
+共享ignore=1为 **6→7**；unknown为 **7→8**；disabled aux为 **8→8**；HUP将aux
+启用为server后通知 **9→10**；再次禁用后通知 **11→11**。HUP自身产生的刷新独立
+保留在计数里，没有将它误算作通知触发。原LAN PID/对象/RS服务持续。
+
+F5启动时250ms延迟dump完成计数 **11→12**，接口/DNS/NA成功初始化；运行期
+真实观察到`calls=13, completed=12, pending=1`，随后完整完成到13、pending=0，
+版本由5进到6，新的DNS通过DHCP包可见。期间及完成后PID、dhcp对象ID不变，
+RS/DHCP继续服务。这是有意延迟的功能门，不是产品性能样本。
+
+Oracle完整原件在 `/home/ubuntu/odhcpd-validation-20261018/fable-final-01/`；
+本地ignored `private/odhcpd-20261018/fable-final-01/observations.tar.gz` 与
+`comparison.json` 保存脚本、日志、包、计数、状态和离线比对。旧C及旧候选原件
+没有覆写，typed输入的变化明确记录在新instrument身份中。
+
+**身份边界：**旧`79f1349e…`/`c4a7c273…`的性能或物理trial结果不转授给这个
+`c7c5f1f9…`。本轮未访问router、未跑性能、未刷机或发布。新ELF仍须按用户要求
+单独完成短时真机trial及最终镜像恢复门后才可刷机。
