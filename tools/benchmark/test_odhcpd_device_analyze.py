@@ -14,18 +14,16 @@ def option(code, body):
 
 
 def exchange(kind, index, start, elapsed):
-    pd = kind.startswith('pd_')
-    ia = 25 if pd else 3
     header = bytes([0, 0, 0, index % 3 + 1]) + bytes(8)
     lifetimes = (2700).to_bytes(4, 'big') + (5400).to_bytes(4, 'big')
-    address = lifetimes + bytes([62]) + bytes(16) if pd else bytes(16) + lifetimes
-    sent_type = {'solicit': 1, 'request': 3, 'renew': 5, 'pd_solicit': 1, 'pd_request': 3}[kind]
+    address = bytes(16) + lifetimes
+    sent_type = {'solicit': 1, 'request': 3, 'renew': 5}[kind]
     xid = index.to_bytes(3, 'big')
     return {'kind': kind, 'index': index, 'client': index % 3,
             'start_ns': start, 'end_ns': start + elapsed, 'elapsed_ns': elapsed,
-            'request_hex': (bytes([sent_type]) + xid + option(ia, header)).hex(),
+            'request_hex': (bytes([sent_type]) + xid + option(3, header)).hex(),
             'hex': (bytes([2 if sent_type == 1 else 7]) + xid
-                    + option(ia, header + option(26 if pd else 5, address))).hex()}
+                    + option(3, header + option(5, address))).hex()}
 
 
 def ra(dns=None):
@@ -52,9 +50,6 @@ def sample(latency=100, cpu=100, rss=100):
         for kind in ('solicit', 'request', 'renew'):
             records.append(exchange(kind, index, start, latency))
             start += 10_000_000
-    for kind in ('pd_solicit', 'pd_request'):
-        records.append(exchange(kind, 0, start, latency))
-        start += 10_000_000
     records.append({'kind': 'memory', 'stage': 'populated', 'rss_kib': rss + 4, 'rss_anon_kib': 24})
     for index in range(8):
         dns = f'2001:db8::{index + 1}'
@@ -65,7 +60,7 @@ def sample(latency=100, cpu=100, rss=100):
         start += 10_000_000
     records.append({**{key: instrument[key] for key in ('schema_version', 'pid', 'start_ticks', 'exe_dev', 'exe_ino')},
                     'kind': 'complete', 'rs_count': 16, 'dhcp_count_each': 16,
-                    'updates': 8, 'na_count': 3, 'pd_count': 1})
+                    'updates': 8, 'na_count': 3, 'pd_count': 0})
     return records
 
 
@@ -102,6 +97,11 @@ class GateTests(unittest.TestCase):
                 (directory / 'netns.txt').write_text('net:[2]')  # Namespace inode reuse is valid.
                 (directory / 'provider-final.json').write_text(json.dumps(
                     {'sequence': 8, 'notifications': 8, 'subscribed': True, 'dumps': 9}))
+                (directory / 'leases-final.json').write_text(json.dumps({'device': {'br-lan': {
+                    'leases': [{'duid': f'client{index}', 'iaid': index, 'flags': ['bound'],
+                                'ipv6-addr': [{'address': f'2001:db8::{index + 1}'}]}
+                               for index in range(3)]}}}))
+                (directory / 'lease-counts.json').write_text(json.dumps({'na': 3, 'pd': 0, 'bound': 3}))
                 self.write(directory / 'measurements.jsonl', sample())
 
     @staticmethod
@@ -235,6 +235,22 @@ class GateTests(unittest.TestCase):
         provider = self.root / 'formal-0-A' / 'provider-final.json'
         provider.write_text(json.dumps({'sequence': 8, 'notifications': 8, 'subscribed': False}))
         with self.assertRaisesRegex(ValueError, 'provider updates'):
+            analysis.analyze(self.root)
+
+    def test_unbound_or_pd_population_cannot_masquerade_as_three_bound_na(self):
+        path = self.root / 'formal-0-A' / 'leases-final.json'
+        original = json.loads(path.read_text())
+        for change in [{'flags': []}, {'ipv6-prefix': []}, {'ipv6-addr': []}]:
+            value = copy.deepcopy(original)
+            value['device']['br-lan']['leases'][0].update(change)
+            path.write_text(json.dumps(value))
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'final population'):
+                analysis.analyze(self.root)
+        path.write_text(json.dumps(original))
+        records = sample()
+        records[-1]['pd_count'] = 1
+        self.change('formal', 0, records)
+        with self.assertRaisesRegex(ValueError, 'completion count differs: pd_count'):
             analysis.analyze(self.root)
 
 

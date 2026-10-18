@@ -22,7 +22,8 @@ CONTRACT = {
     'schema_version': 1, 'elf_sha256': ELFS, 'schedule': SCHEDULE,
     'settle_ns': 2_000_000_000, 'idle_requested_ns': 3_000_000_000,
     'counts': {'rs': 16, 'solicit': 16, 'request': 16, 'renew': 16,
-               'pd_solicit': 1, 'pd_request': 1, 'update': 8},
+               'update': 8},
+    'population': {'bound_na': 3, 'bound_pd': 0},
     'update_drain_ns': 1_000_000,
     'aggregation': {
         'rs_latency_ns': 'median of all 16 elapsed_ns',
@@ -33,8 +34,8 @@ CONTRACT = {
         'idle_cpu_ns_per_s': 'whole-process CPU delta * 1e9 / actual idle elapsed_ns',
         'empty_rss_kib': 'one empty VmRSS observation',
         'empty_rss_anon_kib': 'one empty RssAnon observation',
-        'populated_rss_kib': 'one 3-NA + 1-PD VmRSS observation',
-        'populated_rss_anon_kib': 'one 3-NA + 1-PD RssAnon observation',
+        'populated_rss_kib': 'one 3-bound-NA, no-PD VmRSS observation',
+        'populated_rss_anon_kib': 'one 3-bound-NA, no-PD RssAnon observation',
     },
     'noise': 'max(A calibration range, B calibration range, 2 * actual quantum)',
     'gate': 'each adjacent formal AB/BA pair: any B-A > noise => stop_and_report',
@@ -81,15 +82,13 @@ def options(data):
 def dhcp(record):
     kind = record['kind']
     request, reply = packet(record, 'request_hex'), packet(record)
-    sent_type = {'solicit': 1, 'request': 3, 'renew': 5, 'pd_solicit': 1, 'pd_request': 3}[kind]
+    sent_type = {'solicit': 1, 'request': 3, 'renew': 5}[kind]
     require(len(request) >= 4 and len(reply) >= 4, 'short DHCP packet')
     require(request[0] == sent_type and reply[0] == (2 if sent_type == 1 else 7),
             f'{kind}: wrong DHCP message type')
     require(request[1:4] == reply[1:4], 'DHCP transaction mismatch')
-    pd = kind.startswith('pd_')
-    ia_code, item_code = (25, 26) if pd else (3, 5)
-    offered = [body for code, body in options(request[4:]) if code == ia_code]
-    returned = [body for code, body in options(reply[4:]) if code == ia_code]
+    offered = [body for code, body in options(request[4:]) if code == 3]
+    returned = [body for code, body in options(reply[4:]) if code == 3]
     require(len(offered) == len(returned) == 1, 'missing/duplicate requested IA')
     require(len(offered[0]) >= 12 and len(returned[0]) >= 12, 'short IA')
     require(offered[0][:4] == returned[0][:4], 'IAID mismatch')
@@ -97,14 +96,13 @@ def dhcp(record):
     for code, body in options(reply[4:]) + suboptions:
         if code == 13:
             require(len(body) >= 2 and body[:2] == b'\0\0', 'DHCP failure status')
-    addresses = [body for code, body in suboptions if code == item_code]
-    require(bool(addresses), 'successful reply has no IA address/prefix')
+    addresses = [body for code, body in suboptions if code == 5]
+    require(bool(addresses), 'successful reply has no IA address')
     for body in addresses:
-        require(len(body) >= (25 if pd else 24), 'short IA address/prefix')
-        offset = 0 if pd else 16
-        preferred = int.from_bytes(body[offset:offset + 4], 'big')
-        valid = int.from_bytes(body[offset + 4:offset + 8], 'big')
-        require(0 < valid and preferred <= valid, 'invalid address/prefix lifetime')
+        require(len(body) >= 24, 'short IA address')
+        preferred = int.from_bytes(body[16:20], 'big')
+        valid = int.from_bytes(body[20:24], 'big')
+        require(0 < valid and preferred <= valid, 'invalid address lifetime')
 
 
 def ra_dns(record):
@@ -170,13 +168,13 @@ def aggregate(identity, records):
         require([integer(event, 'client') for event in by_kind[kind]] == [i % 3 for i in range(16)],
                 f'{kind}: expected three rotating NA clients')
     for key, count in {'rs_count': 16, 'dhcp_count_each': 16, 'updates': 8,
-                       'na_count': 3, 'pd_count': 1}.items():
+                       'na_count': 3, 'pd_count': 0}.items():
         require(integer(complete, key) == count, f'completion count differs: {key}')
     memory = {record.get('stage'): record for record in by_kind['memory']}
     require(len(by_kind['memory']) == 2 and set(memory) == {'empty', 'populated'},
             'expected one empty and one populated memory sample')
     require(records.index(memory['empty']) < records.index(by_kind['solicit'][0])
-            and records.index(memory['populated']) > records.index(by_kind['pd_request'][0]),
+            and records.index(memory['populated']) > records.index(by_kind['renew'][-1]),
             'memory observation has the wrong population phase')
     idle = by_kind['idle'][0]
     elapsed = span(idle)
@@ -245,6 +243,19 @@ def check_floor(records):
                 require(len(sent) == 64 and sent == received, 'echo payload mismatch')
 
 
+def check_population(directory):
+    leases = json.loads((directory / 'leases-final.json').read_text())['device']['br-lan']['leases']
+    require(isinstance(leases, list) and len(leases) == 3, 'expected three final NA bindings')
+    require(all(lease.get('ipv6-addr') and 'ipv6-prefix' not in lease
+                and 'bound' in lease.get('flags', []) for lease in leases),
+            'final population is not three bound NA leases without PD')
+    require(len({(lease['duid'], lease['iaid']) for lease in leases}) == 3,
+            'final lease identities are duplicated')
+    counts = json.loads((directory / 'lease-counts.json').read_text())
+    require(counts == {'na': 3, 'pd': 0, 'bound': 3}, 'driver lease counts differ')
+    return leases
+
+
 def analyze(root):
     completed(root)
     require((root / 'mode.txt').read_text().strip() == 'device', 'smoke data is not a device gate')
@@ -261,9 +272,11 @@ def analyze(root):
         provider = json.loads(path.with_name('provider-final.json').read_text())
         require(integer(provider, 'sequence') == integer(provider, 'notifications') == 8
                 and provider.get('subscribed') is True, 'provider updates did not complete')
+        leases = check_population(path.parent)
         samples.append({'identity': identity, 'source': str(raw_path),
                         'sha256': hashlib.sha256(raw_path.read_bytes()).hexdigest(),
                         'records': records, 'provider_final': provider,
+                        'leases_final': leases,
                         'metrics': aggregate(identity, records)})
     ordered = []
     for phase, sides in SCHEDULE.items():
