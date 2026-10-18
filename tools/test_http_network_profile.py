@@ -4,9 +4,11 @@ import json
 import subprocess
 import threading
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
-from http_network_profile import curl_probes, distribution, mac_counters, summarize_samples
+from http_network_profile import (curl_probes, distribution, mac_counters, selected_probes,
+                                  shell_sampler, summarize_samples)
 
 
 def sample(at, uptime, user, idle, rx, tx):
@@ -34,7 +36,7 @@ class Measurements(unittest.TestCase):
             with self.subTest(code=code, actual_ip=actual_ip):
                 stop = threading.Event()
                 data = {"http_code": 200, "time_connect": .01, "time_total": .03,
-                        "remote_ip": actual_ip, "local_ip": "192.0.2.1"}
+                        "remote_ip": actual_ip, "local_ip": "192.0.2.1", "local_port": 45678}
                 def run(command, **kwargs):
                     stop.set()
                     self.assertEqual(command[0], "/usr/bin/curl")
@@ -48,8 +50,31 @@ class Measurements(unittest.TestCase):
                 self.assertEqual(len(rows), 1)
                 self.assertEqual(rows[0]["time_connect_ms"], 10)
                 self.assertEqual(rows[0]["time_total_ms"], 30)
+                self.assertEqual(rows[0]["local_port"], 45678)
                 self.assertEqual("ms" in rows[0], success)
                 self.assertEqual("error" in rows[0], not success)
+
+    def test_probe_path_defaults_and_split_do_not_change_load_path(self):
+        args = SimpleNamespace(interface="en0", source_ip="192.0.2.1", probe_mode="curl",
+                               probe_url="https://test.example/small")
+        with patch("http_network_profile.curl_probes", return_value=[]) as probe:
+            selected_probes(args, "endpoint", "198.51.100.1", 443, 5)
+            probe.assert_called_once_with(args.probe_url, "198.51.100.1", "en0", "192.0.2.1", 5, None)
+        args.probe_interface, args.probe_source_ip = "en5", "192.0.2.2"
+        with patch("http_network_profile.curl_probes", return_value=[]) as probe:
+            selected_probes(args, "router", "192.0.2.254", 80, 5)
+            probe.assert_called_once_with("http://192.0.2.254/", "192.0.2.254", "en5", "192.0.2.2", 5, None)
+        self.assertEqual((args.interface, args.source_ip), ("en0", "192.0.2.1"))
+
+    def test_split_conntrack_preserves_source_identity(self):
+        script = shell_sampler("192.0.2.1", "198.51.100.1", 5, "192.0.2.2")
+        self.assertIn("src=192.0.2.1 dst=198.51.100.1", script)
+        self.assertIn("src=192.0.2.2 dst=198.51.100.1", script)
+        rows = [sample(1, 100, 0, 500, 10, 20), sample(3, 102, 100, 600, 30, 40)]
+        rows[1]["raw"] += ("ipv4 2 tcp 6 100 ESTABLISHED src=192.0.2.2 dst=198.51.100.1 "
+                           "sport=45124 dport=443 packets=2 bytes=10\n")
+        result = summarize_samples(rows, 0, 4)
+        self.assertEqual(result["direct_source_ports_by_ip"], {"192.0.2.1": [45123], "192.0.2.2": [45124]})
 
     def test_interior_window_cpu_and_counters(self):
         rows = [sample(0, 99, 0, 500, 5, 10),
@@ -78,10 +103,16 @@ class Measurements(unittest.TestCase):
 en0 1500 <Link#1> aa:bb:cc:dd:ee:ff 100 0 1234 20 0 5678 0
 en0 1500 192.0.2 192.0.2.1 100 - 1234 20 - 5678 -
 utun7 1380 <Link#2> 0 0 100 0 0 200 0
+en5 1500 <Link#3> aa:bb:cc:dd:ee:01 2 0 700 3 0 800 0
+en5* 1500 192.0.2 192.0.2.2 2 - 700 3 - 800 -
 '''
         with patch('subprocess.check_output', return_value=raw):
             self.assertEqual(mac_counters()['counters'], {
                 'en0': {'rx_bytes': 1234, 'tx_bytes': 5678},
+                'utun7': {'rx_bytes': 100, 'tx_bytes': 200}})
+            self.assertEqual(mac_counters({"en0", "en5"})['counters'], {
+                'en0': {'rx_bytes': 1234, 'tx_bytes': 5678},
+                'en5': {'rx_bytes': 700, 'tx_bytes': 800},
                 'utun7': {'rx_bytes': 100, 'tx_bytes': 200}})
 
 

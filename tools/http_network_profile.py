@@ -48,6 +48,7 @@ def probes(host, port, interface, source, seconds, stop=None):
                 conn.connect((host, port))
                 row["ms"] = (time.monotonic() - attempt) * 1000
                 row["local_ip"] = conn.getsockname()[0]
+                row["local_port"] = conn.getsockname()[1]
         except OSError as error:
             row["error"] = str(error)
         rows.append(row)
@@ -79,7 +80,8 @@ def curl_probes(url, endpoint, interface, source, seconds, stop=None):
             row.update({"returncode": result.returncode, "http_code": data["http_code"],
                         "time_connect_ms": data["time_connect"] * 1000,
                         "time_total_ms": data["time_total"] * 1000,
-                        "remote_ip": data["remote_ip"], "local_ip": data["local_ip"]})
+                        "remote_ip": data["remote_ip"], "local_ip": data["local_ip"],
+                        "local_port": data["local_port"]})
             if result.returncode:
                 row["error"] = result.stderr.strip() or f"curl exited {result.returncode}"
             elif data["remote_ip"] != endpoint or data["local_ip"] != source:
@@ -101,15 +103,18 @@ def curl_probes(url, endpoint, interface, source, seconds, stop=None):
 
 
 def selected_probes(args, name, host, port, seconds, stop=None):
+    interface = getattr(args, "probe_interface", None) or args.interface
+    source = getattr(args, "probe_source_ip", None) or args.source_ip
     if args.probe_mode == "curl":
         url = f"http://{host}/" if name == "router" else args.probe_url
-        return curl_probes(url, host, args.interface, args.source_ip, seconds, stop)
-    return probes(host, port, args.interface, args.source_ip, seconds, stop)
+        return curl_probes(url, host, interface, source, seconds, stop)
+    return probes(host, port, interface, source, seconds, stop)
 
 
-def shell_sampler(source, endpoint, seconds):
+def shell_sampler(source, endpoint, seconds, probe_source=None):
     # Only validated IPv4 literals reach this awk expression.
     matcher = f"src={source} dst={endpoint} "
+    probe_matcher = f"src={probe_source or source} dst={endpoint} "
     return f'''i=0
 while [ "$i" -lt {seconds} ]; do
  printf '@@sample\\n@@uptime\\n'; cat /proc/uptime
@@ -118,7 +123,7 @@ while [ "$i" -lt {seconds} ]; do
  printf '@@softirqs\\n'; cat /proc/softirqs
  printf '@@matching_conntrack\\n'
  if [ -r /proc/net/nf_conntrack ]; then
-  awk -v match_text={shlex.quote(matcher)} 'index($0,match_text) {{print}}' /proc/net/nf_conntrack
+  awk -v match_text={shlex.quote(matcher)} -v probe_text={shlex.quote(probe_matcher)} 'index($0,match_text) || index($0,probe_text) {{print}}' /proc/net/nf_conntrack
  fi
  i=$((i+1))
  sleep 1
@@ -127,14 +132,14 @@ done
 
 
 class Sampler:
-    def __init__(self, router, source, endpoint, seconds, output):
+    def __init__(self, router, source, endpoint, seconds, output, probe_source=None):
         self.rows = []
         self.started = time.monotonic()
         self.ready = threading.Event()
         self.stderr = output.open("w")
         self.process = subprocess.Popen(
             ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", router,
-             "sh", "-c", shlex.quote(shell_sampler(source, endpoint, seconds + 10))],
+             "sh", "-c", shlex.quote(shell_sampler(source, endpoint, seconds + 10, probe_source))],
             stdout=subprocess.PIPE, stderr=self.stderr, text=True)
         self.thread = threading.Thread(target=self.read, daemon=True)
         self.thread.start()
@@ -178,16 +183,16 @@ def parse_netdev(raw):
     return result
 
 
-def mac_counters():
+def mac_counters(interfaces=("en0",)):
     raw = subprocess.check_output(["netstat", "-ibn"], text=True, timeout=5)
     counters = {}
     for line in raw.splitlines()[1:]:
         fields = line.split()
-        if len(fields) >= 10 and (fields[0] == "en0" or fields[0].startswith("utun")):
+        name = fields[0].rstrip("*") if fields else ""
+        if len(fields) >= 10 and (name in interfaces or name.startswith("utun")):
             # Last seven fields are packet/error/byte counters regardless of
             # whether this interface row has a link-layer address column.
             values = {"rx_bytes": int(fields[-5]), "tx_bytes": int(fields[-2])}
-            name = fields[0].rstrip("*")
             counters[name] = {key: max(value, counters.get(name, {}).get(key, 0))
                               for key, value in values.items()}
     return {"raw": raw, "counters": counters}
@@ -216,11 +221,17 @@ def summarize_samples(rows, start, end):
     cpu = cpu_delta(first["raw"], last["raw"])
     interval = uptime(last) - uptime(first)
     cores = sum(name != "cpu" for name in cpu)
+    source_ports = {}
+    for line in connections:
+        match = re.search(r" src=([0-9.]+) dst=[0-9.]+ sport=(\d+) dport=443 ", line)
+        if match:
+            source_ports.setdefault(match.group(1), set()).add(int(match.group(2)))
     return {"sample_count": len(inside), "interval_s": interval,
             "cpu_core_count": cores,
             "busy_cpu_seconds": cpu["cpu"]["busy_pct"] / 100 * cores * interval,
             "direct_source_ports": sorted({int(match.group(1)) for line in connections
                                             if (match := re.search(r" sport=(\d+) dport=443 ", line))}),
+            "direct_source_ports_by_ip": {source: sorted(ports) for source, ports in source_ports.items()},
             "cpu": cpu,
             "netdev_delta": {dev: {key: b[dev][key] - a[dev][key] for key in a[dev]}
                              for dev in a.keys() & b.keys()},
@@ -266,21 +277,28 @@ def main():
     parser.add_argument("--probe-host", required=True, help="Router LAN IPv4 address")
     parser.add_argument("--probe-mode", choices=("python", "curl"), default="python")
     parser.add_argument("--probe-url", help="Small HTTPS response URL, required for curl probes")
+    parser.add_argument("--probe-interface", help="Probe interface; defaults to load interface")
+    parser.add_argument("--probe-source-ip", help="Expected probe IPv4; defaults to load source")
     parser.add_argument("--router", default="openwrt")
     parser.add_argument("--interface", default="en0")
+    parser.add_argument("--counter-interface", action="append", default=[],
+                        help="Also record byte counters for this Mac interface (repeatable)")
     parser.add_argument("--direction", choices=("download", "upload"), default="download")
     parser.add_argument("--upload-file", type=Path)
     parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--seconds", type=int, default=20)
     parser.add_argument("--streams", type=int, default=4)
     args = parser.parse_args()
+    args.probe_interface = args.probe_interface or args.interface
+    args.probe_source_ip = args.probe_source_ip or args.source_ip
+    counter_interfaces = set(args.counter_interface) | {args.interface, args.probe_interface}
     private = Path(__file__).resolve().parent.parent / "private"
     parsed = urlsplit(args.url)
     assert args.output.resolve().is_relative_to(private)
     assert 1 <= args.rounds <= 3 and 5 <= args.seconds <= 30 and 1 <= args.streams <= 4
     assert parsed.scheme == "https" and parsed.hostname and parsed.port in (None, 443)
     assert not parsed.username and not parsed.password
-    for value in (args.endpoint_ip, args.source_ip, args.probe_host):
+    for value in (args.endpoint_ip, args.source_ip, args.probe_source_ip, args.probe_host):
         ipaddress.IPv4Address(value)
     if args.direction == "upload":
         assert args.upload_file and args.upload_file.is_file()
@@ -309,8 +327,8 @@ def main():
         prefix = args.output / f"{trial:02}"
         prefix.with_suffix(".before.txt").write_text(snapshot(args.router))
         sampler = Sampler(args.router, args.source_ip, args.endpoint_ip, args.seconds,
-                          prefix.with_suffix(".sampler.stderr"))
-        mac_before = mac_counters()
+                          prefix.with_suffix(".sampler.stderr"), args.probe_source_ip)
+        mac_before = mac_counters(counter_interfaces)
         stop = threading.Event()
         print("START", trial, args.direction, flush=True)
         try:
@@ -330,16 +348,22 @@ def main():
         finally:
             sampler.close()
             write(prefix.with_suffix(".router-samples.json"), sampler.rows)
-        mac_after = mac_counters()
+        mac_after = mac_counters(counter_interfaces)
         write(prefix.with_suffix(".mac-counters.json"), {"before": mac_before, "after": mac_after})
         prefix.with_suffix(".after.txt").write_text(snapshot(args.router))
         write(prefix.with_suffix(".probes.json"), measured)
         router = summarize_samples(sampler.rows, started - sampler.started, ended - sampler.started)
         total_bytes = sum(result["bytes"] for result in results)
-        direct_streams = all(result["local_port"] in router["direct_source_ports"] for result in results)
+        direct_streams = all(result["local_port"] in router["direct_source_ports_by_ip"].get(args.source_ip, [])
+                             for result in results)
+        endpoint_probes = measured["endpoint"]
+        probe_ports = set(router["direct_source_ports_by_ip"].get(args.probe_source_ip, []))
         counters_a, counters_b = mac_before["counters"], mac_after["counters"]
         row = {"trial": trial, "duration_s": ended - started, "streams": results,
                "direct_load_streams_verified": direct_streams,
+               "endpoint_probe_conntrack_matches": sum(probe.get("local_ip") == args.probe_source_ip
+                                                        and probe.get("local_port") in probe_ports
+                                                        for probe in endpoint_probes),
                "mac_netdev_delta": {dev: {key: counters_b[dev][key] - counters_a[dev][key]
                                          for key in counters_a[dev]}
                                     for dev in counters_a.keys() & counters_b.keys()},
