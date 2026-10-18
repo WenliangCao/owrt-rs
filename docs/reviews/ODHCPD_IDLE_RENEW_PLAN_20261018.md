@@ -62,3 +62,21 @@ Rust 构建/测试只在 Oracle 或 CI。针对期限、SIGCHLD/HUP/TERM、文�
 
 本次只裁决这两项；通过后重新绑定 v0.3.0 新镜像、统一 APK、manifest 与新
 回滚配置包，再按项目守卫和真实客户端健康验收执行部署和发布。
+
+## 设备采样前最终绑定
+
+定向修复 `70e0b8aa`、`162d9ba8` 已完成且定向审查未发现必修回归。
+69 项普通测试和 Clippy 通过；真实私有 C ubus 的空闲、背压、重连与停止通过。
+[SDK CI 39122603394](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39122603394)
+host/target 均通过，源码 `162d9ba8305c9f8508a0ec099336f58235329931`。
+新 ELF 为 802,936 B 静态 AArch64，SHA256
+`589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e`；其余九个
+非 DNS ELF 与此前一致。新 ELF 的 baseline 20＋extended 62＋Fable 47，
+**129/129 一次通过**，未补样。
+
+Oracle 唯一工具 smoke 的 C/R 各 51 条原始记录和地板通过功能校验，三 NA
+绑定，零 RS/更新通知/内存采样；没有进行性能比较。工具源固定 `3c0fdb7c`，
+组装器 `ce8f1a9b`；包 SHA256
+`ed34d4448405079f7d705dfcf3a03b23f1d3e2565bbd033edd162606a245b6a5`，manifest
+`e01b7076378e19591dd8212aa54ea6f4104d17e8e6c432f0432eae1928e7e8db`，噪声/指标
+合同 `0f7753220a220e7100e074885969b0c720430c2f60531a30a052b045af334b07`。
