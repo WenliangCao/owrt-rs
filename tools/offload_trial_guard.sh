@@ -83,8 +83,10 @@ case "${1:-}" in
         ;;
     arm)
         token=${2:?token required}; origin=${3:?boot required}; seconds=${4:?deadline required}
+        expected_wed=${5:-Y}
         case "$token" in ''|*[!a-f0-9-]*) exit 2;; esac
         case "$seconds" in ''|*[!0-9]*) exit 2;; esac
+        case "$expected_wed" in Y|N) ;; *) exit 2;; esac
         [ "$seconds" -ge 300 ] && [ "$seconds" -le 1200 ]
         [ "$(boot)" = "$origin" ]
         /bin/sh "$BASE/guard.sh" check
@@ -92,6 +94,7 @@ case "${1:-}" in
         put origin-boot "$origin"
         put origin-deadline "$(( $(now) + 180 ))"
         put trial-seconds "$seconds"
+        put expected-wed "$expected_wed"
         put state armed
         setsid /bin/sh "$BASE/guard.sh" run </dev/null >> "$BASE/stderr.log" 2>&1 &
         record 'armed; configuration modification and initial reboot belong to caller'
@@ -145,11 +148,14 @@ case "${1:-}" in
         [ "$current" = "$(boot)" ] && [ "$current" = "$(cat "$BASE/trial-boot")" ]
         [ "$(state)" = observing ] && [ ! -f "$BASE/rollback-reboot" ]
         [ "$(now)" -lt "$(cat "$BASE/trial-deadline")" ]
-        [ "$(cat /sys/module/mt7915e/parameters/wed_enable)" = Y ]
+        # Trials armed by the original version expected WED enabled.
+        expected_wed=$(cat "$BASE/expected-wed" 2>/dev/null || printf 'Y\n')
+        case "$expected_wed" in Y|N) ;; *) exit 2;; esac
+        [ "$(cat /sys/module/mt7915e/parameters/wed_enable)" = "$expected_wed" ]
         (cd /; sha256sum -c "$BASE/trial-config.sha256" >/dev/null)
         put state accepted
         record 'caller confirmed benefit and 180-second client health window'
         ;;
     restore) restore ;;
-    *) echo 'usage: guard.sh check | arm TOKEN BOOT SECONDS | run | confirm TOKEN BOOT | restore' >&2; exit 2;;
+    *) echo 'usage: guard.sh check | arm TOKEN BOOT SECONDS [Y|N] | run | confirm TOKEN BOOT | restore' >&2; exit 2;;
 esac

@@ -34,7 +34,7 @@ def main():
     tools = Path(__file__).resolve().parent
     results = {}
 
-    def case(name, setup="", command="run", expected="rollback-requested", success=True, present=True, reboot=True):
+    def case(name, setup="", command="run", expected="rollback-requested", success=True, present=True, reboot=True, armed_wed=None):
         root = out / (name + "-root")
         subprocess.run(["cp", "-a", str(source), str(root)], check=True)
         base = root / BASE
@@ -98,6 +98,8 @@ if [ -f /tmp/confirm ]; then
         (out / (name + ".log")).write_text(result.stdout + result.stderr)
         assert (result.returncode == 0) == success, (name, result.returncode, result.stderr)
         assert (base / "state").read_text().strip() == expected, (name, (base / "state").read_text())
+        if armed_wed is not None:
+            assert (base / "expected-wed").read_text() == armed_wed + "\n"
         assert (root / "etc/config/network").read_bytes() == network
         assert not (root / "tmp/owrt-offload-running").exists()
         assert not (root / "tmp/owrt-offload-decision").exists()
@@ -141,7 +143,11 @@ if [ -f /tmp/confirm ]; then
     case("corrupt_original_refuses_restore", f"echo corrupt >> /{BASE}/original/firewall", command="restore", success=False, expected="armed", reboot=False)
     case("same_boot_reboot_fuse_prevents_repeat", f"echo {TRIAL} > /{BASE}/rollback-reboot; echo rollback-requested > /{BASE}/state", expected="rollback-requested", success=False, reboot=False)
     arm_setup = f"rm /{BASE}/state\ncp -p /{BASE}/original/firewall /etc/config/firewall\ncp -p /{BASE}/original/modules.conf /etc/modules.conf\necho {ORIGIN} > /proc/sys/kernel/random/boot_id"
-    case("arm_checks_originals_and_launches_detached_guard", arm_setup, f"arm {TOKEN} {ORIGIN} 600", expected="armed", reboot=False)
+    case("arm_checks_originals_and_launches_detached_guard", arm_setup, f"arm {TOKEN} {ORIGIN} 600", expected="armed", reboot=False, armed_wed="Y")
+    case("arm_accepts_expected_wed_disabled", arm_setup, f"arm {TOKEN} {ORIGIN} 600 N", expected="armed", reboot=False, armed_wed="N")
+    case("explicit_wed_disabled_confirmation_stops_guard", f"echo N > /{BASE}/expected-wed\necho N > /sys/module/mt7915e/parameters/wed_enable\ntouch /tmp/confirm", expected="accepted", reboot=False)
+    case("wed_enabled_rejected_when_disabled_expected", ready + f"\necho N > /{BASE}/expected-wed", f"confirm {TOKEN} {TRIAL}", expected="observing", success=False, reboot=False)
+    case("invalid_expected_wed_rejected", ready + f"\necho invalid > /{BASE}/expected-wed", f"confirm {TOKEN} {TRIAL}", expected="observing", success=False, reboot=False)
     (out / "result.json").write_text(json.dumps({"guard_sha256": hashlib.sha256((tools / "offload_trial_guard.sh").read_bytes()).hexdigest(), "cases": results}, indent=2) + "\n")
 
 
