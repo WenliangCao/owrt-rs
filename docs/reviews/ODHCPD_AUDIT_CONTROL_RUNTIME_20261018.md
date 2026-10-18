@@ -250,3 +250,31 @@ sudo python3 odhcpd_control_recheck.py \
 本次定向复验结论：**CR-1、CR-2、CR-3 闭合，未出现新的具体阻断**。
 闭合仅覆盖已报告交错、局部接口 bind 故障及别名/配置失败恢复；不宣称所有并发调度、
 全部接口错误或所有 runtime 配置组合均已验证。没有物理设备、发布、刷机或性能操作。
+
+## Fable 最终候选的原场景重跑（2026-10-18）
+
+针对 Fable 修复后的新 ELF，只重跑上节冻结的两个 SDK 目标场景，确认 CR-2/CR-3
+没有回退。候选源码为 `e2adbe1c2bc32cdfbaef5ea4fa01acc81e9385ba`，ELF 路径
+`/home/ubuntu/odhcpd-validation-20261018/sdk-fable-e2adbe1c/odhcpd-rs`，本代理再次核对
+SHA-256 为 `c7c5f1f9e79ea80febe696d6c758db8d3463d1e4b94c7a002f1aa597b9c3ea30`。
+私有复验脚本及导入 baseline 的 SHA-256 与上节完全相同，没有改动判据。
+
+两例各执行一次，全新 namespace/rootfs 复制件及输出目录，全部断言通过：
+
+- `R/sdk-fable-conflict-recovery`：新接口独占 UDP 547 时原 LAN DHCPv6、RA、ubus
+  仍响应；日志明确为该接口 `EADDRINUSE`。关闭占用 socket 并 notify 后，新接口
+  收到相同 XID 的 DHCPv6 Reply，源为 `fe80::3`，原 LAN 持续响应。
+- `R/sdk-fable-default-recovery`：`default` 被接受；非法值只产生
+  `netifd lan data skipped: invalid ra_preference`，符合新逐接口隔离行为，原 LAN
+  服务持续。随后改为 `high`，新 RA flags 为 200，其中 preference 位为 `0x08`。
+
+两例中原进程各自在独立 PID namespace 内始终为 PID 35，没有自动重启。
+结果文件身份如下；同目录的 `odhcpd.log` 保留局部错误证据。
+
+| 新候选证据 | SHA-256 |
+| --- | --- |
+| `sdk-fable-conflict-recovery/results.json` | `3f2d23354c866e8fadfb40eb72b494c9d12e8c57bd8db477aef2a79c515df838` |
+| `sdk-fable-default-recovery/results.json` | `d498378985e14ce4b6b7febdb384dbd1958b0ae4c4347106a5f46120a7d8639d` |
+
+结论：**最终 Fable 候选保留 CR-2/CR-3 的闭合结果**。本轮不重新编译控制模块，
+不替代统一验证负责的其他夹具；没有新审计范围、性能、物理设备或发布操作。
