@@ -1,0 +1,398 @@
+[
+  {
+    "path": "odhcpd-audit-fable-20261018/components/odhcpd/tests/audit_repro.rs",
+    "bytes": 1944,
+    "blob": "03969215daba83b0575471ef3831dbb4395287ff",
+    "sha256": "d18df5044d2aade6aeb9c300bdb877ae346ca7d31fa12b420378ad7d05772f56"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/run_suite_shards.py",
+    "bytes": 2865,
+    "blob": "65e6933b772df68e8990ebf5d5889c0d45eb5565",
+    "sha256": "6017bdedc942d3f4e17bcb9136edad769fcf9c730cf90b18b00f93a4a99607b8"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/regression-netifd_renewal_keep.py",
+    "bytes": 14929,
+    "blob": "0747a58ee0b6fef68a3bb92ad00148ad377c5014",
+    "sha256": "71b76b095a840f029acf8b10fad5fdb3d1e6180abb80c36ad63fd827a3964e12"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/final2-netifd_renewal_keep.py",
+    "bytes": 16722,
+    "blob": "1a5382e94f277815509781479c12209198f22c2c",
+    "sha256": "82a5f155bbc23e7e97981968eeeab64762b7f84db908e7f20ca1b0eff812b3a6"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/complete_suite_report.py",
+    "bytes": 2502,
+    "blob": "f81e7b5eb32f52cb136e1ced6f2d4a22d3dbde82",
+    "sha256": "b3b2cbb10df634e4c79eaa682626eb5438562a7744ae340b5ab98bca5fe61b3e"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/failure-regression-netifd_renewal_keep.py",
+    "bytes": 16722,
+    "blob": "1a5382e94f277815509781479c12209198f22c2c",
+    "sha256": "82a5f155bbc23e7e97981968eeeab64762b7f84db908e7f20ca1b0eff812b3a6"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/tools-fixed/test_fw4_reload.py",
+    "bytes": 11333,
+    "blob": "c4d979dec276a7771a0249c141d1efab812a4683",
+    "sha256": "ff43dd8dc8b1415b4dfb6b276afa1b7eb9d32c52af105f12ff819811967e126d"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/tools-final/test_fw4_reload.py",
+    "bytes": 11333,
+    "blob": "c4d979dec276a7771a0249c141d1efab812a4683",
+    "sha256": "ff43dd8dc8b1415b4dfb6b276afa1b7eb9d32c52af105f12ff819811967e126d"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/tools/test_fw4_reload.py",
+    "bytes": 11333,
+    "blob": "c4d979dec276a7771a0249c141d1efab812a4683",
+    "sha256": "ff43dd8dc8b1415b4dfb6b276afa1b7eb9d32c52af105f12ff819811967e126d"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/tools/netifd_renewal_keep.py",
+    "bytes": 13633,
+    "blob": "f2b633f7799da76b955ed3c0f4fb2be483c58e0e",
+    "sha256": "c5ffac62505bc28b56265b1eca578171eca4c741e0eac90b6b53de36ec679b45"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/perf-one-round/oracle-check-driver-02.sh",
+    "bytes": 5838,
+    "blob": "5740e78739adcef420e48462728667eff80ae307",
+    "sha256": "8f910aee337e5be231ed0344a7204859d0cc425a6fd04e3922c65c602c874c97"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/perf-one-round/oracle-check-driver.sh",
+    "bytes": 5801,
+    "blob": "f6e224813c195876b4382c0c7417c5de56419b7b",
+    "sha256": "ed33d4e961811244043203eb496fc5cab53de8d9f4be6b24a7793061576b3729"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/perf-one-round/src/tools/benchmark/netifd_renewal_instance.sh",
+    "bytes": 5799,
+    "blob": "abfb707e7fe028ad86cfdf9d9b25005b92e1e2e7",
+    "sha256": "a9491cf25a30d516d97f6734dc5ac0dcaf29307b1919e486efca761b9a673345"
+  },
+  {
+    "path": "netifd-keep-v023-20261017/perf-one-round/src/tools/benchmark/netifd_renewal_window.sh",
+    "bytes": 5530,
+    "blob": "9696cb22edcac0d5fcb16ab1d50977bc65d517b5",
+    "sha256": "d10597117ef6446a76acda972072228c2fe78133d4696955665ba211ad9f8e19"
+  },
+  {
+    "path": "odhcpd-image-fable-v024-20261018/qualify_recovery.py",
+    "bytes": 7533,
+    "blob": "113295a7056d99be68e06468d2c246be96294777",
+    "sha256": "3966bced38818f259fcdf54ef3ab10f7df1133b0d9d04cef42fdb7d160d458d4"
+  },
+  {
+    "path": "odhcpd-image-fable-v024-20261018/recovery-checks/handoff/upgraded-recorder.c",
+    "bytes": 2083,
+    "blob": "61476e43a589eddf1f6877b4a8a86721a7515282",
+    "sha256": "dc48107f8fe0cc0fa550ae9b2f4d74172635f9c913689c3bea9c671f187bdacd"
+  },
+  {
+    "path": "fw4-v023-20261017/fw4-bundle-v1/driver.sh",
+    "bytes": 5813,
+    "blob": "aa6cb2945f700ac392155c6f836c089d998d4d33",
+    "sha256": "095480f7a3995935731cef071ecca25d1e5dfc9a9d0695db9656aae5e2686d41"
+  },
+  {
+    "path": "fw4-v023-20261017/fw4-bundle-v2/driver.sh",
+    "bytes": 5810,
+    "blob": "d3abcee47c4c6ffdd626d46ab6752700d01b5be9",
+    "sha256": "a70512db0edfc429e907f14aa05b2162c4b6d85f3429fcb355421ad03c959644"
+  },
+  {
+    "path": "fw4-v023-20261017/components/netifd/src/main.rs",
+    "bytes": 245407,
+    "blob": "c192b56c26597415c111814d46ebc1b49574a64f",
+    "sha256": "72ccceb2defc64c3aac62d9b5aea4c877d81842ecf021220eb85cc5c89eae130"
+  },
+  {
+    "path": "fw4-v023-20261017/components/netifd/src/interface.rs",
+    "bytes": 33000,
+    "blob": "9ad8bea0de3216858f1f05e25bbe0a9d9ac70009",
+    "sha256": "b9e38dedcd8631ee9ffa1a637f74ef22fc2fa986a8fd98ec9ca2a39e23baa886"
+  },
+  {
+    "path": "odhcpd-device-ab-20261018/tools/odhcpd_device_ab.sh",
+    "bytes": 9545,
+    "blob": "7badc230caba4a6dbe5cc66733a339d8f1490804",
+    "sha256": "61c5d2fad805933897471d5fdc826cabe8094c60841b2e33cedae50b15687715"
+  },
+  {
+    "path": "odhcpd-audit-ra-kernel-20261018/dump_interruption.py",
+    "bytes": 2555,
+    "blob": "9295d29dca881efb4ec4ecc29b78bae34b984665",
+    "sha256": "f468694cfabab4b2b36e1c449484e54b1313dbc95e65c5f86e9fe0de7a83a9c1"
+  },
+  {
+    "path": "odhcpd-audit-ra-kernel-20261018/snapshot_recovery.py",
+    "bytes": 7030,
+    "blob": "f8774518fe9a237ad18fe202670cb8dfd59dd2d6",
+    "sha256": "54319b555b067de89ab9e5d83b68e1a9ea2fac03a3b9fb0af7a2c1c72e063021"
+  },
+  {
+    "path": "odhcpd-audit-ra-kernel-20261018/hop_limit.py",
+    "bytes": 1816,
+    "blob": "e088c13a3ce324051b0e2e8ba3de30570676730d",
+    "sha256": "1f4e010af3506e0bef64fdc6aa79f2d44c67ffbc580d474ac1ec774e0f986463"
+  },
+  {
+    "path": "odhcpd-audit-ra-kernel-20261018/snapshot_error.py",
+    "bytes": 1584,
+    "blob": "1295541aa2cf231f7e4e5d51a20cbdc2aac3e2af",
+    "sha256": "386bd419abf0372d8176994de9d39483f6c5941e714016f4ab08bc5477b10c44"
+  },
+  {
+    "path": "odhcpd-validation-idle-renew-20261018/tools/run_functional.py",
+    "bytes": 3645,
+    "blob": "5456f08f87cf32f9565b9461a74c0ccec29f3853",
+    "sha256": "15bf691e3d62c543faac590abe2e173c2782d321700e679ba786b8e1f69df6ad"
+  },
+  {
+    "path": "odhcpd-dhcp6-20261018/components/odhcpd/src/control.rs",
+    "bytes": 35341,
+    "blob": "807932b1b9a179be6830d1775ee98f87ecd081fa",
+    "sha256": "511b71d5c17173210c27608aab2863203bcbbd9af82b198c4448f94efda4b850"
+  },
+  {
+    "path": "odhcpd-idle-renew-tools-20261018/odhcpd_device_analyze.py",
+    "bytes": 21220,
+    "blob": "d09b560fdd8f0675f31f031593ff42553a96429e",
+    "sha256": "9ab01b298e7e1e1e34fbd013f8aa29b467a0db27260d885c0d4de0805f8e209c"
+  },
+  {
+    "path": "odhcpd-latency-instrument-20261018/selftest-01/instrument/odhcpd_baseline.py",
+    "bytes": 46512,
+    "blob": "8c389a80ee57bda200590799025dcdd736b77001",
+    "sha256": "99a99e7c9dceb99b1fde00e1a18c4d80ff5b6cd7b7f96789443cb2264c53a80a"
+  },
+  {
+    "path": "odhcpd-native-eleven-20261018/tools/odhcpd_device_probe.c",
+    "bytes": 15389,
+    "blob": "f6bf5bfde414506fb7d0fc7be1c349f86ee46e8c",
+    "sha256": "989b0dc41c7f3c8ea1cc14a50443aeacd002387fb5ae37122560aa6b1864242d"
+  },
+  {
+    "path": "odhcpd-native-eleven-20261018/tools/native_boot_check.sh",
+    "bytes": 17609,
+    "blob": "92a6070c9c53e1706bdf96fa521070bb765dba7a",
+    "sha256": "e46a43984ef2ef9774945a3e272c59e6390d9e62492207dbc77b46cd1a434767"
+  },
+  {
+    "path": "odhcpd-native-eleven-20261018/tools/test_odhcpd_client_health.py",
+    "bytes": 4788,
+    "blob": "3c74d1d6a53f1c9af50659f6998bb75bfd03cf9f",
+    "sha256": "30fe0e9b49218362ce5c874f89a149d365f1e22c54cc40062959b5494fa3d913"
+  },
+  {
+    "path": "odhcpd-native-eleven-20261018/tools/native_boot_ipv6_client.py",
+    "bytes": 7096,
+    "blob": "d1bb93a4802ca5ab0a556165e00ef2bcdbbd74b9",
+    "sha256": "ee74f0a71cb291ed9bc29eb7afbb076d0f9ff48e622b461731d8dc38d6ea3f60"
+  },
+  {
+    "path": "odhcpd-native-eleven-20261018/tools/native_boot_client.py",
+    "bytes": 6796,
+    "blob": "c5bb604a06352dd6de9d1b55972f3d22888d8e84",
+    "sha256": "c40dee7cf6e57ba6fc699f6be5939bcdf85f5ec17dc0dff80713442e7088be22"
+  },
+  {
+    "path": "odhcpd-control-recheck-20261018-uvanh1/odhcpd_control_recheck.py",
+    "bytes": 6541,
+    "blob": "ec38c90f42d10eb397910d0edc1fe7420b7f23b9",
+    "sha256": "162c66d22e10ca0784f425f459ec6da4a9c29be5e3ff62702ccf4b128e97deb0"
+  },
+  {
+    "path": "odhcpd-ra-20261018/components/odhcpd/src/kernel.rs",
+    "bytes": 9197,
+    "blob": "ec49d2b6bfa9897b5fe1ec95e5f4c6daf9eb054b",
+    "sha256": "00ebb5be50f275553169f193a155d6a8ec1aebd6a79215fa8ba25bebd3e18b5a"
+  },
+  {
+    "path": "odhcpd-ra-20261018/components/odhcpd/src/lib.rs",
+    "bytes": 269,
+    "blob": "f8018a39f2dc0836a78307f527bf705c24f25acd",
+    "sha256": "2647d737ed319331efcd21506eeeeab2408bfecbe4771bee81108bf35eb40772"
+  },
+  {
+    "path": "odhcpd-audit-integration-20261018/recover_missing_odhcpd.py",
+    "bytes": 3380,
+    "blob": "70305e6cf944eb5949cf43f31e8ebb2c4b84c2dc",
+    "sha256": "2e7d828bac5456afd975418c7e714d9017a9949399f188fbdc95ed36b152e5b2"
+  },
+  {
+    "path": "odhcpd-audit-integration-20261018/live-evidence/verify_live_evidence.py",
+    "bytes": 2890,
+    "blob": "9789b8afa4ffde57afedc35b2800850bfdafed9c",
+    "sha256": "d61a73c2a7db4bf7de4cca1f1eba93ae26abfff3e0ad9a241d2684b3653b7069"
+  },
+  {
+    "path": "odhcpd-audit-integration-20261018/fix-inputs/recover_recheck.py",
+    "bytes": 4691,
+    "blob": "32b6d50d240f24478fc6167c08500f2ea8691fe9",
+    "sha256": "596e8f0b76d1635bd5733bfa44af2c37bfc6dc4a516b977d9d4430af6cc2a9d5"
+  },
+  {
+    "path": "odhcpd-image-v024-20261018/qualify_recovery.py",
+    "bytes": 7307,
+    "blob": "59497bab54793a990db3754b9dceb7573974a851",
+    "sha256": "17b2c0f755780da088607edcb8bfa92f85cfaf488edc49ba005f29af8a7bbead"
+  },
+  {
+    "path": "odhcpd-image-v024-20261018/recovery-checks/handoff/upgraded-recorder.c",
+    "bytes": 2083,
+    "blob": "61476e43a589eddf1f6877b4a8a86721a7515282",
+    "sha256": "dc48107f8fe0cc0fa550ae9b2f4d74172635f9c913689c3bea9c671f187bdacd"
+  },
+  {
+    "path": "odhcpd-audit-dhcp6-20261018/compare_closure.py",
+    "bytes": 1555,
+    "blob": "1186f46246a00ca116b57574203ec36d8c718a2f",
+    "sha256": "25928ae0168cb4af7314f83ad716e201c927af560881976048db6455496f2c31"
+  },
+  {
+    "path": "odhcpd-validation-20261018/prototype-03/instrument.py",
+    "bytes": 45746,
+    "blob": "d8f606544e77774d01dfd3404e77c6ccebd627ee",
+    "sha256": "6a85fd301ff59041598ae23839fa634c0668a78f7775fe8bc26ad36f00ca3518"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-c-01-control/instrument.py",
+    "bytes": 46174,
+    "blob": "76785bc35d8e785125961cab0c596cf8aa46b9ea",
+    "sha256": "836c85d2d004c6919dff91470a21c3e2dd083cdd3fb530a5a5a0137988da0a63"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-c-03-link/instrument.py",
+    "bytes": 46174,
+    "blob": "76785bc35d8e785125961cab0c596cf8aa46b9ea",
+    "sha256": "836c85d2d004c6919dff91470a21c3e2dd083cdd3fb530a5a5a0137988da0a63"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-c-01/instrument.py",
+    "bytes": 45746,
+    "blob": "d8f606544e77774d01dfd3404e77c6ccebd627ee",
+    "sha256": "6a85fd301ff59041598ae23839fa634c0668a78f7775fe8bc26ad36f00ca3518"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-c-01/finite/instrument.py",
+    "bytes": 45746,
+    "blob": "d8f606544e77774d01dfd3404e77c6ccebd627ee",
+    "sha256": "6a85fd301ff59041598ae23839fa634c0668a78f7775fe8bc26ad36f00ca3518"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-c-01/link/instrument.py",
+    "bytes": 45746,
+    "blob": "d8f606544e77774d01dfd3404e77c6ccebd627ee",
+    "sha256": "6a85fd301ff59041598ae23839fa634c0668a78f7775fe8bc26ad36f00ca3518"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-c-01-reject/instrument.py",
+    "bytes": 46174,
+    "blob": "76785bc35d8e785125961cab0c596cf8aa46b9ea",
+    "sha256": "836c85d2d004c6919dff91470a21c3e2dd083cdd3fb530a5a5a0137988da0a63"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-c-02-link/instrument.py",
+    "bytes": 45957,
+    "blob": "efd19958b31ac0ae32906a68db23080de351029a",
+    "sha256": "6d874f4e83442317755619c35d91b009397490d029870598ca8118e3a49e3fb5"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-rust-01/instrument.py",
+    "bytes": 46512,
+    "blob": "8c389a80ee57bda200590799025dcdd736b77001",
+    "sha256": "99a99e7c9dceb99b1fde00e1a18c4d80ff5b6cd7b7f96789443cb2264c53a80a"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-rust-01/reject/instrument.py",
+    "bytes": 46512,
+    "blob": "8c389a80ee57bda200590799025dcdd736b77001",
+    "sha256": "99a99e7c9dceb99b1fde00e1a18c4d80ff5b6cd7b7f96789443cb2264c53a80a"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-rust-01/finite/instrument.py",
+    "bytes": 46512,
+    "blob": "8c389a80ee57bda200590799025dcdd736b77001",
+    "sha256": "99a99e7c9dceb99b1fde00e1a18c4d80ff5b6cd7b7f96789443cb2264c53a80a"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-rust-01/link/instrument.py",
+    "bytes": 46512,
+    "blob": "8c389a80ee57bda200590799025dcdd736b77001",
+    "sha256": "99a99e7c9dceb99b1fde00e1a18c4d80ff5b6cd7b7f96789443cb2264c53a80a"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-rust-01/control/instrument.py",
+    "bytes": 46512,
+    "blob": "8c389a80ee57bda200590799025dcdd736b77001",
+    "sha256": "99a99e7c9dceb99b1fde00e1a18c4d80ff5b6cd7b7f96789443cb2264c53a80a"
+  },
+  {
+    "path": "odhcpd-validation-20261018/c-baseline-04/instrument.py",
+    "bytes": 25913,
+    "blob": "ae0673df310b5426bcb8e6b669e0295b711f8494",
+    "sha256": "e603104fdc4e239ba82bc3af0c4bb0e7e71c3afd02404f4a937e8a170eca2997"
+  },
+  {
+    "path": "odhcpd-validation-20261018/tools/fable_provider_selftest.py",
+    "bytes": 1333,
+    "blob": "0d90d06ffde3c00b03a1fe12c3c6bda1e788c6eb",
+    "sha256": "4308a87d4ff95771063c667f381f8f48a252bccade357e70af2dc3b3384eca59"
+  },
+  {
+    "path": "odhcpd-validation-20261018/extended-c-02-control/instrument.py",
+    "bytes": 46238,
+    "blob": "d36ba30391db5be67f1e5f8326dd6348acb9f3ba",
+    "sha256": "c1ca9c5f916374ef24f40d288d9223f276ec2d89b7f1b5a8a9551d0854548ce8"
+  },
+  {
+    "path": "odhcpd-image-v030-20261018/qualify_guard.py",
+    "bytes": 8082,
+    "blob": "2ae0ef246e2bcf8f994d8b7046cc5577cb025bcd",
+    "sha256": "c5e85ac9d62dd4f63639ee13602706747160e13966e5835a2be0ab2a0cd56d62"
+  },
+  {
+    "path": "odhcpd-image-v030-20261018/export_guard.py",
+    "bytes": 1683,
+    "blob": "8b02fbd764b62ff771e4aba84a264135e6acdec5",
+    "sha256": "5d22d481fe97f085b34150256016ec73a5853108ac7655c72021cd8ecb09e4de"
+  },
+  {
+    "path": "odhcpd-image-v030-20261018/guard-checks/handoff/upgraded-recorder.c",
+    "bytes": 2083,
+    "blob": "61476e43a589eddf1f6877b4a8a86721a7515282",
+    "sha256": "dc48107f8fe0cc0fa550ae9b2f4d74172635f9c913689c3bea9c671f187bdacd"
+  },
+  {
+    "path": "odhcpd-image-audit-v024-20261018/qualify_recovery.py",
+    "bytes": 7406,
+    "blob": "92844e48835882ddd5270164511af9a38861b2ef",
+    "sha256": "d4f7107a72603424b3b499a801fbb084165cb4749caeac77eb4e60f201a774af"
+  },
+  {
+    "path": "odhcpd-audit-control-20261018-QOfzrV/odhcpd_control_audit_case.py",
+    "bytes": 3971,
+    "blob": "45225d29049fa95b93176c76387bee05792aef5f",
+    "sha256": "fff9ca0a3c3931f0434605b0192b010582b2169d18326efbef5d58ead97a7191"
+  },
+  {
+    "path": "odhcpd-audit-control-20261018-QOfzrV/secondary-disabled-instrument.py",
+    "bytes": 3525,
+    "blob": "007315b858cfac5bd5157b57547ef81d5184f4cb",
+    "sha256": "6ff0a6296e6c463a778d47e57eca794aafbf6b1a20900a55e20b12c960609db8"
+  },
+  {
+    "path": "odhcpd-audit-control-20261018-QOfzrV/odhcpd_lostwake.rs",
+    "bytes": 1790,
+    "blob": "71b42415378760ec3a8324110f0234eac39bbdbe",
+    "sha256": "ba6995a26600e96ff2ae4c956a9b5382266f5ec9056a57e510efcebb4091467a"
+  }
+]
