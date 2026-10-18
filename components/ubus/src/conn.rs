@@ -524,6 +524,12 @@ impl Connection {
             if header.seq != seq || header.peer != peer
                 || !matches!(header.ty, ty::DATA | ty::STATUS)
             {
+                // Only this synchronous request is active. libubus discards
+                // replies for completed/expired requests, including their FDs.
+                // Keep invokes and subscription changes for the object owner.
+                if matches!(header.ty, ty::DATA | ty::STATUS) {
+                    continue;
+                }
                 let blob = self.blob_of(body);
                 self.pending.push_back(Message { header, blob, fd });
                 continue;
@@ -1281,6 +1287,43 @@ mod tests {
         (conn(a), conn(b))
     }
 
+    #[test]
+    fn stale_request_replies_release_descriptors_and_preserve_live_messages() {
+        let (mut client, mut server) = pair();
+        let (stale_fd, mut stale_watch) = UnixStream::pair().unwrap();
+        let (live_fd, mut live_watch) = UnixStream::pair().unwrap();
+        let worker = std::thread::spawn(move || {
+            let request = server.recv().unwrap();
+            let mut body = BlobBuf::new();
+            body.put_u32(attr::STATUS, status::OK as u32);
+            for index in 0..256 {
+                let ty = if index % 2 == 0 { ty::DATA } else { ty::STATUS };
+                server.send(Header { ty, seq: request.header.seq.wrapping_sub(1), peer: 42 },
+                    &mut body, Some(stale_fd.as_raw_fd())).unwrap();
+            }
+            drop(stale_fd);
+            let mut invoke = BlobBuf::new();
+            invoke.put_u32(attr::OBJID, 77).put_string(attr::METHOD, "queued");
+            server.send(Header { ty: ty::INVOKE, seq: 99, peer: 3 }, &mut invoke, None).unwrap();
+            server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 42 },
+                &mut body, Some(live_fd.as_raw_fd())).unwrap();
+        });
+        let reply = client.invoke_status(42, "probe", &[], 1000).unwrap();
+        worker.join().unwrap();
+        assert_eq!(reply.status, status::OK);
+        assert_eq!(client.pending.len(), 1, "only the live INVOKE may remain pending");
+        stale_watch.set_nonblocking(true).unwrap();
+        assert_eq!(stale_watch.read(&mut [0]).unwrap(), 0, "stale reply FDs must close");
+        let Incoming::Invoke(request) = client.read_incoming().unwrap() else { panic!("queued INVOKE") };
+        assert_eq!((request.seq, request.method.as_str()), (99, "queued"));
+        assert!(!client.has_pending());
+        let mut received = UnixStream::from(reply.fd.unwrap());
+        received.write_all(b"live").unwrap();
+        let mut bytes = [0; 4];
+        live_watch.read_exact(&mut bytes).unwrap();
+        assert_eq!(&bytes, b"live");
+    }
+
     #[cfg(target_os = "linux")]
     fn notify_broker(server: &mut Connection, request: &Message, peers: &[u32]) {
         let mut b = BlobBuf::new();
@@ -1709,7 +1752,7 @@ mod tests {
                 let req = server.recv().unwrap();
                 let mut b = BlobBuf::new();
                 b.put(attr::DATA, &vec![0xa5; size]);
-                server.send(Header { ty: ty::DATA, seq: req.header.seq + 1, peer: 42 }, &mut b, None).unwrap();
+                server.send(Header { ty: ty::INVOKE, seq: req.header.seq + 1, peer: 42 }, &mut b, None).unwrap();
                 server.send(Header { ty: ty::DATA, seq: req.header.seq, peer: 42 }, &mut b, None).unwrap();
                 b = BlobBuf::new();
                 b.put_u32(attr::STATUS, 3).put_u32(attr::STATUS, 0);
@@ -1939,7 +1982,7 @@ mod tests {
         assert_eq!(error_status(&error), Some(status::TIMEOUT));
         let next = client.request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 500).unwrap();
         assert_eq!(next.status, status::OK);
-        assert_eq!(client.pending.len(), 1, "late response retains its own sequence");
+        assert!(client.pending.is_empty(), "late response belongs to an expired request");
         peer.join().unwrap();
     }
 
