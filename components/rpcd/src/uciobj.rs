@@ -988,6 +988,16 @@ fn copy_file(src: &str, target: &str, file: &str) {
     }
 }
 
+/// A partial rollback snapshot must never become authoritative.
+fn copy_snapshot(src: &str, target: &str, file: &str) -> std::io::Result<()> {
+    let mut input = fs::File::open(format!("{src}{file}"))?;
+    let mut output = fs::OpenOptions::new()
+        .write(true).create(true).truncate(true).mode(0o600)
+        .open(format!("{target}{file}"))?;
+    std::io::copy(&mut input, &mut output)?;
+    output.sync_all()
+}
+
 /// glob("<dir>/*", GLOB_PERIOD): sorted names including "." and "..".
 fn glob_period(dir: &str) -> Vec<String> {
     let Ok(rd) = fs::read_dir(dir) else { return vec![] };
@@ -1080,8 +1090,14 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
     if !has_apply {
         let mut ctx = Context::new();
         set_savedir(&mut ctx, Some(sid));
-        let _ = fs::DirBuilder::new().mode(0o700).create(SNAPSHOT_FILES.trim_end_matches('/'));
-        let _ = fs::DirBuilder::new().mode(0o700).create(SNAPSHOT_DELTA.trim_end_matches('/'));
+        // Preserve the existing empty-directory behavior for NO_DATA and
+        // permission-denied requests, but never ignore a creation failure.
+        let directories = [SNAPSHOT_FILES, SNAPSHOT_DELTA].into_iter().try_for_each(|path| {
+            fs::DirBuilder::new().recursive(true).mode(0o700).create(path)
+        });
+        if directories.is_err() {
+            return code(status::UNKNOWN_ERROR);
+        }
         let dir = savedir_of(sid);
         let names = glob_period(&dir);
         let tmp = format!("{dir}/");
@@ -1089,19 +1105,28 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         if ret != 0 {
             return code(ret);
         }
+        let configs: Vec<_> = names.iter().filter(|config| {
+            !config.starts_with('.') && file_size(&format!("{dir}/{config}")).is_some_and(|n| n > 0)
+        }).collect();
+        // Back up the complete batch before committing its first package.
+        // Otherwise a later ENOSPC can leave an earlier package applied and
+        // a truncated snapshot that the rollback timer would copy over it.
+        let snapshots = (|| -> std::io::Result<()> {
+            for config in &configs {
+                copy_snapshot(UCI_DIR, SNAPSHOT_FILES, config)?;
+                copy_snapshot(&tmp, SNAPSHOT_DELTA, config)?;
+            }
+            Ok(())
+        })();
+        if snapshots.is_err() {
+            purge_dir(SNAPSHOT_FILES);
+            purge_dir(SNAPSHOT_DELTA);
+            return code(status::UNKNOWN_ERROR);
+        }
         if rollback {
             rctx.sessions.borrow_mut().apply_sid = Some(sid.to_owned());
         }
-        for config in &names {
-            if config.starts_with('.') {
-                continue;
-            }
-            match file_size(&format!("{dir}/{config}")) {
-                Some(n) if n > 0 => {}
-                _ => continue,
-            }
-            copy_file(UCI_DIR, SNAPSHOT_FILES, config);
-            copy_file(&tmp, SNAPSHOT_DELTA, config);
+        for config in configs {
             apply_config(rctx, &mut ctx, Some(conn), config);
         }
         if rollback {
