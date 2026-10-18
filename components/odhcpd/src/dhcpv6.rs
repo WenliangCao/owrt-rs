@@ -823,6 +823,13 @@ impl Dhcpv6 {
                     status = 4;
                 }
                 if let Some(lease) = candidate.as_mut().filter(|_| status == 0) {
+                    // C resolves a host override or the current interface
+                    // default on every reply. A pool reload must affect an
+                    // existing binding's next Renew/Rebind without rewriting
+                    // the deadline it was previously promised.
+                    lease.lease_time = host
+                        .and_then(|host| host.lease_time)
+                        .unwrap_or(context.pool.lease_time);
                     lease.interface_index = context.link.index;
                     lease.device = context.link.name.clone();
                     lease.addresses = addresses_for(
@@ -1021,7 +1028,7 @@ fn encode_ia(
         status_option(&mut body, status);
     } else if let Some(lease) = lease {
         for address in &lease.addresses {
-            encode_address(&mut body, address, now);
+            encode_address(&mut body, lease.kind, address, now);
         }
         if invalidate {
             for option in previous {
@@ -1050,6 +1057,7 @@ fn encode_ia(
                 }) {
                     encode_address(
                         &mut body,
+                        lease.kind,
                         &LeaseAddress {
                             address,
                             length,
@@ -1067,11 +1075,11 @@ fn encode_ia(
     result
 }
 
-fn encode_address(output: &mut Vec<u8>, address: &LeaseAddress, now: u64) {
+fn encode_address(output: &mut Vec<u8>, kind: LeaseKind, address: &LeaseAddress, now: u64) {
     let preferred = remaining(address.preferred_until, now).to_be_bytes();
     let valid = remaining(address.valid_until, now).to_be_bytes();
     let mut body = Vec::with_capacity(25);
-    if address.length == 128 {
+    if kind == LeaseKind::Na {
         body.extend_from_slice(&address.address.octets());
         body.extend_from_slice(&preferred);
         body.extend_from_slice(&valid);
@@ -1150,7 +1158,16 @@ mod tests {
         let mut ia = iaid.to_be_bytes().to_vec();
         ia.extend_from_slice(&[0; 8]);
         if let Some(old) = old {
-            encode_address(&mut ia, &old, 100);
+            encode_address(
+                &mut ia,
+                if kind == IA_NA {
+                    LeaseKind::Na
+                } else {
+                    LeaseKind::Pd
+                },
+                &old,
+                100,
+            );
         }
         push_option(&mut packet, kind, &ia);
         packet
@@ -1866,5 +1883,152 @@ mod tests {
         assert!(ignored.reply.is_none());
         assert!(!ignored.write_state);
         assert_eq!(engine.leases().len(), 1);
+    }
+
+    #[test]
+    fn existing_na_and_pd_resolve_reloaded_default_without_losing_host_overrides() {
+        for kind in [IA_NA, IA_PD] {
+            for host_policy in [None, Some(None), Some(Some(900))] {
+                let (mut config, link) = fixture();
+                config.pools[0].lease_time = 600;
+                if let Some(lease_time) = host_policy {
+                    config.hosts.push(HostConfig {
+                        duids: vec![HostDuid {
+                            duid: CLIENT.to_vec(),
+                            iaid: Some(1),
+                        }],
+                        hostname: Some("named-client".into()),
+                        lease_time,
+                        ..HostConfig::default()
+                    });
+                }
+                let mut engine = Dhcpv6::default();
+                let initial = engine.handle(
+                    &packet(3, kind, 1, None),
+                    context(&config, &link),
+                    &mut |_, _| Ok(()),
+                );
+                assert!(initial.reply.is_some());
+                let assigned = engine.leases()[0].assigned;
+                for default in [1200, 300] {
+                    config.pools[0].lease_time = default;
+                    let promised = (
+                        engine.leases()[0].preferred_until,
+                        engine.leases()[0].valid_until,
+                    );
+                    let kernel = KernelState {
+                        links: vec![link.clone()],
+                        routes: engine.pending_routes().to_vec(),
+                    };
+                    engine
+                        .reconcile(
+                            &config,
+                            &kernel,
+                            context(&config, &link).clock,
+                            &mut |_, _| Ok(()),
+                        )
+                        .unwrap();
+                    assert_eq!(
+                        (
+                            engine.leases()[0].preferred_until,
+                            engine.leases()[0].valid_until
+                        ),
+                        promised
+                    );
+                    let lifetime: u32 = host_policy.flatten().unwrap_or(default);
+                    for message in [5, 6] {
+                        let reply = engine
+                            .handle(
+                                &packet(message, kind, 1, None),
+                                context(&config, &link),
+                                &mut |_, _| Ok(()),
+                            )
+                            .reply
+                            .unwrap();
+                        let parsed = options(&reply[4..]).unwrap();
+                        let ia = parsed.iter().find(|option| option.code == kind).unwrap();
+                        assert_eq!(&ia.value[4..8], &(lifetime / 2).to_be_bytes());
+                        assert_eq!(&ia.value[8..12], &(lifetime * 8 / 10).to_be_bytes());
+                        let resources = options(&ia.value[12..]).unwrap();
+                        assert!(!resources.is_empty());
+                        for resource in resources {
+                            let offset = if kind == IA_NA { 16 } else { 0 };
+                            assert_eq!(
+                                resource.code,
+                                if kind == IA_NA { IA_ADDR } else { IA_PREFIX }
+                            );
+                            assert_eq!(
+                                &resource.value[offset..offset + 4],
+                                &lifetime.to_be_bytes(),
+                                "kind={kind} message={message} policy={host_policy:?}"
+                            );
+                            assert_eq!(
+                                &resource.value[offset + 4..offset + 8],
+                                &lifetime.to_be_bytes()
+                            );
+                        }
+                        assert_eq!(engine.leases()[0].assigned, assigned);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn old_pd_128_withdrawal_keeps_iaprefix_type_in_renew_and_rebind() {
+        for kind in [IA_NA, IA_PD] {
+            let (config, link) = fixture();
+            let mut engine = Dhcpv6::default();
+            engine.handle(
+                &packet(3, kind, 1, None),
+                context(&config, &link),
+                &mut |_, _| Ok(()),
+            );
+            let old: Ipv6Addr = "fd12:3456:789a:4::1234".parse().unwrap();
+            for message in [5, 6] {
+                // Construct the request independently from the product encoder:
+                // IA_PD may carry an old IAPREFIX with a /128 length.
+                let mut request = vec![message, 1, 2, 3];
+                push_option(&mut request, CLIENT_ID, CLIENT);
+                let mut ia = 1u32.to_be_bytes().to_vec();
+                ia.extend_from_slice(&[0; 8]);
+                let mut resource = Vec::new();
+                if kind == IA_NA {
+                    resource.extend_from_slice(&old.octets());
+                }
+                resource.extend_from_slice(&600u32.to_be_bytes());
+                resource.extend_from_slice(&600u32.to_be_bytes());
+                if kind == IA_PD {
+                    resource.push(128);
+                    resource.extend_from_slice(&old.octets());
+                }
+                push_option(
+                    &mut ia,
+                    if kind == IA_NA { IA_ADDR } else { IA_PREFIX },
+                    &resource,
+                );
+                push_option(&mut request, kind, &ia);
+                let reply = engine
+                    .handle(&request, context(&config, &link), &mut |_, _| Ok(()))
+                    .reply
+                    .unwrap();
+                let parsed = options(&reply[4..]).unwrap();
+                let ia = parsed.iter().find(|option| option.code == kind).unwrap();
+                let resources = options(&ia.value[12..]).unwrap();
+                assert!(resources.len() >= 2);
+                assert!(resources
+                    .iter()
+                    .all(|option| option.code == if kind == IA_NA { IA_ADDR } else { IA_PREFIX }));
+                let withdrawn = resources.last().unwrap().value;
+                if kind == IA_NA {
+                    assert_eq!(&withdrawn[..16], &old.octets());
+                    assert_eq!(&withdrawn[16..], &[0; 8]);
+                } else {
+                    assert_eq!(&withdrawn[..8], &[0; 8]);
+                    assert_eq!(withdrawn[8], 128);
+                    assert_eq!(&withdrawn[9..], &old.octets());
+                }
+            }
+        }
     }
 }
