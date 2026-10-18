@@ -168,6 +168,27 @@ class NativeProductionProbe(unittest.TestCase):
         self.snapshots = 0
         self.fault = None
 
+    def test_eleven_manifest_requires_exact_odhcpd_path_and_complete_set(self):
+        manifest = {**self.manifest, "deployment_layout": "native-eleven",
+                    "components": {**self.manifest["components"],
+                                   "odhcpd": {"path": "/usr/sbin/odhcpd", "rust_sha256": "c" * 64,
+                                              "stock_sha256": "d" * 64}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text(json.dumps(manifest))
+            self.assertEqual(len(self.health.load_native_manifest(path)[0]["components"]), 11)
+            for bad in ("wrong-path", "missing", "old-layout", "unknown-layout"):
+                changed = json.loads(json.dumps(manifest))
+                if bad == "wrong-path":
+                    changed["components"]["odhcpd"]["path"] = "/sbin/odhcpd"
+                elif bad == "missing":
+                    del changed["components"]["odhcpd"]
+                else:
+                    changed["deployment_layout"] = "native-ten" if bad == "old-layout" else "native-twelve"
+                path.write_text(json.dumps(changed))
+                with self.subTest(bad=bad), self.assertRaises(RuntimeError):
+                    self.health.load_native_manifest(path)
+
     def test_client_egress_requires_both_families_on_the_lan(self):
         answers = ["example.com. 60 IN A 192.0.2.1", "example.com. 60 IN AAAA 2001:db8::1"]
         response = subprocess.CompletedProcess([], 0, b"<title>Example Domain</title>", b"")
@@ -275,7 +296,7 @@ class NativeProductionProbe(unittest.TestCase):
             self.assertEqual(digest, driver.sha(path))
             del self.manifest["components"]["dnsmasq"]
             path.write_text(json.dumps(self.manifest))
-            with self.assertRaisesRegex(RuntimeError, "exactly ten"):
+            with self.assertRaisesRegex(RuntimeError, "component set differs"):
                 self.health.load_native_manifest(path)
 
     def test_native_runner_rejects_missing_guard_and_rom_before_ssh(self):

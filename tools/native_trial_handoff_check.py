@@ -25,6 +25,7 @@ import shutil
 import subprocess
 import tarfile
 import time
+from r84_device_probe import native_paths
 
 
 TOOLS = Path(__file__).resolve().parent
@@ -269,8 +270,9 @@ def main():
     require(sha(image) == args.image_sha256, "rollback image differs from independently verified Release SHA")
     manifest_path = root / "usr/share/owrt-control-plane/release.json"
     manifest = json.loads(manifest_path.read_text())
-    require(manifest["layout"] == "native-ten" and len(manifest["components"]) == 10 and len(manifest["integration_files"]) == 2,
-            "expected exact final native-ten image")
+    require({name: item["path"] for name, item in manifest["components"].items()}
+            == native_paths(manifest["layout"]) and len(manifest["integration_files"]) == 2,
+            "expected complete final native image")
     verify_identity(root, manifest)
     output.mkdir(parents=True, mode=0o700, exist_ok=False)
     write(output / "upgraded-recorder.c", RECORDER_SOURCE)

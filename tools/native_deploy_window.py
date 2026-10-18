@@ -14,7 +14,7 @@ import shlex
 import subprocess
 import time
 
-from r84_device_probe import probe, require
+from r84_device_probe import native_paths, probe, require
 
 
 def sha(path):
@@ -120,8 +120,8 @@ def main():
     config = base / "trial-config.tar.gz"
     trial = json.loads((base / "trial-config.tar.json").read_text())
     manifest = json.loads(Path(gate["manifest_path"]).read_text())
-    require(manifest["deployment_layout"] == "native-ten" and len(manifest["components"]) == 10,
-            "deployment requires the accepted ten-component image")
+    require({name: item["path"] for name, item in manifest["components"].items()}
+            == native_paths(manifest["deployment_layout"]), "deployment component set differs from layout")
     previous_boot = args.previous_boot_id if args.phase == "observe" else gate["previous_boot_id"]
     require(re.fullmatch(r"[0-9a-f-]{36}", previous_boot) is not None, "invalid previous boot ID")
     require(sha(image) == trial["image"]["sha256"], "local image changed")
