@@ -1,6 +1,7 @@
 # odhcpd-rs 独立审计：配置、ubus 与运行期边界
 
-结论：发现 **2 项 P1、1 项 P2**。冻结产物暂不应继续发布/部署；先处理下列反例。
+初审结论：发现 **2 项 P1、1 项 P2**，原冻结产物不应继续发布/部署。
+后续定向复验已在 `e33fa56c` 闭合 CR-1/2/3，证据见末节；这不构成发布或部署许可。
 本审计不修改产品、不访问物理路由器、不刷机、不发布，也不涉及性能或 PGO。
 
 ## 范围与证据身份
@@ -156,3 +157,96 @@ sudo python3 odhcpd_control_audit_case.py \
 
 本范围审计到此停止。下一轮只裁决 CR-1/2/3 的修复是否满足上述可观察条件，
 不把此报告当成部署许可，也不扩大为性能或全功能重新验证。
+
+## 定向修复复核（2026-10-18）
+
+本节只复核上述问题。修复提交为 `fa882f1c`（CR-1）和 `e33fa56c`
+（接口错误隔离、`default` 别名及运行期无效配置处理）。新独立目录为
+`/home/ubuntu/odhcpd-control-recheck-20261018-uvanh1`，下文简称 `R`。
+原始失败证据 `E` 未修改。
+
+### CR-1：源码顺序与直接模块回归
+
+修复将 `try_event` 改为先读最多一个通知，再检查队列：若新事件在读取通知前进入，
+后面的队列检查能看到它；若在队列判空后进入，则通知仍留给下一次 readiness 等待。
+只消费一个通知也避免在 owner 达到处理预算时，把剩余队列的通知全部清掉。
+
+`before_wake_read` 测试 hook 强制在通知读取前完成新事件入队和通知。
+原实现的相同 hook 位置处于 `try_recv(Empty)` 之后，故该交错会触发原失败。
+新回归先等待实际 Poller readiness，再调用真实 `Bus::try_event`；
+`partial_owner_drain_leaves_remaining_events_readable` 则每消费一个事件都重新等待
+readiness，覆盖部分消费后剩余事件的可唤醒性。
+
+从 `e33fa56c` 的 `git archive` 在 R 编译直接产品模块，
+`cargo test --locked --lib control::tests::` 得到 **4 passed、1 ignored**，包括
+两个新增并发目标及已有 absent/dump 测试；日志 `R/control-target-tests.log`。
+再单独运行 ignored 的完整私有总线测试，覆盖对象调用、对象重建、满队列最新快照和
+ubusd 重启后的 generation/订阅恢复，得到 **1 passed**；
+日志 `R/private-stock-bus-root.log`。使用复制到 R 的 stock launcher，只读加载精确
+C ubusd，ELF SHA-256 为
+`cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88`。
+
+保留的夹具前提：首次以普通 ubuntu 身份运行 ignored 测试，在 `Bus::start` 之前的
+`netifd.add_object` 返回 `StatusError(2)`；日志 `R/private-stock-bus.log`。
+以 root 身份运行同一已编译测试及同一 launcher 后通过。该首轮未进入被审修复路径，
+没有将其记为产品通过或隐去。
+
+### 运行期无效配置与待应用配置
+
+源码核对：`reload` 的配置解析失败分支在替换 `self.config` 或变更 socket 集合之前
+返回，并清空 `pending_config`。因此无效的新请求不会让上一次因 snapshot 暂错而待应用
+的配置随后覆盖当前活动状态；启动路径仍由 `App::new` 拒绝不支持的配置。
+
+在 R 直接运行
+`tests::invalid_runtime_config_keeps_active_state_and_cancels_older_pending_reload`，
+得到 **1 passed**；日志 `R/runtime-invalid-target.log`。该测试注入 ENOBUFS、提交
+有效待应用配置，再提交无效 relay 配置，恢复 snapshot 后验证仍是原配置；它验证
+状态转换，未把没有启用协议 socket 的单测等同于活动 LAN 的实包证据。
+
+### CR-2/CR-3：canonical SDK 实包与恢复路径
+
+只使用 CI `39112918594` 对应的 canonical SDK，源码
+`e33fa56c426f51931251df022228cd7ab905b63d`，Oracle 路径
+`/home/ubuntu/odhcpd-validation-20261018/sdk-e33fa56c/odhcpd-rs`。
+本代理再次核对 SHA-256 为
+`c4a7c2731e02cb14fca5f94e4cbe940e0f9c91f64ca45be2e98ab19281250048`。
+未替换最初的 SDK/C ELF，未构建中间 SDK 产物。
+
+复验沿用原来的两个反例，增加必要的故障解除验证。两个场景均在新的 namespace 和
+rootfs 复制件执行一次，原基线失败证据保留在 E，没有重跑全协议矩阵。
+
+| 场景与阶段 | 同一原进程 | 原 LAN DHCPv6 / RA / ubus | 额外验证 |
+| --- | --- | --- | --- |
+| 新接口 UDP 547 被独占 | 仍运行 | 全部响应 | 新接口 DHCPv6 超时，日志明确为 `EADDRINUSE` |
+| 关闭占用 socket，再发 netifd notify | 仍运行 | 全部响应 | 新接口收到相同 XID 的 DHCPv6 Reply，源为 `fe80::3` |
+| netifd 设置 `ra_preference=default` | 仍运行 | 全部响应 | 不再触发配置错误 |
+| 随后设置非法 `invalid-audit-value` | 仍运行 | 全部响应 | 日志明确拒绝 reload 并保留活动服务 |
+| 再改为合法 `high` | 仍运行 | 全部响应 | 新 RA preference 位为 `0x08`，证实后续有效配置生效 |
+
+端口冲突场景额外配置第二个真实 veth 客户端，新接口恢复由实包确认，不只根据 ubus
+对象或 socket 列表推断。每个场景的原进程在其独立 PID namespace 内始终为 PID 35；
+夹具没有 procd 或其他自动重启器。证据分别为
+`R/sdk-conflict-recovery/{results.json,odhcpd.log}` 和
+`R/sdk-default-recovery/{results.json,odhcpd.log}`，两者均正常完成全部断言。
+
+复验脚本 `R/odhcpd_control_recheck.py` 仅扩展私有夹具，没有修改产品或共享 baseline。
+复现时为 `--out` 选择新的目录；另一个场景替换 `--case ra_preference_default`：
+
+```sh
+cd /home/ubuntu/odhcpd-control-recheck-20261018-uvanh1
+sudo python3 odhcpd_control_recheck.py \
+  --rootfs /home/ubuntu/odhcpd-image-v024-20261018/rootfs \
+  --daemon /home/ubuntu/odhcpd-validation-20261018/sdk-e33fa56c/odhcpd-rs \
+  --out /home/ubuntu/odhcpd-control-recheck-20261018-uvanh1/replay-conflict \
+  --case secondary_port_conflict
+```
+
+| 新证据 | SHA-256 |
+| --- | --- |
+| `odhcpd_control_recheck.py` | `162c66d22e10ca0784f425f459ec6da4a9c29be5e3ff62702ccf4b128e97deb0` |
+| `sdk-conflict-recovery/results.json` | `ab87412f7a9d30d663ad9bb849304714a9fbac83ba96739c76c0e2f74e77a3a1` |
+| `sdk-default-recovery/results.json` | `d0b69032fb170e64c363cabfeac53f4844d8a195706ba413b19a2d9c5f5ebf81` |
+
+本次定向复验结论：**CR-1、CR-2、CR-3 闭合，未出现新的具体阻断**。
+闭合仅覆盖已报告交错、局部接口 bind 故障及别名/配置失败恢复；不宣称所有并发调度、
+全部接口错误或所有 runtime 配置组合均已验证。没有物理设备、发布、刷机或性能操作。
