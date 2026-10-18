@@ -362,6 +362,16 @@ impl Dhcpv6 {
         &self.leases
     }
 
+    /// Offers (60s), Decline quarantine (3600s), and bound leases all use
+    /// valid_until. Keep an already due value until reconcile removes it.
+    pub fn next_expiry(&self) -> Option<u64> {
+        self.leases
+            .iter()
+            .map(|lease| lease.valid_until)
+            .filter(|until| *until != INFINITE)
+            .min()
+    }
+
     pub fn pending_routes(&self) -> &[Route] {
         &self.installed_routes
     }
@@ -402,7 +412,8 @@ impl Dhcpv6 {
         error.map_or(Ok(()), Err)
     }
 
-    /// Run after a kernel/config update and periodically. Failed deletions remain tracked.
+    /// Run after a kernel/config update or an actual expiry/retry deadline.
+    /// Failed deletions remain tracked.
     pub fn reconcile(
         &mut self,
         config: &Config,
@@ -1183,6 +1194,61 @@ mod tests {
             .map_or(0, |status| {
                 u16::from_be_bytes(status.value.try_into().unwrap())
             })
+    }
+
+    #[test]
+    fn expiry_tracks_offer_bound_lease_and_decline_without_a_periodic_tick() {
+        let (config, link) = fixture();
+        let mut engine = Dhcpv6::default();
+        assert_eq!(engine.next_expiry(), None);
+        engine.handle(
+            &packet(1, IA_NA, 1, None),
+            context(&config, &link),
+            &mut |_, _| Ok(()),
+        );
+        assert_eq!(engine.next_expiry(), Some(160));
+        engine.handle(
+            &packet(3, IA_NA, 1, None),
+            context(&config, &link),
+            &mut |_, _| Ok(()),
+        );
+        assert!(engine.leases()[0].bound);
+        assert_eq!(engine.next_expiry(), Some(engine.leases()[0].valid_until));
+        engine.handle(
+            &packet(9, IA_NA, 1, None),
+            context(&config, &link),
+            &mut |_, _| Ok(()),
+        );
+        assert!(!engine.leases()[0].bound);
+        assert_eq!(engine.next_expiry(), Some(3700));
+        let kernel = KernelState {
+            links: vec![link],
+            routes: vec![],
+        };
+        engine
+            .reconcile(
+                &config,
+                &kernel,
+                Clock {
+                    monotonic_ms: 3_699_000,
+                    unix_seconds: 0,
+                },
+                &mut |_, _| Ok(()),
+            )
+            .unwrap();
+        assert_eq!(engine.next_expiry(), Some(3700));
+        engine
+            .reconcile(
+                &config,
+                &kernel,
+                Clock {
+                    monotonic_ms: 3_700_000,
+                    unix_seconds: 0,
+                },
+                &mut |_, _| Ok(()),
+            )
+            .unwrap();
+        assert_eq!(engine.next_expiry(), None);
     }
 
     #[test]

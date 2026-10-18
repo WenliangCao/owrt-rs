@@ -16,11 +16,13 @@ use std::ffi::{c_char, c_int, CString};
 use std::fs::{self, File};
 use std::io::{self, Read};
 use std::net::SocketAddrV6;
+use std::os::fd::{AsRawFd, OwnedFd};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 
 static STOP: AtomicBool = AtomicBool::new(false);
 static RELOAD: AtomicBool = AtomicBool::new(false);
+static SIGNAL_FD: AtomicI32 = AtomicI32::new(-1);
 
 extern "C" fn signal(number: i32) {
     match number {
@@ -28,11 +30,69 @@ extern "C" fn signal(number: i32) {
         2 | 15 => STOP.store(true, Ordering::Relaxed),
         _ => {}
     }
+    let fd = SIGNAL_FD.load(Ordering::Relaxed);
+    if fd >= 0 {
+        let byte = number as u8;
+        // SAFETY: the main thread keeps this nonblocking pipe alive while
+        // handlers are installed. write is async-signal-safe; a full pipe
+        // already guarantees a wake. Preserve the interrupted thread's errno.
+        unsafe {
+            let saved = *__errno_location();
+            while write(fd, &byte, 1) < 0 && *__errno_location() == 4 {} // EINTR only.
+            *__errno_location() = saved;
+        }
+    }
 }
 
 unsafe extern "C" {
     fn openlog(ident: *const c_char, option: c_int, facility: c_int);
     fn syslog(priority: c_int, format: *const c_char, ...);
+    fn write(fd: c_int, bytes: *const u8, count: usize) -> isize;
+    fn __errno_location() -> *mut c_int;
+}
+
+struct Signals {
+    read: OwnedFd,
+    write: OwnedFd,
+}
+
+impl Signals {
+    fn new() -> io::Result<Self> {
+        let (read, write) = owrt_ubus::sys::nonblocking_pipe()?;
+        Ok(Self { read, write })
+    }
+
+    fn install(&self) -> io::Result<()> {
+        SIGNAL_FD.store(self.write.as_raw_fd(), Ordering::Relaxed);
+        for number in [1, 2, 15, 17] {
+            unix::set_signal_handler(number, signal)?;
+        }
+        Ok(())
+    }
+
+    fn drain(&self) -> io::Result<()> {
+        let mut bytes = [0; 64];
+        loop {
+            match rustix::io::read(&self.read, &mut bytes) {
+                Ok(0) => return Err(io::Error::other("signal pipe closed")),
+                Ok(_) => {}
+                Err(rustix::io::Errno::INTR) => continue,
+                Err(rustix::io::Errno::AGAIN) => return Ok(()),
+                Err(error) => return Err(error.into()),
+            }
+        }
+    }
+}
+
+impl Drop for Signals {
+    fn drop(&mut self) {
+        let _ = SIGNAL_FD.compare_exchange(
+            self.write.as_raw_fd(),
+            -1,
+            Ordering::Relaxed,
+            Ordering::Relaxed,
+        );
+    }
 }
 
 struct Logger {
@@ -133,6 +193,20 @@ fn ra_hop_limit(pool: &PoolConfig, device: &str) -> u8 {
 }
 
 const KERNEL_RETRY_MS: u64 = 1000;
+const STATE_FLUSH_MS: u64 = 1;
+
+fn poll_timeout(deadline: Option<u64>, now: u64) -> i32 {
+    deadline.map_or(-1, |at| at.saturating_sub(now).min(i32::MAX as u64) as i32)
+}
+
+fn prefix_expiry(link: &Link, after: u64) -> Option<u64> {
+    link.addresses
+        .iter()
+        .filter(|address| address.scope == 0)
+        .flat_map(|address| [address.preferred_until, address.valid_until])
+        .filter(|until| *until != owrt_odhcpd::model::INFINITE && *until > after)
+        .min()
+}
 
 fn transient_snapshot_error(error: &io::Error) -> bool {
     // EINTR/EAGAIN, ENOBUFS, and a prior interrupted dump still in progress.
@@ -202,11 +276,14 @@ struct App {
     state: KernelState,
     kernel_dirty: bool,
     kernel_retry_at: Option<u64>,
+    route_retry_at: Option<u64>,
+    last_expiry_seconds: u64,
     pending_config: Option<Config>,
     services: Vec<Service>,
     dhcp: Dhcpv6,
     files: StateFiles,
     files_dirty: bool,
+    file_flush_at: Option<u64>,
     bus: Option<Bus>,
     random: File,
     #[cfg(test)]
@@ -244,6 +321,8 @@ impl App {
             state,
             kernel_dirty: false,
             kernel_retry_at: None,
+            route_retry_at: None,
+            last_expiry_seconds: clock().seconds(),
             pending_config: None,
             services: Vec::new(),
             dhcp: Dhcpv6::default(),
@@ -251,6 +330,7 @@ impl App {
             // Like C, a process restart does not import or immediately erase
             // the old export. Publish on an IA/address event instead.
             files_dirty: false,
+            file_flush_at: None,
             bus,
             random: File::open("/dev/urandom")?,
             #[cfg(test)]
@@ -513,13 +593,28 @@ impl App {
         }
     }
 
-    fn write_files(&mut self, now: Clock) {
-        if self.files_dirty {
+    fn mark_files_dirty(&mut self, now: Clock) {
+        self.files_dirty = true;
+        // A burst coalesces only its export snapshot. Never postpone an
+        // already scheduled flush when another successful reply changes it.
+        self.file_flush_at
+            .get_or_insert(now.monotonic_ms.saturating_add(STATE_FLUSH_MS));
+    }
+
+    fn write_files(&mut self, now: Clock, force: bool) {
+        if self.files_dirty
+            && (force || self.file_flush_at.is_some_and(|at| at <= now.monotonic_ms))
+        {
             match self.files.write(&self.config, self.dhcp.leases(), now) {
-                Ok(_) => self.files_dirty = false,
-                Err(error) => self
-                    .logger
-                    .message(4, &format!("lease state files: {error}")),
+                Ok(_) => {
+                    self.files_dirty = false;
+                    self.file_flush_at = None;
+                }
+                Err(error) => {
+                    self.logger
+                        .message(4, &format!("lease state files: {error}"));
+                    self.file_flush_at = Some(now.monotonic_ms.saturating_add(KERNEL_RETRY_MS));
+                }
             }
         }
         self.files.reap();
@@ -529,8 +624,9 @@ impl App {
         if self.kernel_retry_at.is_some() {
             // In particular, old kernel.routes cannot disprove a just-ACKed
             // PD installation or erase a deletion still awaiting retry.
-            self.files_dirty |= write;
-            self.write_files(now);
+            if write {
+                self.mark_files_dirty(now);
+            }
             return;
         }
         let before = self.dhcp.leases().to_vec();
@@ -547,9 +643,57 @@ impl App {
             });
         if let Err(error) = result {
             self.logger.message(4, &format!("PD routes: {error}"));
+            self.route_retry_at = Some(now.monotonic_ms.saturating_add(KERNEL_RETRY_MS));
+        } else {
+            self.route_retry_at = None;
         }
-        self.files_dirty |= write || before != self.dhcp.leases();
-        self.write_files(now);
+        self.last_expiry_seconds = now.seconds();
+        if write || before != self.dhcp.leases() {
+            self.mark_files_dirty(now);
+        }
+    }
+
+    fn expiry_deadline(&self) -> Option<u64> {
+        if self.kernel_retry_at.is_some() {
+            // The retry's fresh snapshot must precede lease/route reconciliation.
+            return None;
+        }
+        let prefixes = self
+            .services
+            .iter()
+            .filter(|service| service.dhcp.is_some())
+            .filter_map(|service| {
+                self.state
+                    .links
+                    .iter()
+                    .find(|link| link.index == service.index)
+            })
+            .filter_map(|link| prefix_expiry(link, self.last_expiry_seconds));
+        self.dhcp
+            .next_expiry()
+            .into_iter()
+            .chain(prefixes)
+            .min()
+            .map(|seconds| seconds.saturating_mul(1000))
+    }
+
+    fn next_deadline(&self) -> Option<u64> {
+        self.services
+            .iter()
+            .filter_map(|service| service.ra.as_ref().and_then(|ra| ra.router.deadline()))
+            .chain(
+                [
+                    self.expiry_deadline(),
+                    self.kernel_retry_at,
+                    self.file_flush_at,
+                    self.route_retry_at
+                        .filter(|_| self.kernel_retry_at.is_none()),
+                    (self.kernel_dirty && self.kernel_retry_at.is_none()).then_some(0),
+                ]
+                .into_iter()
+                .flatten(),
+            )
+            .min()
     }
 
     fn ra_fields(&self, now: Clock) -> Vec<u8> {
@@ -760,11 +904,15 @@ impl App {
                         };
                         let kernel = &mut self.kernel;
                         let dirty = &mut self.kernel_dirty;
+                        let retry_at = &mut self.route_retry_at;
                         let outcome =
                             self.dhcp.handle(&packet.bytes, context, &mut |route, add| {
                                 let result = kernel.route(route, add);
                                 if result.is_ok() {
                                     *dirty = true;
+                                } else {
+                                    *retry_at =
+                                        Some(now.monotonic_ms.saturating_add(KERNEL_RETRY_MS));
                                 }
                                 result
                             });
@@ -778,12 +926,15 @@ impl App {
                                 self.logger.message(4, &format!("DHCPv6 reply: {error}"));
                             }
                         }
-                        self.files_dirty |= outcome.write_state;
+                        if outcome.write_state {
+                            self.files_dirty = true;
+                            self.file_flush_at
+                                .get_or_insert(now.monotonic_ms.saturating_add(STATE_FLUSH_MS));
+                        }
                     }
                 }
             }
         }
-        self.write_files(now);
         Ok(())
     }
 
@@ -826,8 +977,7 @@ impl App {
         Ok(())
     }
 
-    fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let mut next_expiry = clock().monotonic_ms + 1000;
+    fn run(&mut self, signals: &Signals) -> Result<(), Box<dyn std::error::Error>> {
         self.reconcile(clock(), false);
         loop {
             if STOP.load(Ordering::Relaxed) {
@@ -847,16 +997,28 @@ impl App {
             {
                 self.refresh_kernel(&Changes::default(), now)?;
             }
-            if now.monotonic_ms >= next_expiry {
+            if self
+                .expiry_deadline()
+                .is_some_and(|at| now.monotonic_ms >= at)
+                || (self.kernel_retry_at.is_none()
+                    && self.route_retry_at.is_some_and(|at| now.monotonic_ms >= at))
+            {
                 self.reconcile(now, false);
-                next_expiry = now.monotonic_ms.saturating_add(1000);
             }
             self.timers(now)?;
+            // File deadlines use a fresh clock after other work. One millisecond
+            // makes the snapshot eligible; blocking I/O is not a hard-time promise.
+            self.write_files(clock(), false);
             let mut descriptors = vec![PollFd {
                 fd: self.kernel.as_raw_fd(),
                 events: 1,
                 revents: 0,
             }];
+            descriptors.push(PollFd {
+                fd: signals.read.as_raw_fd(),
+                events: 1,
+                revents: 0,
+            });
             if let Some(bus) = &self.bus {
                 descriptors.push(PollFd {
                     fd: bus.as_raw_fd(),
@@ -880,15 +1042,7 @@ impl App {
                     });
                 }
             }
-            let mut deadline = self
-                .services
-                .iter()
-                .filter_map(|service| service.ra.as_ref().and_then(|ra| ra.router.deadline()))
-                .fold(next_expiry, u64::min);
-            if let Some(retry_at) = self.kernel_retry_at {
-                deadline = deadline.min(retry_at);
-            }
-            let wait = deadline.saturating_sub(clock().monotonic_ms).min(1000) as i32;
+            let wait = poll_timeout(self.next_deadline(), clock().monotonic_ms);
             match unix::poll_once(&mut descriptors, wait) {
                 Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
                 Err(error) => return Err(error.into()),
@@ -896,6 +1050,10 @@ impl App {
             }
             if descriptors.iter().any(|fd| fd.revents & 32 != 0) {
                 return Err(io::Error::other("invalid descriptor in protocol loop").into());
+            }
+            if descriptors[1].revents != 0 {
+                signals.drain()?;
+                self.files.reap();
             }
             if STOP.load(Ordering::Relaxed) {
                 break;
@@ -916,6 +1074,10 @@ impl App {
             }
             self.packets(&descriptors, now)?;
         }
+        // A successful DHCP reply must not leave its queued export behind when
+        // orderly shutdown wins the one-shot timer race. Try once, retaining
+        // the normal error diagnostic if storage is unavailable.
+        self.write_files(clock(), true);
         // Match C's ordinary process stop: no unsolicited withdrawal or UCI
         // mutation. Configuration/link removal has its separate RA path.
         if let Some(bus) = &mut self.bus {
@@ -942,13 +1104,17 @@ fn main() {
     // SAFETY: the logger retains a static C string; LOG_PID and LOG_DAEMON
     // are fixed libc options and do not change process credentials.
     unsafe { openlog(c"odhcpd-rs".as_ptr(), 1, 24) };
-    for number in [1, 2, 15] {
-        if let Err(error) = unix::set_signal_handler(number, signal) {
+    let signals = match Signals::new().and_then(|signals| {
+        signals.install()?;
+        Ok(signals)
+    }) {
+        Ok(signals) => signals,
+        Err(error) => {
             eprintln!("odhcpd-rs: signal setup: {error}");
             std::process::exit(4);
         }
-    }
-    match App::new(options).and_then(|mut app| app.run()) {
+    };
+    match App::new(options).and_then(|mut app| app.run(&signals)) {
         Ok(()) => {}
         Err(error) => {
             eprintln!("odhcpd-rs: {error}");
@@ -963,6 +1129,7 @@ mod tests {
     use std::sync::atomic::AtomicU64;
 
     static NEXT_FIXTURE: AtomicU64 = AtomicU64::new(0);
+    static SIGNAL_TEST: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
     struct Fixture {
         directory: PathBuf,
@@ -1006,6 +1173,154 @@ mod tests {
             monotonic_ms,
             unix_seconds: 0,
         }
+    }
+
+    #[test]
+    fn only_pending_work_has_a_deadline_and_snapshot_retry_wins_routes() {
+        let mut fixture = Fixture::new();
+        let app = &mut fixture.app;
+        assert_eq!(app.next_deadline(), None);
+        assert_eq!(poll_timeout(app.next_deadline(), 10_000), -1);
+        app.route_retry_at = Some(11_000);
+        assert_eq!(app.next_deadline(), Some(11_000));
+        app.kernel_retry_at = Some(12_000);
+        assert_eq!(app.next_deadline(), Some(12_000));
+        app.file_flush_at = Some(10_001);
+        assert_eq!(app.next_deadline(), Some(10_001));
+        assert_eq!(poll_timeout(app.next_deadline(), 10_000), 1);
+        app.file_flush_at = None;
+        app.kernel_retry_at = None;
+        app.kernel_dirty = true;
+        assert_eq!(poll_timeout(app.next_deadline(), 10_000), 0);
+        assert_eq!(poll_timeout(Some(u64::MAX), 10_000), i32::MAX);
+    }
+
+    #[test]
+    fn finite_prefix_deadlines_are_consumed_without_an_expired_timer_spin() {
+        use owrt_odhcpd::model::{Address, INFINITE};
+        let link = Link {
+            name: "lan".into(),
+            index: 1,
+            flags: 0x40,
+            mtu: 1500,
+            mac: [0; 6],
+            addresses: vec![
+                Address {
+                    address: "2001:db8::1".parse().unwrap(),
+                    length: 64,
+                    preferred_until: 101,
+                    valid_until: 103,
+                    scope: 0,
+                    flags: 0,
+                },
+                Address {
+                    address: "fd00::1".parse().unwrap(),
+                    length: 60,
+                    preferred_until: INFINITE,
+                    valid_until: INFINITE,
+                    scope: 0,
+                    flags: 0,
+                },
+                Address {
+                    address: "fe80::1".parse().unwrap(),
+                    length: 64,
+                    preferred_until: 100,
+                    valid_until: 102,
+                    scope: 253,
+                    flags: 0,
+                },
+            ],
+        };
+        assert_eq!(prefix_expiry(&link, 100), Some(101));
+        assert_eq!(prefix_expiry(&link, 101), Some(103));
+        assert_eq!(prefix_expiry(&link, 103), None);
+    }
+
+    #[test]
+    fn state_export_coalesces_without_postponing_first_dirty_deadline() {
+        let mut fixture = Fixture::new();
+        let path = fixture.directory.join("leases");
+        let app = &mut fixture.app;
+        app.config.lease_file = Some(path.clone());
+        app.mark_files_dirty(at(10_000));
+        app.mark_files_dirty(at(10_001));
+        assert_eq!(app.file_flush_at, Some(10_001));
+        app.write_files(at(10_000), false);
+        assert!(!path.exists());
+        assert!(app.files_dirty);
+        app.write_files(at(10_001), false);
+        assert!(path.exists());
+        assert!(!app.files_dirty);
+        assert_eq!(app.file_flush_at, None);
+    }
+
+    #[test]
+    fn failed_export_retries_once_due_and_orderly_stop_flushes_pending_export() {
+        let _serial = SIGNAL_TEST.lock().unwrap();
+        let mut fixture = Fixture::new();
+        let parent = fixture.directory.join("blocked");
+        fs::write(&parent, b"not a directory").unwrap();
+        let path = parent.join("leases");
+        let app = &mut fixture.app;
+        app.config.lease_file = Some(path.clone());
+        app.mark_files_dirty(at(10_000));
+        app.write_files(at(10_001), false);
+        assert!(app.files_dirty);
+        assert_eq!(app.file_flush_at, Some(11_001));
+        fs::remove_file(&parent).unwrap();
+        app.write_files(at(11_000), false);
+        assert!(!path.exists());
+        app.write_files(at(11_001), false);
+        assert!(path.exists());
+        assert!(!app.files_dirty);
+        fs::remove_file(&path).unwrap();
+        app.mark_files_dirty(Clock {
+            monotonic_ms: u64::MAX - 1,
+            unix_seconds: 0,
+        });
+        let signals = Signals::new().unwrap();
+        STOP.store(true, Ordering::Relaxed);
+        let result = app.run(&signals);
+        STOP.store(false, Ordering::Relaxed);
+        result.unwrap();
+        assert!(path.exists());
+        assert!(!app.files_dirty);
+    }
+
+    #[test]
+    fn signal_on_another_thread_remains_readable_before_poll_starts() {
+        let _serial = SIGNAL_TEST.lock().unwrap();
+        let signals = Signals::new().unwrap();
+        SIGNAL_FD.store(signals.write.as_raw_fd(), Ordering::Relaxed);
+        // Models delivery to the bus worker between the protocol thread's flag
+        // check and poll. SIGCHLD must wake even though it sets no state flag.
+        std::thread::spawn(|| signal(17)).join().unwrap();
+        let mut fds = [PollFd {
+            fd: signals.read.as_raw_fd(),
+            events: 1,
+            revents: 0,
+        }];
+        assert_eq!(unix::poll_once(&mut fds, 0).unwrap(), 1);
+        signals.drain().unwrap();
+        assert_eq!(unix::poll_once(&mut fds, 0).unwrap(), 0);
+        std::thread::spawn(|| signal(1)).join().unwrap();
+        assert!(RELOAD.swap(false, Ordering::Relaxed));
+        assert_eq!(unix::poll_once(&mut fds, 0).unwrap(), 1);
+        signals.drain().unwrap();
+        let fill = [0; 4096];
+        loop {
+            match rustix::io::write(&signals.write, &fill) {
+                Ok(_) => {}
+                Err(rustix::io::Errno::AGAIN) => break,
+                Err(error) => panic!("fill signal pipe: {error}"),
+            }
+        }
+        // A full pipe cannot swallow the state flag or block the handler; its
+        // existing readability still wakes the protocol owner.
+        std::thread::spawn(|| signal(15)).join().unwrap();
+        assert!(STOP.swap(false, Ordering::Relaxed));
+        assert_eq!(unix::poll_once(&mut fds, 0).unwrap(), 1);
+        signals.drain().unwrap();
     }
 
     #[test]
