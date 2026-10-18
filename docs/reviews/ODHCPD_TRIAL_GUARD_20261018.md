@@ -63,3 +63,21 @@ Oracle 证据：`/home/ubuntu/odhcpd-rs-20261018/private/guard-test-01/`、
 下一步只需主线程重核当前 boot/配置未变，按用户既有授权执行短时试运行，
 由真实 LAN 客户端验收 IPv6 地址、默认路由、DNS 和连通性。通过后另做镜像
 资格；此恢复门不代表已经完成真实设备试运行或下一版本发布。
+
+## Fable 最终 SDK 的重新验证
+
+Fable F1–F5 修复后的 SDK ELF
+`c7c5f1f9e79ea80febe696d6c758db8d3463d1e4b94c7a002f1aa597b9c3ea30`
+已用相同工具在新私有目录重新执行上述 **6/6 场景**，生成器 **3/3 测试**。
+本轮没有失败、重跑或工具变更，没有新增性能测量。所用 C、原 init、触发器、
+v0.2.3 procd/ubusd 和 bounded helper 身份与上文一致；没有把旧 ELF 的通过
+结论直接转授新 ELF。确认仍使用合成客户端回执，不声称真实客户端已验收。
+
+新原件位于 Oracle `/home/ubuntu/odhcpd-rs-20261018/private/guard-fable-01/`。
+本地日志/结果：`private/odhcpd-20261018/trial-tools/guard-fable-01-evidence.tar.gz`，
+SHA256 `36716b2eeb0acd06c0bf236e27190e6ae62bba4d548d3be765b1fcf448ffd3ef`。
+
+新 300 秒材料为 `private/odhcpd-20261018/trial-tools/device-fable-trial-01/`，
+已复核本地副本的全部输入摘要。其 `receipt.json` 绑定新 ELF、最新已核对备份、
+预期 boot 和具体命令；内容仍在 ignored private 中。该包仅已准备，路由器操作
+由主线程独立执行，未在本项离线验证中发生。旧材料与旧结果保留为历史。
