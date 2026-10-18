@@ -3,6 +3,8 @@
 use std::io::{self, Read, Write};
 use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::net::UnixStream;
+#[cfg(test)]
+use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver, SyncSender, TryRecvError, TrySendError};
 use std::sync::{Arc, RwLock};
@@ -77,10 +79,13 @@ pub struct Bus {
     events: Receiver<Event>,
     wake: UnixStream,
     stop: Arc<AtomicBool>,
+    waiting_for_event_space: Arc<AtomicBool>,
     ignored_interfaces: Arc<RwLock<Vec<String>>>,
     worker: Option<JoinHandle<()>>,
     #[cfg(test)]
     before_wake_read: Option<Box<dyn FnOnce() + Send>>,
+    #[cfg(test)]
+    poll_returns: Arc<AtomicUsize>,
 }
 
 impl Bus {
@@ -92,6 +97,12 @@ impl Bus {
         let (event_tx, events) = mpsc::sync_channel(CAPACITY);
         let stop = Arc::new(AtomicBool::new(false));
         let worker_stop = stop.clone();
+        let waiting_for_event_space = Arc::new(AtomicBool::new(false));
+        let worker_waiting = waiting_for_event_space.clone();
+        #[cfg(test)]
+        let poll_returns = Arc::new(AtomicUsize::new(0));
+        #[cfg(test)]
+        let worker_poll_returns = poll_returns.clone();
         let ignored_interfaces = Arc::new(RwLock::new(Vec::new()));
         let worker_ignored = ignored_interfaces.clone();
         let worker = thread::Builder::new()
@@ -104,7 +115,10 @@ impl Bus {
                     command_rx,
                     event_tx,
                     worker_stop,
+                    worker_waiting,
                     worker_ignored,
+                    #[cfg(test)]
+                    worker_poll_returns,
                 )
             })?;
         Ok(Self {
@@ -112,10 +126,13 @@ impl Bus {
             events,
             wake,
             stop,
+            waiting_for_event_space,
             ignored_interfaces,
             worker: Some(worker),
             #[cfg(test)]
             before_wake_read: None,
+            #[cfg(test)]
+            poll_returns,
         })
     }
 
@@ -145,7 +162,15 @@ impl Bus {
             }
         }
         Ok(match self.events.try_recv() {
-            Ok(event) => Some(event),
+            Ok(event) => {
+                // A full output queue needs a capacity notification, not a
+                // periodic worker poll. Publish the flag before its try_send
+                // so a concurrent dequeue cannot miss the wake requirement.
+                if self.waiting_for_event_space.load(Ordering::SeqCst) {
+                    notify(&self.wake);
+                }
+                Some(event)
+            }
             Err(TryRecvError::Empty) => None,
             Err(TryRecvError::Disconnected) => {
                 return Err(io::Error::new(
@@ -213,7 +238,12 @@ impl Drop for Bus {
 
 fn notify(mut wake: &UnixStream) {
     // The channel is the state; a full wake socket already makes poll readable.
-    let _ = wake.write(&[1]);
+    loop {
+        match wake.write(&[1]) {
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            _ => break,
+        }
+    }
 }
 
 fn drain_wake(mut wake: &UnixStream) {
@@ -234,6 +264,36 @@ fn emit(events: &SyncSender<Event>, wake: &UnixStream, event: Event) -> Option<E
         }
         Err(TrySendError::Full(event)) => Some(event),
         Err(TrySendError::Disconnected(_)) => None,
+    }
+}
+
+fn emit_latest_network(
+    events: &SyncSender<Event>,
+    wake: &UnixStream,
+    waiting_for_event_space: &AtomicBool,
+    event: Event,
+) -> Option<Event> {
+    // If a dequeue happens before the failed send, capacity becomes available
+    // and this send succeeds. If it happens after, the owner observes this flag
+    // and wakes us. Neither ordering requires a timer to discover free space.
+    waiting_for_event_space.store(true, Ordering::SeqCst);
+    let pending = emit(events, wake, event);
+    if pending.is_none() {
+        waiting_for_event_space.store(false, Ordering::SeqCst);
+    }
+    pending
+}
+
+fn poll_timeout(connected: bool, incoming_pending: bool, retry_at: Instant, now: Instant) -> i32 {
+    if incoming_pending {
+        0
+    } else if !connected {
+        // Round up so sub-millisecond remainder cannot cause a retry spin.
+        let left = retry_at.saturating_duration_since(now);
+        (left.as_millis() + u128::from(!left.subsec_nanos().is_multiple_of(1_000_000)))
+            .min(i32::MAX as u128) as i32
+    } else {
+        -1
     }
 }
 
@@ -400,13 +460,18 @@ pub fn parse_network_dump(data: &Json) -> io::Result<Vec<NetworkInterface>> {
     Ok(result)
 }
 
+// The eighth argument exists only in tests to observe wake returns without
+// adding counters or atomic operations to the shipped idle path.
+#[cfg_attr(test, allow(clippy::too_many_arguments))]
 fn run(
     socket: Option<String>,
     wake: UnixStream,
     commands: Receiver<Command>,
     events: SyncSender<Event>,
     stop: Arc<AtomicBool>,
+    waiting_for_event_space: Arc<AtomicBool>,
     ignored_interfaces: Arc<RwLock<Vec<String>>>,
+    #[cfg(test)] poll_returns: Arc<AtomicUsize>,
 ) {
     let Ok(mut poller) = Poller::new() else {
         return;
@@ -522,31 +587,28 @@ fn run(
                 let _ = poller.remove(session.connection.as_raw_fd());
                 // Connection/type IDs and undelivered old snapshots die here.
                 pending_network = None;
+                waiting_for_event_space.store(false, Ordering::SeqCst);
                 let _ = emit(&events, &wake, Event::Disconnected { generation });
             }
             retry_at = Instant::now() + RETRY;
         }
         if let Some(event) = pending_network.take() {
-            pending_network = emit(&events, &wake, event);
+            pending_network = emit_latest_network(&events, &wake, &waiting_for_event_space, event);
         }
         if stop.load(Ordering::Acquire) {
             break;
         }
-        let timeout = if session.as_ref().is_some_and(|s| s.connection.has_pending()) {
-            0
-        } else if pending_network.is_some() {
-            10
-        } else if session.is_none() {
-            retry_at
-                .saturating_duration_since(Instant::now())
-                .as_millis()
-                .min(1000) as i32
-        } else {
-            1000
-        };
+        let timeout = poll_timeout(
+            session.is_some(),
+            session.as_ref().is_some_and(|s| s.connection.has_pending()),
+            retry_at,
+            Instant::now(),
+        );
         if poller.wait(timeout, &mut ready).is_err() {
             return;
         }
+        #[cfg(test)]
+        poll_returns.fetch_add(1, Ordering::SeqCst);
         if ready.iter().any(|event| event.token == WAKE) {
             drain_wake(&wake);
         }
@@ -569,9 +631,11 @@ mod tests {
                 events,
                 wake,
                 stop: Arc::new(AtomicBool::new(false)),
+                waiting_for_event_space: Arc::new(AtomicBool::new(false)),
                 ignored_interfaces: Arc::new(RwLock::new(Vec::new())),
                 worker: None,
                 before_wake_read: None,
+                poll_returns: Arc::new(AtomicUsize::new(0)),
             },
             event_tx,
             worker_wake,
@@ -635,6 +699,79 @@ mod tests {
         assert!(bus.try_event().unwrap().is_none());
         poller.wait(0, &mut ready).unwrap();
         assert!(ready.is_empty());
+    }
+
+    #[test]
+    fn full_event_queue_wakes_worker_when_owner_frees_capacity() {
+        let (mut bus, events, wake) = test_bus();
+        for generation in 0..CAPACITY as u64 {
+            assert!(emit(&events, &wake, Event::Connected { generation }).is_none());
+        }
+        let latest = Event::Network {
+            generation: 19,
+            interfaces: Vec::new(),
+        };
+        let pending = emit_latest_network(&events, &wake, &bus.waiting_for_event_space, latest);
+        assert!(pending.is_some());
+        assert!(bus.waiting_for_event_space.load(Ordering::SeqCst));
+        let mut poller = Poller::new().unwrap();
+        poller.add(wake.as_raw_fd(), WAKE, false).unwrap();
+        let mut ready = Vec::new();
+        poller.wait(0, &mut ready).unwrap();
+        assert!(ready.is_empty());
+
+        // The owner removes exactly one event, without issuing any command.
+        // Its capacity notification must release an indefinitely waiting worker.
+        assert!(bus.try_event().unwrap().is_some());
+        poller.wait(1000, &mut ready).unwrap();
+        assert!(ready.iter().any(|event| event.token == WAKE));
+        drain_wake(&wake);
+        assert!(emit_latest_network(
+            &events,
+            &wake,
+            &bus.waiting_for_event_space,
+            pending.unwrap()
+        )
+        .is_none());
+        assert!(!bus.waiting_for_event_space.load(Ordering::SeqCst));
+        let mut saw_latest = false;
+        while let Some(event) = bus.try_event().unwrap() {
+            saw_latest |= matches!(event, Event::Network { generation: 19, .. });
+        }
+        assert!(saw_latest);
+    }
+
+    #[test]
+    fn dequeue_before_capacity_wait_registration_does_not_need_a_wake() {
+        let (mut bus, events, wake) = test_bus();
+        for generation in 0..CAPACITY as u64 {
+            assert!(emit(&events, &wake, Event::Connected { generation }).is_none());
+        }
+        assert!(bus.try_event().unwrap().is_some());
+        assert!(emit_latest_network(
+            &events,
+            &wake,
+            &bus.waiting_for_event_space,
+            Event::Network {
+                generation: 19,
+                interfaces: Vec::new()
+            }
+        )
+        .is_none());
+        assert!(!bus.waiting_for_event_space.load(Ordering::SeqCst));
+    }
+
+    #[test]
+    fn only_disconnection_has_a_periodic_retry_deadline() {
+        let now = Instant::now();
+        assert_eq!(poll_timeout(true, false, now + RETRY, now), -1);
+        assert_eq!(poll_timeout(true, true, now + RETRY, now), 0);
+        assert_eq!(poll_timeout(false, false, now + RETRY, now), 1000);
+        assert_eq!(
+            poll_timeout(false, false, now + Duration::from_nanos(1), now),
+            1
+        );
+        assert_eq!(poll_timeout(false, false, now, now), 0);
     }
 
     #[test]
@@ -806,6 +943,13 @@ mod tests {
             .map(|field| field.name.to_owned())
             .collect();
         assert_eq!(names, vec!["ipv6leases", "ipv6ra", "add_lease"]);
+
+        // This is a scheduling invariant, not a performance threshold: a live
+        // idle connection must not return from poll on a one-second timer.
+        thread::sleep(Duration::from_millis(30));
+        let idle_polls = bus.poll_returns.load(Ordering::SeqCst);
+        thread::sleep(Duration::from_millis(1200));
+        assert_eq!(bus.poll_returns.load(Ordering::SeqCst), idle_polls);
 
         // An owner request is delivered unchanged, and its reply returns over
         // the worker connection rather than the owner's protocol poll loop.
