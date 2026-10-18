@@ -8,6 +8,9 @@
 
 ## 2026-10-18
 
+- 完成 HFO 开/关与 Mac 双网口排队定位：关闭 HFO 后 Wi-Fi 端尾延迟降低，有线 LAN
+  探针约 1 ms；有线公网仍有超时。最终恢复并保持 HFO+WED，未配置 CAKE。
+  [对照结果与限制](docs/reviews/QUEUE_LOCATION_20261018_RESULT.md)
 - 启用硬件流卸载和 WED。Mac 下载对照中，路由器 CPU 中位数从 52.6% 降至 15.0%，
   每 GiB CPU 成本降低约 72%；吞吐差异在轮内波动内，三分钟客户端健康通过。
   上传、下载满载延迟均明显增加，CAKE 仍未配置。[测量与取舍](docs/reviews/NETWORK_OFFLOAD_20261018_RESULT.md)
