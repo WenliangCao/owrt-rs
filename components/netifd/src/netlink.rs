@@ -25,6 +25,7 @@ pub const NLMSG_DONE: u16 = 3;
 pub const NLM_F_REQUEST: u16 = 0x001;
 pub const NLM_F_MULTI: u16 = 0x002;
 pub const NLM_F_ACK: u16 = 0x004;
+pub const NLM_F_DUMP_INTR: u16 = 0x010;
 pub const NLM_F_DUMP: u16 = 0x100 | 0x200;
 pub const NLM_F_REPLACE: u16 = 0x100;
 pub const NLM_F_EXCL: u16 = 0x200;
@@ -271,15 +272,33 @@ impl Netlink {
     pub fn dump(&mut self, ty: u16, hdr: &[u8]) -> io::Result<Vec<Msg>> {
         let seq = self.send_msg(ty, NLM_F_REQUEST | NLM_F_DUMP, hdr, &[])?;
         let mut out = Vec::new();
+        let mut interrupted = false;
         let mut buf = vec![0u8; 1 << 17];
-        loop {
+        'dump: loop {
             let (_, n) = rustix::net::recv(&self.fd, &mut buf, RecvFlags::empty())?;
             for m in split(&buf[..n as usize]) {
                 if m.seq != seq {
                     continue;
                 }
+                interrupted |= m.flags & NLM_F_DUMP_INTR != 0;
                 match m.ty {
-                    NLMSG_DONE => return Ok(out),
+                    NLMSG_DONE => {
+                        if !m.payload.is_empty() {
+                            let bytes = m.payload.get(..4).ok_or_else(|| {
+                                io::Error::new(io::ErrorKind::InvalidData, "short NLMSG_DONE")
+                            })?;
+                            let error = i32::from_le_bytes(bytes.try_into().unwrap());
+                            if error != 0 {
+                                let errno = error.checked_neg().filter(|errno| *errno > 0)
+                                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData,
+                                        "invalid NLMSG_DONE error"))?;
+                                return Err(io::Error::from_raw_os_error(errno));
+                            }
+                        }
+                        // Drain the failed sequence through DONE before retrying.
+                        // Missing rows must not be interpreted as device/prefix removal.
+                        break 'dump;
+                    }
                     NLMSG_NOOP => {}
                     NLMSG_ERROR => {
                         if m.payload.len() >= 4 {
@@ -293,17 +312,22 @@ impl Netlink {
                                 return Err(io::Error::from_raw_os_error(-e));
                             }
                         }
-                        return Ok(out);
+                        break 'dump;
                     }
                     _ => {
                         let multi = m.flags & NLM_F_MULTI != 0;
                         out.push(m);
                         if !multi {
-                            return Ok(out);
+                            break 'dump;
                         }
                     }
                 }
             }
+        }
+        if interrupted {
+            Err(io::Error::from_raw_os_error(4)) // EINTR
+        } else {
+            Ok(out)
         }
     }
 
@@ -390,6 +414,85 @@ fn split(buf: &[u8]) -> Vec<Msg> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn simulated_dump(replies: &[(u16, u16, &[u8])]) -> io::Result<Vec<Msg>> {
+        use std::os::unix::net::UnixDatagram;
+        let (socket, peer) = UnixDatagram::pair()?;
+        peer.set_read_timeout(Some(std::time::Duration::from_secs(1)))?;
+        socket.set_read_timeout(Some(std::time::Duration::from_secs(1)))?;
+        let mut responses = Vec::new();
+        for (ty, flags, payload) in replies {
+            let mut response = Vec::new();
+            response.extend_from_slice(&(16u32 + payload.len() as u32).to_le_bytes());
+            response.extend_from_slice(&ty.to_le_bytes());
+            response.extend_from_slice(&flags.to_le_bytes());
+            response.extend_from_slice(&1u32.to_le_bytes());
+            response.extend_from_slice(&0u32.to_le_bytes());
+            response.extend_from_slice(payload);
+            while !response.len().is_multiple_of(4) {
+                response.push(0);
+            }
+            responses.push(response);
+        }
+        let sender = std::thread::spawn(move || {
+            let mut request = [0; 256];
+            peer.recv(&mut request).unwrap();
+            for response in responses {
+                peer.send(&response).unwrap();
+            }
+        });
+        let mut netlink = Netlink {
+            fd: socket.into(),
+            seq: 0,
+            event_buffer: EVENT_BUFFER,
+            reply: Vec::new(),
+        };
+        let result = netlink.dump(18, &[0; 16]);
+        sender.join().unwrap();
+        let mut leftover = [0; 256];
+        assert_eq!(
+            rustix::net::recv(&netlink.fd, &mut leftover, RecvFlags::DONTWAIT),
+            Err(rustix::io::Errno::AGAIN),
+            "dump returned before consuming its terminal message",
+        );
+        result
+    }
+
+    #[test]
+    fn interrupted_dump_must_not_publish_a_partial_snapshot() {
+        for interrupted in [0, 1] {
+            let mut replies = [
+                (16, NLM_F_MULTI, &[0u8; 16][..]),
+                (NLMSG_DONE, NLM_F_MULTI, &[0u8; 4][..]),
+            ];
+            replies[interrupted].1 |= 0x10; // NLM_F_DUMP_INTR
+            let error = simulated_dump(&replies).expect_err("incomplete dump was accepted");
+            assert_eq!(error.kind(), io::ErrorKind::Interrupted);
+        }
+    }
+
+    #[test]
+    fn dump_done_propagates_kernel_error_instead_of_publishing_partial_snapshot() {
+        let error = simulated_dump(&[
+            (16, NLM_F_MULTI, &[0; 16]),
+            (NLMSG_DONE, NLM_F_MULTI, &(-ENOBUFS).to_le_bytes()),
+        ])
+        .expect_err("failed dump was accepted");
+        assert_eq!(error.raw_os_error(), Some(ENOBUFS));
+    }
+
+    #[test]
+    fn complete_dump_still_publishes_all_rows() {
+        let rows = simulated_dump(&[
+            (16, NLM_F_MULTI, &[1; 16]),
+            (16, NLM_F_MULTI, &[2; 16]),
+            (NLMSG_DONE, NLM_F_MULTI, &[0; 4]),
+        ])
+        .unwrap();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0].payload, [1; 16]);
+        assert_eq!(rows[1].payload, [2; 16]);
+    }
 
     #[test]
     fn attr_encoding_pads_to_four() {
