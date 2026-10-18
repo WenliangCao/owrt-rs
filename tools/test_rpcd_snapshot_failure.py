@@ -72,6 +72,13 @@ def inner(root, side, fault):
             assert after_apply == original.encode() and observed['restored'] and observed['first_unchanged']
             assert {p.name: p.read_bytes() for p in delta.iterdir()} == before_delta, 'failed apply consumed deltas'
             assert not service.events, 'failed apply emitted config.change'
+            # Even a fresh unchecked apply must fail explicitly when the
+            # implementation cannot make the snapshots it always creates.
+            unchecked, _ = client.invoke(uci, 'apply', args + message('rollback', 7, b'\x00'))
+            assert unchecked != 0 and config.read_bytes() == original.encode()
+            assert first.read_bytes() == first_original.encode()
+            assert {p.name: p.read_bytes() for p in delta.iterdir()} == before_delta
+            assert not service.events
             subprocess.run(['umount', str(limited)], check=True)
             # No pending apply state may block the exact same session retry.
             code, _ = client.invoke(uci, 'apply', args + integer('timeout', 1) + message('rollback', 7, b'\x01'))
