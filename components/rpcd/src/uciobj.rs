@@ -1084,6 +1084,11 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         return code(status::PERMISSION_DENIED);
     }
     let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return code(status::INVALID_ARGUMENT) };
+    if rctx.sessions.borrow().apply_sid.as_deref().is_some_and(|owner| owner != sid) {
+        // Like confirm/rollback, unchecked apply may discard only this
+        // session's snapshot. Other sessions must not cancel its safety timer.
+        return code(status::PERMISSION_DENIED);
+    }
     let timeout: i32 = arg(raw, "timeout", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(APPLY_TIMEOUT);
     purge_dir(SNAPSHOT_FILES);
     purge_dir(SNAPSHOT_DELTA);
