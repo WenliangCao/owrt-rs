@@ -6,6 +6,7 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 保留精确 C 原件与离线恢复材料。
 
 **现状（2026-10-18）：现网为已发布的 [v0.2.3](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.3)，下一版本 v0.2.4 加入受限 odhcpd-rs。**
+v0.2.4 已完成镜像构建与离线资格，目前按用户要求暂停刷机、发布和主线合并，等待独立审计及问题处理。
 odhcpd-rs 已通过 82 项 SDK 功能检查和真实客户端 124.99 秒短时试运行；确认后
 已恢复 C，未刷写 v0.2.4。新版本沿用原 init 和 leasetrigger，仅支持本机 RA/SLAAC、
 DHCPv6 IA_NA/IA_PD、租约、UCI 和 ubus/netifd。用户接受首主动 RA 约 1 ms 差距；
