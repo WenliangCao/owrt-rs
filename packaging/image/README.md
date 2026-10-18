@@ -20,16 +20,17 @@ authorized one idle/Renew fix and one limited device comparison; both metrics
 passed. The recipe now pins SDK ELF
 `589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e`
 from source `162d9ba8`, SDK CI `39122603394` (802936 bytes, static).
-The latest shipping gate requires one full device comparison of all metrics on
-this final SDK before the authorized image build, deployment and publication
-can continue. That gate is pending; see the [full comparison plan](../../docs/reviews/ODHCPD_FINAL_FULL_AB_PLAN_20261018.md).
-Image CI `39123811190` (source `346470cd`) was cancelled, with no new physical
-trial or flash. The two-metric PASS remains valid; no new product optimization
-or recipe identity change is part of this gate.
+The final full device gate has passed all ten metrics: 39 of 40 formal pairs
+improved, one Renew pair was within calibrated noise, and none regressed.
+The image build, finite client trial, flash and publication are authorized and
+pending. No further performance rounds or product optimization are planned.
+See the [full comparison result](../../docs/reviews/ODHCPD_FINAL_FULL_AB_RESULT_20261018.md).
+The earlier image CI `39123811190` (source `346470cd`) was cancelled before this
+gate; a new v0.3.0 image build will use the same version and SDK reference.
 PR #1 remains draft; production is unchanged at v0.2.3 with C odhcpd.
 See the [limited comparison](../../docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md).
 The [first batch's stop result](../../docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)
-remains historical evidence; other metrics were not remeasured.
+and the earlier two-metric PASS retain their original scope and evidence.
 Existing v0.2.4 candidate images, measurements
 and qualification reports keep their original versions and hashes; they are not
 renamed or treated as v0.3.0 build evidence.

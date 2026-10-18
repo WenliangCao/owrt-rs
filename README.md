@@ -6,20 +6,20 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 保留精确 C 原件与离线恢复材料。
 
 **现状（2026-10-18）：现网为已发布的 [v0.2.3](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.3)，下一版本 v0.3.0 加入新组件 odhcpd-rs。**
-默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。用户授权的一次修复及限定
-idle/Renew 真机复测已过门：空闲 CPU 正式中位数 C/Rust 为 18.859/0 µs/s，
-Renew 为 544.462/288.572 µs，四对均改善。Rust 的 0 表示七个 3 秒窗口内未测到
-进程 CPU 增量，不是所有负载零开销。新 SDK `589226a1…` 已绑定配方。按最新要求，
-该 SDK 还须完成一轮全部指标正式对照，过门后方可继续构建、刷机和发布；
-已启动的镜像 CI `39123811190` 已取消，未进行新的物理试运行或刷机。
-见[最终全指标计划](docs/reviews/ODHCPD_FINAL_FULL_AB_PLAN_20261018.md)。PR #1 仍为草稿，现网
-v0.2.3 与 C odhcpd 未变。见[限定复测结果](docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md)；
+默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。最终 SDK `589226a1…` 的完整
+10 项指标真机对照已通过：40 个正式配对中 39 个改善、1 个 Renew 在噪声内，
+没有退步。3 个 NA 租约时 RSS 为 C/Rust 1106/806 KiB；空闲 CPU 为
+18.0509/0 µs/s，Rust 的 0 是测量窗口内无进程 CPU 增量，不是所有负载零开销。
+后续镜像构建、有限客户端试运行、刷机与发布已获用户授权，尚待执行；不再追加
+性能轮次。PR #1 仍为草稿，现网 v0.2.3 与 C odhcpd 未变。
+见[最终全指标结果](docs/reviews/ODHCPD_FINAL_FULL_AB_RESULT_20261018.md)；
+[两项复测](docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md)与
 [首批停止结果](docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)保留原样。
 此前标为 v0.2.4 的候选保留原版本、源码和产物哈希：其 Fable 修复 ELF 已通过
 129 项 SDK 实包检查、完整镜像夹具和真实客户端 123.74 秒短时试运行，确认后已恢复 C。
 这些历史产物不改名为 v0.3.0。新组件沿用原 init 和 leasetrigger，仅支持本机
 RA/SLAAC、DHCPv6 IA_NA/IA_PD、租约、UCI 和 ubus/netifd。旧候选首主动 RA 约
-1 ms 差距的接受决定仍保留，其他指标不在本次限定复测范围。详见[功能报告](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)、
+1 ms 差距的接受决定仍保留，最终十项对照的范围以新报告为准。详见[功能报告](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)、
 [Fable 修复及新客户端试运行](docs/reviews/ODHCPD_FABLE_RESULT_20261018.md)与
 [v0.2.3 部署记录](docs/reviews/DEPLOYMENT_V0_2_3_20261017.md)。
 
