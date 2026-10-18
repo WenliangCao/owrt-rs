@@ -1,5 +1,13 @@
 # 集成固件的发布与维护
 
+2026-10-18 更新：默认配方已推进到 **v0.2.4 / `0.2.4-r1` / `native-eleven`**，
+加入受限 odhcpd-rs。其精确 SDK ELF 完成功能资格和 124.99 秒真实客户端短时
+试运行，确认后已恢复 C。当前实际安装与公开版本仍为 v0.2.3；v0.2.4 完整镜像
+没有刷写或发布。新配方有十一程序、两个 dnsmasq 集成文件、十三份 C 恢复文件；
+保留原 odhcpd init、配置和 `odhcpd-update`。构建、恢复及试运行状态见
+[odhcpd 集成报告](reviews/ODHCPD_NATIVE_INTEGRATION_20261018.md)。下方 v0.2.2
+和更早的验收数字、镜像与回滚目标属于历史记录，不转授给新版本。
+
 2026-10-17。当前配方交付十组件统一 **`v0.2.2`**，同一正式 CI 镜像已完成一次保配置部署与健康观察。生成一个小米 AX3000T sysupgrade 镜像，十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.2-r1`** APK 管理；dnsmasq 的既有 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权与当次恢复核验；已有当次刷机授权不重复询问。构建成功不代表真机验收完成，实现与验收见[统一报告](reviews/CORE_SAFE_20261017.md)，现场记录见[v0.2.2 部署报告](reviews/DEPLOYMENT_V0_2_2_20261017.md)。
 
 适配范围固定为 OpenWrt **25.12.5**、`mediatek/filogic`、`xiaomi_mi-router-ax3000t`。[配方](../packaging/image/native-25.12.5.json)固定标准路径、C 原件哈希、原软件包所有者及 dnsmasq 的构建输入。[镜像配方说明](../packaging/image/README.md)描述安装与迁移约定。
@@ -15,8 +23,9 @@
 | uci / reload-config / fw4 | `/sbin/uci`、`/sbin/reload_config`、`/sbin/fw4` |
 | httpd | `/usr/sbin/uhttpd` |
 | dnsmasq | `/usr/sbin/dnsmasq` |
+| odhcpd（v0.2.4 起） | `/usr/sbin/odhcpd` |
 
-沿用 `log`、`rpcd`、`network`、`uhttpd` 服务。httpd 使用原启动脚本生成首次证书、读取 `/etc/config/uhttpd`；原 log 脚本保留 logread 的文件与远程日志配置。dnsmasq 使用已验收包中的 `/etc/init.d/dnsmasq` 和 `/usr/share/acl.d/dnsmasq_acl.json`，这两个文件也是升级与恢复身份的一部分，不能只替换 ELF。内核、驱动、无线 handler、odhcpd、DHCP 客户端、dropbear、BusyBox、LuCI、apk 和 sysupgrade 执行面保留。
+沿用 `log`、`rpcd`、`network`、`uhttpd`、`odhcpd` 服务。httpd 使用原启动脚本生成首次证书、读取 `/etc/config/uhttpd`；原 log 脚本保留 logread 的文件与远程日志配置。dnsmasq 使用已验收包中的 `/etc/init.d/dnsmasq` 和 `/usr/share/acl.d/dnsmasq_acl.json`，这两个文件也是升级与恢复身份的一部分，不能只替换 ELF。内核、驱动、无线 handler、DHCP 客户端、dropbear、BusyBox、LuCI、apk 和 sysupgrade 执行面保留。
 
 APK 的 `replaces` 与 `replaces-priority` 指定十个程序及两个 dnsmasq 集成文件归 `owrt-control-plane` 所有；原九个软件包继续提供其余文件。依赖固定为验收过的原包版本，避免原包更新与恢复副本不匹配。原六套开关包、三个独立核心程序和 dnsmasq SDK APK 是构建中间产物，旧 `owrt-*` 开关包不会混入最终镜像。四个中文包从匹配 LuCI 修订重建。
 

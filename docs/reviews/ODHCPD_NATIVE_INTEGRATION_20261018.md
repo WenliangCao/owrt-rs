@@ -1,11 +1,11 @@
 # odhcpd 下一版本原生集成准备
 
-新增可显式选择的 `native-eleven` 配方，默认发布配方仍为 v0.2.3。
-下一 patch 暂定 **v0.2.4**（package `0.2.4-r1`），是对“下一版本”的合理后继推定；
-只有短时 trial 通过后由主线程提升默认配方。这份改动未生成镜像、发布、刷机或
-修改现网，也不替代 trial、恢复门和客户端健康验收。
+真实客户端短时 trial 连续 124.99 秒通过并恢复 C 后，默认配方已提升为
+**v0.2.4**（package `0.2.4-r1`，`native-eleven`），作为用户所说“下一版本”的
+patch 后继。正式 CI `39111043955` 从 `4acf1c80` 构建；其最终镜像资格结果另记，
+不把组件试运行当作完整固件已经刷写或发布。
 
-[候选配方](../../packaging/image/native-25.12.5-odhcpd.json) 从当前 v0.2.3 复制，
+[默认配方](../../packaging/image/native-25.12.5.json) 从 v0.2.3 复制，
 仅改变版本并添加 `/usr/sbin/odhcpd`。其余十个 ELF、dnsmasq 212 文件冻结构建
 输入和既有 PGO 使用配方均未改变；不训练 odhcpd PGO。
 
@@ -25,16 +25,15 @@ manifest 分别使用 `native-ten`、`native-eleven`；原十组件历史继续�
 `owrt-recover-c` 要求旧十二路径完整存在；十三行时还必须包含 odhcpd，拒绝
 把 odhcpd 混入缺一条旧路径的十二行集合、重复项和未知项。先验证整组再替换。
 
-显式选择仍需已有 core opt-in，后续构建模板为：
+正式 workflow 和 `make ci-image` 已启用 core odhcpd 构建；手动阶段命令为：
 
 ```sh
 OWRT_CORE_INCLUDE_ODHCPD=1 sh tools/ci_build_core.sh WORKDIR
-OWRT_NATIVE_SPEC="$PWD/packaging/image/native-25.12.5-odhcpd.json" \
-  sh tools/ci_integrate_image.sh WORKDIR
+sh tools/ci_integrate_image.sh WORKDIR
 ```
 
-这只是启用说明，本任务没有执行这些命令。APK 原包重装夹具使用
-`native_apk_fixtures.py --spec packaging/image/native-25.12.5-odhcpd.json`，
+APK 原包重装夹具使用默认 spec，或显式传入
+`native_apk_fixtures.py --spec packaging/image/native-25.12.5.json`，
 增加精确 odhcpd 原包 payload；所有重装/恢复检查随 manifest 严格接受 10/11。
 
 Oracle `/home/ubuntu/odhcpd-native-eleven-20261018` 运行 `test_native_image.py`，
@@ -43,7 +42,6 @@ Oracle `/home/ubuntu/odhcpd-native-eleven-20261018` 运行 `test_native_image.py
 首次测试副本缺 `.git` 导致唯一冻结源码清洁度检查无法执行；补上独立 Git 索引
 后重跑通过，未放宽源码哈希或跳过该检查。没有构建 Rust 或最终 APK/镜像。
 
-主线程另行更新 full-image 准备、handoff、boot 和 client-health 工具的 10/11
-边界；此变更不触碰部署 driver。trial 通过提升默认配方时，需同步调整
-`test_next_recipe_is_explicit_and_preserves_the_accepted_ten` 的预发布断言，并可
-移除临时 spec，避免维护两份相同默认配置。
+full-image 准备、handoff、boot 和 client-health 工具现已支持严格的 10/11
+边界；提升默认时移除了临时 spec，保留构造的历史十组件恢复测试。默认配方提升
+后的 image/core/deploy/backup 共 46 项工具测试通过，未新增性能样本。
