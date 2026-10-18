@@ -15,12 +15,16 @@ The eleventh program is scoped `odhcpd-rs` at `/usr/sbin/odhcpd`. Its original
 The exact accepted SDK ELF is pinned like the other programs. Historical
 native-ten manifests and complete twelve-file recovery sets remain supported.
 
-The current release target is v0.3.0 because it adds a new component. The single
-device A/B batch returned `stop_and_report`: all four idle CPU pairs regressed,
-and one Renew pair exceeded calibrated noise. Work has stopped for the user's
-decision, with no optimization or repeat batch. Image construction, merge,
-flashing and publication remain on hold; PR #1 remains draft. Production is
-unchanged at v0.2.3 with C odhcpd. See the [A/B result](../../docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md).
+The current release target is v0.3.0 because it adds a new component. The user
+authorized one idle/Renew fix and one limited device comparison; both metrics
+passed. The recipe now pins SDK ELF
+`589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e`
+from source `162d9ba8`, SDK CI `39122603394` (802936 bytes, static).
+The v0.3.0 image build, deployment and publication are authorized and pending.
+PR #1 remains draft; production is unchanged at v0.2.3 with C odhcpd.
+See the [limited comparison](../../docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md).
+The [first batch's stop result](../../docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)
+remains historical evidence; other metrics were not remeasured.
 Existing v0.2.4 candidate images, measurements
 and qualification reports keep their original versions and hashes; they are not
 renamed or treated as v0.3.0 build evidence.

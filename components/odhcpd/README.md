@@ -1,18 +1,24 @@
 # odhcpd-rs
 
 Scoped replacement for the OpenWrt 25.12.5 `odhcpd-ipv6only` daemon, referenced
-against C commit `5d7be43f8b9dec0eb47e245cfab81108bb131273`. The final Fable fix
+against C commit `5d7be43f8b9dec0eb47e245cfab81108bb131273`. The historical Fable fix
 SDK ELF passed all 129 packet checks and a new guarded device trial with 123.739
 seconds of continuous client health. The guard restored C; the router still
 runs v0.2.3. That v0.2.4 candidate image and its qualification retain their
 original identities; see the [Fable result](../../docs/reviews/ODHCPD_FABLE_RESULT_20261018.md).
 The next release is v0.3.0 (`0.3.0-r1`) because it adds this new component.
-The single device A/B batch failed the performance gate: all four idle CPU pairs
-regressed, and one Renew pair exceeded calibrated noise. The decision is
-`stop_and_report`; work is stopped for the user's decision, with no optimization
-or repeat batch. The v0.3.0 image build, merge, flash and publication remain on
-hold, and PR #1 remains draft. Production v0.2.3 and C odhcpd are unchanged;
-see the [A/B result](../../docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md).
+The user-authorized single idle/Renew fix and limited device comparison passed.
+The current recipe pins SDK ELF
+`589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e`
+from source `162d9ba8` and SDK CI `39122603394` (802936 bytes, static). Idle CPU
+medians were C 18.858681 µs/s and Rust 0 measured increment; Renew medians were
+544.46225/288.5715 µs, with all four pairs improved. The idle result covers seven
+three-second Rust windows; it is not a zero-cost claim for all workloads.
+The authorized v0.3.0 image build, deployment and publication are pending.
+PR #1 remains draft and production v0.2.3 with C odhcpd is unchanged. See the
+[limited comparison](../../docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md);
+the [first batch's failure](../../docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)
+and all historical artifacts retain their original results and identities.
 
 Supported: RA/SLAAC, DHCPv6 IA_NA/IA_PD, lease and hosts exports, `leasetrigger`,
 the `dhcp` ubus object, UCI, and netifd/kernel prefix updates. The original init,

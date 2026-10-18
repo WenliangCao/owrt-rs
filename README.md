@@ -6,15 +6,18 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 保留精确 C 原件与离线恢复材料。
 
 **现状（2026-10-18）：现网为已发布的 [v0.2.3](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.3)，下一版本 v0.3.0 加入新组件 odhcpd-rs。**
-默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。唯一一批真机 A/B 未过性能门，
-已停止并等待用户决定：空闲 CPU 四对均退步，Renew 一对超出校准噪声。没有优化重测；
-v0.3.0 镜像构建、合并和发布暂停，PR #1 保持草稿，现网 v0.2.3 与 C odhcpd 未变。
-完整数值与改善项见[本轮 A/B 结果](docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)。
+默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。用户授权的一次修复及限定
+idle/Renew 真机复测已过门：空闲 CPU 正式中位数 C/Rust 为 18.859/0 µs/s，
+Renew 为 544.462/288.572 µs，四对均改善。Rust 的 0 表示七个 3 秒窗口内未测到
+进程 CPU 增量，不是所有负载零开销。新 SDK `589226a1…` 已绑定配方，v0.3.0
+待正式镜像构建、部署与发布；这些步骤已有用户授权。PR #1 仍为草稿，现网
+v0.2.3 与 C odhcpd 未变。见[限定复测结果](docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md)；
+[首批停止结果](docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)保留原样。
 此前标为 v0.2.4 的候选保留原版本、源码和产物哈希：其 Fable 修复 ELF 已通过
 129 项 SDK 实包检查、完整镜像夹具和真实客户端 123.74 秒短时试运行，确认后已恢复 C。
 这些历史产物不改名为 v0.3.0。新组件沿用原 init 和 leasetrigger，仅支持本机
 RA/SLAAC、DHCPv6 IA_NA/IA_PD、租约、UCI 和 ubus/netifd。旧候选首主动 RA 约
-1 ms 差距的接受决定仍保留，不覆盖本轮性能退步。详见[功能报告](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)、
+1 ms 差距的接受决定仍保留，其他指标不在本次限定复测范围。详见[功能报告](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)、
 [Fable 修复及新客户端试运行](docs/reviews/ODHCPD_FABLE_RESULT_20261018.md)与
 [v0.2.3 部署记录](docs/reviews/DEPLOYMENT_V0_2_3_20261017.md)。
 
