@@ -494,7 +494,7 @@ fn apply_pool(pool: &mut PoolConfig, data: &Json) -> Result<()> {
     }
     if let Some(value) = text(data, "ra_preference")? {
         pool.ra_preference = match value.as_str() {
-            "medium" => 0,
+            "medium" | "default" => 0,
             "high" => 1,
             "low" => -1,
             _ => return Err(ConfigError("invalid ra_preference".into())),
@@ -731,6 +731,29 @@ mod tests {
                 data
             }])
             .is_err());
+    }
+
+    #[test]
+    fn ra_preference_default_matches_medium_in_uci_and_netifd() {
+        for value in ["default", "medium"] {
+            let config = parse(
+                &format!("{LOCAL}\nconfig dhcp 'second'\n option ra_preference '{value}'\n"),
+                None,
+            )
+            .unwrap();
+            assert_eq!(config.pools[2].ra_preference, 0);
+            let mut config = parse(LOCAL, None).unwrap();
+            config.pools[0].ra_preference = 1;
+            config
+                .apply_network(&[NetworkInterface {
+                    name: "lan".into(),
+                    device: Some("br-lan".into()),
+                    up: true,
+                    data: Json::Object(vec![("ra_preference".into(), Json::Str(value.into()))]),
+                }])
+                .unwrap();
+            assert_eq!(config.pools[0].ra_preference, 0);
+        }
     }
     #[test]
     fn durations_names_and_ubus_arrays_have_checked_edges() {

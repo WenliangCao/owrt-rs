@@ -112,7 +112,46 @@ fn clock() -> Clock {
 struct RaService {
     socket: Socket,
     router: Router,
-    hop_limit: u8,
+}
+
+fn ra_hop_limit(pool: &PoolConfig, device: &str) -> u8 {
+    if pool.ra_hop_limit != 0 {
+        return pool.ra_hop_limit;
+    }
+    // Like C's send_router_advert(), sample the default at packet construction.
+    // Keeping the socket alive must not freeze a later sysctl change.
+    fs::read_to_string(format!("/proc/sys/net/ipv6/conf/{device}/hop_limit"))
+        .ok()
+        .and_then(|value| value.trim().parse::<u8>().ok())
+        .unwrap_or(0)
+}
+
+const KERNEL_RETRY_MS: u64 = 1000;
+
+fn transient_snapshot_error(error: &io::Error) -> bool {
+    // EINTR/EAGAIN, ENOBUFS, and a prior interrupted dump still in progress.
+    // Invalid descriptors, permissions and malformed input remain fatal.
+    matches!(error.raw_os_error(), Some(4 | 11 | 16 | 105))
+}
+
+fn update_host_config(config: &mut Config, host: HostConfig) {
+    // lease_cfg_cmp keys the complete ordered DUID-byte and MAC lists;
+    // lease_cfg_change retains identity/IAID and ignore_v6 on an existing key.
+    if let Some(old) = config.hosts.iter_mut().find(|old| {
+        old.macs == host.macs
+            && old
+                .duids
+                .iter()
+                .map(|entry| &entry.duid)
+                .eq(host.duids.iter().map(|entry| &entry.duid))
+    }) {
+        old.hostname = host.hostname;
+        old.lease_time = host.lease_time;
+        old.ipv4 = host.ipv4;
+        old.host_id = host.host_id;
+    } else {
+        config.hosts.push(host);
+    }
 }
 
 struct Service {
@@ -156,12 +195,16 @@ struct App {
     kernel: Kernel,
     state: KernelState,
     kernel_dirty: bool,
+    kernel_retry_at: Option<u64>,
+    pending_config: Option<Config>,
     services: Vec<Service>,
     dhcp: Dhcpv6,
     files: StateFiles,
     files_dirty: bool,
     bus: Option<Bus>,
     random: File,
+    #[cfg(test)]
+    next_snapshot_error: Option<i32>,
 }
 
 impl App {
@@ -189,6 +232,8 @@ impl App {
             kernel,
             state,
             kernel_dirty: false,
+            kernel_retry_at: None,
+            pending_config: None,
             services: Vec::new(),
             dhcp: Dhcpv6::default(),
             files: StateFiles::default(),
@@ -197,6 +242,8 @@ impl App {
             files_dirty: false,
             bus,
             random: File::open("/dev/urandom")?,
+            #[cfg(test)]
+            next_snapshot_error: None,
         };
         app.services(true, &Changes::default(), None, clock())?;
         Ok(app)
@@ -209,12 +256,36 @@ impl App {
     }
 
     fn reload(&mut self, now: Clock) -> Result<(), Box<dyn std::error::Error>> {
-        let mut candidate = Config::load(self.options.directory.as_deref())?;
-        candidate.apply_network(&self.networks)?;
+        let candidate =
+            match Config::load(self.options.directory.as_deref()).and_then(|mut config| {
+                config.apply_network(&self.networks)?;
+                Ok(config)
+            }) {
+                Ok(candidate) => candidate,
+                Err(error) => {
+                    // A rejected reload must neither stop working interfaces nor
+                    // apply an older pending config after the latest request failed.
+                    // App::new still rejects unsupported startup configurations.
+                    self.pending_config = None;
+                    self.logger.message(
+                        4,
+                        &format!(
+                            "configuration reload rejected; retaining active services: {error}"
+                        ),
+                    );
+                    return Ok(());
+                }
+            };
+        let Some(state) = self.read_kernel_state(now)? else {
+            // Do not lose the only SIGHUP/dump that requested this config, or
+            // expose a new config while its corresponding services stay old.
+            self.pending_config = Some(candidate);
+            return Ok(());
+        };
+        self.pending_config = None;
         self.logger.level = self.options.log_level.unwrap_or(candidate.log_level);
         self.config = candidate;
-        self.state = self.kernel.snapshot(now)?;
-        self.kernel_dirty = false;
+        self.state = state;
         self.services(true, &Changes::default(), None, now)?;
         self.reconcile(now, false);
         Ok(())
@@ -263,30 +334,30 @@ impl App {
                 }
             };
             if pool.ra && service.ra.is_none() {
-                let socket = Socket::open(Kind::Router, link)?;
-                let mut router = Router::new(device, now);
-                if let Some(directory) = &self.config.pio_dir {
-                    if let Err(error) = router.load_state(directory, now) {
-                        self.logger
-                            .message(4, &format!("{device}: PIO state: {error}"));
+                match Socket::open(Kind::Router, link) {
+                    Ok(socket) => {
+                        let mut router = Router::new(device, now);
+                        if let Some(directory) = &self.config.pio_dir {
+                            if let Err(error) = router.load_state(directory, now) {
+                                self.logger
+                                    .message(4, &format!("{device}: PIO state: {error}"));
+                            }
+                        }
+                        service.ra = Some(RaService { socket, router });
                     }
+                    Err(error) => self.logger.message(
+                        4,
+                        &format!(
+                            "{device}: RA socket: {error}; retry on interface update or reload"
+                        ),
+                    ),
                 }
-                let hop_limit =
-                    fs::read_to_string(format!("/proc/sys/net/ipv6/conf/{device}/hop_limit"))
-                        .ok()
-                        .and_then(|value| value.trim().parse::<u8>().ok())
-                        .unwrap_or(0);
-                service.ra = Some(RaService {
-                    socket,
-                    router,
-                    hop_limit,
-                });
             } else if !pool.ra {
                 if let Some(mut ra) = service.ra.take() {
                     let context = RaContext {
                         pool: &service.pool,
                         kernel: &self.state,
-                        hop_limit: ra.hop_limit,
+                        hop_limit: ra_hop_limit(&service.pool, device),
                         clock: now,
                         random: 0,
                     };
@@ -301,7 +372,15 @@ impl App {
                 }
             }
             if pool.dhcpv6 && service.dhcp.is_none() {
-                service.dhcp = Some(Socket::open(Kind::Dhcp6, link)?);
+                match Socket::open(Kind::Dhcp6, link) {
+                    Ok(socket) => service.dhcp = Some(socket),
+                    Err(error) => self.logger.message(
+                        4,
+                        &format!(
+                            "{device}: DHCPv6 socket: {error}; retry on interface update or reload"
+                        ),
+                    ),
+                }
             } else if !pool.dhcpv6 {
                 service.dhcp = None;
             }
@@ -329,7 +408,7 @@ impl App {
                 let context = RaContext {
                     pool: &service.pool,
                     kernel: &self.state,
-                    hop_limit: ra.hop_limit,
+                    hop_limit: ra_hop_limit(&service.pool, ra.router.device()),
                     clock: now,
                     random: 0,
                 };
@@ -351,9 +430,18 @@ impl App {
     }
 
     fn refresh_kernel(&mut self, changes: &Changes, now: Clock) -> io::Result<()> {
-        let state = self.kernel.snapshot(now)?;
+        let retrying = self.kernel_retry_at.is_some();
+        let Some(state) = self.read_kernel_state(now)? else {
+            return Ok(());
+        };
         let previous = std::mem::replace(&mut self.state, state);
-        self.kernel_dirty = false;
+        let reloaded = if let Some(candidate) = self.pending_config.take() {
+            self.logger.level = self.options.log_level.unwrap_or(candidate.log_level);
+            self.config = candidate;
+            true
+        } else {
+            false
+        };
         let address_change = self.services.iter().any(|service| {
             service.dhcp.is_some()
                 && self.state.links.iter().any(|link| {
@@ -368,9 +456,56 @@ impl App {
         // A snapshot after our PD route ACK may also observe a concurrent
         // address/link change. Always consume its old -> new transition here;
         // the later queued notification must not compare the new state to itself.
-        self.services(false, changes, Some(&previous), now)?;
+        // The failed observation may have consumed a default-route event.
+        // Resynchronise every router after a retry, even with no new event.
+        let recovered = Changes {
+            all_routers: true,
+            ..Changes::default()
+        };
+        self.services(
+            reloaded,
+            if retrying { &recovered } else { changes },
+            Some(&previous),
+            now,
+        )?;
         self.reconcile(now, address_change);
         Ok(())
+    }
+
+    fn read_kernel_state(&mut self, now: Clock) -> io::Result<Option<KernelState>> {
+        if self
+            .kernel_retry_at
+            .is_some_and(|deadline| now.monotonic_ms < deadline)
+        {
+            return Ok(None);
+        }
+        #[cfg(test)]
+        let injected = self.next_snapshot_error.take();
+        #[cfg(not(test))]
+        let injected: Option<i32> = None;
+        let result = match injected {
+            Some(errno) => Err(io::Error::from_raw_os_error(errno)),
+            None => self.kernel.snapshot(now),
+        };
+        match result {
+            Ok(state) => {
+                self.kernel_dirty = false;
+                self.kernel_retry_at = None;
+                Ok(Some(state))
+            }
+            Err(error) if transient_snapshot_error(&error) => {
+                self.logger.message(
+                    4,
+                    &format!(
+                        "kernel snapshot: {error}; retaining state and retrying in one second"
+                    ),
+                );
+                self.kernel_dirty = true;
+                self.kernel_retry_at = Some(now.monotonic_ms.saturating_add(KERNEL_RETRY_MS));
+                Ok(None)
+            }
+            Err(error) => Err(error),
+        }
     }
 
     fn write_files(&mut self, now: Clock) {
@@ -386,6 +521,13 @@ impl App {
     }
 
     fn reconcile(&mut self, now: Clock, write: bool) {
+        if self.kernel_retry_at.is_some() {
+            // In particular, old kernel.routes cannot disprove a just-ACKed
+            // PD installation or erase a deletion still awaiting retry.
+            self.files_dirty |= write;
+            self.write_files(now);
+            return;
+        }
         let before = self.dhcp.leases().to_vec();
         let kernel = &mut self.kernel;
         let dirty = &mut self.kernel_dirty;
@@ -440,24 +582,12 @@ impl App {
     }
 
     fn add_host(&mut self, host: HostConfig, now: Clock) {
-        // lease_cfg_cmp keys the complete ordered DUID-byte and MAC lists;
-        // IAID is mutable data, not part of that key.
-        if let Some(old) = self.config.hosts.iter_mut().find(|old| {
-            old.macs == host.macs
-                && old
-                    .duids
-                    .iter()
-                    .map(|entry| &entry.duid)
-                    .eq(host.duids.iter().map(|entry| &entry.duid))
-        }) {
-            // C's lease_cfg_change retains identity/IAID and ignore_v6.
-            old.hostname = host.hostname;
-            old.lease_time = host.lease_time;
-            old.ipv4 = host.ipv4;
-            old.host_id = host.host_id;
-        } else {
-            self.config.hosts.push(host);
+        if let Some(pending) = &mut self.pending_config {
+            // A successful call after the reload request must survive its
+            // delayed kernel resynchronisation, in the same request order.
+            update_host_config(pending, host.clone());
         }
+        update_host_config(&mut self.config, host);
         self.reconcile(now, false);
     }
 
@@ -586,7 +716,7 @@ impl App {
                         let context = RaContext {
                             pool: &service.pool,
                             kernel: &self.state,
-                            hop_limit: ra.hop_limit,
+                            hop_limit: ra_hop_limit(&service.pool, ra.router.device()),
                             clock: now,
                             random: u32::from_ne_bytes(random),
                         };
@@ -669,7 +799,7 @@ impl App {
             let context = RaContext {
                 pool: &service.pool,
                 kernel: &self.state,
-                hop_limit: ra.hop_limit,
+                hop_limit: ra_hop_limit(&service.pool, ra.router.device()),
                 clock: now,
                 random,
             };
@@ -705,7 +835,11 @@ impl App {
                     let _ = bus.refresh();
                 }
             }
-            if self.kernel_dirty {
+            if self.kernel_dirty
+                && self
+                    .kernel_retry_at
+                    .is_none_or(|deadline| now.monotonic_ms >= deadline)
+            {
                 self.refresh_kernel(&Changes::default(), now)?;
             }
             if now.monotonic_ms >= next_expiry {
@@ -741,11 +875,14 @@ impl App {
                     });
                 }
             }
-            let deadline = self
+            let mut deadline = self
                 .services
                 .iter()
                 .filter_map(|service| service.ra.as_ref().and_then(|ra| ra.router.deadline()))
                 .fold(next_expiry, u64::min);
+            if let Some(retry_at) = self.kernel_retry_at {
+                deadline = deadline.min(retry_at);
+            }
             let wait = deadline.saturating_sub(clock().monotonic_ms).min(1000) as i32;
             match unix::poll_once(&mut descriptors, wait) {
                 Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
@@ -812,5 +949,196 @@ fn main() {
             eprintln!("odhcpd-rs: {error}");
             std::process::exit(4);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::AtomicU64;
+
+    static NEXT_FIXTURE: AtomicU64 = AtomicU64::new(0);
+
+    struct Fixture {
+        directory: PathBuf,
+        app: App,
+    }
+
+    impl Fixture {
+        fn new() -> Self {
+            let directory = std::env::temp_dir().join(format!(
+                "odhcpd-runtime-test-{}-{}",
+                std::process::id(),
+                NEXT_FIXTURE.fetch_add(1, Ordering::Relaxed),
+            ));
+            fs::create_dir(&directory).unwrap();
+            fs::write(
+                directory.join("dhcp"),
+                "config dhcp 'test'\n option ra 'disabled'\n option dhcpv6 'disabled'\n",
+            )
+            .unwrap();
+            fs::write(directory.join("network"), "").unwrap();
+            fs::write(directory.join("system"), "").unwrap();
+            let app = App::new(Options {
+                directory: Some(directory.clone()),
+                no_ubus: true,
+                stderr: true,
+                log_level: Some(0),
+            })
+            .unwrap();
+            Self { directory, app }
+        }
+    }
+
+    impl Drop for Fixture {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.directory);
+        }
+    }
+
+    fn at(monotonic_ms: u64) -> Clock {
+        Clock {
+            monotonic_ms,
+            unix_seconds: 0,
+        }
+    }
+
+    #[test]
+    fn snapshot_retry_preserves_state_and_respects_its_deadline() {
+        let mut fixture = Fixture::new();
+        let app = &mut fixture.app;
+        app.state.links = vec![Link {
+            name: "old-observation".into(),
+            index: u32::MAX,
+            flags: 0,
+            mtu: 1500,
+            mac: [0; 6],
+            addresses: Vec::new(),
+        }];
+        app.next_snapshot_error = Some(105);
+        app.refresh_kernel(&Changes::default(), at(10_000)).unwrap();
+        assert!(app.kernel_dirty);
+        assert_eq!(app.kernel_retry_at, Some(11_000));
+        assert_eq!(app.state.links[0].name, "old-observation");
+
+        // Repeated route/link notifications may not turn one-second retries
+        // into a busy loop. The unconsumed injected EBADF proves no read ran.
+        app.next_snapshot_error = Some(9);
+        app.refresh_kernel(&Changes::default(), at(10_999)).unwrap();
+        assert_eq!(app.next_snapshot_error, Some(9));
+        assert_eq!(
+            app.refresh_kernel(&Changes::default(), at(11_000))
+                .unwrap_err()
+                .raw_os_error(),
+            Some(9)
+        );
+        assert_eq!(app.state.links[0].name, "old-observation");
+
+        app.refresh_kernel(&Changes::default(), at(11_001)).unwrap();
+        assert!(app
+            .state
+            .links
+            .iter()
+            .all(|link| link.name != "old-observation"));
+        assert!(!app.kernel_dirty);
+        assert_eq!(app.kernel_retry_at, None);
+    }
+
+    #[test]
+    fn failed_reload_applies_latest_config_and_later_add_lease_after_resync() {
+        let mut fixture = Fixture::new();
+        fixture.app.next_snapshot_error = Some(105);
+        fs::write(
+            fixture.directory.join("dhcp"),
+            "config dhcp 'test'\n option leasetime '10m'\n",
+        )
+        .unwrap();
+        fixture.app.reload(at(10_000)).unwrap();
+        assert_eq!(fixture.app.config.pools[0].lease_time, 43_200);
+        assert_eq!(
+            fixture.app.pending_config.as_ref().unwrap().pools[0].lease_time,
+            600
+        );
+
+        fs::write(
+            fixture.directory.join("dhcp"),
+            "config dhcp 'test'\n option leasetime '20m'\n",
+        )
+        .unwrap();
+        fixture.app.reload(at(10_001)).unwrap();
+        let host = HostConfig {
+            hostname: Some("after-reload".into()),
+            host_id: 0x123,
+            ..HostConfig::default()
+        };
+        fixture.app.add_host(host, at(10_002));
+        assert_eq!(
+            fixture.app.config.hosts[0].hostname.as_deref(),
+            Some("after-reload")
+        );
+        fixture
+            .app
+            .refresh_kernel(&Changes::default(), at(11_000))
+            .unwrap();
+        assert_eq!(fixture.app.config.pools[0].lease_time, 1200);
+        assert_eq!(fixture.app.config.hosts.len(), 1);
+        assert_eq!(
+            fixture.app.config.hosts[0].hostname.as_deref(),
+            Some("after-reload")
+        );
+        assert!(fixture.app.pending_config.is_none());
+    }
+
+    #[test]
+    fn only_transient_observation_errors_are_retried() {
+        for errno in [4, 11, 16, 105] {
+            assert!(transient_snapshot_error(&io::Error::from_raw_os_error(
+                errno
+            )));
+        }
+        for errno in [1, 9, 13, 22] {
+            assert!(!transient_snapshot_error(&io::Error::from_raw_os_error(
+                errno
+            )));
+        }
+        assert!(!transient_snapshot_error(&io::Error::new(
+            io::ErrorKind::InvalidData,
+            "bad dump"
+        )));
+    }
+
+    #[test]
+    fn invalid_runtime_config_keeps_active_state_and_cancels_older_pending_reload() {
+        let mut fixture = Fixture::new();
+        fixture.app.next_snapshot_error = Some(105);
+        fs::write(
+            fixture.directory.join("dhcp"),
+            "config dhcp 'test'\n option leasetime '10m'\n",
+        )
+        .unwrap();
+        fixture.app.reload(at(10_000)).unwrap();
+        assert!(fixture.app.pending_config.is_some());
+        fs::write(
+            fixture.directory.join("dhcp"),
+            "config dhcp 'test'\n option ra 'relay'\n",
+        )
+        .unwrap();
+        fixture.app.reload(at(10_001)).unwrap();
+        assert!(fixture.app.pending_config.is_none());
+        assert_eq!(fixture.app.config.pools[0].lease_time, 43_200);
+        fixture
+            .app
+            .refresh_kernel(&Changes::default(), at(11_000))
+            .unwrap();
+        assert_eq!(fixture.app.config.pools[0].lease_time, 43_200);
+        assert!(!fixture.app.config.pools[0].ra);
+        assert!(Config::load(Some(&fixture.directory)).is_err());
+    }
+
+    #[test]
+    fn explicit_ra_hop_limit_does_not_require_a_sysctl() {
+        let mut pool = PoolConfig::new("test");
+        pool.ra_hop_limit = 123;
+        assert_eq!(ra_hop_limit(&pool, "missing-device"), 123);
     }
 }
