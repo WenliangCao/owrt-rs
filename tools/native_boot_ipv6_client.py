@@ -22,6 +22,7 @@ from dns_service_probe import query, semantics
 
 DUID = bytes.fromhex("00030001020000000028")
 HOSTNAME = "native-v6-client"
+RELOAD_DNS = "2001:db8:53::1"
 
 
 def receive(sock, matches, seconds=5):
@@ -132,11 +133,14 @@ def run():
         offered_options = dict(options(offered[4:]))
         server = offered_options[2]
         result["ia_na"] = resources(exchange(3, [(3, offered_options[3])], server, True), 3)
+        result["server_id"] = server.hex()
+        result["ia_na_option"] = offered_options[3].hex()
         assert len(result["ia_na"]) == 2
         offered = exchange(1, [(25, struct.pack("!III", 2, 0, 0))])
         offered_options = dict(options(offered[4:]))
         assert offered_options[2] == server
         result["ia_pd"] = resources(exchange(3, [(25, offered_options[25])], server), 25)
+        result["ia_pd_option"] = offered_options[25].hex()
         assert len(result["ia_pd"]) == 1
         delegated = result["ia_pd"][0]
         assert ipaddress.IPv6Address(delegated["address"]) in ipaddress.IPv6Network("fd12:3456:789a::/60")
@@ -164,5 +168,62 @@ def run():
     return result
 
 
+def renew(bound):
+    """One renewal of the same bindings after the parent changes real UCI.
+
+    Information-request observes applied DNS before Renew, so an asynchronous
+    init HUP is not mistaken for a stale lease result. There is no Renew retry.
+    """
+    assert os.environ.get("NATIVE_BOOT_ISOLATED") == "1"
+    assert os.geteuid() == 0 and sys.platform == "linux"
+    assert {name for _, name in socket.if_nameindex()} == {"lo", "client0"}
+    index = socket.if_nametoindex("client0")
+    server = bytes.fromhex(bound["server_id"])
+    with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as udp:
+        udp.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, b"client0\0")
+        udp.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, index)
+        udp.bind(("::", 546))
+        observed = []
+        for attempt in range(10):
+            transaction = (100 + attempt).to_bytes(3, "big")
+            request = b"\x0b" + transaction + opt(1, DUID) + opt(6, struct.pack("!H", 23))
+            udp.sendto(request, ("ff02::1:2", 547, 0, index))
+            reply, _, _ = receive(udp, lambda packet, source: len(packet) >= 4 and packet[0] == 7
+                                  and packet[1:4] == transaction and source[1] == 547)
+            value = dict(options(reply[4:])).get(23, b"")
+            observed.append(reply.hex())
+            if value == ipaddress.IPv6Address(RELOAD_DNS).packed:
+                break
+            time.sleep(.1)
+        else:
+            raise AssertionError("original init reload did not apply the changed UCI DNS")
+        transaction = bytes.fromhex("000200")
+        request = b"\x05" + transaction + opt(1, DUID) + opt(2, server)
+        request += opt(6, struct.pack("!H", 23))
+        request += opt(3, bytes.fromhex(bound["ia_na_option"]))
+        request += opt(25, bytes.fromhex(bound["ia_pd_option"]))
+        udp.sendto(request, ("ff02::1:2", 547, 0, index))
+        reply, _, _ = receive(udp, lambda packet, source: len(packet) >= 4 and packet[0] == 7
+                              and packet[1:4] == transaction and source[1] == 547)
+    fields = dict(options(reply[4:]))
+    assert fields[2] == server and fields[23] == ipaddress.IPv6Address(RELOAD_DNS).packed
+    assert resources(reply, 3) == bound["ia_na"] and resources(reply, 25) == bound["ia_pd"]
+    for kind, subkind in ((3, 5), (25, 26)):
+        ia = fields[kind]
+        _, t1, t2 = struct.unpack("!III", ia[:12])
+        assert (t1, t2) == (300, 480), (kind, t1, t2)
+        for code, item in options(ia[12:]):
+            if code == subkind:
+                lifetimes = struct.unpack("!II", item[16:24] if kind == 3 else item[:8])
+                assert lifetimes == (600, 600), (kind, lifetimes)
+    return {"passed": True, "leasetime_seconds": 600, "dns": RELOAD_DNS,
+            "same_na_and_pd": True, "information_replies": observed,
+            "request": request.hex(), "reply": reply.hex(), "decoded": decode_dhcp(reply)}
+
+
 if __name__ == "__main__":
-    print(json.dumps(run()))
+    if sys.argv[1:] == ["--renew"]:
+        print(json.dumps(renew(json.load(sys.stdin))))
+    else:
+        assert not sys.argv[1:], "usage: native_boot_ipv6_client.py [--renew]"
+        print(json.dumps(run()))

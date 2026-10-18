@@ -181,7 +181,7 @@ if [ -f /tmp/out/ipv6-enabled ]; then
     test -x /usr/sbin/odhcpd-update
 fi
 touch /tmp/out/server-ready
-for attempt in $(seq 1 45); do
+for attempt in $(seq 1 75); do
     test ! -e /tmp/out/client-fail
     test ! -e /tmp/out/client-pass || break
     sleep 1
@@ -356,6 +356,8 @@ result={'pid1_and_six_daemon_identities':True,'standard_service_paths':True,
 if ipv6:
     assert client['ipv6']['passed'] and client['ipv6']['ubus_and_lease_files_match_client']
     assert client['ipv6']['leasetrigger_dns_aaaa']
+    assert client['ipv6']['uci_reload_renewal']['passed']
+    assert client['ipv6']['luci_consumers']['passed']
     instances=services['odhcpd']['instances']
     running=[i for i in instances.values() if i['running'] and i['command'][0]=='/usr/sbin/odhcpd']
     assert len(running)==1
@@ -375,6 +377,8 @@ if ipv6:
     result['IPv6_and_odhcpd_scope']='veth RA/SLAAC, IA_NA/IA_PD, ubus dhcp, leases/hosts and exact leasetrigger to dnsmasq; functionality only'
     result['veth_client_RA_IA_NA_IA_PD']=True
     result['odhcpd_ubus_files_and_leasetrigger']=True
+    result['odhcpd_real_UCI_reload_renewal_same_PID']=True
+    result['actual_LuCI_DHCPv6_consumers']=True
 if (root/'root/owrt-native-trial/armed').exists():
     assert 'Rust-boot pending_count=' in (out/'trial-guard.log').read_text()
     result['temporary_trial_guard_started_and_alive']=True

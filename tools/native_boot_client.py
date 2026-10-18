@@ -98,6 +98,59 @@ def main():
             assert all(item["address"] in hosts for item in result["ipv6"]["ia_na"])
             (out / "odhcpd-hosts.txt").write_text(hosts)
             result["ipv6"]["ubus_and_lease_files_match_client"] = True
+
+            def process_identity():
+                response = host("chroot", root, "/bin/ubus", "-S", "-t", "2", "call", "service", "list", '{"name":"odhcpd"}')
+                instances = json.loads(response.stdout)["odhcpd"]["instances"]
+                running = [instance for instance in instances.values() if instance["running"]]
+                assert len(running) == 1 and running[0]["command"] == ["/usr/sbin/odhcpd"]
+                pid = running[0]["pid"]
+                ticks = (root / f"proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[19]
+                digest = hashlib.sha256((root / f"proc/{pid}/exe").read_bytes()).hexdigest()
+                assert digest == release["components"]["odhcpd"]["rust_sha256"]
+                return {"pid": pid, "start_ticks": int(ticks), "sha256": digest}
+
+            before = process_identity()
+            (out / "dhcp-before-reload.uci").write_text(host("chroot", root, "/sbin/uci", "export", "dhcp").stdout)
+            for command in (("set", "dhcp.lan.leasetime=10m"),
+                            ("add_list", "dhcp.lan.dns=2001:db8:53::1"), ("commit", "dhcp")):
+                host("chroot", root, "/sbin/uci", *command)
+            (out / "dhcp-after-reload.uci").write_text(host("chroot", root, "/sbin/uci", "export", "dhcp").stdout)
+            response = host("chroot", root, "/etc/init.d/odhcpd", "reload")
+            (out / "odhcpd-init-reload.log").write_text(response.stdout + response.stderr)
+            response = subprocess.run(namespace + [sys.executable, str(Path(__file__).with_name("native_boot_ipv6_client.py")), "--renew"],
+                                      input=json.dumps(result["ipv6"]), env=environment,
+                                      capture_output=True, text=True, timeout=35)
+            (out / "client-ipv6-renew-stdout.log").write_text(response.stdout)
+            (out / "client-ipv6-renew-stderr.log").write_text(response.stderr)
+            assert response.returncode == 0, {"returncode": response.returncode, "stderr": response.stderr}
+            renewal = json.loads(response.stdout)
+            assert renewal["passed"]
+            after = process_identity()
+            assert before == after, {"before_reload": before, "after_reload": after}
+            renewal["process_before"] = before
+            renewal["process_after"] = after
+            result["ipv6"]["uci_reload_renewal"] = renewal
+            state = matching_v6_state()
+            assert state and all(120 < entry["valid"] <= 600 for entry in state["device"]["br-lan"]["leases"])
+            (out / "odhcpd-ipv6leases-after-reload.json").write_text(json.dumps(state, indent=2) + "\n")
+
+            response = host("chroot", root, "/bin/ubus", "-S", "-t", "3", "call", "luci-rpc", "getDHCPLeases", '{"family":6}')
+            consumers = json.loads(response.stdout)
+            (out / "luci-dhcp6-leases.json").write_text(json.dumps(consumers, indent=2) + "\n")
+            exported = [entry for entry in consumers["dhcp6_leases"] if entry.get("duid") == result["ipv6"]["duid"]]
+            assert len(exported) == 2
+            for iaid, key in (("1", "ia_na"), ("2", "ia_pd")):
+                entry = next(entry for entry in exported if entry["iaid"] == iaid)
+                expected = {item["address"] + "/" + str(item["length"]) for item in result["ipv6"][key]}
+                assert set(entry["ip6addrs"]) == expected
+                assert entry["interface"] == "br-lan" and 120 < entry["expires"] <= 600
+            response = host("chroot", root, "/bin/ubus", "-S", "-t", "3", "call", "luci", "getFeatures")
+            features = json.loads(response.stdout)
+            (out / "luci-features.json").write_text(json.dumps(features, indent=2) + "\n")
+            expected = {"ra": True, "dhcpv6": True, "ubus": True, "ndp": False, "dhcpv4": False}
+            assert features["odhcpd"] == expected, features["odhcpd"]
+            result["ipv6"]["luci_consumers"] = {"leases": exported, "features": features["odhcpd"], "passed": True}
         result["passed"] = True
     except Exception:
         result["error"] = traceback.format_exc()
