@@ -1,7 +1,10 @@
 # odhcpd-rs DHCPv6 / lease 独立审计（2026-10-18）
 
-结论：**2 项 P2，未发现 P0/P1；这两项处理前不能关闭本范围审计。**
-两项均由精确 C ELF 与冻结 SDK ELF 的真实 UDP 请求独立复现，未修改产品代码。
+复验结论：**两项 P2 已在统一源码 `e33fa56c` 的 canonical SDK ELF 上闭合。**
+原五个目标事件的 IA 完整内容均与既有精确 C 证据一致，见文末闭合记录。
+
+初审结论（旧 ELF `79f1349e`）：2 项 P2，未发现 P0/P1。
+两项均由精确 C ELF 与旧冻结 SDK ELF 的真实 UDP 请求独立复现，审计未修改产品代码。
 没有刷机、发布、访问物理 router、性能/PGO 实验或 Mac Rust 构建。
 
 ## 身份与方法
@@ -124,9 +127,56 @@ ignored `private/odhcpd-audit-dhcp6-20261018/{c-01,rust-01}.json`。
 
 | 文件 | SHA-256 |
 |---|---|
-| 独立 `audit.py` / 提交的场景工具 | `e9c8cb5882a56a48c279302dc312a6658b174aa09dab9b94ae0b351a04e918f1` |
+| 初审 `audit.py` / `4a8b2077` 中的场景工具 | `e9c8cb5882a56a48c279302dc312a6658b174aa09dab9b94ae0b351a04e918f1` |
 | C results.json | `1aed5311e7e2f801d7f37562f5f7c72ca61a25f2f736659209199b509014fee1` |
 | Rust results.json | `bf749b1f3ed9aa27ec4e4fa00d4254c02bfdca63eb5dd5ace7bdba2668604850` |
 
 关键事件键：`na_request_600`、`na_renew_after_1200_reload`、
 `na_rebind_after_1200_reload`、`fresh_na_after_1200_reload`、`pd_renew_old_128`。
+
+## 修复后的独立定向复验
+
+修复提交 `9be8f5fc`，统一源码 `e33fa56c426f51931251df022228cd7ab905b63d`。
+复验对象是 canonical CI run `39112918594` 的 SDK 产物，不是中间 native ELF：
+
+- Oracle：`/home/ubuntu/odhcpd-validation-20261018/sdk-e33fa56c/odhcpd-rs`。
+- SHA-256：`c4a7c2731e02cb14fca5f94e4cbe940e0f9c91f64ca45be2e98ab19281250048`。
+- 场景工具提交 `4908d026` 添加显式 `--candidate-sha`，不改变原场景输入。
+  未指定该参数时仍只接受原 C/Rust 两个哈希；指定后严格要求该哈希，并在 namespace 内
+  再次核对。未知 ELF、错误 SHA、非法 SHA 格式均已在 Oracle 验证为 exit 2，且不创建 out。
+
+独立静态复核：成功候选的共同回复路径在计算新期限之前重新解析 host override 或当前
+pool 默认值，覆盖 NA/PD 的 Renew/Rebind；不会在 pool reload 时单独改写已承诺的
+lease deadline。地址编码显式传入 `LeaseKind`，NA 保持 IAADDR，PD `/128` 保持 IAPREFIX。
+
+预实验预测是修复后与旧 C 一致：既存 NA Renew/Rebind 为 1200 秒，PD 撤销类型为 26。
+只运行原场景一次，沿用初审 `c-01/results.json`，不重新运行 C、不扩大矩阵、不做性能测量。
+新 `rust-e33fa56c-01` 返回 `complete=true`；比较器同时核对候选身份及五个事件的整个
+IA 对象，包括 IA payload 十六进制、T1/T2 和全部子选项。
+
+| 原目标事件 | 修复后 SDK 与既有 C 的 IA 完整内容 |
+|---|---|
+| `na_request_600` | 一致；preferred/valid 为 600/600 |
+| `na_renew_after_1200_reload` | 一致；preferred/valid 为 1200/1200 |
+| `na_rebind_after_1200_reload` | 一致；preferred/valid 为 1200/1200 |
+| `fresh_na_after_1200_reload` | 一致；preferred/valid 为 1200/1200 |
+| `pd_renew_old_128` | 一致；旧 `/128` 为 IAPREFIX（26），preferred/valid 为 0/0 |
+
+**P2-1、P2-2 均闭合。** 本结论只关闭这两项 DHCPv6 发现；前述未实测范围仍然保留，
+不代替其他组件审计、部署验证或发布决定。
+
+原始数据：Oracle
+`/home/ubuntu/odhcpd-audit-dhcp6-20261018/rust-e33fa56c-01/results.json`；
+本地 ignored `private/odhcpd-audit-dhcp6-20261018/rust-e33fa56c-01.json`。
+比较器及结果分别保留于同一 private 目录的 `compare_closure.py`、`closure-e33fa56c.json`。
+
+| 复验文件 | SHA-256 |
+|---|---|
+| `tools/odhcpd_audit_dhcp6.py` | `38021c65a7795809b22a25830a7a2d54e01e252717b90ed01f9e78aa626ca27d` |
+| 候选 results.json | `5ac5b307b110f7d3a516cfd121bf4c29742c49864ae58e297cb6187b33c1050b` |
+| `compare_closure.py` | `25928ae0168cb4af7314f83ad716e201c927af560881976048db6455496f2c31` |
+| `closure-e33fa56c.json` | `d50adec80b1f41cb07d3cc1d86c7226906a284e656aa28f744f735c34db18f9c` |
+
+重放使用前述命令，将 `--daemon` 换成 `sdk-e33fa56c/odhcpd-rs`，加
+`--candidate-sha c4a7c2731e02cb14fca5f94e4cbe940e0f9c91f64ca45be2e98ab19281250048`，
+并指定全新 `--out`。原 C、旧 Rust 和初审数据均未覆盖。
