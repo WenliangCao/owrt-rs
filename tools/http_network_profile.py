@@ -209,7 +209,21 @@ def parse_softirqs(raw):
 
 
 def summarize_samples(rows, start, end):
-    inside = [row for row in rows if start <= row["at_s"] <= end]
+    sections = ("@@uptime\n", "@@stat\n", "@@netdev\n", "@@softirqs\n", "@@matching_conntrack\n")
+    dropped_trailing = 0
+    for index, row in enumerate(rows):
+        present = tuple(section for section in sections if section in row["raw"])
+        if present != sections:
+            # Sampler.close() can terminate SSH partway through its final record.
+            # Only a final record containing a prefix of the sections is a tail;
+            # an interior hole or a missing section followed by later ones is not.
+            starts_record = (row["raw"].startswith(sections[0]) or sections[0].startswith(row["raw"]))
+            if index == len(rows) - 1 and starts_record and present == sections[:len(present)]:
+                dropped_trailing = 1
+            else:
+                raise RuntimeError(f"incomplete router sample at index {index}")
+    complete = rows[:-1] if dropped_trailing else rows
+    inside = [row for row in complete if start <= row["at_s"] <= end]
     if len(inside) < 2:
         raise RuntimeError("not enough router samples inside load window")
     first, last = inside[0], inside[-1]
@@ -227,6 +241,7 @@ def summarize_samples(rows, start, end):
         if match:
             source_ports.setdefault(match.group(1), set()).add(int(match.group(2)))
     return {"sample_count": len(inside), "interval_s": interval,
+            "dropped_trailing_sampler_records": dropped_trailing,
             "cpu_core_count": cores,
             "busy_cpu_seconds": cpu["cpu"]["busy_pct"] / 100 * cores * interval,
             "direct_source_ports": sorted({int(match.group(1)) for line in connections

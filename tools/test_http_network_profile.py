@@ -90,6 +90,40 @@ class Measurements(unittest.TestCase):
         self.assertEqual(result['direct_source_ports'], [45123])
         self.assertEqual(result['hardware_flow_samples'], 2)
         self.assertEqual(result['softirq_delta']['NET_RX'], [20, 20])
+        self.assertEqual(result['dropped_trailing_sampler_records'], 0)
+
+    def test_sampler_close_drops_only_incomplete_last_record(self):
+        rows = [sample(0, 99, 0, 500, 5, 10),
+                sample(1, 100, 0, 500, 10, 20),
+                sample(3.5, 102.5, 100, 650, 30, 50)]
+        expected = summarize_samples(rows, .5, 4)
+        # Actual shutdown boundary: @@sample arrived, then only @@uptime.
+        tail = {"at_s": 3.8, "raw": "@@uptime\n"}
+        result = summarize_samples(rows + [tail], .5, 4)
+        expected["dropped_trailing_sampler_records"] = 1
+        self.assertEqual(result, expected)
+        self.assertEqual(tail["raw"], "@@uptime\n")
+
+    def test_incomplete_interior_sample_is_rejected(self):
+        rows = [sample(1, 100, 0, 500, 10, 20),
+                {"at_s": 2, "raw": "@@uptime\n"},
+                sample(3.5, 102.5, 100, 650, 30, 50)]
+        with self.assertRaisesRegex(RuntimeError, "incomplete router sample at index 1"):
+            summarize_samples(rows, .5, 4)
+
+    def test_missing_section_in_final_record_is_not_a_truncated_tail(self):
+        rows = [sample(1, 100, 0, 500, 10, 20),
+                sample(3.5, 102.5, 100, 650, 30, 50)]
+        rows[-1]["raw"] = rows[-1]["raw"].replace("@@netdev\n", "")
+        with self.assertRaisesRegex(RuntimeError, "incomplete router sample at index 1"):
+            summarize_samples(rows, .5, 4)
+
+    def test_malformed_final_record_is_not_a_truncated_tail(self):
+        rows = [sample(1, 100, 0, 500, 10, 20),
+                sample(3.5, 102.5, 100, 650, 30, 50),
+                {"at_s": 3.8, "raw": "invalid output\n"}]
+        with self.assertRaisesRegex(RuntimeError, "incomplete router sample at index 2"):
+            summarize_samples(rows, .5, 4)
 
     def test_latency_failures_not_silently_dropped(self):
         result = distribution([{'ms': 1}, {'error': 'timeout'}, {'ms': 10}])
