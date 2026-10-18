@@ -5,7 +5,8 @@
 `NLM_F_DUMP_INTR` 会伴随缺项，但精确 C 依赖也有这一边界，不把它列为
 Rust 独有回归或当前两个前缀场景的发布阻断。本报告不授权发布、刷机或路由器操作。
 
-**后续状态：两项 P2 已在 e33fa56c 的最终 SDK 上定向复验关闭，见文末。
+**后续状态：两项 P2 已在 e33fa56c SDK 上定向复验关闭，并在最终 Fable
+e2adbe1c ELF 上各重跑一次保持关闭，见文末。
 以下原始发现及原 ELF 证据保留，不以修复结果覆盖历史。**
 
 审计者未参与此前实现。独立读取了 `AGENTS.md`、研究指导、实现和精确 C 源码，
@@ -212,3 +213,36 @@ LINK/ADDR/ROUTE 快照。没有第二次故障注入，进程在这两个重试�
 `snapshot_recovery.py`，额外传入 `--candidate-sha` 和上文完整 SDK SHA。
 当前没有本审计范围的未关闭新增发现；后续决定只需纳入其他独立审计结果，
 不需要继续扩展本报告的场景。
+
+## 最终 Fable ELF：两个冻结场景各一次通过
+
+2026-10-18 09:22 UTC，按最终 ELF 全夹具要求，只复用本审计已冻结的
+`hop_limit.py` 和 `snapshot_recovery.py` 各一次。源码
+`e2adbe1c2bc32cdfbaef5ea4fa01acc81e9385ba`；执行前核对的 ELF 路径为
+`oracle:/home/ubuntu/odhcpd-validation-20261018/sdk-fable-e2adbe1c/odhcpd-rs`，
+SHA256 `c7c5f1f9e79ea80febe696d6c758db8d3463d1e4b94c7a002f1aa597b9c3ea30`。
+两个脚本的 SHA 与前一节相同，输出使用全新目录，原始失败及修复证据未覆盖。
+
+静态比较 e33fa56c → e2adbe1c 的 config/main 改动：接口绑定验证提前到
+配置提交前，增加逐条配置诊断和 netifd 通知过滤；默认 hop-limit 的每包读取、
+快照重试保留状态、pending config 提交及 retry 期间跳过旧 route reconcile
+路径仍在。针对 RA-1/KERNEL-1 未发现新的静态回归。
+
+- **RA-1 保持 closed：** 三次 RS 的 RA hop limit 为 64 → 123 → 123。
+- **KERNEL-1 保持 closed：** 一次注入 ENOBUFS 后 PID 2953752 保持存活，
+  原 bound NA/PD 身份、地址及 PD 路由在窗口内和恢复后相同；窗口内 RS 和
+  DHCPv6 Information-request 有回复，恢复后原 NA/PD Renew 成功。
+- 此次仍出现一次真实 EBUSY，再次重试完成快照；最终 RA 的 MTU 从 1500
+  更新为 1499、router lifetime 从 1800 更新为 0，证实真实内核变化生效。
+  trace 没有守护进程发出的 RTM_NEWROUTE/RTM_DELROUTE。
+
+证据仍在独立审计目录，新增相对路径及 SHA256：
+
+| 相对路径 | SHA256 |
+|---|---|
+| `hop-sdk-fable-e2adbe1c/results.json` | `86d5fc707ac188918f9f086a02adb44653f390e769a78c33b09ae51dfbc352a3` |
+| `recovery-sdk-fable-e2adbe1c/results.json` | `ca2e03350604b9e4a01b3fd227004c84a3ecbf8b0fc381f281b756c79b3afa2f` |
+| `recovery-sdk-fable-e2adbe1c/strace.log` | `dcd4c3aab4e26335793da4ddce400b63778c1cc6b464eac52aa6b1870e561a9f` |
+
+没有重跑 C、DUMP_INTR 或性能实验，没有修改产品或访问物理路由器。
+共同 dump 一致性限制与前述验证边界不变；本次目标复验结束。
