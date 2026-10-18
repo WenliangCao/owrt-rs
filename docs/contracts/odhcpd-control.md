@@ -141,7 +141,11 @@ dhcp 对象不恢复。用户要求的重连是明确增强：断线后丢弃连
 目前公开 invoke API 是有界同步接口。实现使用唯一一个 128 KiB 栈的 ubus
 worker，拥有连接和全部有界 bus I/O，通过有界 channel 与可 poll 的唤醒 fd
 交给协议主循环；协议主循环不等待 dump 或重连。线程栈和队列纳入实际内存
-验收，不把同步接口宣称为 C 的异步 API。
+验收，不把同步接口宣称为 C 的异步 API。Fable 修复后，dump 的完整请求期限
+为 2 秒，reply/notify 等控制操作仍为 100 ms；最坏 shutdown join 界限相应为
+约 2 秒，协议主循环仍不等待 dump。忽略名单遵循 C 的有效服务模式而非共享
+UCI `ignore`；netifd 错型字段视缺省，坏 patch 按接口跳过并记录，坏 UCI host
+按条跳过，ubus `add_lease` 非法输入仍返回明确错误。
 
 ## 租约、hosts、触发器与调用方
 
