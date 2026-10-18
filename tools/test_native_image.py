@@ -4,6 +4,7 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -17,10 +18,96 @@ import native_package_reinstall_selftest
 
 REPO = Path(__file__).resolve().parent.parent
 SPEC = json.loads((REPO / "packaging/image/native-25.12.5.json").read_text())
+NEXT_SPEC = json.loads((REPO / "packaging/image/native-25.12.5-odhcpd.json").read_text())
 FILES = REPO / "packaging/openwrt/owrt-dnsmasq/files"
 
 
 class NativeDnsmasqTests(unittest.TestCase):
+    def test_next_recipe_is_explicit_and_preserves_the_accepted_ten(self):
+        expected = copy.deepcopy(SPEC)
+        expected["version"] = "0.2.4-r1"
+        expected["components"]["odhcpd"] = {
+            "path": "/usr/sbin/odhcpd", "binary": "odhcpd-rs", "stock_package": "odhcpd-ipv6only",
+            "stock_sha256": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
+            "reference_elf_sha256": "79f1349e845722d3824fab855b18f39e86e0ed5a1fb87cdc32374dc734302b55"}
+        self.assertEqual(NEXT_SPEC, expected)
+        self.assertEqual(SPEC["version"], "0.2.3-r1")
+
+    def test_only_exact_ten_and_eleven_native_inventories_are_accepted(self):
+        self.assertEqual(native_image.native_layout(SPEC["components"]), "native-ten")
+        self.assertEqual(native_image.native_layout(NEXT_SPEC["components"]), "native-eleven")
+        bad = []
+        for missing in ("fw4", "dnsmasq"):
+            value = copy.deepcopy(NEXT_SPEC["components"])
+            value.pop(missing)
+            bad.append(value)
+        for field, value in (("path", "/usr/sbin/odhcpd-rs"), ("binary", "another-rs"),
+                             ("stock_package", "odhcpd")):
+            changed = copy.deepcopy(NEXT_SPEC["components"])
+            changed["odhcpd"][field] = value
+            bad.append(changed)
+        bad.append(dict(NEXT_SPEC["components"], extra=NEXT_SPEC["components"]["odhcpd"]))
+        for components in bad:
+            with self.subTest(components=components), self.assertRaises(AssertionError):
+                native_image.native_layout(components)
+
+    def test_eleven_fixtures_include_stock_odhcpd_owner_and_reference_is_required(self):
+        self.assertEqual(set(native_apk_fixtures.stock_owners(NEXT_SPEC)),
+                         {c["stock_package"] for c in NEXT_SPEC["components"].values()})
+        hashes = {item["binary"]: item.get("reference_elf_sha256", "0" * 64)
+                  for item in NEXT_SPEC["components"].values()}
+        native_image.verify_component_references(hashes, NEXT_SPEC)
+        hashes["odhcpd-rs"] = "f" * 64
+        with self.assertRaisesRegex(AssertionError, "identity drift: odhcpd"):
+            native_image.verify_component_references(hashes, NEXT_SPEC)
+
+    def test_recovery_shell_accepts_only_complete_legacy_or_odhcpd_sets(self):
+        # Run the actual shell against owned temporary paths, replacing only its
+        # fixed root-path bindings. No chroot, active executable or router is used.
+        source = (REPO / "packaging/image/owrt-recover-c").read_text()
+        for variant in ("ten", "eleven", "missing", "substituted", "duplicate", "unknown"):
+            with self.subTest(variant=variant), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                stock = root / "stock"
+                active = root / "active"
+                active.mkdir()
+                paths = [c["path"] for c in SPEC["components"].values()]
+                paths += [c["path"] for c in SPEC["integration_files"].values()]
+                if variant != "ten": paths.append("/usr/sbin/odhcpd")
+                if variant == "missing": paths.remove("/sbin/fw4")
+                if variant == "substituted": paths.remove("/etc/init.d/dnsmasq")
+                if variant == "duplicate": paths[-1] = paths[0]
+                if variant == "unknown": paths[-1] = "/usr/sbin/unknown"
+                lines = []
+                for name in set(paths):
+                    file = stock / name.lstrip("/")
+                    file.parent.mkdir(parents=True, exist_ok=True)
+                    file.write_text("stock:" + name)
+                    file.chmod(0o755)
+                    live = active / name.lstrip("/")
+                    live.parent.mkdir(parents=True, exist_ok=True)
+                    live.write_text("candidate:" + name)
+                for name in paths:
+                    file = stock / name.lstrip("/")
+                    lines.append(hashlib.sha256(file.read_bytes()).hexdigest() + "  " + str(file) + "\n")
+                manifest = root / "stock.sha256"
+                manifest.write_text("".join(lines))
+                mounts = root / "mountinfo"
+                mounts.write_text("")
+                script = source.replace("base=/usr/libexec/owrt-stock", "base=" + str(stock))
+                script = script.replace("manifest=/usr/share/owrt-control-plane/stock.sha256", "manifest=" + str(manifest))
+                script = script.replace("/proc/self/mountinfo", str(mounts))
+                script = script.replace('    cp -p "$source"', '    target="' + str(active) + '$target"\n    cp -p "$source"')
+                script = script.replace('    mv -f "$target.owrt-recovery-new"', '    target="' + str(active) + '$target"\n    mv -f "$target.owrt-recovery-new"')
+                script = script.replace('rm -f "${source#"$base"}', 'rm -f "' + str(active) + '${source#"$base"}')
+                script = script.replace("\nsync\n", "\n: # fixture: no global sync\n")
+                result = subprocess.run(["sh", "-eu"], input=script, text=True, capture_output=True)
+                accepted = variant in ("ten", "eleven")
+                self.assertEqual(result.returncode == 0, accepted, result.stderr)
+                for name in set(paths):
+                    self.assertEqual((active / name.lstrip("/")).read_text(), ("stock:" if accepted else "candidate:") + name)
+                self.assertFalse(list(root.rglob("*.owrt-recovery-new")))
+
     def test_reinstall_negative_controls_still_find_tmpfs_fixture_commands(self):
         # Exercise the actual negative-control selector for both transaction
         # stages. Adding a global APK option must not bypass the no-op test.

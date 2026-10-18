@@ -5,7 +5,7 @@ set -eu
 ver=${OPENWRT_VERSION:?set OPENWRT_VERSION}
 repo=$(cd "$(dirname "$0")/.." && pwd)
 work=$(cd "${1:?usage: ci_integrate_image.sh WORKDIR}" && pwd)
-spec=$repo/packaging/image/native-$ver.json
+spec=${OWRT_NATIVE_SPEC:-$repo/packaging/image/native-$ver.json}
 test -f "$spec"
 set -- "$work"/openwrt-imagebuilder-"$ver"-*/
 [ "$#" = 1 ] && [ -d "$1" ] || exit 1
@@ -53,4 +53,4 @@ cmp "$work"/native/base-image/sysupgrade-*/CONTROL "$work"/native/unpacked/sysup
 "$ib/staging_dir/host/bin/fwtool" -i "$work/native/final-metadata.json" "$work/native/bin/$stock"
 cmp "$work/native/metadata.json" "$work/native/final-metadata.json"
 sudo -n python3 "$repo/tools/native_image.py" verify "$work" "$spec" "$apk"
-echo 'Native ten-component image assembled and audited; no device was flashed.'
+echo 'Selected native image assembled and audited; no device was flashed.'

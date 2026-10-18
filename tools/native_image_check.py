@@ -14,6 +14,8 @@ import shutil
 import subprocess
 import tarfile
 
+from native_image import native_layout
+
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -38,11 +40,13 @@ class Check:
         self.out = out
         out.mkdir(parents=True, exist_ok=False)
         self.manifest = json.loads((source / "usr/share/owrt-control-plane/release.json").read_text())
-        assert self.manifest["layout"] == "native-ten"
-        assert len(self.manifest["components"]) == 10
+        assert self.manifest["layout"] == native_layout(self.manifest["components"])
         assert {c["path"] for c in self.manifest["integration_files"].values()} == {
             "/etc/init.d/dnsmasq", "/usr/share/acl.d/dnsmasq_acl.json"}
         self.results = {}
+
+    def component_word(self):
+        return self.manifest["layout"].removeprefix("native-")
 
     def copy(self, name):
         root = self.out / name
@@ -170,7 +174,7 @@ mount -o bind /etc/init.d/dnsmasq /etc/init.d/dnsmasq
         self.identities(root, "stock")
         for path in (self.source / "etc/config").iterdir():
             assert path.read_bytes() == (root / "etc/config" / path.name).read_bytes()
-        self.passed("all_ten_C_and_dnsmasq_init_ACL_staged_idempotently_with_configuration_unchanged")
+        self.passed(f"all_{self.component_word()}_C_and_dnsmasq_init_ACL_staged_idempotently_with_configuration_unchanged")
 
     def package_reinstall(self, apk_dir):
         root = self.copy("package-reinstall")
@@ -204,7 +208,7 @@ sha256sum -c /usr/share/owrt-control-plane/rust.sha256
         for path, expected in file_lists.items():
             assert path.read_bytes() == expected, path
         self.identities(root)
-        self.passed("stock_package_reinstall_preserves_ten_Rust_files_and_dnsmasq_integration")
+        self.passed(f"stock_package_reinstall_preserves_{self.component_word()}_Rust_files_and_dnsmasq_integration")
         recovery = root / "usr/libexec/owrt-stock/sbin/procd"
         recovery.unlink()
         self.shell("package-native-reinstall", root, f'''

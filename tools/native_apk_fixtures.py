@@ -13,10 +13,15 @@ from pathlib import Path
 import shutil
 import subprocess
 
-from native_image import preserve_directory_modes, run, sha
+from native_image import native_layout, preserve_directory_modes, run, sha
 
 
 STOCK_OWNERS = ("procd", "ubusd", "netifd", "rpcd", "logd", "uhttpd", "firewall4", "uci", "dnsmasq")
+
+
+def stock_owners(spec):
+    native_layout(spec["components"])
+    return STOCK_OWNERS + (("odhcpd-ipv6only",) if "odhcpd" in spec["components"] else ())
 
 
 def main():
@@ -25,11 +30,12 @@ def main():
     parser.add_argument("native_apk", type=Path)
     parser.add_argument("apk_tool", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--spec", type=Path, default=Path(__file__).resolve().parent.parent / "packaging/image/native-25.12.5.json")
     args = parser.parse_args()
     assert os.geteuid() == 0 and not Path("/etc/openwrt_release").exists()
     root, out, apk = args.stock_rootfs.resolve(), args.output.resolve(), args.apk_tool.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    names = STOCK_OWNERS
+    names = stock_owners(json.loads(args.spec.read_text()))
     packages = json.loads(run(apk, "--root", root, "--no-network", "query", "--from", "installed",
                              "--format", "json", "--fields", "name,version,license,arch,depends,provides,origin", *names))
     assert {p["name"] for p in packages} == set(names)
