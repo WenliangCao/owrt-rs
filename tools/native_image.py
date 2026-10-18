@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Assemble and audit a native ten-component image. Never contacts a router.
+"""Assemble and audit an explicitly selected native image. Never contacts a router.
 
 The existing SDK builds remain the binary provenance source. One APK owns the
-ten standard paths using APK's explicit file-replacement metadata; official
+standard paths using APK's explicit file-replacement metadata; official
 packages supply their libraries, helpers and configuration. Two precisely
 pinned dnsmasq integration files accompany its accepted SDK binary.
 """
@@ -21,6 +21,32 @@ STOCK = "usr/libexec/owrt-stock"
 METADATA = "usr/share/owrt-control-plane"
 LEGACY = {"owrt-" + c for c in
           ("uci", "reload-config", "logd", "httpd", "fw4", "rpcd", "switch", "ubusd")}
+NATIVE_TEN = {
+    "fw4": ("/sbin/fw4", "fw4-rs", "firewall4"),
+    "httpd": ("/usr/sbin/uhttpd", "httpd-rs", "uhttpd"),
+    "logd": ("/sbin/logd", "logd-rs", "logd"),
+    "netifd": ("/sbin/netifd", "netifd-rs", "netifd"),
+    "procd": ("/sbin/procd", "procd-rs", "procd"),
+    "reload-config": ("/sbin/reload_config", "reload_config_rs", "procd"),
+    "rpcd": ("/sbin/rpcd", "rpcd-rs", "rpcd"),
+    "ubusd": ("/sbin/ubusd", "ubusd-rs", "ubusd"),
+    "uci": ("/sbin/uci", "uci-rs", "uci"),
+    "dnsmasq": ("/usr/sbin/dnsmasq", "dnsmasq-rs", "dnsmasq"),
+}
+ODHCPD = {"odhcpd": ("/usr/sbin/odhcpd", "odhcpd-rs", "odhcpd-ipv6only")}
+
+
+def native_layout(components):
+    """Only the two reviewed complete inventories are valid, not arbitrary counts."""
+    if set(components) == set(NATIVE_TEN):
+        expected, layout = NATIVE_TEN, "native-ten"
+    else:
+        expected, layout = NATIVE_TEN | ODHCPD, "native-eleven"
+        assert set(components) == set(expected), "unsupported native component inventory"
+    for name, identity in expected.items():
+        assert tuple(components[name].get(key) for key in ("path", "binary", "stock_package")) == identity, \
+            f"native path/binary/owner mismatch: {name}"
+    return layout
 
 
 def sha(path):
@@ -91,6 +117,7 @@ def preserve_directory_modes(payload, base):
 
 def fetch(work, spec, apk):
     del apk
+    native_layout(spec["components"])
     native = work / "native"
     native.mkdir(exist_ok=False)
     for key, filename in (("stock_image", spec["stock_image"]["file"]),
@@ -143,6 +170,7 @@ def verify_dnsmasq_reference(report, spec):
 
 def prepare(work, spec, apk):
     assert os.geteuid() == 0, "native image prepare requires root to verify protected stock configuration"
+    layout = native_layout(spec["components"])
     out = work / "out"
     root = work / "native/base-rootfs"
     binary_root = work / "verify/rootfs"
@@ -168,7 +196,7 @@ def prepare(work, spec, apk):
         assert sha(original) == c["stock_sha256"], f"stock identity drift: {path}"
         owner = run(apk, "--root", root, "--no-network", "info", "--who-owns", c["path"])
         assert owner.endswith(" is owned by " + c["stock_package"] + "-" + installed[c["stock_package"]]["version"])
-        binary = (out / "core-binaries" if name in ("procd", "ubusd", "netifd")
+        binary = (out / "core-binaries" if name in ("procd", "ubusd", "netifd", "odhcpd")
                   else binary_root / "usr/sbin") / c["binary"]
         if name == "dnsmasq":
             binary = out / "dnsmasq/payload/usr/sbin/dnsmasq"
@@ -185,7 +213,7 @@ def prepare(work, spec, apk):
         stock_sums.append(f"{item['stock_sha256']}  {item['recovery_path']}\n")
     rust_text, stock_text = "".join(rust_sums), "".join(stock_sums)
     manifest = {
-        "schema": 2, "layout": "native-ten", "source_commit": image["source_commit"],
+        "schema": 2, "layout": layout, "source_commit": image["source_commit"],
         "openwrt": spec["openwrt"], "profile": spec["profile"],
         "package": spec["package"], "version": spec["version"],
         "components": components,
@@ -194,7 +222,7 @@ def prepare(work, spec, apk):
         "stock_image": spec["stock_image"],
         "luci_source": spec["luci_source"], "translations": spec["translations"],
         "stock_packages": {p: installed[p] for p in owners},
-        "recovery": "owrt-recover-c stages all ten stock programs and exact dnsmasq init/ACL; reboot separately",
+        "recovery": f"owrt-recover-c stages all {len(components)} stock programs and exact dnsmasq init/ACL; reboot separately",
     }
     write(payload / METADATA / "release.json", manifest)
     (payload / METADATA / "rust.sha256").write_text(rust_text)
@@ -224,7 +252,7 @@ def prepare(work, spec, apk):
     dependencies += ["!" + p for p in sorted(LEGACY)]
     licenses = sorted({installed[p]["license"] for p in owners})
     info = {"name": spec["package"], "version": spec["version"],
-            "arch": spec["architecture"], "description": "Ten native Rust OpenWrt control-plane components",
+            "arch": spec["architecture"], "description": f"{len(components)} native Rust OpenWrt control-plane components",
             "license": " AND ".join(["(MIT OR Apache-2.0)", *licenses]),
             "origin": "owrt-control-plane-rs", "url": "https://github.com/WenliangCao/owrt-control-plane-rs",
             "depends": " ".join(dependencies), "replaces": " ".join(owners), "replaces-priority": "100"}
@@ -262,7 +290,7 @@ def prepare(work, spec, apk):
             "--info", "depends:libc " + translation["package"] + "=" + installed[translation["package"]]["version"])
     write(work / "native/build-inputs.json", {"image": image, "core": core, "dnsmasq": dnsmasq,
           "package_metadata": info, "package_sha256": sha(package)})
-    print(f"Prepared {package.name}: ten native paths, paired dnsmasq init/ACL, twelve stock recovery files")
+    print(f"Prepared {package.name}: {len(components)} native paths, paired dnsmasq init/ACL, {len(components) + len(integration)} stock recovery files")
 
 
 def verify(work, spec, apk):
@@ -270,7 +298,8 @@ def verify(work, spec, apk):
     before = work / "native/base-rootfs"
     manifest = read(work / "native/payload" / METADATA / "release.json")
     assert read(root / METADATA / "release.json") == manifest
-    assert manifest["layout"] == "native-ten" and len(manifest["components"]) == 10
+    layout = native_layout(manifest["components"])
+    assert manifest["layout"] == layout == native_layout(spec["components"])
     assert sha(root / METADATA / "stock.sha256") == manifest["stock_manifest_sha256"]
     installed, previous = packages(apk, root), packages(apk, before)
     translations = {"luci-i18n-" + n + "-zh-cn" for n in spec["translations"]}
@@ -299,6 +328,10 @@ def verify(work, spec, apk):
     for service in ("log", "rpcd", "uhttpd", "network"):
         assert (root / "etc/init.d" / service).read_bytes() == (before / "etc/init.d" / service).read_bytes()
         assert any((root / "etc/rc.d").glob("S[0-9][0-9]" + service)), service
+    if "odhcpd" in manifest["components"]:
+        for path in ("etc/init.d/odhcpd", "usr/sbin/odhcpd-update", "etc/uci-defaults/15_odhcpd"):
+            assert (root / path).read_bytes() == (before / path).read_bytes(), path
+        assert any((root / "etc/rc.d").glob("S[0-9][0-9]odhcpd"))
     assert any((root / "etc/rc.d").glob("S[0-9][0-9]dnsmasq"))
     for name in ("shadow", "passwd"):
         assert (root / "etc" / name).read_bytes() == (before / "etc" / name).read_bytes()
@@ -331,7 +364,7 @@ def verify(work, spec, apk):
         shutil.copy2(source, output / source.name)
     inputs = read(work / "native/build-inputs.json")
     hashes = {c["binary"]: c["rust_sha256"] for c in manifest["components"].values()}
-    result = dict(inputs["image"], schema_version=3, deployment_layout="native-ten",
+    result = dict(inputs["image"], schema_version=3, deployment_layout=layout,
                   packages={n: installed[n]["version"] for n in translations | {spec["package"]}}, components=manifest["components"],
                   integration_files=manifest["integration_files"], stock_manifest_sha256=manifest["stock_manifest_sha256"],
                   binary_sha256=hashes, stock_packages=manifest["stock_packages"],
@@ -341,7 +374,7 @@ def verify(work, spec, apk):
                   kernel_sha256=sha(next((work / "native/base-image").glob("sysupgrade-*/kernel"))),
                   imagebuilder_args={"assembly": "verified stock rootfs + offline APK install + official image tools",
                                      "rolling_feeds_used_for_final_rootfs": False},
-                  validation={"ten_native_paths": True, "package_ownership": True,
+                  validation={layout.removeprefix("native-") + "_native_paths": True, "package_ownership": True,
                               "stock_recovery_hashes": True, "stock_service_scripts_except_qualified_dnsmasq": True,
                               "qualified_dnsmasq_init_and_acl": True, "dnsmasq_source_recipe_identical": True,
                               "dnsmasq_reference_elf_identical": inputs["dnsmasq"]["elf"]["matches_accepted_reference"],

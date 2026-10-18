@@ -1,7 +1,7 @@
 # Single entry point for the repository. Each crate stays independent (the
 # OpenWrt package Makefiles copy crate directories one by one), so there is no
 # root Cargo workspace on purpose.
-COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd dnsmasq
+COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd dnsmasq odhcpd
 VERSION ?= 25.12.5
 
 .PHONY: check-netlink-consts test check-tools check-harnesses check-benchmark check-toolchain check-toolchain-negative check-abi build apk image ci-image
@@ -99,6 +99,6 @@ image:
 # Same as the release-image GitHub workflow, on this machine (x86_64 Linux with rustup):
 ci-image:
 	OPENWRT_VERSION=$(VERSION) sh tools/ci_build_image.sh work
-	OPENWRT_VERSION=$(VERSION) sh tools/ci_build_core.sh work
+	OPENWRT_VERSION=$(VERSION) OWRT_CORE_INCLUDE_ODHCPD=1 sh tools/ci_build_core.sh work
 	OPENWRT_VERSION=$(VERSION) python3 tools/ci_build_dnsmasq.py work
 	OPENWRT_VERSION=$(VERSION) sh tools/ci_integrate_image.sh work

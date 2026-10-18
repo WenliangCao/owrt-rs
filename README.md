@@ -5,13 +5,26 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 保留精确 C 原件与离线恢复材料。
 
-**现状（2026-10-17）：[v0.2.2](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.2) 十组件固件已保留配置上线并设为 Latest，业务 unsafe 从 545 处降到 0，目标编译警告清零。**
-本版统一整理系统调用与安全封装，业务 crate 禁止 unsafe，CI 遇到编译警告即失败。
-完整正确性及用户指定的 24 个流量窗口、10 次启动检查通过；短检查未见可辨退化，
-UDP 命中的小幅不利趋势和瞬时 FD 审查保留，不宣称严格等效或提速。
-同一正式 CI 镜像只刷写一次，连续健康确认与 600 秒资源观察通过，没有额外重启。
-详见[部署记录](docs/reviews/DEPLOYMENT_V0_2_2_20261017.md)、[发布说明](docs/reviews/RELEASE_V0_2_2_20261017_NOTES.md)
-及[统一验收报告](docs/reviews/CORE_SAFE_20261017.md)。当次配置和精确 v0.2.1 回滚镜像已离机保存。
+**现状（2026-10-18）：v0.3.0 已保配置刷入，新增 odhcpd-rs；真实客户端续租通过，撤销报文与精确 C 一致，已获准发布。**
+默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。最终 SDK `589226a1…` 的完整
+10 项指标真机对照已通过：40 个正式配对中 39 个改善、1 个 Renew 在噪声内，
+没有退步。3 个 NA 租约时 RSS 为 C/Rust 1106/806 KiB；空闲 CPU 为
+18.0509/0 µs/s，Rust 的 0 是测量窗口内无进程 CPU 增量，不是所有负载零开销。
+初始连续客户端健康通过 187.711 秒。获准的一次 20 秒 WAN6 断开已自动恢复，
+IPv4 HTTPS 59/59 通过；路由器及时发出旧前缀零寿命 RA，但客户端直到恢复初期
+才记录撤销并短暂 deprecated，随后取回同一前缀。用户接受这一客户端行为；
+[离线 C 对照](docs/reviews/ODHCPD_WITHDRAWAL_C_PARITY_20261018.md)确认报文一致，发布条件已满足。
+详见[部署与客户端验收](docs/reviews/ODHCPD_V030_DEPLOYMENT_20261018.md)；不追加性能轮次或重复 WAN6 断开。
+见[最终全指标结果](docs/reviews/ODHCPD_FINAL_FULL_AB_RESULT_20261018.md)；
+[两项复测](docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md)与
+[首批停止结果](docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)保留原样。
+此前标为 v0.2.4 的候选保留原版本、源码和产物哈希：其 Fable 修复 ELF 已通过
+129 项 SDK 实包检查、完整镜像夹具和真实客户端 123.74 秒短时试运行，确认后已恢复 C。
+这些历史产物不改名为 v0.3.0。新组件沿用原 init 和 leasetrigger，仅支持本机
+RA/SLAAC、DHCPv6 IA_NA/IA_PD、租约、UCI 和 ubus/netifd。旧候选首主动 RA 约
+1 ms 差距的接受决定仍保留，最终十项对照的范围以新报告为准。详见[功能报告](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)、
+[Fable 修复及新客户端试运行](docs/reviews/ODHCPD_FABLE_RESULT_20261018.md)与
+[v0.2.3 部署记录](docs/reviews/DEPLOYMENT_V0_2_3_20261017.md)。
 
 **历史里程碑（2026-09-29）：完整九组件 Rust 固件已保留配置刷入，客户端验收与用户物理断电复测通过，试验工具已清理。**
 固定回溯节点：[AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)，
@@ -74,13 +87,14 @@ ubusd CPU不再随客户端数增长；正式构建随后走完隔离矩阵与�
 | 层 | 内容 | 处置 |
 |---|---|---|
 | 内核与驱动 | Linux 6.12、mt798x-wmac/mt76 无线、an8855 DSA 交换机、nftables、netlink | **保留** |
-| 数据面 / 执行面 | hostapd（wpad）、dnsmasq、odhcpd、udhcpc/odhcp6c、dropbear、busybox、apk、sysupgrade stage2（`upgraded`） | **保留**——成熟、失败边界清楚、与本项目无接口冲突 |
+| 数据面 / 执行面 | hostapd（wpad）、udhcpc/odhcp6c、dropbear、busybox、apk、sysupgrade stage2（`upgraded`） | **保留**——成熟、失败边界清楚、与本项目无接口冲突 |
+| DNS 与地址服务 | dnsmasq、odhcpd | 按各自实测范围实现；odhcpd 的 NDP 代理、中继和 DHCPv4 模式拒绝启动 |
 | 脚本层（被控制面调用） | `/lib/netifd/proto/*.sh`（dhcp/dhcpv6/ppp）、`/lib/netifd/wireless/mac80211.sh`（ucode wifi-scripts）、`/etc/init.d/*`、`/etc/hotplug.d/*`、`/etc/board.json` | **保留**——Rust daemon 按上游的调用合同（argv、环境、notify 协议）驱动它们 |
 | **控制面（管理层）** | procd、ubusd、netifd、rpcd、uci、firewall4 生成器、uhttpd、logd、reload_config | **全部 Rust**（下表） |
 | UI | LuCI（ucode，经 CGI 与 `/ubus`） | **保留**——跑在 httpd-rs + rpcd-rs 上 |
 
 分层的判据不是"能不能用 Rust 写"，而是接口面是否清楚、失败边界是否可控、以及有没有办法在
-一台唯一的生产设备上验证并回退。数据面组件一律不碰；控制面组件按爆炸半径从小到大逐个接管。
+一台唯一的生产设备上验证并回退。内核转发和无线执行面保留；按明确授权的范围逐个接管用户态组件。
 
 ## 控制面组件
 
@@ -184,7 +198,7 @@ sudo sh   tools/r65_procd_diff.sh <rootfs> <procd-rs> <outdir> <examples-dir>
 
 ## 明确不做
 
-不重写内核、驱动、hostapd、dnsmasq/odhcpd、sysupgrade stage2、无线 handler 脚本和 LuCI。不做
+不重写内核、驱动、hostapd、sysupgrade stage2、无线 handler 脚本和 LuCI；不扩展 odhcpd 的 NDP 代理、中继或 DHCPv4 模式。不做
 ubusd 的**热**切换（客户端 odhcpd/dnsmasq/netifd 的重连语义不允许，决策 0015；上线走的是随重启的
 冷切换）。不在没有回退路径的情况下碰设备。
 

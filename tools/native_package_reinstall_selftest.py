@@ -56,7 +56,7 @@ def main():
                             for name in check.manifest["stock_packages"]]
                            if stage == "stock" else [root / "usr/libexec/owrt-stock/sbin/procd"])
                 assert check.skipped == 1 and all(not p.exists() for p in missing)
-                result = ("stock_package_reinstall_preserves_ten_Rust_files_and_dnsmasq_integration" if stage == "stock"
+                result = (f"stock_package_reinstall_preserves_{check.component_word()}_Rust_files_and_dnsmasq_integration" if stage == "stock"
                           else "native_package_reinstall_preserves_Rust_and_recovery_files")
                 assert result not in check.results
                 rows.append({"stage": stage, "repeat": repeat, "rejected": True,

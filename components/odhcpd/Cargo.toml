@@ -1,0 +1,26 @@
+[package]
+name = "owrt-odhcpd"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.98.1"
+license = "MIT OR Apache-2.0"
+description = "Scoped RA and DHCPv6 server for the pinned OpenWrt image"
+publish = false
+
+[[bin]]
+name = "odhcpd-rs"
+path = "src/main.rs"
+
+[dependencies]
+owrt-platform = { path = "../platform" }
+owrt-ubus = { path = "../ubus" }
+owrt-uci = { path = "../uci" }
+owrt-netifd = { path = "../netifd" }
+rustix = { version = "=1.1.5", features = ["event", "fs", "net", "process", "time"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

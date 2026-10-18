@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 import tarfile
 import uuid
+from r84_device_probe import native_paths
 
 
 def validate_members(members, reserved):
@@ -50,8 +51,8 @@ def main():
     assert re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", args.rollback_version)
     assert not args.output.exists()
     manifest = json.loads(args.manifest.read_text())
-    assert manifest["deployment_layout"] == "native-ten"
-    assert len(manifest["components"]) == 10
+    paths = native_paths(manifest["deployment_layout"])
+    assert {name: item["path"] for name, item in manifest["components"].items()} == paths
     assert len(manifest["integration_files"]) == 2
     rollback_image = args.rollback_image.read_bytes()
     assert hashlib.sha256(rollback_image).hexdigest() == args.rollback_sha256
@@ -69,7 +70,7 @@ def main():
     assert image_manifest["integration_files"] == manifest["integration_files"]
     stock = (args.rootfs / "usr/share/owrt-control-plane/stock.sha256").read_text()
     observed = dict(line.split(None, 1)[::-1] for line in stock.splitlines())
-    assert len(stock.splitlines()) == 12 and len(observed) == 12
+    assert len(stock.splitlines()) == len(files) and len(observed) == len(files)
     assert observed == {c["recovery_path"]: c["stock_sha256"] for c in files}
     for path, expected in observed.items():
         assert hashlib.sha256((args.rootfs / path.lstrip("/")).read_bytes()).hexdigest() == expected

@@ -42,13 +42,21 @@ NATIVE_PATHS = {
 STOCK_UJAIL_SHA256 = "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644"
 
 
+def native_paths(layout):
+    if layout == "native-ten":
+        return NATIVE_PATHS
+    if layout == "native-eleven":
+        return {**NATIVE_PATHS, "odhcpd": "/usr/sbin/odhcpd"}
+    raise RuntimeError("unsupported native release layout")
+
+
 def load_native_manifest(path):
     raw = Path(path).read_bytes()
     manifest = json.loads(raw)
-    require(manifest.get("deployment_layout") == "native-ten", "expected native-ten release manifest")
+    paths = native_paths(manifest.get("deployment_layout"))
     require(re.fullmatch(r"[0-9a-f]{40}", manifest.get("source_commit", "")), "invalid native source identity")
-    require(set(manifest.get("components", {})) == set(NATIVE_PATHS), "native manifest must contain exactly ten components")
-    for name, expected in NATIVE_PATHS.items():
+    require(set(manifest.get("components", {})) == set(paths), "native component set differs from layout")
+    for name, expected in paths.items():
         item = manifest["components"][name]
         require(item.get("path") == expected, "wrong native component path: " + name)
         for key in ("rust_sha256", "stock_sha256"):
@@ -66,9 +74,9 @@ def native_identity(host, manifest):
         host, "sha256sum " + " ".join(shlex.quote(path) for path in expected), timeout=30).splitlines())
     require(actual == expected, "native installed/ROM executable identity mismatch")
     release = json.loads(ssh(host, "cat /usr/share/owrt-control-plane/release.json"))
-    require(release.get("layout") == "native-ten" and release.get("source_commit") == manifest["source_commit"],
+    require(release.get("layout") == manifest["deployment_layout"] and release.get("source_commit") == manifest["source_commit"],
             "wrong installed native release")
-    require(set(release.get("components", {})) == set(NATIVE_PATHS), "installed release omits a component")
+    require(set(release.get("components", {})) == set(native_paths(manifest["deployment_layout"])), "installed release omits a component")
     for name, item in components.items():
         require(all(release["components"][name].get(key) == item[key] for key in ("path", "rust_sha256", "stock_sha256")),
                 "installed release component differs: " + name)
@@ -183,7 +191,7 @@ def probe(host="openwrt", mode="existing", interface=None, ipv6=True,
     if mode == "native":
         require(native_manifest is not None, "native probe requires a local release manifest")
         manifest, digest = load_native_manifest(native_manifest)
-        result.update(verified_components=sorted(NATIVE_PATHS), native_source_commit=manifest["source_commit"],
+        result.update(verified_components=sorted(manifest["components"]), native_source_commit=manifest["source_commit"],
                       native_manifest_sha256=digest, native_identity=native_identity(host, manifest))
     elif mode != "existing":
         require(mode in ("stock", "rust"), "invalid production mode")

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Host tests and real-SDK builds for the nine non-dnsmasq candidates.
+"""Host tests and real-SDK builds for the non-dnsmasq candidates.
 
 Uses the existing package/core recipes. This workflow neither constructs the
 native ten-component release nor changes dnsmasq's identity/qualification gate.
+odhcpd is an opt-in standalone SDK output, not a qualified image component.
 """
 import argparse
 import hashlib
@@ -17,7 +18,7 @@ import subprocess
 from dnsmasq.compiler_warnings import scan
 
 REPO = Path(__file__).resolve().parent.parent
-COMPONENTS = ("platform", "ubus", "uci", "reload-config", "logd", "httpd", "fw4", "rpcd", "ubusd", "netifd", "procd")
+COMPONENTS = ("platform", "ubus", "uci", "reload-config", "logd", "httpd", "fw4", "rpcd", "ubusd", "netifd", "procd", "odhcpd")
 COMMON = {"platform", "ubus", "uci"}
 LINK_FLAGS = "-Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs"
 
@@ -110,7 +111,10 @@ def sdk_check(work, env, report):
     out = work / "out"
     out.mkdir(parents=True, exist_ok=True)
     for script in ("ci_build_image.sh", "ci_build_core.sh"):
-        code = run(["sh", REPO / "tools" / script, work], out / f"driver-{script}.txt", env)
+        # Only this diagnostic pipeline opts in. The release-image workflow's
+        # direct core invocation retains its qualified three-binary inventory.
+        recipe_env = dict(env, OWRT_CORE_INCLUDE_ODHCPD="1") if script == "ci_build_core.sh" else env
+        code = run(["sh", REPO / "tools" / script, work], out / f"driver-{script}.txt", recipe_env)
         report["commands"].append({"recipe": script, "returncode": code})
         if code:
             return out, False
@@ -158,8 +162,8 @@ def sdk_check(work, env, report):
             shutil.copy2(binary, candidates / name)
             hashes[name] = actual
     if set(hashes) != {"uci-rs", "reload_config_rs", "logd-rs", "httpd-rs", "fw4-rs",
-                       "rpcd-rs", "ubusd-rs", "netifd-rs", "procd-rs"}:
-        raise ValueError("expected all nine actual recipe outputs")
+                       "rpcd-rs", "ubusd-rs", "netifd-rs", "procd-rs", "odhcpd-rs"}:
+        raise ValueError("expected all ten actual non-dnsmasq recipe outputs")
     report["binary_sha256"] = hashes
     return out, True
 

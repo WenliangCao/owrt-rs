@@ -1,14 +1,39 @@
-# Native ten-component image
+# Native eleven-component image
 
 `native-25.12.5.json` fixes the standard executable paths, original file owners
 and exact stock hashes for the AX3000T image. The original packages continue to
 supply configuration, libraries and execution-plane helpers. The accepted
 dnsmasq init script and ubus ACL are the only two integration-file replacements;
 their original and replacement hashes are pinned in the image specification.
-`owrt-control-plane` owns all ten executable paths and these two files through APK v3 `replaces`
+`owrt-control-plane 0.3.0-r1` owns eleven executable paths and these two files through APK v3 `replaces`
 and `replaces-priority`; its stock package dependencies are pinned to the
 versions whose recovery copies were verified. The older `owrt-*` switch packages
 conflict with this package and are excluded from the final image.
+
+The eleventh program is scoped `odhcpd-rs` at `/usr/sbin/odhcpd`. Its original
+`odhcpd-ipv6only` package still supplies init, defaults and `odhcpd-update`.
+The exact accepted SDK ELF is pinned like the other programs. Historical
+native-ten manifests and complete twelve-file recovery sets remain supported.
+
+The current release target is v0.3.0 because it adds a new component. The user
+authorized one idle/Renew fix and one limited device comparison; both metrics
+passed. The recipe now pins SDK ELF
+`589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e`
+from source `162d9ba8`, SDK CI `39122603394` (802936 bytes, static).
+The final full device gate has passed all ten metrics: 39 of 40 formal pairs
+improved, one Renew pair was within calibrated noise, and none regressed.
+The image build, finite client trial, flash and publication are authorized and
+pending. No further performance rounds or product optimization are planned.
+See the [full comparison result](../../docs/reviews/ODHCPD_FINAL_FULL_AB_RESULT_20261018.md).
+The earlier image CI `39123811190` (source `346470cd`) was cancelled before this
+gate; a new v0.3.0 image build will use the same version and SDK reference.
+PR #1 remains draft; production is unchanged at v0.2.3 with C odhcpd.
+See the [limited comparison](../../docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md).
+The [first batch's stop result](../../docs/reviews/ODHCPD_DEVICE_AB_RESULT_20261018.md)
+and the earlier two-metric PASS retain their original scope and evidence.
+Existing v0.2.4 candidate images, measurements
+and qualification reports keep their original versions and hashes; they are not
+renamed or treated as v0.3.0 build evidence.
 
 The canonical workflow builds the existing SDK artifacts and runs
 `tools/ci_build_dnsmasq.py` with the unchanged, accepted dnsmasq SDK recipe, then
@@ -27,7 +52,8 @@ live installation. The unified package depends on the original dnsmasq package
 for its configuration, users and unchanged helpers.
 
 From v0.2.2, the other nine programs also carry individual reference ELF hashes.
-Every canonical image rebuild must reproduce all ten qualified binaries. The
+Every canonical image rebuild must reproduce every qualified binary. v0.3.0
+adds the functionally qualified odhcpd reference without changing the other ten. The
 DNS product commit and packaging epoch remain distinct from the final image's
 build commit, so report/version changes do not retrain PGO or change its inputs.
 
@@ -43,8 +69,8 @@ honor the user's service-disable choices. The v0.2.0 ten-component layout keeps
 this migration marker's name; it is not a component-count assertion. No trial
 collector is added.
 
-`owrt-recover-c` verifies all ten stock recovery programs plus the exact stock
-dnsmasq init script and ACL under `/usr/libexec/owrt-stock/`, prepares all twelve
+`owrt-recover-c` verifies all eleven stock recovery programs plus the exact stock
+dnsmasq init script and ACL under `/usr/libexec/owrt-stock/`, prepares all thirteen
 replacement files with their original modes, and stages them at
 their standard paths. It leaves reboot to the operator and works from failsafe
 after `mount_root`. `/rom/sbin/procd` is Rust in this image and is not a C recovery
