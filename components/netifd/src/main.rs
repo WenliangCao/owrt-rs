@@ -1721,8 +1721,10 @@ impl Netifd {
                 );
                 let dir = self.protodir.clone();
                 let st = self.proto_state(name);
+                st.script_start_failed = false;
                 // the scripts source ../netifd-proto.sh, so cwd matters
                 if let Err(e) = st.script.start_in(&argv, &env, &dir) {
+                    st.script_start_failed = true;
                     logging::log!(Warning, "{name}: cannot run {action}: {e}");
                 }
             }
@@ -2471,6 +2473,14 @@ impl Netifd {
         let names: Vec<String> = self.protos.iter().map(|(n, _)| n.clone()).collect();
         for name in names {
             for which in [proto::Which::Script, proto::Which::Task] {
+                if which == proto::Which::Script
+                    && std::mem::take(&mut self.proto_state(&name).script_start_failed)
+                {
+                    // Do not finish inside proto_cmd: repeated exec failures
+                    // would recurse through teardown and setup indefinitely.
+                    self.finish_proto_task(&name, which);
+                    continue;
+                }
                 let exited = {
                     let st = self.proto_state(&name);
                     let slot = match which {
