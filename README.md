@@ -8,9 +8,12 @@
 
 ## 2026-10-18
 
+- 完成一次正式 20 秒 WAN 抓包：3 次超时连接的 SYN 均已出现在 WAN，SYN-ACK
+  到约 1.024 秒才返回，晚于探针期限。按约定归档为“楼宇上游握手迟延／疑似丢包”，
+  具体跳点未定位，结束此项研究。[闭合记录](docs/reviews/WAN_SYN_20261018_CLOSEOUT.md)
 - 按用户决定关闭硬件流卸载和 WED，保留软件流卸载，以较高 CPU 成本换取此前观察到的
   较低 Wi-Fi 尾延迟和更多可用内存。上传 CPU 成本与实验 A 关闭组相容；本轮下载
-  吞吐较低、原因未定位，未能证实与 A 一致，公网连接超时仍未解决。[配置与验收](docs/reviews/SOFTWARE_OFFLOAD_20261018_RESULT.md)
+  吞吐较低、原因未定位，未能证实与 A 一致；当轮公网超时的后续结论见上条。[配置与验收](docs/reviews/SOFTWARE_OFFLOAD_20261018_RESULT.md)
 - 完成 HFO 开/关与 Mac 双网口排队定位：关闭 HFO 后 Wi-Fi 端尾延迟降低，有线 LAN
   探针约 1 ms；有线公网仍有超时。该轮结束时恢复 HFO+WED，未配置 CAKE。
   [对照结果与限制](docs/reviews/QUEUE_LOCATION_20261018_RESULT.md)
