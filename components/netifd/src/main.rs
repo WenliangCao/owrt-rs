@@ -473,6 +473,21 @@ impl Netifd {
         }
         self.cfg = new;
 
+        // bridge_config_init flushes configured members that left the UCI
+        // list. Dynamic wireless members are not in the old list and survive.
+        let mut removed_port = false;
+        for bridge in old.devices.iter().filter(|d| d.kind.as_deref() == Some("bridge")) {
+            let retained = self.cfg.devices.iter().find(|d| d.name == bridge.name)
+                .map(|d| d.ports.clone()).unwrap_or_default();
+            for port in bridge.ports.iter().filter(|p| !retained.contains(p)) {
+                self.bridge_port_detach(&bridge.name, port);
+                removed_port = true;
+            }
+        }
+        if removed_port {
+            self.update_presence();
+        }
+
         if self.handlers.is_empty() {
             self.handlers = proto::discover(std::path::Path::new(&self.protodir));
             let names: Vec<&str> = self.handlers.iter().map(|h| h.name.as_str()).collect();

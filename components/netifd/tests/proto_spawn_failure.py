@@ -17,9 +17,11 @@ import sys
 import tempfile
 import time
 
-CASES = ("healthy_spawn", "fail_spawn", "dependency")
+CASES = ("healthy_spawn", "fail_spawn", "dependency", "bridge_remove", "bridge_last_port")
 ORIGINAL_CHECKS = {}
 CHECKS = {case: {"recovered", "same_daemon"} for case in CASES}
+CHECKS["bridge_remove"] = {"removed_from_kernel", "removed_from_status", "dynamic_preserved"}
+CHECKS["bridge_last_port"] = {"removed_from_kernel", "unavailable", "address_removed"}
 CHECKS["dependency"] = {"initially_unavailable", "recovered", "loss_detected", "recovered_again", "same_daemon"}
 
 PROTO = r'''#!/bin/sh
@@ -144,7 +146,35 @@ def inner(root, side, case):
     assert daemon.poll() is None
     assert Path(f"/proc/{daemon.pid}/exe").resolve() == root / binary.lstrip("/")
     result = {}
-    if case == "dependency":
+    if case.startswith("bridge_"):
+        wait_for(lambda: snapshot("ready").get("up"))
+        if case == "bridge_remove":
+            run("ip", "link", "add", "dynamic0", "type", "dummy")
+            call("network.interface.wan", "add_device", {"name": "dynamic0", "link-ext": False})
+            time.sleep(0.5)
+        before = json.loads(run("ip", "-j", "link", "show", capture_output=True).stdout)
+        assert next(x for x in before if x["ifname"] == "veth1").get("master") == "br-test"
+        if case == "bridge_remove":
+            assert next(x for x in before if x["ifname"] == "dynamic0").get("master") == "br-test"
+        write(output / "before-links.json", json.dumps(before, indent=2))
+        path = root / "etc/config/network"
+        path.write_text(path.read_text().replace(" list ports 'veth1'\n", ""))
+        call("network", "reload")
+        time.sleep(1)
+        after = json.loads(run("ip", "-j", "link", "show", capture_output=True).stdout)
+        write(output / "after-links.json", json.dumps(after, indent=2))
+        result["removed_from_kernel"] = next(x for x in after if x["ifname"] == "veth1").get("master") != "br-test"
+        if case == "bridge_remove":
+            status = call("network.device", "status", {"name": "br-test"})
+            write(output / "after-device.json", json.dumps(status, indent=2))
+            result["removed_from_status"] = "veth1" not in status.get("bridge-members", [])
+            result["dynamic_preserved"] = next(x for x in after if x["ifname"] == "dynamic0").get("master") == "br-test"
+        else:
+            result["unavailable"] = snapshot("empty").get("available") is False
+            addrs = json.loads(run("ip", "-j", "addr", "show", capture_output=True).stdout)
+            write(output / "after-addresses.json", json.dumps(addrs, indent=2))
+            result["address_removed"] = all(a.get("local") != "10.90.0.1" for link in addrs for a in link["addr_info"])
+    elif case == "dependency":
         time.sleep(0.5)
         result["initially_unavailable"] = snapshot("initial").get("available") is False
         call("network.interface.under", "up")
@@ -209,6 +239,9 @@ def main():
                 if case == "dependency":
                     write(root / "etc/config/network", config() + "config interface 'under'\n option device 'under0'\n option proto 'static'\n option auto '0'\n option ipaddr '10.91.0.1/24'\n")
                     write(root / "tmp/dependency", "")
+                if case.startswith("bridge_"):
+                    empty = 1 if case == "bridge_remove" else 0
+                    write(root / "etc/config/network", "config device\n option name 'br-test'\n option type 'bridge'\n" + f" option bridge_empty '{empty}'\n" + " list ports 'veth1'\nconfig interface 'wan'\n option device 'br-test'\n option proto 'static'\n option ipaddr '10.90.0.1/24'\n")
                 write(root / "etc/config/wireless", "")
                 write(root / "lib/netifd/proto/probe.sh", PROTO, True)
                 write(root / "tmp/helper.sh", HELPER, True)
