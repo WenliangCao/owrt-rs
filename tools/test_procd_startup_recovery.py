@@ -77,7 +77,7 @@ def send_frame(connection, kind, sequence, fields):
     connection.sendall(struct.pack(">BBHII", 0, kind, sequence, 0, len(fields) + 4) + fields)
 
 
-def run_case(rootfs, candidate, output, side, fail_at):
+def run_case(rootfs, candidate, output, side, fail_at, empty_respawn=False):
     # Keep the filesystem socket pathname below sockaddr_un's 108-byte limit.
     with tempfile.TemporaryDirectory(prefix="v030-pid1-") as temporary:
         root = Path(temporary) / "root"
@@ -96,7 +96,10 @@ def run_case(rootfs, candidate, output, side, fail_at):
         (root / "sbin/udevtrigger").chmod(0o755)
         (root / "sbin/ubusd").write_text("#!/bin/sh\nexec sleep 300\n")
         (root / "sbin/ubusd").chmod(0o755)
-        (root / "etc/inittab").write_text("::sysinit:/etc/init.d/rcS S boot\n")
+        inittab = "::sysinit:/etc/init.d/rcS S boot\n"
+        if empty_respawn:
+            inittab = "null::respawn:\n" + inittab
+        (root / "etc/inittab").write_text(inittab)
         shutil.rmtree(root / "etc/rc.d")
         (root / "etc/rc.d").mkdir()
         probe = root / "etc/rc.d/S10probe"
@@ -104,14 +107,16 @@ def run_case(rootfs, candidate, output, side, fail_at):
         probe.chmod(0o755)
         path = root / "tmp/run/ubus/ubus.sock"
         listener = None
-        if fail_at:
+        if fail_at > 0:
             listener = socket.socket(socket.AF_UNIX)
             listener.bind(str(path))
             listener.listen(4)
             listener.settimeout(8)
             path.chmod(0o666)
-        else:
+        elif fail_at == 0:
             (root / "sbin/ubusd").unlink()
+        else:
+            shutil.copy2(root / "tmp/ubusd-real", root / "sbin/ubusd")
         command = ["unshare", "--mount", "--net", "--pid", "--fork", "--kill-child",
                    "/bin/sh", "-c", '''
 set -eu
@@ -124,18 +129,18 @@ mknod -m 666 "$1/dev/urandom" c 1 9
 exec chroot "$1" /sbin/procd -S
 ''', "sh", str(root)]
         daemon = bus = None
-        observed = {"side": side, "fail_at": fail_at}
+        observed = {"side": side, "fail_at": fail_at, "empty_respawn": empty_respawn}
         with (output / f"{side}-pid1.log").open("w") as log, \
                 (output / f"{side}-ubusd.log").open("w") as bus_log:
             try:
                 daemon = subprocess.Popen(command, stdout=log, stderr=log,
                                           env={**os.environ, "container": "1"})
-                if not fail_at:
+                if fail_at == 0:
                     # No process exists to reap after Rust's failed exec.
                     # Restore the dependency without signaling PID 1.
                     time.sleep(1.2)
                     shutil.copy2(root / "tmp/ubusd-real", root / "sbin/ubusd")
-                else:
+                elif fail_at > 0:
                     inject_registration_failure(listener, fail_at, observed)
                     listener.close()
                     path.unlink(missing_ok=True)
@@ -196,14 +201,16 @@ def main():
     parser.add_argument("--rootfs", required=True, type=Path)
     parser.add_argument("--candidate", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--fail-at", type=int, choices=range(0, 7), default=1,
-                        help="registration request to disconnect; 0 tests a late ubusd executable")
+    parser.add_argument("--fail-at", type=int, choices=range(-1, 7), default=1,
+                        help="registration request to disconnect; 0 tests a late ubusd executable; -1 is healthy")
+    parser.add_argument("--empty-respawn", action="store_true",
+                        help="include an inittab respawn entry with an empty command")
     parser.add_argument("--sides", nargs="+", choices=("c", "rust"), default=["c", "rust"])
     args = parser.parse_args()
     if os.geteuid() != 0:
         parser.error("root required for disposable namespaces")
     args.output.mkdir(parents=True, exist_ok=True)
-    results = [run_case(args.rootfs, args.candidate, args.output, side, args.fail_at)
+    results = [run_case(args.rootfs, args.candidate, args.output, side, args.fail_at, args.empty_respawn)
                for side in args.sides]
     (args.output / "result.json").write_text(json.dumps(results, indent=2) + "\n")
     print(json.dumps(results, indent=2))

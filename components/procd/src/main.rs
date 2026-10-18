@@ -885,7 +885,8 @@ impl Procd {
                 self.inittab[i].pid = Some(pid);
             }
             Err(e) => {
-                log!(sys::LOG_ERR, "Failed to execute {}: {e}", argv[0]);
+                log!(sys::LOG_ERR, "Failed to execute {}: {e}",
+                    argv.first().map(String::as_str).unwrap_or("<empty command>"));
                 // The C has forked by the time execvp fails, so the failure
                 // is a child exit and child_exit() re-arms the 500 ms
                 // respawn -- a command that appears later gets picked up.
