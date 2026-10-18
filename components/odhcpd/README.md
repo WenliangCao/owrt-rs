@@ -1,8 +1,10 @@
 # odhcpd-rs
 
 Scoped replacement for the OpenWrt 25.12.5 `odhcpd-ipv6only` daemon, referenced
-against C commit `5d7be43f8b9dec0eb47e245cfab81108bb131273`. The running router
-continues to use C until the separate device recovery and acceptance gate passes.
+against C commit `5d7be43f8b9dec0eb47e245cfab81108bb131273`. The exact SDK ELF
+passed a guarded device trial with 124.986 seconds of continuous client health;
+the guard then restored C. The router still runs v0.2.3. This trial is not a new
+firmware installation or release; see the [device trial report](../../docs/reviews/ODHCPD_DEVICE_TRIAL_20261018.md).
 
 Supported: RA/SLAAC, DHCPv6 IA_NA/IA_PD, lease and hosts exports, `leasetrigger`,
 the `dhcp` ubus object, UCI, and netifd/kernel prefix updates. The original init,
