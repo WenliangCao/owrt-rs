@@ -21,7 +21,6 @@ from zoneinfo import ZoneInfo
 import r84_device_probe as base
 
 REPO = Path(__file__).resolve().parent.parent
-SDK_SHA = "79f1349e845722d3824fab855b18f39e86e0ed5a1fb87cdc32374dc734302b55"
 UUID = r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"
 
 
@@ -219,7 +218,8 @@ def observe(args):
     activated = parse_activation(args.activated_at)
     receipt = json.loads(args.trial_receipt.read_text())
     expected_sha, boot, token = (receipt[key] for key in ("candidate_sha256", "expected_boot_id", "token"))
-    require(expected_sha == SDK_SHA, "trial does not contain the frozen SDK ELF")
+    require(re.fullmatch(r"[0-9a-f]{64}", args.candidate_sha256) and
+            expected_sha == args.candidate_sha256, "trial does not contain the explicitly pinned SDK ELF")
     require(re.fullmatch(UUID, boot) and re.fullmatch(UUID, token), "invalid trial boot/token")
     guard = receipt["timeout_s"]
     require(type(guard) is int and guard >= args.continuous_seconds + 60, "guard too short for health window")
@@ -296,6 +296,7 @@ def observe(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--trial-receipt", type=Path, required=True)
+    parser.add_argument("--candidate-sha256", required=True, help="independently verified SDK ELF SHA256")
     parser.add_argument("--activated-at", required=True, help="activation time as ISO8601 with offset, e.g. UTC Z")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--host", default="openwrt")

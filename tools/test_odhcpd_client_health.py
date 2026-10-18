@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import odhcpd_client_health as health
 
+TEST_SHA = "79f1349e845722d3824fab855b18f39e86e0ed5a1fb87cdc32374dc734302b55"
 
 class Parsers(unittest.TestCase):
     def test_realistic_mac_addresses_exclude_unusable(self):
@@ -77,7 +78,7 @@ class Identity(unittest.TestCase):
                     value["pid"] = 43
                 return json.dumps({"odhcpd": {"instances": {"cfg": value}}})
             if "cat /proc/42/stat" in command:
-                digest = "b" * 64 if fault == "wrong_elf" else health.SDK_SHA
+                digest = "b" * 64 if fault == "wrong_elf" else TEST_SHA
                 return "\n".join([stat(321), digest + "  /proc/42/exe", stat(322 if fault == "reused_pid" else 321), digest + "  /proc/42/exe"])
             if "dhcp ipv6ra" in command:
                 return '{"interfaces":{"br-lan":[{"prefix":"fd12::1","length":60,"stale":false}]}}'
@@ -88,14 +89,14 @@ class Identity(unittest.TestCase):
 
     def test_supervised_exact_candidate(self):
         with patch.object(health.base, "ssh", side_effect=self.fixture()):
-            result = health.production_identity("fixture", health.SDK_SHA)
+            result = health.production_identity("fixture", TEST_SHA)
         self.assertEqual(result["pid"], 42)
         self.assertEqual(result["start_ticks"], 321)
 
     def test_pid_or_elf_change_fails(self):
         for fault in ("supervisor_changed", "wrong_elf", "reused_pid"):
             with self.subTest(fault=fault), patch.object(health.base, "ssh", side_effect=self.fixture(fault)), self.assertRaises(RuntimeError):
-                health.production_identity("fixture", health.SDK_SHA)
+                health.production_identity("fixture", TEST_SHA)
 
 
 class ContinuousWindow(unittest.TestCase):
@@ -103,10 +104,11 @@ class ContinuousWindow(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             receipt = root / "receipt.json"
-            receipt.write_text(json.dumps({"candidate_sha256": health.SDK_SHA,
+            receipt.write_text(json.dumps({"candidate_sha256": TEST_SHA,
                 "expected_boot_id": "11111111-1111-1111-1111-111111111111",
                 "token": "22222222-2222-2222-2222-222222222222", "timeout_s": 300}))
             args = SimpleNamespace(interface="en0", continuous_seconds=120, interval=5,
+                candidate_sha256="b" * 64 if fault == "wrong_expected_sha" else TEST_SHA,
                 sample_timeout=45, activated_at="1970-01-01T00:16:40Z", trial_receipt=receipt,
                 max_seconds=240, output=root / "private" / "health", host="fixture", client_timezone="Europe/Berlin")
             elapsed = [0]
@@ -115,7 +117,7 @@ class ContinuousWindow(unittest.TestCase):
                 count[0] += 1
                 elapsed[0] += 10
                 return {"candidate": {"pid": 43 if fault == "restart" and count[0] > 1 else 42,
-                                      "start_ticks": 321, "sha256": health.SDK_SHA},
+                                      "start_ticks": 321, "sha256": TEST_SHA},
                         "ra": {"received_epoch": 999 if fault == "stale_ra" else 1001}}
             def sleep(seconds):
                 elapsed[0] += seconds
@@ -130,7 +132,11 @@ class ContinuousWindow(unittest.TestCase):
                     with self.assertRaises(RuntimeError):
                         health.observe(args)
                     self.assertFalse((args.output / "client-health.json").exists())
-                    self.assertFalse(json.loads((args.output / "failure.json").read_text())["passed"])
+                    if fault == "wrong_expected_sha":
+                        self.assertFalse(args.output.exists())
+                        self.assertEqual(count[0], 0)
+                    else:
+                        self.assertFalse(json.loads((args.output / "failure.json").read_text())["passed"])
                 else:
                     value = health.observe(args)
                     self.assertGreaterEqual(value["continuous_client_health_s"], 120)
@@ -145,6 +151,9 @@ class ContinuousWindow(unittest.TestCase):
 
     def test_process_restart_aborts_window(self):
         self.exercise("restart")
+
+    def test_receipt_cannot_select_a_different_candidate(self):
+        self.exercise("wrong_expected_sha")
 
 
 if __name__ == "__main__":
