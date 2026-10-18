@@ -1,9 +1,12 @@
 # odhcpd-rs 首次完整隔离对照
 
-**最新状态：用户接受首主动 RA 差距，授权守卫验证和短时试运行。** SDK 候选
-三对首主动 RA 比 C 慢 0.976408–2.264978 ms，超过实测噪声 0.327403 ms。
+**最新功能状态：审计修复后的 SDK `c4a7c273…` 已通过一次冻结的20＋62项回归。**
+新ELF的具体身份与证据见文末；旧ELF的性能和真机试运行结果不转授给它。
+
+历史性能决定：用户接受旧 SDK `79f1349e…` 的首主动RA差距，授权守卫与短时
+试运行。该ELF三对首主动RA比C慢0.976408–2.264978 ms，超过实测噪声0.327403 ms；
 完整数值见[单批性能结果及后续接受决定](ODHCPD_LATENCY_PLAN_20261018.md)。
-不追加性能样本，保留同一 SDK ELF；以下功能结果仍有效，真实客户端验收单独记录。
+以下保留各轮原始身份与功能结论，真实客户端验收另见其对应ELF报告。
 
 共同检查 C/Rust 均 20/20，19 个收到的协议报文逐字节相同；同时发现两个尚待
 修复的状态接口差异。旧 PD route 清理、拒绝越界 PD route 和 ubus 对象重连三项
@@ -211,3 +214,30 @@ Oracle原件为 `/home/ubuntu/odhcpd-validation-20261018/sdk-functional-01/`，
 本地ignored `private/odhcpd-20261018/sdk-functional-01/observations.tar.gz`
 保存包、状态、日志与执行脚本。功能namespace全部退出后才通知主线程可开启
 独立性能批次；本次没有与性能批次并行，没有访问router或实施部署。
+
+### 审计修复 SDK 的冻结功能回归
+
+source `e33fa56c426f51931251df022228cd7ab905b63d`，精确 SDK ELF 794736 字节，
+SHA256 `c4a7c2731e02cb14fca5f94e4cbe940e0f9c91f64ca45be2e98ab19281250048`。
+运行前核对候选身份；沿用工具SHA
+`69b852e8e9d4cdaede130f42540d36f2c4892a36e1974fb4a07f432d6d5b44ef`、原有
+C06/扩展C参考和事件顺序，仅一次baseline及四个extended case，不重跑C、不扩矩阵。
+
+baseline **20/20**，四组扩展 **19＋12＋14＋17＝62/62**；无失败或重试。
+共同19条payload与C06逐字节相同。扩展本轮收到的33条payload也与旧SDK资格轮
+逐字节相同；未发现新增未解释的报文差异。扩展与C之间已记录的Release槽位
+立即复用、畸形包安全拒绝、内核自动重绑及ubus恢复差异继续保留，不能将这句话
+理解为扩展与C完全等价。
+
+本轮再次通过旧PD route撤销、无RS主动前缀废止、活跃PD不重叠、ifindex及
+link-local变化、ubus对象/dump/DNS恢复、七类不支持配置启动前拒绝等冻结断言。
+针对审计问题的独立复验由[审计报告](ODHCPD_AUDIT_20261018.md)记录；本轮是既有
+功能面的必要回归，不代替该独立复验。
+
+原件在Oracle `/home/ubuntu/odhcpd-validation-20261018/audit-regression-01/`；
+本地ignored `private/odhcpd-20261018/audit-regression-01/observations.tar.gz`
+及`comparison.json`保留日志、包、状态、脚本与离线比对结果。
+
+**证据边界：**没有运行性能批次、没有访问router或发布。旧`79f1349e…`的物理
+试运行、内存与时延观测不成为新`c4a7c273…`的实测结论；正式新镜像的启动资格
+也由独立镜像流程负责，本轮不重复或代替它。
