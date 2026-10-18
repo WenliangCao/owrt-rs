@@ -75,6 +75,8 @@ pub struct Bus {
     wake: UnixStream,
     stop: Arc<AtomicBool>,
     worker: Option<JoinHandle<()>>,
+    #[cfg(test)]
+    before_wake_read: Option<Box<dyn FnOnce() + Send>>,
 }
 
 impl Bus {
@@ -96,6 +98,8 @@ impl Bus {
             wake,
             stop,
             worker: Some(worker),
+            #[cfg(test)]
+            before_wake_read: None,
         })
     }
 
@@ -105,7 +109,26 @@ impl Bus {
 
     /// Drain until None after every wakeup, including wakeups without events.
     pub fn try_event(&mut self) -> io::Result<Option<Event>> {
-        let result = match self.events.try_recv() {
+        #[cfg(test)]
+        if let Some(hook) = self.before_wake_read.take() {
+            hook();
+        }
+        // Consume at most one notification before checking the queue. A
+        // publication after this read either enters the queue before try_recv,
+        // or retains its notification for the owner's next readiness wait.
+        // Reading after try_recv(Empty) could swallow that sole notification.
+        // One byte also preserves readiness when the owner reaches its drain
+        // budget with additional events still queued.
+        let mut byte = [0u8; 1];
+        loop {
+            match self.wake.read(&mut byte) {
+                Ok(_) => break,
+                Err(error) if error.kind() == io::ErrorKind::WouldBlock => break,
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => return Err(error),
+            }
+        }
+        Ok(match self.events.try_recv() {
             Ok(event) => Some(event),
             Err(TryRecvError::Empty) => None,
             Err(TryRecvError::Disconnected) => {
@@ -114,17 +137,7 @@ impl Bus {
                     "ubus worker stopped",
                 ))
             }
-        };
-        let mut bytes = [0u8; 64];
-        // One notification per event; an early consumer can win the send/wake
-        // race, so also drain a late notification when the queue becomes empty.
-        let amount = if result.is_some() { 1 } else { bytes.len() };
-        match self.wake.read(&mut bytes[..amount]) {
-            Ok(_) => {}
-            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {}
-            Err(error) => return Err(error),
-        }
-        Ok(result)
+        })
     }
 
     pub fn reply(&self, call: Call, fields: Vec<u8>, code: i32) -> io::Result<()> {
@@ -497,6 +510,86 @@ fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn test_bus() -> (Bus, SyncSender<Event>, UnixStream) {
+        let (wake, worker_wake) = UnixStream::pair().unwrap();
+        wake.set_nonblocking(true).unwrap();
+        worker_wake.set_nonblocking(true).unwrap();
+        let (commands, _command_rx) = mpsc::sync_channel(CAPACITY);
+        let (event_tx, events) = mpsc::sync_channel(CAPACITY);
+        (
+            Bus {
+                commands,
+                events,
+                wake,
+                stop: Arc::new(AtomicBool::new(false)),
+                worker: None,
+                before_wake_read: None,
+            },
+            event_tx,
+            worker_wake,
+        )
+    }
+
+    #[test]
+    fn concurrent_publication_during_empty_drain_is_delivered_without_another_event() {
+        let (mut bus, events, wake) = test_bus();
+        let mut poller = Poller::new().unwrap();
+        poller.add(bus.as_raw_fd(), WAKE, false).unwrap();
+        // A late notification from an already consumed event can wake the
+        // production owner while its queue is empty.
+        notify(&wake);
+        let (publish, publish_rx) = mpsc::sync_channel(0);
+        let (published, published_rx) = mpsc::sync_channel(0);
+        let (finish, finish_rx) = mpsc::sync_channel(0);
+        let worker = thread::spawn(move || {
+            publish_rx.recv().unwrap();
+            assert!(emit(&events, &wake, Event::Connected { generation: 17 }).is_none());
+            published.send(()).unwrap();
+            finish_rx.recv().unwrap();
+        });
+        // Force publication immediately before the notification read. With
+        // the old dequeue-then-read order this was after try_recv(Empty): both
+        // notification bytes disappeared and the owner returned None forever.
+        bus.before_wake_read = Some(Box::new(move || {
+            publish.send(()).unwrap();
+            published_rx.recv().unwrap();
+        }));
+        let mut ready = Vec::new();
+        poller.wait(1000, &mut ready).unwrap();
+        assert!(ready.iter().any(|event| event.token == WAKE));
+        assert!(matches!(
+            bus.try_event().unwrap(),
+            Some(Event::Connected { generation: 17 })
+        ));
+        assert!(bus.try_event().unwrap().is_none());
+        poller.wait(0, &mut ready).unwrap();
+        assert!(ready.is_empty());
+        finish.send(()).unwrap();
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn partial_owner_drain_leaves_remaining_events_readable() {
+        let (mut bus, events, wake) = test_bus();
+        for generation in 0..CAPACITY as u64 {
+            assert!(emit(&events, &wake, Event::Connected { generation }).is_none());
+        }
+        let mut poller = Poller::new().unwrap();
+        poller.add(bus.as_raw_fd(), WAKE, false).unwrap();
+        let mut ready = Vec::new();
+        for generation in 0..CAPACITY as u64 {
+            poller.wait(1000, &mut ready).unwrap();
+            assert!(ready.iter().any(|event| event.token == WAKE));
+            assert!(
+                matches!(bus.try_event().unwrap(), Some(Event::Connected { generation: got }) if got == generation)
+            );
+        }
+        assert!(bus.try_event().unwrap().is_none());
+        poller.wait(0, &mut ready).unwrap();
+        assert!(ready.is_empty());
+    }
+
     #[test]
     fn dump_retains_only_typed_complete_interface_entries() {
         let data = owrt_ubus::json::parse(r#"{"interface":[{"interface":"lan","l3_device":"br-lan","up":true,"data":{}},{"interface":"wan","data":{}},{"interface":"bad"}]}"#).unwrap();
