@@ -15,6 +15,40 @@ import subprocess
 import tempfile
 import time
 
+from r92_recovery_probe import Bus, attr
+
+
+def restored_watch(root, path):
+    """A newly published object must be watched and its event must run a trigger."""
+    config = {"name": "v030watch", "triggers": [["v030.changed", [[
+        "run_script", "/bin/sh", "-c", "echo observed > /tmp/watch-triggered"
+    ]]]], "instances": {"main": {"command": ["/bin/sleep", "60"],
+                                      "watch": ["v030.late"]}}}
+    subprocess.run(["chroot", str(root), "/bin/ubus", "-t", "3", "call", "service", "set",
+                    json.dumps(config)], check=True, capture_output=True, timeout=4)
+    provider = Bus(path)
+    try:
+        target = provider.add("v030.late")
+        deadline = time.monotonic() + 4
+        while time.monotonic() < deadline:
+            seq = provider.send(10, attr(3, struct.pack(">I", target))
+                                + attr(4, b"v030.changed\0") + attr(7, b""))
+            while True:
+                kind, received, _, fields = provider.recv()
+                if kind == 1 and received == seq:
+                    attached = bool(dict(fields).get(11))
+                    break
+            if attached:
+                while time.monotonic() < deadline:
+                    if (root / "tmp/watch-triggered").exists():
+                        return True
+                    time.sleep(0.02)
+                return False
+            time.sleep(0.02)
+        return False
+    finally:
+        provider.sock.close()
+
 
 def stop(process):
     if process is not None and process.poll() is None:
@@ -121,6 +155,15 @@ exec chroot "$1" /sbin/procd -S
                 observed["exit_code"] = daemon.poll()
                 observed["sysinit_reached"] = (root / "tmp/boot-ready").exists()
                 observed["healthy_bus_alive"] = bus.poll() is None if bus else path.exists()
+                observed["core_objects"] = []
+                observed["watch_triggered"] = False
+                if observed["pid1_alive"] and observed["service_registered"]:
+                    lookup = subprocess.run(["chroot", str(root), "/bin/ubus", "-t", "1", "list"],
+                                            check=True, capture_output=True, timeout=2)
+                    observed["core_objects"] = sorted(set(lookup.stdout.decode().splitlines())
+                                                       & {"service", "system", "container"})
+                    if side == "rust":
+                        observed["watch_triggered"] = restored_watch(root, path)
             finally:
                 if listener:
                     listener.close()
@@ -169,6 +212,8 @@ def main():
     # than treating it as the desired Rust recovery behavior.
     assert all(r["pid1_alive"] and r["sysinit_reached"] and r["healthy_bus_alive"]
                and (r["side"] == "c" and r["fail_at"] != 0 or r["service_registered"])
+               and (r["side"] == "c" or r["core_objects"] == ["container", "service", "system"]
+                    and r["watch_triggered"])
                for r in results), "PID 1 did not recover from startup bus loss"
 
 
