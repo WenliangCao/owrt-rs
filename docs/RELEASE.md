@@ -1,12 +1,17 @@
 # 集成固件的发布与维护
 
-2026-10-18 更新：默认配方已推进到 **v0.2.4 / `0.2.4-r1` / `native-eleven`**，
-加入受限 odhcpd-rs。其精确 SDK ELF 完成功能资格和 124.99 秒真实客户端短时
-试运行，确认后已恢复 C。当前实际安装与公开版本仍为 v0.2.3；v0.2.4 完整镜像
-没有刷写或发布。新配方有十一程序、两个 dnsmasq 集成文件、十三份 C 恢复文件；
-保留原 odhcpd init、配置和 `odhcpd-update`。构建、恢复及试运行状态见
-[odhcpd 集成报告](reviews/ODHCPD_NATIVE_INTEGRATION_20261018.md)。下方 v0.2.2
-和更早的验收数字、镜像与回滚目标属于历史记录，不转授给新版本。
+2026-10-18 更新：新增 odhcpd-rs 组件的下一版本改为
+**v0.3.0 / `0.3.0-r1` / `native-eleven`**。性能 A/B 门仍待完成；通过后才构建
+v0.3.0 镜像。PR #1 保持草稿，未合并、刷机或发布；现网和公开版本仍为 v0.2.3。
+新配方有十一程序、两个 dnsmasq 集成文件、十三份 C 恢复文件，保留原 odhcpd
+init、配置和 `odhcpd-update`。
+
+此前 v0.2.4 候选的测量、镜像与历史报告保持原版本和哈希，不重命名为 v0.3.0。
+其 Fable 修复 ELF 已完成 129 项 SDK 实包检查、完整镜像夹具及 123.739 秒真实
+客户端短时试运行，确认后已恢复 C；见[Fable 候选结果](reviews/ODHCPD_FABLE_RESULT_20261018.md)
+与[当时的集成报告](reviews/ODHCPD_NATIVE_INTEGRATION_20261018.md)。这些既有功能
+证据不替代当前性能门或 v0.3.0 的正式构建资格；下方历史版本的验收与回滚目标
+同样保留其原适用范围。
 
 2026-10-17。当前配方交付十组件统一 **`v0.2.2`**，同一正式 CI 镜像已完成一次保配置部署与健康观察。生成一个小米 AX3000T sysupgrade 镜像，十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.2-r1`** APK 管理；dnsmasq 的既有 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权与当次恢复核验；已有当次刷机授权不重复询问。构建成功不代表真机验收完成，实现与验收见[统一报告](reviews/CORE_SAFE_20261017.md)，现场记录见[v0.2.2 部署报告](reviews/DEPLOYMENT_V0_2_2_20261017.md)。
 
@@ -23,13 +28,13 @@
 | uci / reload-config / fw4 | `/sbin/uci`、`/sbin/reload_config`、`/sbin/fw4` |
 | httpd | `/usr/sbin/uhttpd` |
 | dnsmasq | `/usr/sbin/dnsmasq` |
-| odhcpd（v0.2.4 起） | `/usr/sbin/odhcpd` |
+| odhcpd（v0.3.0 新增） | `/usr/sbin/odhcpd` |
 
 沿用 `log`、`rpcd`、`network`、`uhttpd`、`odhcpd` 服务。httpd 使用原启动脚本生成首次证书、读取 `/etc/config/uhttpd`；原 log 脚本保留 logread 的文件与远程日志配置。dnsmasq 使用已验收包中的 `/etc/init.d/dnsmasq` 和 `/usr/share/acl.d/dnsmasq_acl.json`，这两个文件也是升级与恢复身份的一部分，不能只替换 ELF。内核、驱动、无线 handler、DHCP 客户端、dropbear、BusyBox、LuCI、apk 和 sysupgrade 执行面保留。
 
-APK 的 `replaces` 与 `replaces-priority` 指定十个程序及两个 dnsmasq 集成文件归 `owrt-control-plane` 所有；原九个软件包继续提供其余文件。依赖固定为验收过的原包版本，避免原包更新与恢复副本不匹配。原六套开关包、三个独立核心程序和 dnsmasq SDK APK 是构建中间产物，旧 `owrt-*` 开关包不会混入最终镜像。四个中文包从匹配 LuCI 修订重建。
+APK 的 `replaces` 与 `replaces-priority` 指定十一个程序及两个 dnsmasq 集成文件归 `owrt-control-plane` 所有；原十个软件包继续提供其余文件。依赖固定为验收过的原包版本，避免原包更新与恢复副本不匹配。原六套开关包、四个独立核心程序和 dnsmasq SDK APK 是构建中间产物，旧 `owrt-*` 开关包不会混入最终镜像。四个中文包从匹配 LuCI 修订重建。
 
-`/usr/share/owrt-control-plane/release.json` 使用 `schema: 2`、`layout: native-ten`，保存统一版本、源码提交、十组件身份、两个 `integration_files` 及恢复清单哈希。配方 `version` 是最终统一 APK 版本；dnsmasq SDK 中间包的 release 编号与它分别记录。
+`/usr/share/owrt-control-plane/release.json` 使用 `schema: 2`、`layout: native-eleven`，保存统一版本、源码提交、十一组件身份、两个 `integration_files` 及恢复清单哈希。配方 `version` 是最终统一 APK 版本；dnsmasq SDK 中间包的 release 编号与它分别记录。历史十组件镜像继续使用 `native-ten`。
 
 v0.2.1 的另外九个 ELF、dnsmasq init/ACL 与 v0.2.0 逐字节相同。历史 v0.2.0 保持另外九个组件各自源码与 v0.1.1 一致，但共享 `components/ubus` 有已记录的 dnsmasq 所需接口与边界修复，见[最终 SDK 栈及 UBus 复验](dnsmasq/audits/full-20261014/final-sdk-stack-ubus-review.md)；不能将源码相同自动当作跨版本 ELF 相同。
 
@@ -40,10 +45,10 @@ v0.2.1 的另外九个 ELF、dnsmasq init/ACL 与 v0.2.0 逐字节相同。历�
 | 阶段 | 工具与结果 |
 |---|---|
 | SDK 与六个包 | `tools/ci_build_image.sh` 校验官方下载，按既有 SDK 配方构建六个 Rust 程序及中间镜像 |
-| 三个核心程序 | `tools/ci_build_core.sh` 构建 procd/ubusd/netifd，固定源码路径及工具链，核验 ABI 与归档身份 |
+| 四个核心程序 | `tools/ci_build_core.sh` 在 `OWRT_CORE_INCLUDE_ODHCPD=1` 下构建 procd/ubusd/netifd/odhcpd，固定源码路径及工具链，核验 ABI 与归档身份 |
 | dnsmasq | `tools/ci_build_dnsmasq.py` 核验冻结产品的源码和 SDK 配方 digest，通过原 SDK recipe 新编译；记录实际 ELF、init、ACL 及参考 ELF 比较 |
 | 原位整合 | `tools/ci_integrate_image.sh`、`tools/native_image.py` 固定官方镜像与 LuCI 源码归档 SHA256，离线安装统一 APK 与四个中文包，以匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
-| 内容审计 | 十个程序、init/ACL、APK 所有权、十二份 stock 恢复文件、配置及其余原包内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
+| 内容审计 | 十一个程序、init/ACL、APK 所有权、十三份 stock 恢复文件、配置及其余原包内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
 
 最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前版本的 canonical 参考为 `0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/dnsmasq-k-pgo-inputs-20261017)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.2.1 的 CI 已精确复现 K；v0.2.2 的统一 generator/use 已完成且 0 PGO missing/mismatch，整镜像重建仍必须逐字节复现新参考。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格仍分别记录，不能混用；本轮 v0.2.0/J 直接比较使用实际 `8472be5a…`。
 
@@ -58,7 +63,7 @@ gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.
 最终产物在 `work/native/out/`：
 
 - 一个 `*-sysupgrade.bin`、一个 `owrt-control-plane-*.apk` 和四个匹配中文 APK。用户安装整个固件；统一 APK 是离线装配输入，不支持在线替换 PID1/总线。
-- `manifest.json`（`schema_version: 3`、`deployment_layout: native-ten`）、`binary-sha256.txt`、`SHA256SUMS`，固定镜像、包、十个程序及配套文件的身份。
+- `manifest.json`（`schema_version: 3`、`deployment_layout: native-eleven`）、`binary-sha256.txt`、`SHA256SUMS`，固定镜像、包、十一个程序及配套文件的身份。
 - `build-inputs.json`、`dnsmasq-build-manifest.json` 和构建日志，记录正式输入、工具链、SDK 实际产物与验收参考比较。
 
 失败流水线另存诊断日志和已生成的候选镜像；未通过的候选不作为发布完成证据。

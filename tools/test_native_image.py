@@ -29,13 +29,13 @@ FILES = REPO / "packaging/openwrt/owrt-dnsmasq/files"
 class NativeDnsmasqTests(unittest.TestCase):
     def test_current_recipe_includes_the_qualified_odhcpd(self):
         expected = copy.deepcopy(SPEC)
-        expected["version"] = "0.2.4-r1"
+        expected["version"] = "0.3.0-r1"
         expected["components"]["odhcpd"] = {
             "path": "/usr/sbin/odhcpd", "binary": "odhcpd-rs", "stock_package": "odhcpd-ipv6only",
             "stock_sha256": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
             "reference_elf_sha256": "c7c5f1f9e79ea80febe696d6c758db8d3463d1e4b94c7a002f1aa597b9c3ea30"}
         self.assertEqual(NEXT_SPEC, expected)
-        self.assertEqual(NEXT_SPEC["version"], "0.2.4-r1")
+        self.assertEqual(NEXT_SPEC["version"], "0.3.0-r1")
 
     def test_only_exact_ten_and_eleven_native_inventories_are_accepted(self):
         self.assertEqual(native_image.native_layout(SPEC["components"]), "native-ten")

@@ -4,8 +4,11 @@ Scoped replacement for the OpenWrt 25.12.5 `odhcpd-ipv6only` daemon, referenced
 against C commit `5d7be43f8b9dec0eb47e245cfab81108bb131273`. The final Fable fix
 SDK ELF passed all 129 packet checks and a new guarded device trial with 123.739
 seconds of continuous client health. The guard restored C; the router still
-runs v0.2.3. The v0.2.4 image is prepared but has not been flashed or published;
-see the [Fable result](../../docs/reviews/ODHCPD_FABLE_RESULT_20261018.md).
+runs v0.2.3. That v0.2.4 candidate image and its qualification retain their
+original identities; see the [Fable result](../../docs/reviews/ODHCPD_FABLE_RESULT_20261018.md).
+The next release is v0.3.0 (`0.3.0-r1`) because it adds this new component.
+The performance A/B gate is pending; build the v0.3.0 image after it passes.
+PR #1 remains draft, with no merge, firmware flash or publication.
 
 Supported: RA/SLAAC, DHCPv6 IA_NA/IA_PD, lease and hosts exports, `leasetrigger`,
 the `dhcp` ubus object, UCI, and netifd/kernel prefix updates. The original init,
@@ -42,7 +45,9 @@ The two ignored tests require an explicitly prepared private ubus or network
 namespace. `tools/odhcpd_baseline.py` drives real packets against the exact image
 and a candidate ELF in private namespaces; raw results stay outside Git.
 `OWRT_CORE_INCLUDE_ODHCPD=1` enables the SDK candidate in `ci_build_core.sh`.
-The v0.2.4 recipe pins the accepted odhcpd ELF and retains the other ten v0.2.3 ELFs.
+The v0.3.0 recipe pins the functionally qualified odhcpd ELF and retains the other
+ten v0.2.3 ELFs. Existing v0.2.4 images and measurements are historical artifacts,
+not v0.3.0 build or performance acceptance.
 
 Acceptance and outstanding work are tracked in
 [the prototype report](../../docs/reviews/ODHCPD_PROTOTYPE_20261018.md).
