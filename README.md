@@ -8,6 +8,9 @@
 
 ## 2026-10-18
 
+- 启用硬件流卸载和 WED。Mac 下载对照中，路由器 CPU 中位数从 52.6% 降至 15.0%，
+  每 GiB CPU 成本降低约 72%；吞吐差异在轮内波动内，三分钟客户端健康通过。
+  上传、下载满载延迟均明显增加，CAKE 仍未配置。[测量与取舍](docs/reviews/NETWORK_OFFLOAD_20261018_RESULT.md)
 - 发布并刷入 [v0.3.0：新增 odhcpd](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.0)。
   odhcpd-rs 接管本机 RA/SLAAC、DHCPv6 IA_NA/IA_PD、租约与 leasetrigger、ubus dhcp 对象、
   UCI 配置和 netifd 前缀订阅。[功能记录](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)
