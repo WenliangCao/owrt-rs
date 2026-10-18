@@ -76,4 +76,16 @@ ignored `private/backup/release-v0.3.0/`，未随报告公开。
 私有原始证据分别保留于 `private/odhcpd-20261018/` 下的 `deploy-v030/`、
 `postflash-prefix-renew-01/` 与 `wan6-withdraw-live-01/`。发布仅使用表中已测
 CI 字节，v0.3.0 标签指向实际镜像源码；之后的工具或报告提交不改变发货 ELF，
-不触发替代镜像构建。公开发布及附件回读校验在完成后另行记录。
+不触发替代镜像构建。[v0.3.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.0)
+于 **2026-10-18 13:28:52 UTC** 发布为正式 Latest，release ID `416466158`。
+十三个附件全部回读，逐文件字节数和 SHA256 与冻结清单一致；公开校验清单的
+十二项也全部通过。十一件原始 CI 附件保持原字节，仅四个中文 APK 名称的
+`~` 改为 `.`；另外两件是发布说明和公开 `SHA256SUMS`。原 manifest 的
+`flashed:false` 保留构建时语义，不回写原始资产。
+
+[PR #1](https://github.com/WenliangCao/owrt-control-plane-rs/pull/1) 的 host-tests、
+host、target 三项 CI 通过后合并，提交 `948126206bc730874894fed0529a90e1ed436566`。
+推标签短窗口停用 `release-image`，`finally` 恢复并核验为 active；发布后检查
+未见延迟 tag 构建，未生成替代镜像。已合并任务分支本地及远端均删除，完整
+证据提交仍由 main 历史保留；用户原有十二个未提交文件及无关工作树保持原样。
+公开附件不含配置备份、密钥、抓包或原始设备状态。

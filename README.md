@@ -5,7 +5,7 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 保留精确 C 原件与离线恢复材料。
 
-**现状（2026-10-18）：v0.3.0 已保配置刷入，新增 odhcpd-rs；真实客户端续租通过，撤销报文与精确 C 一致，已获准发布。**
+**现状（2026-10-18）：[v0.3.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.0) 已保配置刷入并发布为正式 Latest，新增 odhcpd-rs；真实客户端续租通过，撤销报文与精确 C 一致。**
 默认包版本为 `0.3.0-r1`，布局为 `native-eleven`。最终 SDK `589226a1…` 的完整
 10 项指标真机对照已通过：40 个正式配对中 39 个改善、1 个 Renew 在噪声内，
 没有退步。3 个 NA 租约时 RSS 为 C/Rust 1106/806 KiB；空闲 CPU 为
@@ -13,7 +13,7 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 初始连续客户端健康通过 187.711 秒。获准的一次 20 秒 WAN6 断开已自动恢复，
 IPv4 HTTPS 59/59 通过；路由器及时发出旧前缀零寿命 RA，但客户端直到恢复初期
 才记录撤销并短暂 deprecated，随后取回同一前缀。用户接受这一客户端行为；
-[离线 C 对照](docs/reviews/ODHCPD_WITHDRAWAL_C_PARITY_20261018.md)确认报文一致，发布条件已满足。
+[离线 C 对照](docs/reviews/ODHCPD_WITHDRAWAL_C_PARITY_20261018.md)确认报文一致，13 个发布附件已全部回读核验，PR #1 已合并。
 详见[部署与客户端验收](docs/reviews/ODHCPD_V030_DEPLOYMENT_20261018.md)；不追加性能轮次或重复 WAN6 断开。
 见[最终全指标结果](docs/reviews/ODHCPD_FINAL_FULL_AB_RESULT_20261018.md)；
 [两项复测](docs/reviews/ODHCPD_IDLE_RENEW_RESULT_20261018.md)与

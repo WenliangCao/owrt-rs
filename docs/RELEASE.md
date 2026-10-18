@@ -3,7 +3,9 @@
 2026-10-18 更新：新增 odhcpd-rs 的 **v0.3.0 / `0.3.0-r1` / `native-eleven`**
 已完成保配置刷写、187.711 秒初始客户端健康、真实客户端自然 Renew，以及唯一
 一次 20 秒 WAN6 断开/自动恢复。用户接受 Mac 的撤销处理延迟；离线核对精确 C
-同场景报文一致后，发布条件已满足。孤立的续租窗口外 dig 失败保留在
+同场景报文一致后，已于 **2026-10-18 13:28:52 UTC** 发布为
+[正式 Latest](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.0)，13 个附件完整回读、哈希一致。
+PR #1 已合并，任务分支已清理；标签固定实际构建提交。孤立的续租窗口外 dig 失败保留在
 [部署报告](reviews/ODHCPD_V030_DEPLOYMENT_20261018.md)，不改写为全程零失败。
 正式镜像来自 [CI 39124795974](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39124795974)，
 源码及标签目标 `6fb236a3d3cae4c1fa2e0c80e8f0aae552437bd2`，镜像 SHA256
