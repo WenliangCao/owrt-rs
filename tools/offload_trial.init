@@ -1,0 +1,6 @@
+#!/bin/sh /etc/rc.common
+# Early shell guard: requires neither ubus nor a working network.
+START=01
+start() {
+    setsid /bin/sh /root/owrt-offload-trial/guard.sh run </dev/null >>/root/owrt-offload-trial/stderr.log 2>&1 &
+}
