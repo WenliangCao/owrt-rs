@@ -4,7 +4,7 @@
   "profile": "xiaomi_mi-router-ax3000t",
   "architecture": "aarch64_cortex-a53",
   "package": "owrt-control-plane",
-  "version": "0.2.3-r1",
+  "version": "0.2.4-r1",
   "components": {
     "fw4": {
       "path": "/sbin/fw4",
@@ -74,6 +74,13 @@
       "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
       "stock_package": "dnsmasq",
       "binary": "dnsmasq-rs"
+    },
+    "odhcpd": {
+      "path": "/usr/sbin/odhcpd",
+      "stock_sha256": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
+      "stock_package": "odhcpd-ipv6only",
+      "binary": "odhcpd-rs",
+      "reference_elf_sha256": "79f1349e845722d3824fab855b18f39e86e0ed5a1fb87cdc32374dc734302b55"
     }
   },
   "stock_image": {

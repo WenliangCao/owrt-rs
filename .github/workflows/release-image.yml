@@ -1,5 +1,5 @@
 name: release-image
-# Builds all ten Rust programs with the official OpenWrt SDK, assembles one
+# Builds all eleven Rust programs with the official OpenWrt SDK, assembles one
 # native owrt-control-plane APK and AX3000T sysupgrade image, then validates
 # file ownership, stock recovery and execution-plane identity. The six legacy
 # packages/image are build intermediates. Nothing is flashed: the image is an
@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 120
     env:
       OPENWRT_VERSION: ${{ github.event.inputs.openwrt_version || '25.12.5' }}
+      OWRT_CORE_INCLUDE_ODHCPD: "1"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,12 +76,12 @@ jobs:
           python3 -m unittest discover -s tools -p test_native_image.py
           python3 tools/ci_build_dnsmasq.py "$GITHUB_WORKSPACE/work"
 
-      - name: integrate ten native components and verify the final image
+      - name: integrate eleven native components and verify the final image
         run: sh tools/ci_integrate_image.sh "$GITHUB_WORKSPACE/work"
 
       - name: summary
         run: |
-          { echo '### Native ten-component image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/native/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/native/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/native/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          { echo '### Native eleven-component image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/native/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/native/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/native/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:

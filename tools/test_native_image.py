@@ -17,13 +17,16 @@ import native_package_reinstall_selftest
 
 
 REPO = Path(__file__).resolve().parent.parent
-SPEC = json.loads((REPO / "packaging/image/native-25.12.5.json").read_text())
-NEXT_SPEC = json.loads((REPO / "packaging/image/native-25.12.5-odhcpd.json").read_text())
+NEXT_SPEC = json.loads((REPO / "packaging/image/native-25.12.5.json").read_text())
+# Exercise historical ten-component recovery using the same accepted inputs.
+SPEC = copy.deepcopy(NEXT_SPEC)
+SPEC["version"] = "0.2.3-r1"
+SPEC["components"].pop("odhcpd")
 FILES = REPO / "packaging/openwrt/owrt-dnsmasq/files"
 
 
 class NativeDnsmasqTests(unittest.TestCase):
-    def test_next_recipe_is_explicit_and_preserves_the_accepted_ten(self):
+    def test_current_recipe_includes_the_qualified_odhcpd(self):
         expected = copy.deepcopy(SPEC)
         expected["version"] = "0.2.4-r1"
         expected["components"]["odhcpd"] = {
@@ -31,7 +34,7 @@ class NativeDnsmasqTests(unittest.TestCase):
             "stock_sha256": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
             "reference_elf_sha256": "79f1349e845722d3824fab855b18f39e86e0ed5a1fb87cdc32374dc734302b55"}
         self.assertEqual(NEXT_SPEC, expected)
-        self.assertEqual(SPEC["version"], "0.2.3-r1")
+        self.assertEqual(NEXT_SPEC["version"], "0.2.4-r1")
 
     def test_only_exact_ten_and_eleven_native_inventories_are_accepted(self):
         self.assertEqual(native_image.native_layout(SPEC["components"]), "native-ten")

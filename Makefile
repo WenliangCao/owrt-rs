@@ -99,6 +99,6 @@ image:
 # Same as the release-image GitHub workflow, on this machine (x86_64 Linux with rustup):
 ci-image:
 	OPENWRT_VERSION=$(VERSION) sh tools/ci_build_image.sh work
-	OPENWRT_VERSION=$(VERSION) sh tools/ci_build_core.sh work
+	OPENWRT_VERSION=$(VERSION) OWRT_CORE_INCLUDE_ODHCPD=1 sh tools/ci_build_core.sh work
 	OPENWRT_VERSION=$(VERSION) python3 tools/ci_build_dnsmasq.py work
 	OPENWRT_VERSION=$(VERSION) sh tools/ci_integrate_image.sh work
