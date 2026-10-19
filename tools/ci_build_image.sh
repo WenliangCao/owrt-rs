@@ -5,7 +5,8 @@
 #
 #   OPENWRT_VERSION=25.12.5 sh tools/ci_build_image.sh [workdir]
 #
-# Needs: curl, tar+zstd, make, gcc, python3, rsync, file, rustup with the
+# Needs: curl, tar+zstd, make, gcc, python3, rsync, file, device-tree-compiler,
+# u-boot-tools, rustup with the
 # toolchain in RUST_TOOLCHAIN (default: channel from rust-toolchain.toml) and
 # target aarch64-unknown-linux-musl.
 # Output: <workdir>/out/{owrt-*.apk, *-sysupgrade.bin, SHA256SUMS, manifest.json, *.log}
@@ -58,6 +59,111 @@ for f in dl/openwrt-sdk-$ver-*.tar.* dl/openwrt-imagebuilder-$ver-*.tar.*; do
 done
 SDK=$(ls -d "$WORK"/openwrt-sdk-$ver-*/ | head -1); SDK=${SDK%/}
 IB=$(ls -d "$WORK"/openwrt-imagebuilder-$ver-*/ | head -1); IB=${IB%/}
+
+# Only the AN8855 hardware revision is supported by this image. Keep the
+# upstream DTB untouched; ImageBuilder consumes the prebuilt FIT, not that DTB.
+# Run before compiling packages so changed upstream inputs fail immediately.
+log "disable the absent MT7531 in the AX3000T FIT (AN8855 only)"
+python3 - "$ver" "$IB" "$WORK" "$OUT" > "$OUT/ax3000t-fit.log" 2>&1 <<'FITPY' || { cat "$OUT/ax3000t-fit.log"; exit 1; }
+import difflib
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+ver, ib, work, out = sys.argv[1:]
+ib, work, out = Path(ib), Path(work), Path(out)
+linux = ib / "build_dir/target-aarch64_cortex-a53_musl/linux-mediatek_filogic"
+fit = linux / "xiaomi_mi-router-ax3000t-kernel.bin"
+dtb = linux / "image-mt7981b-xiaomi-mi-router-ax3000t.dtb"
+its = fit.with_suffix(".bin.its")
+node = "/soc/ethernet@15100000/mdio-bus/switch@1f"
+
+def require(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+def sha(path, algorithm="sha256"):
+    return hashlib.new(algorithm, path.read_bytes()).hexdigest()
+
+def run(*args, env=None):
+    return subprocess.check_output([str(arg) for arg in args], text=True, env=env)
+
+require(ver == "25.12.5", "AX3000T FIT patch is qualified only for OpenWrt 25.12.5")
+original_dtb = "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0"
+original_fit = "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6"
+require(sha(dtb) == original_dtb, "unqualified AX3000T input DTB")
+require(sha(fit) == original_fit, "unqualified AX3000T input FIT; use a fresh ImageBuilder")
+require(sha(its) == "9d1c6f765136a72fabee89c7a58497d5e492da21614bfaef70256a9240e5160b",
+        "unqualified AX3000T input ITS")
+for tool in ("dumpimage", "fdtget", "fdtput", "dtc"):
+    require(shutil.which(tool), f"missing {tool}: install device-tree-compiler and u-boot-tools")
+require(run("fdtget", "-t", "s", dtb, node, "compatible").strip() == "mediatek,mt7531",
+        "unexpected switch compatible")
+require("status" not in run("fdtget", "-p", dtb, node).split(), "switch already has status")
+# Read the timestamp from the hash-pinned FIT itself, never from a copied file's mtime.
+epoch = int(run("fdtget", "-t", "u", fit, "/", "timestamp").strip())
+require(epoch == 1782737960, "unexpected original FIT timestamp")
+env = dict(os.environ, SOURCE_DATE_EPOCH=str(epoch))
+mkimage = ib / "staging_dir/host/bin/mkimage"
+with tempfile.TemporaryDirectory(prefix="ax3000t-fit-", dir=work) as tmp:
+    tmp = Path(tmp)
+    kernel, extracted, changed = tmp / "kernel.lzma", tmp / "original.dtb", tmp / "disabled.dtb"
+    run("dumpimage", "-T", "flat_dt", "-p", "0", "-o", kernel, fit)
+    run("dumpimage", "-T", "flat_dt", "-p", "1", "-o", extracted, fit)
+    require(extracted.read_bytes() == dtb.read_bytes(), "FIT DTB differs from the pinned input DTB")
+    kernel_sha1 = sha(kernel, "sha1")
+    require(kernel_sha1 == "a422b6a6bfff051626511cdaf910bdae50365105", "unexpected kernel payload")
+    shutil.copyfile(extracted, changed)
+    run("fdtput", "-t", "s", changed, node, "status", "disabled")
+    require(run("fdtget", "-t", "s", changed, node, "status").strip() == "disabled",
+            "switch was not disabled")
+    before = run("dtc", "-q", "-I", "dtb", "-O", "dts", extracted).splitlines(keepends=True)
+    after = run("dtc", "-q", "-I", "dtb", "-O", "dts", changed).splitlines(keepends=True)
+    changes = [op for op in difflib.SequenceMatcher(a=before, b=after, autojunk=False).get_opcodes()
+               if op[0] != "equal"]
+    require(len(changes) == 1, "DTB has changes beyond the one status property")
+    kind, old_start, old_end, new_start, new_end = changes[0]
+    require(kind == "insert" and old_start == old_end and new_end == new_start + 1
+            and after[new_start].strip() == 'status = "disabled";'
+            and before[old_start - 1].strip() == "switch@1f {",
+            "DTB diff is not the sole switch@1f status insertion")
+    print("".join(difflib.unified_diff(before, after, fromfile="original.dts", tofile="disabled.dts")))
+    # The pinned upstream ITS supplies all FIT metadata. Replace only its two incbin paths.
+    source = its.read_text()
+    includes = re.findall(r'/incbin/\("([^"\n]+)"\)', source)
+    require(len(includes) == 2, "unexpected ITS payload count")
+    for original, replacement in zip(includes, (kernel, changed)):
+        source = source.replace(f'/incbin/("{original}")', f'/incbin/("{replacement}")')
+    new_its, new_fit = tmp / "disabled.its", tmp / "disabled.bin"
+    new_its.write_text(source)
+    print(run(mkimage, "-f", new_its, new_fit, env=env))
+    print(run(mkimage, "-l", new_fit))
+    require(int(run("fdtget", "-t", "u", new_fit, "/", "timestamp")) == epoch,
+            "repacked FIT timestamp changed")
+    kernel_check, dtb_check = tmp / "kernel-check.lzma", tmp / "dtb-check.dtb"
+    run("dumpimage", "-T", "flat_dt", "-p", "0", "-o", kernel_check, new_fit)
+    run("dumpimage", "-T", "flat_dt", "-p", "1", "-o", dtb_check, new_fit)
+    require(kernel_check.read_bytes() == kernel.read_bytes() and sha(kernel_check, "sha1") == kernel_sha1,
+            "repacked FIT changed the kernel payload")
+    require(dtb_check.read_bytes() == changed.read_bytes(), "repacked FIT has the wrong DTB")
+    record = dict(change="disable-absent-mt7531", hardware_variant="AN8855-only", node=node,
+                  status="disabled", source_date_epoch=epoch, kernel_payload_sha1=kernel_sha1,
+                  original_dtb_sha256=original_dtb, original_fit_sha256=original_fit,
+                  dtb_sha256=sha(changed), fit_sha256=sha(new_fit))
+    # Install only after every check succeeds. Preserve the source epoch explicitly.
+    new_fit.chmod(fit.stat().st_mode & 0o777)
+    os.utime(new_fit, (epoch, epoch))
+    os.replace(new_fit, fit)
+    (out / "ax3000t-fit.json").write_text(json.dumps(record, indent=2) + "\n")
+    print(json.dumps(record, indent=2))
+FITPY
+cat "$OUT/ax3000t-fit.log"
 
 log "toolchain"
 rustup toolchain list | grep -q "^$RUST_TOOLCHAIN" || rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
@@ -154,6 +260,7 @@ if set(pkgs) != expected_pkgs:
     raise SystemExit(f"incomplete package version manifest: {sorted(pkgs)}")
 img = [f for f in sums if f.endswith("-sysupgrade.bin")][0]
 json.dump({"openwrt": ver, "profile": "xiaomi_mi-router-ax3000t", "source_commit": commit,
+           "ax3000t_fit": json.load(open("ax3000t-fit.json")),
            "packages": pkgs, "image": {"file": img, "size": os.path.getsize(img), "sha256": sums[img]},
            "apk_sha256": {f: s for f, s in sums.items() if f.endswith(".apk")},
            "binary_sha256": binsums,

@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import urllib.request
 
 
@@ -64,6 +65,41 @@ def write(path, value):
 
 def run(*args):
     return subprocess.check_output([str(a) for a in args], text=True).strip()
+
+
+def verify_ax3000t_fit(kernel, original, metadata):
+    """Audit the FIT extracted from the final image against the pinned stock FIT."""
+    expected = {
+        "change": "disable-absent-mt7531", "hardware_variant": "AN8855-only",
+        "node": "/soc/ethernet@15100000/mdio-bus/switch@1f", "status": "disabled",
+        "source_date_epoch": 1782737960,
+        "kernel_payload_sha1": "a422b6a6bfff051626511cdaf910bdae50365105",
+        "original_dtb_sha256": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0",
+        "original_fit_sha256": "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6",
+    }
+    for key, value in expected.items():
+        assert metadata[key] == value, f"AX3000T FIT manifest mismatch: {key}"
+    assert sha(original) == metadata["original_fit_sha256"], "stock FIT identity drift"
+    assert sha(kernel) == metadata["fit_sha256"], "final image does not contain the repacked FIT"
+    assert run("fdtget", "-t", "u", kernel, "/", "timestamp") == str(metadata["source_date_epoch"])
+    with tempfile.TemporaryDirectory(prefix="ax3000t-fit-") as directory:
+        files = Path(directory)
+        payload, dtb, original_dtb = (files / name for name in ("kernel.lzma", "final.dtb", "original.dtb"))
+        original_payload, expected_dtb = files / "original-kernel.lzma", files / "expected.dtb"
+        run("dumpimage", "-T", "flat_dt", "-p", "0", "-o", payload, kernel)
+        run("dumpimage", "-T", "flat_dt", "-p", "1", "-o", dtb, kernel)
+        run("dumpimage", "-T", "flat_dt", "-p", "0", "-o", original_payload, original)
+        run("dumpimage", "-T", "flat_dt", "-p", "1", "-o", original_dtb, original)
+        assert payload.read_bytes() == original_payload.read_bytes(), "Linux payload bytes changed in final FIT"
+        assert hashlib.sha1(payload.read_bytes()).hexdigest() == metadata["kernel_payload_sha1"], \
+            "Linux payload changed in final FIT"
+        assert sha(original_dtb) == metadata["original_dtb_sha256"], "stock DTB identity drift"
+        assert sha(dtb) == metadata["dtb_sha256"], "final FIT DTB identity mismatch"
+        shutil.copyfile(original_dtb, expected_dtb)
+        run("fdtput", "-t", "s", expected_dtb, metadata["node"], "status", "disabled")
+        assert dtb.read_bytes() == expected_dtb.read_bytes(), "unexpected DTB change in final FIT"
+        assert run("fdtget", "-t", "s", dtb, metadata["node"], "compatible") == "mediatek,mt7531"
+        assert run("fdtget", "-t", "s", dtb, metadata["node"], "status") == "disabled"
 
 
 def packages(apk, root):
@@ -296,6 +332,10 @@ def prepare(work, spec, apk):
 def verify(work, spec, apk):
     root = work / "native/rootfs"
     before = work / "native/base-rootfs"
+    inputs = read(work / "native/build-inputs.json")
+    kernel = work / "native/unpacked/sysupgrade-xiaomi_mi-router-ax3000t/kernel"
+    verify_ax3000t_fit(kernel, work / "native/base-image/sysupgrade-xiaomi_mi-router-ax3000t/kernel",
+                       inputs["image"]["ax3000t_fit"])
     manifest = read(work / "native/payload" / METADATA / "release.json")
     assert read(root / METADATA / "release.json") == manifest
     layout = native_layout(manifest["components"])
@@ -362,7 +402,6 @@ def verify(work, spec, apk):
     apks = sorted((work / "native").glob("*.apk"))
     for source in (image, *apks):
         shutil.copy2(source, output / source.name)
-    inputs = read(work / "native/build-inputs.json")
     hashes = {c["binary"]: c["rust_sha256"] for c in manifest["components"].values()}
     result = dict(inputs["image"], schema_version=3, deployment_layout=layout,
                   packages={n: installed[n]["version"] for n in translations | {spec["package"]}}, components=manifest["components"],
@@ -371,7 +410,7 @@ def verify(work, spec, apk):
                   image={"file": image.name, "size": image.stat().st_size, "sha256": sha(image)},
                   apk_sha256={p.name: sha(p) for p in apks}, stock_image=spec["stock_image"],
                   luci_source=spec["luci_source"], translations=spec["translations"],
-                  kernel_sha256=sha(next((work / "native/base-image").glob("sysupgrade-*/kernel"))),
+                  kernel_sha256=sha(kernel),
                   imagebuilder_args={"assembly": "verified stock rootfs + offline APK install + official image tools",
                                      "rolling_feeds_used_for_final_rootfs": False},
                   validation={layout.removeprefix("native-") + "_native_paths": True, "package_ownership": True,
@@ -381,6 +420,7 @@ def verify(work, spec, apk):
                               "stock_config_defaults": True, "unchanged_execution_files": checked,
                               "stock_package_versions_unchanged": len(previous),
                               "production_Chinese_catalogs_identical": len(translations),
+                              "an8855_fit_verified": True, "kernel_payload_identical": True,
                               "physical_boot_tested": False},
                   recovery=manifest["recovery"], flashed=False)
     write(output / "manifest.json", result)
