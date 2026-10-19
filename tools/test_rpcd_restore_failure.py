@@ -65,20 +65,25 @@ def inner(root, side, fault):
         delta = run / ('uci-' + sid.decode())
         saved_delta = (run / 'snapshot-delta/v030restore').read_bytes()
         expected_owners = None
+        link_target = None
+        applied = config.read_bytes()
         if fault == 'ownership':
             # Change installed ownership after apply to isolate restoration
             # from UCI commit's separate file-replacement behavior.
             expected_owners = [(12345, 23456), (34567, 45678)]
             os.chown(config, *expected_owners[0])
             os.chown(delta / 'v030restore', *expected_owners[1])
+        elif fault == 'dangling':
+            link_target = config.with_name('v030restore-target')
+            config.unlink()
+            config.symlink_to(link_target.name)
         # A bind mount changes only this namespace, leaving the base image intact.
         target = delta if fault.startswith('delta') else config.parent
         if fault == 'full':
-            applied = config.read_bytes()
             subprocess.run(['mount', '-t', 'tmpfs', '-o', 'size=4096', 'none', str(target)], check=True)
             config.write_bytes(applied)
             config.chmod(0o640)
-        elif fault not in ('healthy', 'ownership'):
+        elif fault not in ('healthy', 'ownership', 'dangling'):
             subprocess.run(['mount', '--bind', str(target), str(target)], check=True)
             subprocess.run(['mount', '-o', 'remount,bind,ro', str(target)], check=True)
         rollback_code = None
@@ -87,7 +92,8 @@ def inner(root, side, fault):
         else:
             time.sleep(2.4)
         retained = snapshot.exists() and snapshot.read_bytes() == original
-        during = config.read_bytes()
+        during = config.read_bytes() if config.exists() else None
+        link_retained = config.is_symlink()
         finalize_code = None
         retained_after_finalize = None
         events_during_fault = len(service.events)
@@ -98,14 +104,19 @@ def inner(root, side, fault):
         if fault == 'full':
             # Make the same filesystem writable without hiding a partial copy.
             subprocess.run(['mount', '-o', 'remount,size=1048576', str(target)], check=True)
-        elif fault not in ('healthy', 'ownership'):
+        elif fault not in ('healthy', 'ownership', 'dangling'):
             subprocess.run(['umount', str(target)], check=True)
+        if link_target is not None:
+            link_target.write_bytes(applied)
+            link_target.chmod(0o640)
         recovered = fixture.wait(lambda: config.read_bytes() == original and not snapshot.exists(), timeout=4)
         delta_restored = (delta / 'v030restore').read_bytes() == saved_delta
         notified = fixture.wait(lambda: len(service.events) == 2, timeout=2)
         actual_owners = [(p.stat().st_uid, p.stat().st_gid) for p in [config, delta / 'v030restore']]
         observations = {'side': side, 'fault': fault, 'rollback_code': rollback_code,
                         'expected_owners': expected_owners, 'actual_owners': actual_owners,
+                        'link_retained_during_fault': link_retained, 'link_retained_after_restore': config.is_symlink(),
+                        'link_target_restored': link_target.read_bytes() == original if link_target else None,
                         'snapshot_retained_on_error': retained, 'during_original': during == original,
                         'finalize_code': finalize_code, 'snapshot_retained_after_finalize': retained_after_finalize,
                         'events_during_fault': events_during_fault, 'notified_after_restore': notified,
@@ -127,6 +138,9 @@ def inner(root, side, fault):
                 assert retained_after_finalize, 'owner discarded the pending recovery snapshot'
             if fault == 'ownership':
                 assert actual_owners == expected_owners, 'rollback changed existing file ownership'
+            if fault == 'dangling':
+                assert during is None and link_retained and config.is_symlink(), 'rollback replaced a dangling symlink'
+                assert link_target.read_bytes() == original, 'rollback failed to restore the symlink target'
             assert recovered and delta_restored and notified and observations['alive']
             assert observations['permissions'] == 0o640
             assert client.invoke(uci, 'confirm', args)[0] == 5, 'rollback timer/owner was not cleared'
@@ -145,7 +159,7 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--sides', nargs='+', choices=['original', 'candidate'], default=['candidate'])
     parser.add_argument('--repeat', type=int, default=1)
-    parser.add_argument('--faults', nargs='+', choices=['healthy', 'manual', 'timer', 'delta', 'full', 'cancel', 'delta-cancel', 'delta-confirm', 'ownership'], default=['healthy', 'manual', 'timer', 'delta', 'full', 'delta-cancel', 'delta-confirm', 'ownership'])
+    parser.add_argument('--faults', nargs='+', choices=['healthy', 'manual', 'timer', 'delta', 'full', 'cancel', 'delta-cancel', 'delta-confirm', 'ownership', 'dangling'], default=['healthy', 'manual', 'timer', 'delta', 'full', 'delta-cancel', 'delta-confirm', 'ownership', 'dangling'])
     args = parser.parse_args()
     assert os.geteuid() == 0 and sys.platform == 'linux' and args.repeat > 0
     args.output.mkdir(parents=True, exist_ok=False)

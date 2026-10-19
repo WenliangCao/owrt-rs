@@ -981,7 +981,13 @@ fn restore_file(src: &str, target: &str, file: &str) -> std::io::Result<()> {
     let path = format!("{target}{file}");
     let destination = match fs::canonicalize(&path) {
         Ok(path) => path,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => path.into(),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => match fs::symlink_metadata(&path) {
+            // An existing dangling link is not a missing destination. Keep
+            // it and the snapshot so a later retry can restore its target.
+            Ok(_) => return Err(error),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => path.into(),
+            Err(error) => return Err(error),
+        },
         Err(error) => return Err(error),
     };
     let metadata = match fs::metadata(&destination) {
