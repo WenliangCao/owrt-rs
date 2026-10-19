@@ -371,8 +371,9 @@ def aggregate_budget_keeps_fast_reader(f):
         assert code == 0 and fd is not None
         slow.append(fd)
     # The first reader consumes every record immediately. The later readers
-    # jointly exceed 4 MiB while each remains below its 1 MiB individual cap.
-    for i in range(850):
+    # jointly exceed the 6 MiB budget for this fixture's 2 MiB ring, while
+    # each pending queue remains below even the small-ring 1 MiB limit.
+    for i in range(1100):
         marker = f"aggregate-{i:04d}-".encode()
         assert f.client.invoke(f.obj, "write", string("event", marker + b"x" * 980))[0] == 0
         data, closed = receive(fast, marker)
@@ -381,7 +382,7 @@ def aggregate_budget_keeps_fast_reader(f):
     closed = sum(take(fd)[1] for fd in slow)
     f.subject.send_signal(signal.SIGCONT)
     assert 0 < closed < len(slow), f"unexpected slow stream eviction count {closed}"
-    return {"healthy_records": 850, "slow_streams_evicted": closed}
+    return {"healthy_records": 1100, "slow_streams_evicted": closed}
 
 
 CASES = {
