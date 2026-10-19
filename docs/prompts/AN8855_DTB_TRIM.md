@@ -29,8 +29,12 @@
 
 ## 要做的事
 
-1. **构建改动**，只改 `tools/ci_build_image.sh`：在 `make image` 之前，按上面三步重新打包 IB 的
-   AX3000T FIT 并覆盖原文件。要求：
+1. **构建改动**：最终发货镜像由 `tools/ci_integrate_image.sh` 组装，用的是官方 stock
+   sysupgrade 里的 kernel 卷，并且有"最终 kernel == 官方 kernel"的 cmp 门。所以改动范围是
+   `tools/ci_integrate_image.sh` 和 `tools/native_image.py`，`ci_build_image.sh` 的
+   IB 产物不是发货镜像。新 FIT 必须从官方 stock kernel 卷派生；若它与 IB build_dir 中的那份
+   不同，先报告。原来的 cmp 门改为三条：官方 kernel sha256 等于固定值；最终 kernel 等于新 FIT；
+   新 FIT 的内核负载与官方逐字节相同、DTB 只差一行。其他要求：
    - 失败即停（fail closed）。先断言输入的 DTB 和 FIT sha256 等于固定的 25.12.5 值，
      并断言 `switch@1f` 的 compatible 是 `mediatek,mt7531`、原本没有 `status` 属性。
      IB 一旦变化，构建直接失败，不能静默跳过。
