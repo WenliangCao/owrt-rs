@@ -282,6 +282,7 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
 
     let mut do_rename = false;
     let mut tmpname: Option<String> = None;
+    let mut saved_delta = None;
     let body: Result<()> = (|| {
         if ctx.root[pidx].has_delta {
             if !overwrite {
@@ -308,8 +309,9 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
                 p.path = Some(path.clone());
                 p.has_delta = true;
             }
-            // flush delta
-            if delta::load_delta(ctx, pidx, true)? == 0 {
+            let (changes, stream) = delta::prepare_commit(ctx, pidx)?;
+            saved_delta = stream;
+            if changes == 0 {
                 return Ok(());
             }
         }
@@ -322,7 +324,7 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
         export::export_package(&mut w, ctx.flags, &ctx.root[pidx], false).map_err(|_| Error::Io)?;
         w.flush().map_err(|_| Error::Io)?;
         drop(w);
-        let _ = f2.sync_all();
+        f2.sync_all().map_err(|_| Error::Io)?;
         sys::unlock(&f2);
         do_rename = true;
         Ok(())
@@ -341,6 +343,9 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
         if renamed.is_err() {
             let _ = fs::remove_file(&tmp);
             return Err(Error::Io);
+        }
+        if let Some(stream) = saved_delta {
+            stream.set_len(0).map_err(|_| Error::Io)?;
         }
     } else if let Some(tmp) = &tmpname {
         let _ = fs::remove_file(tmp);

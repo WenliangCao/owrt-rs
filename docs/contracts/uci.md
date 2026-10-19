@@ -87,6 +87,15 @@ delta 文件的写入、读取与过滤、配置目录列举。不替换 `libuci
 - 内存耗尽路径（`Out of memory`）。
 - `ucimap`、Lua 绑定、`uci_hash_options`：不在 CLI 路径上。
 
+### 提交失败时保留草稿
+
+候选有意收紧原版先清空 delta 再写配置的失败边界。commit 重放 savedir 时持有其
+排他锁，临时配置完整写入并同步、rename 成功后才清空该 delta；创建、写入、同步或
+rename 失败返回 I/O error，原有草稿保留以便重试。锁持续到清理完成，避免丢弃期间
+另一个 save 新追加的内容。回归 `components/uci/tests/commit_failure.rs` 验证失败后
+同一 Context 重试，list-add 只应用一次。这不承诺配置与 delta 的跨文件断电原子性，
+也未改变配置文件原有的 flock/rename 并发粒度。
+
 ## 5. R92 非 UTF-8 改名的处置
 
 值仍为原始字节；model 的 package/section/option 名是 UTF-8。`rename` 的新名无法表示时，

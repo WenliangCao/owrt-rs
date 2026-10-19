@@ -221,6 +221,37 @@ pub fn load_delta(ctx: &mut Context, pidx: usize, flush: bool) -> Result<usize> 
     Ok(changes)
 }
 
+/// Replay a commit's delta chain without consuming its saved draft. Keep the
+/// savedir lock until the caller has installed the new configuration, so a
+/// concurrent save cannot append changes that this commit would then discard.
+pub(crate) fn prepare_commit(ctx: &mut Context, pidx: usize) -> Result<(usize, Option<File>)> {
+    let mut changes = 0;
+    // set_savedir keeps savedir last. Other delta paths remain read-only.
+    for dir in ctx.delta_path.clone() {
+        if dir == ctx.savedir {
+            continue;
+        }
+        let filename = format!("{}/{}", dir, ctx.root[pidx].name);
+        let (count, stream) = load_delta_file(ctx, Some(pidx), &filename, false)?;
+        changes += count;
+        drop(stream);
+    }
+    let filename = format!("{}/{}", ctx.savedir, ctx.root[pidx].name);
+    ctx.err = None;
+    match std::fs::metadata(&filename) {
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok((changes, None)),
+        Err(_) => return Err(Error::Io),
+        Ok(_) => {}
+    }
+    let stream = file::open_stream(ctx, &filename, false, true, false)?;
+    if ctx.delta_path.contains(&ctx.savedir) {
+        let data = file::read_whole(ctx, &stream)?;
+        changes += parse_delta(ctx, &mut data.as_slice(), pidx)?;
+    }
+    ctx.err = None;
+    Ok((changes, Some(stream)))
+}
+
 /// uci_filter_delta: rewrite `<savedir>/<name>` without the entries matching
 /// section/option. Any error (missing file, malformed line) leaves the file
 /// untouched, as the C TRAP_SAVE/`done:` path does.
