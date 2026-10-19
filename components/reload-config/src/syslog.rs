@@ -24,6 +24,9 @@ impl SyslogWriter {
     pub fn open() -> Self {
         let socket = UnixDatagram::unbound()
             .ok()
+            // Trace delivery must not hold the run lock while logd is stalled.
+            // A full queue drops this diagnostic just like an unavailable logd.
+            .filter(|socket| socket.set_nonblocking(true).is_ok())
             .filter(|socket| socket.connect(SYSLOG_PATH).is_ok());
         Self {
             socket,
