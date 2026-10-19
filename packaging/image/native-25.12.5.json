@@ -121,8 +121,10 @@
     }
   },
   "dnsmasq_build": {
-    "source_commit": "e21245d2404f6542759f45d064214ac3696c355f",
-    "source_date_epoch": 1792252494,
+    "schema": 1,
+    "scope": "v0.3.2 Oracle-qualified dnsmasq candidate; canonical rebuild must exactly reproduce accepted ELF; no router deployment authorization",
+    "source_commit": "a170caa5d74f928186d63e6c4d879688deee3a4c",
+    "source_date_epoch": 1792442737,
     "source_files": {
       "rust-toolchain.toml": "a5dab70a04165f8f83dd2db42a57347c61bc4f5285efa92be2b90362d835e50a",
       "manifests/release-25.12.5.json": "e30c02f2306594c6458efe60ecc6e0cd6ffdf79c5ddefe344db8824c2631368b",
@@ -162,7 +164,7 @@
       "components/platform/src/ipc.rs": "da71b8e66beb08a51724ac4fdbff4c392915ff6611116416dfcb498d273870f9",
       "components/platform/src/lib.rs": "7e19280408e18c896a047fb5f6b8b832e41310e01e4017c7efbd1cd0a80a6bee",
       "components/platform/src/netifd/signals.rs": "c93ecf26ccd75988efdf0fbba79f8021b23c81b59656e06c3c239c7e7152eca6",
-      "components/platform/src/netifd.rs": "3450edd6e5204bae6fbc2da4007af0430a4df3b3dd02e8852e67ff08ab499dd7",
+      "components/platform/src/netifd.rs": "baec1e5d2f688e7329c2836dfa5ad70c153e1d2e7f320c67ac3e33923fd2b094",
       "components/platform/src/procd/compatibility.rs": "c577219bda9112bd8d7c36eaa11b03bffb1d62576b9459d461c458784271140e",
       "components/platform/src/procd/process.rs": "ba979d4be16009ff3394cef2e79488833f9f27d51ee873617584ec030d2c30a6",
       "components/platform/src/procd/signals.rs": "625a79eb1205abb42d7e7b3b1faa7b2268773f88c4f24dd7ebd1acb8603eba5f",
@@ -214,11 +216,11 @@
       "components/dnsmasq/src/config/ubus.rs": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
       "components/dnsmasq/src/dhcp/allocation.rs": "705360c84b87531c52859608d45220689cd5fb9d7463c7a5ee8042d9baa6225a",
       "components/dnsmasq/src/dhcp/context.rs": "0c47e67c969750e3a886b40f3728e2537e4263209dce5f9915b1399dd979cea7",
-      "components/dnsmasq/src/dhcp/daemon.rs": "d8b5d8c9dd58b8b4ae95bf9b65aeeff2d567a5b78cd9e73943b2c36a13ea2560",
+      "components/dnsmasq/src/dhcp/daemon.rs": "9eebbc313fa7e080af188101f02aac0aef347335fceca8b11b957f60f8d0736e",
       "components/dnsmasq/src/dhcp/files_runtime.rs": "068e08eebe8ef1702526e543f01670c777d8c2057226f22e51d85650353280c5",
       "components/dnsmasq/src/dhcp/filewatch.rs": "b08f2794ec12e7cc922b7d92108e133cb554025a4b3d8aa2c3303c1796b43917",
       "components/dnsmasq/src/dhcp/interface_admission.rs": "3f993ae940a388c51ba1604f9e4e87f485fca3571dfa8b95fceb135397a59a0c",
-      "components/dnsmasq/src/dhcp/lease.rs": "cf710952c3ad0b33e2dab7a2e9e9c76984b28d26d0dc6428040860fc480cacb4",
+      "components/dnsmasq/src/dhcp/lease.rs": "c94ccb609189ea813d7ded8a67ed4cba024c2929263a8d3a98e244739391efdc",
       "components/dnsmasq/src/dhcp/lease_file.rs": "d55bcfd324b33baa9c3b3afbee3ab17c9e5ffb78cdfc8deeec9a34ab22d94452",
       "components/dnsmasq/src/dhcp/lease_query.rs": "49b61937ada15eb123bc60976962c4ea5572d83b5b38359fedd147abdb7b46b4",
       "components/dnsmasq/src/dhcp/logging.rs": "8a31edc1ce63d9afa04884f8a48eb0d5ba8aa72c34d67d18bb4113ff1082894c",
@@ -232,7 +234,7 @@
       "components/dnsmasq/src/dhcp/reply.rs": "8ec058f44ce63a2b8fa3817fa3bce54163f11471e0ef7a5f72e5ae5b16725562",
       "components/dnsmasq/src/dhcp/reply_delay.rs": "85d53a4540b9301ccf663b9dda9fadedfc2175dda1b3e547cd81c7160442175a",
       "components/dnsmasq/src/dhcp/request.rs": "c414cc72cdc60955de2ced43ee54fae515d9e5afbdf8303fecaf5256bc37651f",
-      "components/dnsmasq/src/dhcp/runtime.rs": "b6a67f67a7f0bcece233ebbc2e80096ccdaba0bbe6de00173c9273259f38996d",
+      "components/dnsmasq/src/dhcp/runtime.rs": "11c6189a85fecca80efc7a9caa23df06f0f9955bbe0ec2804b92e9c5452756c3",
       "components/dnsmasq/src/dhcp/service.rs": "5e4016eb58025e62a04652ee0bb47c15cd1aa7db52aa947bd225870f808e380f",
       "components/dnsmasq/src/dhcp/state.rs": "da5ded923bef0616e23701cb54391bc5f3aa690679721b7daa4360e11d4461d2",
       "components/dnsmasq/src/dns/cache.rs": "e046ee5d1cca1d5e6521a17fa9370a8bc3425185cb26c6e8c07475c3425e1a93",
@@ -300,7 +302,7 @@
       "components/dnsmasq/src/logging/query.rs": "d9bead27c20edd4e25b535b4b7aba8c50ec616355facb4cdbf411c3c7159239f",
       "components/dnsmasq/src/logging/startup.rs": "bac5619389108bf806a9335a2c8f72178adde1f7fd26647e932c167f1ecb03f1",
       "components/dnsmasq/src/logging.rs": "6fd1822ead3cbc7457269aa1d07703f9e19e71b0c7ef91403a8e952ca3ec8fa8",
-      "components/dnsmasq/src/main.rs": "500a2f2bf79da14ac3446aad0f1ba89850d1a96a144df36f082eb7b9485e7d84",
+      "components/dnsmasq/src/main.rs": "5e99d4c23fb71be7d30d970af90c6eb903395053a4cc514bd76e75684763720a",
       "components/dnsmasq/src/main_hosts_initial_hup_tests.rs": "74a29407a2dc2c6d228be7326ef1fb9d8c8c84f5e493e125e385b7e2ad09221c",
       "components/dnsmasq/src/main_hostsdir_init_tests.rs": "d9802ec0e9a22ae6d336636166d7e7c58a6a78cc82c0b56a507c6544c0fefa46",
       "components/dnsmasq/src/main_neighbor_tail_tests.rs": "05f9dfc28eaa293ca5514997329cc57a3084b6bae85116ebec62aa9f318f18a5",
@@ -327,10 +329,10 @@
       "components/dnsmasq/src/ubus_service.rs": "88e4fb537f324a93254db190e2adca0a04ff1994a1299f972e87b78083133fd5",
       "components/ubus/Cargo.toml": "67cd30392be982d0cc8dde2c1cb4d759c4c853153da0c4b3433ce30aa80d14c9",
       "components/ubus/src/blob.rs": "c57472349f5f9acd04ea556956c4411fa5daf0aa041375602df625a7b83a36cc",
-      "components/ubus/src/conn.rs": "1595f5619c7f2ecd1d3894dbe1d595f63d6019f374e7dd86187daf07d878af20",
+      "components/ubus/src/conn.rs": "3136c69604b7ddb75a3bb156845898e0086ae521ab3953fa0191992cd8a4bc70",
       "components/ubus/src/connect.rs": "e13b204a2dd56628e58bad432635e41624843af0c834c77bdb13b8fe03724fa5",
-      "components/ubus/src/convert.rs": "3cf3ca60d1e673d368d18ef2b80336929865dd4fd7f01e7b8aba1d30faf0f83a",
-      "components/ubus/src/digest.rs": "1d1e213d0ec2efc51f9dbc153de9696d22d4900e4faa2bf4adf5d06561f2ccff",
+      "components/ubus/src/convert.rs": "786f490a3156ae5b9b9a0072b02eb7c575be83c3c8976a2040183612eeebde2b",
+      "components/ubus/src/digest.rs": "fc640eaa282c84933da377e5fe695b6ad3fe39d5d0486477068b71122d4ec5c5",
       "components/ubus/src/json.rs": "a5fcb9cd3e0e63eff4ad2457b83a8aacd0e064099f3921505afd8d962a111d98",
       "components/ubus/src/lib.rs": "e1b6ef2eee22bdee1e587a39b27249ec41ec8c7d5ac289444947f9952efa265c",
       "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
@@ -338,26 +340,59 @@
       "components/ubus/src/sys.rs": "5def603999a82708cd7aff448c331d7d0682e33042e10b53d24fd75392c5899c"
     },
     "source_file_count": 212,
-    "source_digest": "0f87482e7482f472c879db4cdb98b725d1c047f6867e606aacacf8e2d33162b7",
+    "source_digest": "c3daefd7b94be1e42120f6ae9cec7c56264ed2dc430639ceea5d63812d151725",
+    "package_release": "4",
     "elf_max_bytes": 2500000,
     "apk_max_bytes": 1400000,
-    "package_release": "4",
     "pgo_stage": "frozen-use",
     "pgo": {
       "build_slot": "/home/ubuntu/owrt-unified-v022-20261017/private/dnsmasq-sdk-build-slot",
       "retain_link_map": true,
-      "profile_url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/dnsmasq-k-pgo-inputs-20261017/dnsmasq-e21245d2-23ac3bc6f61a88990be4462a1bb0f11fa3d6a859fbdc6ab7f7b80aad860e4820.profdata",
-      "profile_sha256": "23ac3bc6f61a88990be4462a1bb0f11fa3d6a859fbdc6ab7f7b80aad860e4820",
-      "profile_bytes": 1219448,
+      "profile_url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/dnsmasq-k-pgo-inputs-20261017/dnsmasq-a170caa5-d4779d763bb3ce1dafcad23de275a2bf9b5fb3579b3c047a865af7f0b35324c1.profdata",
+      "profile_sha256": "d4779d763bb3ce1dafcad23de275a2bf9b5fb3579b3c047a865af7f0b35324c1",
+      "profile_bytes": 1221184,
       "training": {
-        "generator_manifest_sha256": "cdc3de5e732848b9a8ea8991534c096dd581c3fea3da3c44b27a808740489550",
-        "generator_elf_sha256": "ac2aded44e7b99cb363435317114d8ef02828912b0b30669e0d553ab36598950",
-        "training_receipt_sha256": "b7ac4f7f50fe7e84df57c26b12006b5db9f3fee0d423adaf024199e827c19a7d"
+        "generator_manifest_sha256": "30125288a5c8683cc1cece62af1dbd8b3a7a0bb04e2ecdf4211ee3e7e465d897",
+        "generator_elf_sha256": "a01fa22c488c64d2409788bd18daf7298b5ad64cbdd6c3f4d30fa5da3173720b",
+        "training_receipt_sha256": "2acf2cd6529b07baa3e87959ffe528724ebf6cd620a51b05e417e10c37ee4f16"
       }
     },
-    "qualification": "Frozen integrated v0.2.2 candidate identity. Canonical image builds must reproduce all ten candidate ELFs. Runtime, hardware performance and deployment acceptance remain separate and pending.",
-    "reference_elf_sha256": "0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244",
-    "reference_elf_bytes": 2308899
+    "reference_elf_sha256": "2a22f6327d81e25c8bf9e891d21842e5ef0d33ec074e5004506388f3b616e2a2",
+    "reference_elf_bytes": 2312995,
+    "qualification": {
+      "candidate_ci_run": 39323876403,
+      "candidate_manifest_sha256": "ae9b7a99b9b45162628a53ecfa808f51f49bc814e8ada42458b0e224188553aa",
+      "native": {
+        "passed": 993,
+        "receipt_sha256": "79cf11aaab5570e1e827747b2b888173af08980048cc009643035f10a3463804"
+      },
+      "f23_f25": {
+        "rounds_each": 4,
+        "receipt_sha256": "613ba17386a6b4af1628550306d68d37ccae9ae4905baeb24b48d59c54a9fc72"
+      },
+      "runtime": {
+        "receipt_sha256": "4473d4540206f5b51762da7598b770a9fb4cac578e962cd319cf7b2208bca583",
+        "baseline_elf_sha256": "0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244",
+        "no_proc_cases": 4,
+        "fd_cases": 16,
+        "fd_regressions": [],
+        "known_helper_pressure_failures": [
+          2,
+          3,
+          4,
+          8
+        ],
+        "startup_starts": 40,
+        "shipping_aslr_starts": 3
+      },
+      "families": {
+        "families": 44,
+        "jobs": 67,
+        "receipt_sha256": "4973af48818d9e55f0cdd0b3d953a11b23ba46771f91f0c312724e48db98a334"
+      },
+      "physical_router_touched": false,
+      "performance_verdict": false
+    }
   },
   "integration_files": {
     "etc/init.d/dnsmasq": {
