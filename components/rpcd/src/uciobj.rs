@@ -984,16 +984,26 @@ fn restore_file(src: &str, target: &str, file: &str) -> std::io::Result<()> {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => path.into(),
         Err(error) => return Err(error),
     };
-    let permissions = match fs::metadata(&destination) {
-        Ok(metadata) => metadata.permissions(),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => input.metadata()?.permissions(),
+    let metadata = match fs::metadata(&destination) {
+        Ok(metadata) => Some(metadata),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
         Err(error) => return Err(error),
+    };
+    let permissions = match &metadata {
+        Some(metadata) => metadata.permissions(),
+        None => input.metadata()?.permissions(),
     };
     let parent = destination.parent().ok_or_else(|| std::io::Error::other("rollback destination has no parent"))?;
     let template = parent.join(".rpcd-rollback-XXXXXX");
     let (mut output, temporary) = owrt_uci::sys::mkstemp(&template.to_string_lossy())?;
     let result = (|| {
         std::io::copy(&mut input, &mut output)?;
+        if let Some(metadata) = &metadata {
+            rustix::fs::fchown(&output,
+                Some(rustix::process::Uid::from_raw(metadata.uid())),
+                Some(rustix::process::Gid::from_raw(metadata.gid())))?;
+        }
+        // chown may clear set-id bits, so restore the mode afterwards.
         output.set_permissions(permissions)?;
         output.sync_all()?;
         fs::rename(&temporary, &destination)?;

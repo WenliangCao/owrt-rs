@@ -64,6 +64,13 @@ def inner(root, side, fault):
             return
         delta = run / ('uci-' + sid.decode())
         saved_delta = (run / 'snapshot-delta/v030restore').read_bytes()
+        expected_owners = None
+        if fault == 'ownership':
+            # Change installed ownership after apply to isolate restoration
+            # from UCI commit's separate file-replacement behavior.
+            expected_owners = [(12345, 23456), (34567, 45678)]
+            os.chown(config, *expected_owners[0])
+            os.chown(delta / 'v030restore', *expected_owners[1])
         # A bind mount changes only this namespace, leaving the base image intact.
         target = delta if fault.startswith('delta') else config.parent
         if fault == 'full':
@@ -71,7 +78,7 @@ def inner(root, side, fault):
             subprocess.run(['mount', '-t', 'tmpfs', '-o', 'size=4096', 'none', str(target)], check=True)
             config.write_bytes(applied)
             config.chmod(0o640)
-        elif fault != 'healthy':
+        elif fault not in ('healthy', 'ownership'):
             subprocess.run(['mount', '--bind', str(target), str(target)], check=True)
             subprocess.run(['mount', '-o', 'remount,bind,ro', str(target)], check=True)
         rollback_code = None
@@ -91,12 +98,14 @@ def inner(root, side, fault):
         if fault == 'full':
             # Make the same filesystem writable without hiding a partial copy.
             subprocess.run(['mount', '-o', 'remount,size=1048576', str(target)], check=True)
-        elif fault != 'healthy':
+        elif fault not in ('healthy', 'ownership'):
             subprocess.run(['umount', str(target)], check=True)
         recovered = fixture.wait(lambda: config.read_bytes() == original and not snapshot.exists(), timeout=4)
         delta_restored = (delta / 'v030restore').read_bytes() == saved_delta
         notified = fixture.wait(lambda: len(service.events) == 2, timeout=2)
+        actual_owners = [(p.stat().st_uid, p.stat().st_gid) for p in [config, delta / 'v030restore']]
         observations = {'side': side, 'fault': fault, 'rollback_code': rollback_code,
+                        'expected_owners': expected_owners, 'actual_owners': actual_owners,
                         'snapshot_retained_on_error': retained, 'during_original': during == original,
                         'finalize_code': finalize_code, 'snapshot_retained_after_finalize': retained_after_finalize,
                         'events_during_fault': events_during_fault, 'notified_after_restore': notified,
@@ -106,7 +115,7 @@ def inner(root, side, fault):
         write(fixture.output / 'result.json', json.dumps(observations, indent=2) + '\n')
         print(json.dumps(observations), flush=True)
         if side == 'candidate':
-            if fault != 'healthy':
+            if fault not in ('healthy', 'ownership'):
                 assert retained, 'rollback discarded its only snapshot after a failed restore'
             if fault == 'manual':
                 assert rollback_code != 0, 'manual rollback reported success after failed restore'
@@ -116,6 +125,8 @@ def inner(root, side, fault):
                 assert during == original and events_during_fault == 1, 'fixture missed partial rollback'
                 assert finalize_code != 0, 'owner finalized a partially restored apply'
                 assert retained_after_finalize, 'owner discarded the pending recovery snapshot'
+            if fault == 'ownership':
+                assert actual_owners == expected_owners, 'rollback changed existing file ownership'
             assert recovered and delta_restored and notified and observations['alive']
             assert observations['permissions'] == 0o640
             assert client.invoke(uci, 'confirm', args)[0] == 5, 'rollback timer/owner was not cleared'
@@ -134,7 +145,7 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--sides', nargs='+', choices=['original', 'candidate'], default=['candidate'])
     parser.add_argument('--repeat', type=int, default=1)
-    parser.add_argument('--faults', nargs='+', choices=['healthy', 'manual', 'timer', 'delta', 'full', 'cancel', 'delta-cancel', 'delta-confirm'], default=['healthy', 'manual', 'timer', 'delta', 'full', 'delta-cancel', 'delta-confirm'])
+    parser.add_argument('--faults', nargs='+', choices=['healthy', 'manual', 'timer', 'delta', 'full', 'cancel', 'delta-cancel', 'delta-confirm', 'ownership'], default=['healthy', 'manual', 'timer', 'delta', 'full', 'delta-cancel', 'delta-confirm', 'ownership'])
     args = parser.parse_args()
     assert os.geteuid() == 0 and sys.platform == 'linux' and args.repeat > 0
     args.output.mkdir(parents=True, exist_ok=False)

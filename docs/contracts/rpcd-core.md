@@ -103,7 +103,7 @@ apply 回滚计时器。候选有意改进该故障边界：总线断开或一�
 UNKNOWN_ERROR。配置及仍有效会话的 delta 全部恢复后才清除快照并通知 procd。
 恢复一旦开始，所有者的 unchecked apply 与 confirm 也返回 UNKNOWN_ERROR，保留重试；
 尚未开始回滚的待确认 apply 仍可由所有者取消保护或确认。单文件先写
-同目录临时文件，检查写入及同步，再 rename 并同步目录；保留目标权限和已有符号链接的
+同目录临时文件，检查写入及同步，再 rename 并同步目录；保留已有目标的 uid/gid、权限和已有符号链接的
 目标。因此 ENOSPC 不会先截断当前文件。该保证限于当前 rpcd 进程存活期间，不是跨进程
 崩溃或多文件断电事务。回归 `tools/test_rpcd_restore_failure.py` 在私有 namespace 中覆盖
 手动/定时回滚、配置/delta 目录只读、4 KiB 文件系统写满及解除故障后的自动恢复。
