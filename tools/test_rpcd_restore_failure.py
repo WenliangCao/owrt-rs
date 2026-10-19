@@ -65,7 +65,7 @@ def inner(root, side, fault):
         delta = run / ('uci-' + sid.decode())
         saved_delta = (run / 'snapshot-delta/v030restore').read_bytes()
         # A bind mount changes only this namespace, leaving the base image intact.
-        target = delta if fault == 'delta' else config.parent
+        target = delta if fault.startswith('delta') else config.parent
         if fault == 'full':
             applied = config.read_bytes()
             subprocess.run(['mount', '-t', 'tmpfs', '-o', 'size=4096', 'none', str(target)], check=True)
@@ -81,6 +81,13 @@ def inner(root, side, fault):
             time.sleep(2.4)
         retained = snapshot.exists() and snapshot.read_bytes() == original
         during = config.read_bytes()
+        finalize_code = None
+        retained_after_finalize = None
+        events_during_fault = len(service.events)
+        if fault in ('delta-cancel', 'delta-confirm'):
+            method = 'apply' if fault == 'delta-cancel' else 'confirm'
+            finalize_code = client.invoke(uci, method, args)[0]
+            retained_after_finalize = snapshot.exists() and snapshot.read_bytes() == original
         if fault == 'full':
             # Make the same filesystem writable without hiding a partial copy.
             subprocess.run(['mount', '-o', 'remount,size=1048576', str(target)], check=True)
@@ -88,8 +95,11 @@ def inner(root, side, fault):
             subprocess.run(['umount', str(target)], check=True)
         recovered = fixture.wait(lambda: config.read_bytes() == original and not snapshot.exists(), timeout=4)
         delta_restored = (delta / 'v030restore').read_bytes() == saved_delta
+        notified = fixture.wait(lambda: len(service.events) == 2, timeout=2)
         observations = {'side': side, 'fault': fault, 'rollback_code': rollback_code,
                         'snapshot_retained_on_error': retained, 'during_original': during == original,
+                        'finalize_code': finalize_code, 'snapshot_retained_after_finalize': retained_after_finalize,
+                        'events_during_fault': events_during_fault, 'notified_after_restore': notified,
                         'recovered_after_fault': recovered, 'delta_restored': delta_restored,
                         'permissions': config.stat().st_mode & 0o777,
                         'alive': fixture.subject.poll() is None}
@@ -102,7 +112,11 @@ def inner(root, side, fault):
                 assert rollback_code != 0, 'manual rollback reported success after failed restore'
             if fault == 'full':
                 assert during == applied, 'failed copy truncated the currently installed config'
-            assert recovered and delta_restored and observations['alive']
+            if fault in ('delta-cancel', 'delta-confirm'):
+                assert during == original and events_during_fault == 1, 'fixture missed partial rollback'
+                assert finalize_code != 0, 'owner finalized a partially restored apply'
+                assert retained_after_finalize, 'owner discarded the pending recovery snapshot'
+            assert recovered and delta_restored and notified and observations['alive']
             assert observations['permissions'] == 0o640
             assert client.invoke(uci, 'confirm', args)[0] == 5, 'rollback timer/owner was not cleared'
     finally:
@@ -120,7 +134,7 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--sides', nargs='+', choices=['original', 'candidate'], default=['candidate'])
     parser.add_argument('--repeat', type=int, default=1)
-    parser.add_argument('--faults', nargs='+', choices=['healthy', 'manual', 'timer', 'delta', 'full', 'cancel'], default=['healthy', 'manual', 'timer', 'delta', 'full'])
+    parser.add_argument('--faults', nargs='+', choices=['healthy', 'manual', 'timer', 'delta', 'full', 'cancel', 'delta-cancel', 'delta-confirm'], default=['healthy', 'manual', 'timer', 'delta', 'full', 'delta-cancel', 'delta-confirm'])
     args = parser.parse_args()
     assert os.geteuid() == 0 and sys.platform == 'linux' and args.repeat > 0
     args.output.mkdir(parents=True, exist_ok=False)

@@ -27,6 +27,7 @@ fn savedir_of(sid: &str) -> String {
 #[derive(Default)]
 pub struct Apply {
     pub deadline: Option<Instant>,
+    rollback_in_progress: bool,
     pending_events: std::collections::BTreeSet<String>,
     last_event: Option<String>,
     pub event_retry: Option<Instant>,
@@ -1054,6 +1055,9 @@ fn apply_access(rctx: &Ctx, sid: &str, dir: &str, names: &[String]) -> i32 {
 
 /// rpc_uci_do_rollback over the snapshot-files listing.
 pub fn do_rollback(rctx: &Ctx, mut conn: Option<&mut Connection>, names: &[String]) -> std::io::Result<()> {
+    // Once restoration starts, only a complete rollback may retire its state.
+    // A failed batch may already have replaced some files on disk.
+    rctx.apply.borrow_mut().rollback_in_progress = true;
     let apply_sid = rctx.sessions.borrow().apply_sid.clone();
     let deny = match &apply_sid {
         Some(sid) => apply_access(rctx, sid, SNAPSHOT_FILES.trim_end_matches('/'), names),
@@ -1086,6 +1090,7 @@ pub fn do_rollback(rctx: &Ctx, mut conn: Option<&mut Connection>, names: &[Strin
     purge_dir(SNAPSHOT_FILES);
     purge_dir(SNAPSHOT_DELTA);
     rctx.apply.borrow_mut().deadline = None;
+    rctx.apply.borrow_mut().rollback_in_progress = false;
     rctx.sessions.borrow_mut().apply_sid = None;
     // Restore every file before a procd event can wait for a reply. Manual
     // rollback retains its synchronous event attempts; a timer queues them.
@@ -1114,6 +1119,9 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         // Like confirm/rollback, unchecked apply may discard only this
         // session's snapshot. Other sessions must not cancel its safety timer.
         return code(status::PERMISSION_DENIED);
+    }
+    if rctx.apply.borrow().rollback_in_progress {
+        return code(status::UNKNOWN_ERROR);
     }
     let timeout: i32 = arg(raw, "timeout", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(APPLY_TIMEOUT);
     purge_dir(SNAPSHOT_FILES);
@@ -1181,6 +1189,9 @@ fn confirm(rctx: &Ctx, raw: &[u8]) -> Reply {
     let Some(apply_sid) = apply_sid else { return code(status::NO_DATA) };
     if apply_sid != sid {
         return code(status::PERMISSION_DENIED);
+    }
+    if rctx.apply.borrow().rollback_in_progress {
+        return code(status::UNKNOWN_ERROR);
     }
     purge_dir(SNAPSHOT_FILES);
     purge_dir(SNAPSHOT_DELTA);
