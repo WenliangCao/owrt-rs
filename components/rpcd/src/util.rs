@@ -27,8 +27,8 @@ pub fn b64_encode(data: &[u8]) -> String {
     out
 }
 
-/// libubox b64_decode semantics: whitespace is skipped, padding optional,
-/// invalid characters fail.
+/// libubox b64_decode semantics: whitespace is skipped, complete quartets and
+/// zero padding bits are required, invalid characters fail.
 pub fn b64_decode(data: &[u8]) -> Option<Vec<u8>> {
     let mut out = Vec::with_capacity(data.len() / 4 * 3);
     let mut acc = 0u32;
@@ -58,7 +58,7 @@ pub fn b64_decode(data: &[u8]) -> Option<Vec<u8>> {
     }
     // libubox b64_decode consumes whole quartets: the non-whitespace
     // length must be a multiple of 4 and at most two `=` may pad the tail.
-    if pad > 2 || !ndigit.is_multiple_of(4) {
+    if pad > 2 || !ndigit.is_multiple_of(4) || acc != 0 {
         return None;
     }
     Some(out)
@@ -272,6 +272,16 @@ mod tests {
         assert!(b64_decode(b"QQ=").is_none()); // incomplete quartet
         assert_eq!(b64_decode(b"QQ==").unwrap(), b"A");
         assert_eq!(b64_decode(b"QU JD").unwrap(), b"ABC"); // embedded ws
+    }
+
+    #[test]
+    fn base64_rejects_nonzero_padding_bits() {
+        for input in [b"QR==".as_slice(), b"Qf==", b"QUJ=", b"Q U J =", b"////QR=="] {
+            assert!(b64_decode(input).is_none(), "{input:?}");
+        }
+        for (input, expected) in [(b"QQ==".as_slice(), b"A".as_slice()), (b"QUI=", b"AB"), (b"QUJD", b"ABC")] {
+            assert_eq!(b64_decode(input).as_deref(), Some(expected));
+        }
     }
 
     #[test]
