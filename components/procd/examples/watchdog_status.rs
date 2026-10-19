@@ -33,9 +33,12 @@ mod sys {
     pub use owrt_platform::procd::watchdog::{take_inherited_watchdog, WatchdogInfo};
     pub fn watchdog_set_timeout(
         _fd: impl std::os::fd::AsFd,
-        _value: &mut i32,
+        value: &mut i32,
     ) -> std::io::Result<()> {
         crate::IOCTLS.lock().unwrap().push(0xc004_5706);
+        if crate::SCENARIO.load(crate::Ordering::Relaxed) == 5 {
+            *value = 20;
+        }
         Ok(())
     }
     pub fn watchdog_support(_fd: impl std::os::fd::AsFd) -> std::io::Result<WatchdogInfo> {
@@ -65,6 +68,15 @@ mod sys {
 mod watchdog;
 
 fn main() {
+    if std::env::args().any(|arg| arg == "--adjust-timeout") {
+        let (writer, _reader) = std::os::unix::net::UnixStream::pair().unwrap();
+        std::env::set_var("WDTFD", writer.into_raw_fd().to_string());
+        SCENARIO.store(5, Ordering::Relaxed);
+        let mut watchdog = watchdog::Wdt::default();
+        watchdog.init(0, false);
+        println!("init={} set={}", watchdog.timeout(0), watchdog.timeout(17));
+        return;
+    }
     let expected = [
         "Watchdog GETSUPPORT failed",
         "Watchdog does not have CARDRESET support",

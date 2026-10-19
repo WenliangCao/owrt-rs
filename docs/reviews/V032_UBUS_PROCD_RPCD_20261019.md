@@ -42,7 +42,7 @@ fw4/odhcpd 的调用方验证由整合检查记录。
 | procd instance 顶层类型策略 | 四轮复现并修复；见下 |
 | procd instance.update 事件 | 四轮复现并修复；见下 |
 | procd 负 trigger timeout | 待复现 |
-| procd watchdog 驱动实际 timeout | 待复现 |
+| procd watchdog 驱动实际 timeout | 四轮 ioctl 注入复现并修复；见下 |
 | procd jsonscript include | 待复现 |
 | rpcd 损坏 freeze 的 UTF-8 / 时间溢出 | 待复现 |
 | rpcd 非法 UTF-8 SID 降为 None | 待复现 |
@@ -72,3 +72,18 @@ delete 和 update_complete 的事件，保留 add 未提及实例、update_start
 `procd-events-{red,green-2}/result.json`。首次绿夹具用 150 ms 观察窗，小于 Rust
 现有 200 ms 维护 tick，出现延后动作而非缺失；最终每步等 500 ms 后比较动作总数。
 这项修复恢复事件，不宣称改变触发器调度精度。
+
+## procd watchdog 返回值
+
+`procd_watchdog_check.c` 直接 include 精确 `58eb263d` 的 `watchdog.c`，只注入 ioctl
+和 uloop timer；Rust `watchdog_status --adjust-timeout` include 产品 watchdog 模块并注入
+相同 ioctl 写回。两边 WDTFD 都是 socketpair，未打开任何硬件 watchdog。
+模型是驱动将请求 30/17 秒量化为 20 秒：四轮 C getter 均为 `20/20`，Rust 为
+`30/17`。修复将已保存 timeout 直接传给 ioctl，四轮双方均 `20/20`，五个原有
+GETSUPPORT/GETBOOTSTATUS 控制场景仍通过。证据为 `procd-watchdog-{red,green}.json`。
+这是明确的接口模拟证据；没有断言 MT7981 驱动实际采用同一量化方式。
+
+C probe 的构建参数为 `-I<exact-components>` 和
+`-DPROCD_WATCHDOG_SOURCE='"<exact-components>/procd/watchdog.c"'`；Rust 用
+`cargo build --release --example watchdog_status --manifest-path components/procd/Cargo.toml`
+后对两程序各运行四次即可复现。所有构建和运行均在 Oracle Linux。

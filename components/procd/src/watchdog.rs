@@ -79,8 +79,8 @@ impl Wdt {
 
     fn set_drv_timeout(&mut self) {
         if let Some(fd) = &self.fd {
-            let mut timeout = self.timeout;
-            let _ = crate::sys::watchdog_set_timeout(fd, &mut timeout);
+            // WDIOC_SETTIMEOUT writes back the timeout accepted by the driver.
+            let _ = crate::sys::watchdog_set_timeout(fd, &mut self.timeout);
         }
     }
 
