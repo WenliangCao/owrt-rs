@@ -1718,7 +1718,8 @@ mod tests {
             engine.leases(),
             &[link.name.clone()],
             clock,
-        ));
+        ))
+        .unwrap();
         let entry = &json
             .get("device")
             .unwrap()

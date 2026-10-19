@@ -81,7 +81,7 @@ fn emit(fields: Vec<(&str, Json)>) {
 fn status(connection: &mut Connection, object: u32) -> Result<Json> {
     let reply = connection.invoke(object, "status", &[], 3000)?;
     require(reply.fd.is_none(), "status unexpectedly returned an fd")?;
-    let status = fields_to_json(&reply.fields());
+    let status = fields_to_json(&reply.fields())?;
     require(
         status.get("up") == Some(&Json::Bool(true)),
         "interface is not up",

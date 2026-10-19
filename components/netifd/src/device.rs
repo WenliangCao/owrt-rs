@@ -720,7 +720,7 @@ mod tests {
         let t = b.msg_open_table("wan");
         d.dump_status(&mut b, None, None);
         b.msg_close(t);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
         assert!(json.contains("\"external\""), "{json}");
         assert!(json.contains("\"present\""), "{json}");
         assert!(json.contains("\"type\""), "{json}");
@@ -736,7 +736,7 @@ mod tests {
         d.settings.mtu = 1500;
         let mut b = BlobBuf::new();
         d.dump_status(&mut b, None, None);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
         assert!(json.contains("\"carrier\""), "{json}");
         assert!(!json.contains("\"mtu\""), "{json}");
         // statistics is always opened, even when empty
@@ -773,7 +773,7 @@ mod tests {
 
         let mut b = BlobBuf::new();
         d.dump_status(&mut b, None, None);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
         let order: Vec<&str> = [
             "external",
             "present",
@@ -813,7 +813,7 @@ mod tests {
         d.orig_settings.neigh6gcstaletime = 60;
         let mut b = BlobBuf::new();
         d.dump_status(&mut b, None, None);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
         assert!(json.contains("neigh4gcstaletime"), "{json}");
         assert!(json.contains("neigh6gcstaletime"), "{json}");
     }
@@ -832,7 +832,7 @@ mod tests {
         );
         let mut b = BlobBuf::new();
         r.dump_all(&mut b, None);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
         let i_br = json.find("br-lan").unwrap();
         let i_lo = json.find("\"lo\"").unwrap();
         let i_wan = json.find("\"wan\"").unwrap();

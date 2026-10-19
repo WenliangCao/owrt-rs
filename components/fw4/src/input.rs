@@ -191,7 +191,7 @@ impl Inputs {
         if reply.status != 0 {
             return None;
         }
-        Some(fields_to_json(&reply.fields()))
+        fields_to_json(&reply.fields()).ok()
     }
 
     /// fw4.read_ubus uses one connection for both input objects and emits

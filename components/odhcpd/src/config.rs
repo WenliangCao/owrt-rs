@@ -722,7 +722,7 @@ fn parse_hex(value: &str) -> Result<Vec<u8>> {
 
 pub fn host_from_blob(fields: &[u8]) -> Result<HostConfig> {
     // The ubus policy requires arrays. UCI strings are split by uci_to_blob.
-    let value = owrt_ubus::convert::fields_to_json(fields);
+    let value = owrt_ubus::convert::fields_to_json(fields).map_err(ConfigError)?;
     for key in ["mac", "duid"] {
         if value.get(key).is_some_and(|v| !matches!(v, Json::Array(_))) {
             return Err(ConfigError(format!("{key}: ubus requires an array")));

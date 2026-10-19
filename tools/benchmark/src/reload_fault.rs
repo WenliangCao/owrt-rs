@@ -71,7 +71,7 @@ pub fn serve(socket: &str, prefix: &str) -> Result<()> {
         let Some(Incoming::Invoke(request)) = connection.next_incoming(10)? else {
             continue;
         };
-        let payload = fields_to_json(&request.data);
+        let payload = fields_to_json(&request.data)?;
         require(
             request.objid == object && request.method == "event" && request.fd.is_none(),
             "unexpected fault service request",

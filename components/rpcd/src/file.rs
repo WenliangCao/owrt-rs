@@ -625,7 +625,10 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
         };
         return Outcome::Now(req, reply);
     }
-    let args = fields_to_json(&req.data);
+    let args = match fields_to_json(&req.data) {
+        Ok(args) => args,
+        Err(_) => return Outcome::Now(req, Reply::empty(status::INVALID_ARGUMENT)),
+    };
     if req.method == "exec" {
         return exec(ctx, req, &args, deferrer);
     }

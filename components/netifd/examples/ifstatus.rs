@@ -206,5 +206,5 @@ fn main() {
         b.msg_close(t);
     }
     b.msg_close(arr);
-    println!("{}", owrt_ubus::convert::fields_to_json(b.payload()).to_compact());
+    println!("{}", owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact());
 }

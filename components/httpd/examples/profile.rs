@@ -151,30 +151,30 @@ fn serve_to(output: &mut http::Out<'_, Discard>, request: &http::Request, pi: &f
 }
 
 fn profile_reply(n: u64, filter: &str, label: &str, fields: &[u8]) {
-    let value = owrt_ubus::convert::fields_to_json(fields);
+    let value = owrt_ubus::convert::fields_to_json(fields).unwrap();
     for capacity in [128, fields.len() + 128] {
         measure(&format!("rpc_{label}_reply_capacity_{capacity}"), n, filter, || {
             let mut out = Vec::with_capacity(capacity);
-            owrt_ubus::convert::append_fields_json(black_box(fields), &mut out);
+            owrt_ubus::convert::append_fields_json(black_box(fields), &mut out).unwrap();
             black_box(out);
         });
     }
     let mut direct = Vec::new();
-    owrt_ubus::convert::append_fields_json(fields, &mut direct);
+    owrt_ubus::convert::append_fields_json(fields, &mut direct).unwrap();
     assert_eq!(direct, value.to_bytes());
     measure(&format!("rpc_{label}_reply_direct"), n, filter, || {
         let mut out = Vec::new();
-        owrt_ubus::convert::append_fields_json(black_box(fields), &mut out);
+        owrt_ubus::convert::append_fields_json(black_box(fields), &mut out).unwrap();
         black_box(out);
     });
     measure(&format!("rpc_{label}_reply_tree"), n, filter, || {
-        black_box(owrt_ubus::convert::fields_to_json(black_box(fields)));
+        black_box(owrt_ubus::convert::fields_to_json(black_box(fields)).unwrap());
     });
     measure(&format!("rpc_{label}_reply_serialize"), n, filter, || {
         black_box(value.to_bytes());
     });
     measure(&format!("rpc_{label}_reply_convert"), n, filter, || {
-        black_box(owrt_ubus::convert::fields_to_json(black_box(fields)).to_bytes());
+        black_box(owrt_ubus::convert::fields_to_json(black_box(fields)).unwrap().to_bytes());
     });
 }
 

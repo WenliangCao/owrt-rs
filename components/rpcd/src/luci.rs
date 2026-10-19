@@ -950,7 +950,7 @@ fn get_odhcp6c_stats(ctx: &Ctx) -> Result<Json, i32> {
 /// Dispatch one `luci` method (raw blobmsg payload for validation).
 pub fn call(ctx: &Ctx, method: &str, raw: &[u8]) -> Result<Option<Json>, i32> {
     validate(method, raw)?;
-    let args = fields_to_json(raw);
+    let args = fields_to_json(raw).map_err(|_| status::INVALID_ARGUMENT)?;
     let out = match method {
         "getVersion" => get_version(),
         "getInitList" => get_init_list(&args),

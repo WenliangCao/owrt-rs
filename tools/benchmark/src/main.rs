@@ -842,14 +842,14 @@ fn main_inner(a: &[String]) -> Result<()> {
                             // uncounted extra request in the outer CPU interval.
                             require(
                                 reply.fd.is_none()
-                                    && contains(&fields_to_json(&reply.fields()), &expected),
+                                    && contains(&fields_to_json(&reply.fields())?, &expected),
                                 "RPC reference failed validation",
                             )?;
                             reference = Some(reply.data);
                         }
                     } else {
                         require(
-                            contains(&fields_to_json(&reply.fields()), &expected),
+                            contains(&fields_to_json(&reply.fields())?, &expected),
                             "RPC reply failed validation",
                         )?;
                     }
@@ -1446,7 +1446,7 @@ fn main_inner(a: &[String]) -> Result<()> {
                     let marker = format!("{prefix}-{:08}:", last.get());
                     for _ in 0..100 {
                         let reply = c.invoke(log, "read", args.payload(), 3000)?;
-                        if fields_to_json(&reply.fields())
+                        if fields_to_json(&reply.fields())?
                             .to_compact()
                             .contains(&marker)
                         {

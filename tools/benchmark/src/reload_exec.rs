@@ -35,7 +35,7 @@ pub fn serve(socket: &str, transcript: &str) -> Result<()> {
         let Incoming::Invoke(request) = connection.read_incoming()? else {
             continue;
         };
-        let payload = fields_to_json(&request.data);
+        let payload = fields_to_json(&request.data)?;
         require(
             request.objid == object && request.method == "event" && request.fd.is_none(),
             "unexpected service request",

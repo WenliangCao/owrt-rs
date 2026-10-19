@@ -65,7 +65,7 @@ fn main() {
         d.dump_status(&mut b, Some(&e), None);
         b.msg_close(t);
     }
-    println!("{}", owrt_ubus::convert::fields_to_json(b.payload()).to_compact());
+    println!("{}", owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact());
 }
 
 /// `system_if_get_master_ifindex`: `IFLA_LINKINFO/IFLA_INFO_KIND == "dsa"` then

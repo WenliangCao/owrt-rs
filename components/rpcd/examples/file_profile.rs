@@ -75,7 +75,7 @@ fn main() {
             assert_eq!(reply.data.len(), 1);
             reply.data
         };
-        let result = fields_to_json(&call()[0]);
+        let result = fields_to_json(&call()[0]).unwrap();
         if method == "stat" {
             assert_eq!(result.get("type").and_then(Json::as_str), Some("file"));
         } else {
@@ -113,7 +113,7 @@ mod tests {
             panic!("list must complete synchronously");
         };
         assert_eq!(reply.code, 0);
-        let result = fields_to_json(&reply.data[0]);
+        let result = fields_to_json(&reply.data[0]).unwrap();
         let Some(Json::Array(entries)) = result.get("entries") else { panic!("missing entries") };
         assert_eq!(entries.len(), 6);
         for (name, ty) in [

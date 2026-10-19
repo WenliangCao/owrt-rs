@@ -685,7 +685,7 @@ mod tests {
     fn json(i: &Interface) -> String {
         let mut b = BlobBuf::new();
         i.dump_status_with(&mut b, 5, &i.proto_ip.prefixes);
-        owrt_ubus::convert::fields_to_json(b.payload()).to_compact()
+        owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact()
     }
 
     #[test]
@@ -806,7 +806,7 @@ mod tests {
         current.assigned.push(("lan".into(), "2001:db8:2::".parse().unwrap(), 64));
         let mut b = BlobBuf::new();
         i.dump_status_with(&mut b, 77, &[current]);
-        let j = owrt_ubus::convert::fields_to_json(b.payload());
+        let j = owrt_ubus::convert::fields_to_json(b.payload()).unwrap();
         assert_eq!(j.get("uptime"), Some(&Json::Int(77)));
         let Some(Json::Array(prefixes)) = j.get("ipv6-prefix") else { panic!("missing prefixes") };
         assert_eq!(prefixes.len(), 2);
@@ -820,13 +820,13 @@ mod tests {
         // configuration-owned prefixes and the base interface remain intact.
         b.reset();
         i.dump_status_with(&mut b, 78, &[]);
-        let j = owrt_ubus::convert::fields_to_json(b.payload());
+        let j = owrt_ubus::convert::fields_to_json(b.payload()).unwrap();
         let Some(Json::Array(prefixes)) = j.get("ipv6-prefix") else { panic!("missing prefixes") };
         assert_eq!(prefixes.len(), 1);
         i.state = State::Down;
         b.reset();
         i.dump_status_with(&mut b, 79, &[]);
-        let j = owrt_ubus::convert::fields_to_json(b.payload());
+        let j = owrt_ubus::convert::fields_to_json(b.payload()).unwrap();
         assert!(j.get("uptime").is_none() && j.get("ipv6-prefix").is_none());
     }
 

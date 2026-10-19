@@ -919,7 +919,7 @@ pub fn iwinfo_ubus_query(ifname: &str, field: &str) -> Option<String> {
     // ubus_lookup_id() has no timeout in libubus; 0 waits like it does.
     let id = ctx.lookup_id("network.wireless", 0).ok()?;
     let reply = ctx.invoke_status(id, "status", &[], 250).ok()?;
-    let msg = fields_to_json(&reply.fields());
+    let msg = fields_to_json(&reply.fields()).ok()?;
     iwinfo_ubus_query_cb(&msg, ifname, field)
 }
 

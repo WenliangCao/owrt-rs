@@ -4,22 +4,42 @@
 use crate::blob::{self, BlobBuf, Field, MsgType};
 use crate::json::Json;
 
+/// Maximum nested TABLE/ARRAY fields; the implicit top-level object and scalar
+/// leaves do not count. Unlike libubox, reject deeper input before stack overflow.
+pub const MAX_CONTAINER_DEPTH: usize = 64;
+
+fn check_container_depth(depth: usize) -> Result<(), String> {
+    if depth >= MAX_CONTAINER_DEPTH {
+        Err("blobmsg nesting exceeds 64 containers".into())
+    } else {
+        Ok(())
+    }
+}
+
 /// Convert a blobmsg payload (sequence of named fields) into a JSON object.
-pub fn fields_to_json(payload: &[u8]) -> Json {
-    Json::Object(
+pub fn fields_to_json(payload: &[u8]) -> Result<Json, String> {
+    fields_to_json_at(payload, 0)
+}
+
+fn fields_to_json_at(payload: &[u8], depth: usize) -> Result<Json, String> {
+    Ok(Json::Object(
         blob::fields(payload)
-            .map(|f| (f.name.to_owned(), field_to_json(&f)))
-            .collect(),
-    )
+            .map(|f| Ok((f.name.to_owned(), field_to_json_at(&f, depth)?)))
+            .collect::<Result<_, String>>()?,
+    ))
 }
 
 /// Serialize blobmsg fields with the same byte semantics as `fields_to_json`,
 /// without allocating an intermediate tree of owned names and strings.
-pub fn append_fields_json(payload: &[u8], out: &mut Vec<u8>) {
-    append_container(payload, out, true);
+/// On a depth error, leave `out` unchanged so callers cannot send partial JSON.
+pub fn append_fields_json(payload: &[u8], out: &mut Vec<u8>) -> Result<(), String> {
+    let start = out.len();
+    let result = append_container(payload, out, true, 0);
+    if result.is_err() { out.truncate(start); }
+    result
 }
 
-fn append_container(payload: &[u8], out: &mut Vec<u8>, object: bool) {
+fn append_container(payload: &[u8], out: &mut Vec<u8>, object: bool, depth: usize) -> Result<(), String> {
     out.push(if object { b'{' } else { b'[' });
     for (index, field) in blob::fields(payload).enumerate() {
         if index != 0 { out.push(b','); }
@@ -28,25 +48,32 @@ fn append_container(payload: &[u8], out: &mut Vec<u8>, object: bool) {
             out.push(b':');
         }
         match field.ty {
-            t if t == MsgType::Table as u32 => append_container(field.data, out, true),
-            t if t == MsgType::Array as u32 => append_container(field.data, out, false),
+            t if t == MsgType::Table as u32 || t == MsgType::Array as u32 => {
+                check_container_depth(depth)?;
+                append_container(field.data, out, t == MsgType::Table as u32, depth + 1)?;
+            }
             t if t == MsgType::String as u32 => crate::json::write_string(out, field.as_bytes().unwrap_or(b"")),
-            _ => field_to_json(&field).append_to(out),
+            _ => field_to_json_at(&field, depth)?.append_to(out),
         }
     }
     out.push(if object { b'}' } else { b']' });
+    Ok(())
 }
 
-pub fn field_to_json(field: &Field) -> Json {
-    match field.ty {
-        t if t == MsgType::Table as u32 => Json::Object(
-            field
-                .children()
-                .map(|f| (f.name.to_owned(), field_to_json(&f)))
-                .collect(),
-        ),
+pub fn field_to_json(field: &Field) -> Result<Json, String> {
+    field_to_json_at(field, 0)
+}
+
+fn field_to_json_at(field: &Field, depth: usize) -> Result<Json, String> {
+    Ok(match field.ty {
+        t if t == MsgType::Table as u32 => {
+            check_container_depth(depth)?;
+            return fields_to_json_at(field.data, depth + 1);
+        }
         t if t == MsgType::Array as u32 => {
-            Json::Array(field.children().map(|f| field_to_json(&f)).collect())
+            check_container_depth(depth)?;
+            Json::Array(field.children().map(|f| field_to_json_at(&f, depth + 1))
+                .collect::<Result<_, _>>()?)
         }
         t if t == MsgType::String as u32 => {
             Json::from_string_bytes(field.as_bytes().unwrap_or(b"").to_vec())
@@ -63,7 +90,7 @@ pub fn field_to_json(field: &Field) -> Json {
         t if t == MsgType::Int64 as u32 => Json::Int(field.as_u64().unwrap_or(0) as i64),
         t if t == MsgType::Double as u32 => Json::Float(field.as_f64().unwrap_or(0.0)),
         _ => Json::Null,
-    }
+    })
 }
 
 /// Append one JSON value as a named blobmsg field.
@@ -134,9 +161,9 @@ mod tests {
         ]);
         let check = |payload: &[u8]| {
             let mut direct = b"prefix".to_vec();
-            append_fields_json(payload, &mut direct);
+            append_fields_json(payload, &mut direct).unwrap();
             let mut expected = b"prefix".to_vec();
-            fields_to_json(payload).append_to(&mut expected);
+            fields_to_json(payload).unwrap().append_to(&mut expected);
             assert_eq!(direct, expected);
         };
         check(&object_to_payload(&nested));
@@ -170,7 +197,7 @@ mod tests {
             let f = blob::fields(&payload).next().unwrap();
             assert_eq!(f.ty, ty as u32, "value {v}");
             // round-trips to the same integer
-            assert_eq!(field_to_json(&f), Json::Int(v), "value {v}");
+            assert_eq!(field_to_json(&f).unwrap(), Json::Int(v), "value {v}");
         }
     }
 
@@ -184,7 +211,7 @@ mod tests {
         let payload = b.into_payload();
         let table = blob::fields(&payload).next().unwrap();
         let ssid = table.children().next().unwrap();
-        let json = field_to_json(&ssid);
+        let json = field_to_json(&ssid).unwrap();
         assert_eq!(json.as_bytes(), Some(&b"caf\xe9"[..]));
         assert_eq!(json.to_bytes(), b"\"caf\xe9\"");
         assert_eq!(crate::json::parse_bytes(&json.to_bytes()).unwrap(), json);
@@ -195,7 +222,7 @@ mod tests {
         b.msg_string("ssid", "caf\u{e9}");
         let payload = b.into_payload();
         let f = blob::fields(&payload).next().unwrap();
-        assert_eq!(field_to_json(&f), Json::Str("caf\u{e9}".to_owned()));
+        assert_eq!(field_to_json(&f).unwrap(), Json::Str("caf\u{e9}".to_owned()));
     }
 
     // INT16/INT32 decode is signed (iwinfo signal/noise are negative dBm).
@@ -205,6 +232,37 @@ mod tests {
         b.msg_u32("signal", (-55i32) as u32); // INT32 0xffffffc9
         let payload = b.into_payload();
         let f = blob::fields(&payload).next().unwrap();
-        assert_eq!(field_to_json(&f), Json::Int(-55));
+        assert_eq!(field_to_json(&f).unwrap(), Json::Int(-55));
+    }
+
+    #[test]
+    fn nested_blob_depth_is_bounded_without_partial_output() {
+        for array in [false, true] {
+            for depth in [63, 64, 65, 100_000] {
+                let mut blob = BlobBuf::new();
+                let mut cookies = Vec::new();
+                for _ in 0..depth {
+                    cookies.push(if array { blob.msg_open_array("a") } else { blob.msg_open_table("a") });
+                }
+                blob.msg_u32("value", 7);
+                for cookie in cookies.into_iter().rev() { blob.msg_close(cookie); }
+                let payload = blob.payload();
+                let field = blob::fields(payload).next().unwrap();
+                let tree = fields_to_json(payload);
+                let single = field_to_json(&field);
+                let mut direct = b"prefix".to_vec();
+                let result = append_fields_json(payload, &mut direct);
+                if depth <= MAX_CONTAINER_DEPTH {
+                    result.unwrap();
+                    assert!(single.is_ok());
+                    assert_eq!(&direct[6..], tree.unwrap().to_bytes());
+                } else {
+                    assert_eq!(tree.unwrap_err(), "blobmsg nesting exceeds 64 containers");
+                    assert!(single.is_err());
+                    assert!(result.is_err());
+                    assert_eq!(direct, b"prefix");
+                }
+            }
+        }
     }
 }

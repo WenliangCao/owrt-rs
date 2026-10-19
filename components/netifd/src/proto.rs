@@ -501,7 +501,8 @@ pub fn config_json(handler: &Handler, opts: &[(String, Vec<String>)]) -> String 
             }
         }
     }
-    owrt_ubus::convert::fields_to_json(b.payload()).to_compact()
+    owrt_ubus::convert::fields_to_json(b.payload())
+        .expect("protocol config contains only scalars and string lists").to_compact()
 }
 
 /// The argv `proto_shell_handler` builds:
@@ -570,7 +571,7 @@ mod tests {
         assert!(!h.no_device);
         let mut b = BlobBuf::new();
         h.dump_info(&mut b);
-        let j = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
+        let j = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
         assert!(j.contains("\"renew_available\":true"), "{j}");
         assert!(j.contains("\"immediate\":false"), "{j}");
         assert!(j.contains("\"force_link_default\":false"), "{j}");

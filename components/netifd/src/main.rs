@@ -2003,6 +2003,12 @@ impl Netifd {
         let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
             return status::NOT_FOUND;
         };
+        // Reject malformed handler data before applying any kernel/state
+        // changes, including earlier fields from the same update.
+        let incoming_data = find("data").into_iter().flat_map(|t| t.children())
+            .map(|field| owrt_ubus::convert::field_to_json(&field).map(|value| (field.name, value)))
+            .collect::<Result<Vec<_>, _>>();
+        let Ok(incoming_data) = incoming_data else { return status::INVALID_ARGUMENT };
 
         // `keep` asks netifd to add to what is already applied rather than
         // replace it. It is forced off unless the interface is already up with
@@ -2325,15 +2331,13 @@ impl Netifd {
         }
 
         // interface_add_data runs before IFPEV_UP, in every interface state.
-        // Merge directly: an ordinary lease renewal neither needs a temporary
-        // Vec nor allocates names for keys already present. Only insertions
-        // change the order of the status's name-sorted data table.
-        if let (Some(t), Some(idx)) = (find("data"), self.iface_index(name)) {
+        // Data was validated before kernel changes. Only insertions allocate
+        // names and change the order of the status's name-sorted data table.
+        if let Some(idx) = self.iface_index(name) {
             let data = &mut self.interfaces[idx].data;
             let mut inserted = false;
-            for m in t.children() {
-                let value = owrt_ubus::convert::field_to_json(&m);
-                match data.iter_mut().find(|(n, _)| n == m.name) {
+            for (key, value) in incoming_data {
+                match data.iter_mut().find(|(n, _)| n == key) {
                     Some((_, old)) => {
                         if *old != value {
                             *old = value;
@@ -2341,7 +2345,7 @@ impl Netifd {
                         }
                     }
                     None => {
-                        data.push((m.name.to_string(), value));
+                        data.push((key.to_string(), value));
                         new_updated |= interface::updated::DATA;
                         inserted = true;
                     }
@@ -3594,10 +3598,13 @@ impl Netifd {
     /// a value actually differs.
     fn set_data(&mut self, name: &str, data: &[u8]) -> i32 {
         let Some(idx) = self.iface_index(name) else { return status::NOT_FOUND };
+        let incoming = blob::fields(data)
+            .map(|field| owrt_ubus::convert::field_to_json(&field).map(|value| (field.name, value)))
+            .collect::<Result<Vec<_>, _>>();
+        let Ok(incoming) = incoming else { return status::INVALID_ARGUMENT };
         self.interfaces[idx].updated = 0;
-        for f in blob::fields(data) {
-            let v = owrt_ubus::convert::field_to_json(&f);
-            let key = f.name.to_string();
+        for (name, v) in incoming {
+            let key = name.to_string();
             match self.interfaces[idx].data.iter_mut().find(|(n, _)| *n == key) {
                 Some(slot) => {
                     if slot.1 != v {
@@ -5718,7 +5725,7 @@ mod prefix_status_tests {
         wan.state = State::Up;
         let mut buf = BlobBuf::new();
         wan.dump_status_with(&mut buf, 0, &view);
-        let status = owrt_ubus::convert::fields_to_json(buf.payload());
+        let status = owrt_ubus::convert::fields_to_json(buf.payload()).unwrap();
         let Some(Json::Array(rows)) = status.get("ipv6-prefix") else { panic!() };
         assert_eq!(rows.len(), expected.len());
         for (row, (addr, mask)) in rows.iter().zip(expected) {

@@ -368,7 +368,8 @@ impl Session {
             return Ok(None);
         };
         let reply = self.connection.invoke(id, "dump", &[], DUMP_MS)?;
-        let data = owrt_ubus::convert::fields_to_json(&reply.fields());
+        let data = owrt_ubus::convert::fields_to_json(&reply.fields())
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
         parse_network_dump(&data).map(Some)
     }
 
@@ -405,7 +406,14 @@ impl Session {
                 self.dump_needed = true;
             }
         } else if request.objid == self.events {
-            let data = owrt_ubus::convert::fields_to_json(&request.data);
+            let data = match owrt_ubus::convert::fields_to_json(&request.data) {
+                Ok(data) => data,
+                Err(_) => {
+                    self.connection.reply_status(&request, status::INVALID_ARGUMENT, None)?;
+                    self.connection.recycle_request(request);
+                    return Ok(None);
+                }
+            };
             if data.get("path").and_then(Json::as_str) == Some("network.interface") {
                 if request.method == "ubus.object.add" {
                     let id = blob::fields(&request.data)

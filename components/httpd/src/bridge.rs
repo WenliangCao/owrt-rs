@@ -304,7 +304,9 @@ fn rpc_call_result(id: Json, legacy: bool, reply: &owrt_ubus::Reply) -> RpcRespo
         if has_data { out.push(b','); }
     }
     if has_data {
-        append_fields_json(&data, &mut out);
+        if append_fields_json(&data, &mut out).is_err() {
+            return rpc_error(id, RpcError::Internal);
+        }
     } else if !legacy {
         out.extend_from_slice(b"null");
     }
@@ -622,8 +624,15 @@ fn subscribe<W: Sink>(bridge: &Bridge, request: &Request, resp: &mut Response<W>
         while let Some(incoming) = conn.next_incoming(0)? {
             match incoming {
                 Incoming::Invoke(req) if req.objid == subscriber => {
+                    let data = match fields_to_json(&req.data) {
+                        Ok(data) => data,
+                        Err(_) => {
+                            conn.reply_status(&req, status::INVALID_ARGUMENT, None)?;
+                            continue;
+                        }
+                    };
                     resp.body(format!("event: {}\ndata: ", req.method).as_bytes())?;
-                    resp.body(&fields_to_json(&req.data).to_bytes())?;
+                    resp.body(&data.to_bytes())?;
                     resp.body(b"\n\n")?;
                     resp.sink().flush()?;
                     conn.reply_status(&req, status::OK, None)?;
@@ -652,6 +661,22 @@ fn subscribe<W: Sink>(bridge: &Bridge, request: &Request, resp: &mut Response<W>
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn overly_nested_ubus_reply_returns_rpc_error_without_partial_json() {
+        let mut fields = BlobBuf::new();
+        let mut cookies = Vec::new();
+        for _ in 0..65 { cookies.push(fields.msg_open_table("a")); }
+        fields.msg_u32("value", 7);
+        for cookie in cookies.into_iter().rev() { fields.msg_close(cookie); }
+        let mut data = BlobBuf::new();
+        data.put(owrt_ubus::attr::DATA, fields.payload());
+        let reply = owrt_ubus::Reply { status: 0, data: vec![data.into_payload()], fd: None };
+        for legacy in [false, true] {
+            assert_eq!(rpc_call_result(Json::Int(1), legacy, &reply).into_bytes(),
+                       rpc_error(Json::Int(1), RpcError::Internal).into_bytes());
+        }
+    }
 
     #[test]
     fn rpc_envelopes_preserve_bytes_ids_errors_and_batch_order() {
@@ -705,10 +730,10 @@ mod tests {
                         ]) }
                     } else if legacy {
                         let mut result = vec![Json::Int(status as i64)];
-                        if has_data { result.push(fields_to_json(&fields)); }
+                        if has_data { result.push(fields_to_json(&fields).unwrap()); }
                         rpc_result(id.clone(), Json::Array(result))
                     } else {
-                        rpc_result(id.clone(), if has_data { fields_to_json(&fields) } else { Json::Null })
+                        rpc_result(id.clone(), if has_data { fields_to_json(&fields).unwrap() } else { Json::Null })
                     }.into_bytes();
                     let response = rpc_call_result(id.clone(), legacy, &reply);
                     let mut appended = b"prefix".to_vec();
@@ -776,7 +801,7 @@ mod tests {
             second.put(attr::DATA, &data[split..]);
             let multiple = reply(vec![first.into_payload(), second.into_payload()]);
             assert_eq!(&*reply_fields(&multiple), data, "split at {split}");
-            assert_eq!(fields_to_json(&reply_fields(&multiple)), fields_to_json(data));
+            assert_eq!(fields_to_json(&reply_fields(&multiple)).unwrap(), fields_to_json(data).unwrap());
         }
     }
 }
