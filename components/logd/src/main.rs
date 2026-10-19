@@ -108,6 +108,14 @@ struct Client {
 const MAX_STREAM_PENDING: usize = 1024 * 1024;
 const MAX_TOTAL_PENDING: usize = 4 * 1024 * 1024;
 const MAX_STREAM_CLIENTS: usize = 64;
+
+/// A complete ring must fit in one bounded history stream. The shortest
+/// record uses 36 arena bytes and 96 frame bytes; longer text lowers that
+/// ratio. Three times the configured arena covers every possible history.
+/// Small rings retain the existing per-stream and aggregate limits.
+fn stream_pending_limit(ring_capacity: usize) -> usize {
+    ring_capacity.saturating_mul(3).max(MAX_STREAM_PENDING)
+}
 /// Storage a drained queue or batch keeps for the next burst; anything
 /// larger goes back to the allocator so one slow reader does not set the
 /// daemon's footprint.
@@ -209,12 +217,13 @@ fn flush_ready_clients(clients: &mut Vec<Client>, fds: &[sys::PollFd]) {
 }
 
 /// Deliver one batch of frames to every stream.
-fn send_to_clients(clients: &mut Vec<Client>, bytes: &[u8]) {
+fn send_to_clients(clients: &mut Vec<Client>, bytes: &[u8], max_stream_pending: usize) {
+    let max_total_pending = MAX_TOTAL_PENDING.max(max_stream_pending);
     let (projected, fits_each) = clients.iter().fold((0, true), |(total, fits), client| {
         let size = client.queued() + bytes.len();
-        (total + size, fits && size <= MAX_STREAM_PENDING)
+        (total + size, fits && size <= max_stream_pending)
     });
-    if projected <= MAX_TOTAL_PENDING && fits_each {
+    if projected <= max_total_pending && fits_each {
         clients.retain_mut(|client| client.send(bytes));
         return;
     }
@@ -231,7 +240,7 @@ fn send_to_clients(clients: &mut Vec<Client>, bytes: &[u8]) {
                 Err(_) => return false,
             }
         }
-        if client.queued() + bytes.len() - offset > MAX_STREAM_PENDING {
+        if client.queued() + bytes.len() - offset > max_stream_pending {
             return false;
         }
         sent[index] = offset;
@@ -242,7 +251,7 @@ fn send_to_clients(clients: &mut Vec<Client>, bytes: &[u8]) {
         .map(|(i, client)| client.queued() + bytes.len() - sent[i]).sum();
     // A full global budget belongs to the lagging streams, not an earlier
     // healthy reader. This scan is only needed at the pressure boundary.
-    while total > MAX_TOTAL_PENDING {
+    while total > max_total_pending {
         let (index, client) = clients.iter().enumerate()
             .max_by_key(|(i, client)| client.queued() + bytes.len() - sent[*i])
             .expect("an over-budget set is nonempty");
@@ -283,6 +292,7 @@ struct Daemon {
     conn: Connection,
     objid: u32,
     ring: Ring,
+    max_stream_pending: usize,
     clients: Vec<Client>,
     has_subscribers: bool,
     syslog: UnixDatagram,
@@ -331,7 +341,7 @@ impl Daemon {
         if self.batch.is_empty() {
             return;
         }
-        send_to_clients(&mut self.clients, &self.batch);
+        send_to_clients(&mut self.clients, &self.batch, self.max_stream_pending);
         if self.batch.capacity() > RETAINED_QUEUE {
             self.batch = Vec::new();
         } else {
@@ -376,7 +386,9 @@ impl Daemon {
             let total: usize = self.clients.iter().map(Client::queued).sum();
             let backlog: usize = window
                 .map_or(0, |count| self.ring.list(count).map(|r| frame_len(r.size())).sum());
-            if backlog > MAX_STREAM_PENDING || total + backlog > MAX_TOTAL_PENDING {
+            if backlog > self.max_stream_pending
+                || total + backlog > MAX_TOTAL_PENDING.max(self.max_stream_pending)
+            {
                 return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
             }
             // A pipe, as in exact C logd (R89..R93 used a Unix stream socket).
@@ -705,6 +717,7 @@ fn main() {
         conn,
         objid,
         ring: Ring::new(options.log_size),
+        max_stream_pending: stream_pending_limit(options.log_size),
         clients: Vec::new(),
         has_subscribers: false,
         syslog,
@@ -724,6 +737,20 @@ fn main() {
 #[cfg(test)]
 mod stream_tests {
     use super::*;
+
+    #[test]
+    fn stream_budget_holds_the_most_expensive_full_ring() {
+        assert_eq!(stream_pending_limit(128 * 1024), MAX_STREAM_PENDING);
+        let capacity = 2048 * 1024;
+        let mut ring = Ring::new(capacity);
+        // Minimal messages maximize frame overhead relative to arena storage.
+        for _ in 0..capacity / (ring::HEAD + 4) + 1 {
+            ring.add(b"", 0, 1, 0);
+        }
+        let backlog: usize = ring.list(0).map(|record| frame_len(record.size())).sum();
+        assert!(backlog > MAX_TOTAL_PENDING);
+        assert!(backlog <= stream_pending_limit(capacity));
+    }
 
     fn nonblocking(fd: impl AsFd) {
         let flags = rustix::fs::fcntl_getfl(&fd).unwrap();
@@ -820,7 +847,7 @@ mod stream_tests {
             slow_readers.push(reader);
             clients.push(client);
         }
-        send_to_clients(&mut clients, b"live record");
+        send_to_clients(&mut clients, b"live record", MAX_STREAM_PENDING);
         assert_eq!(clients.len(), 8);
         assert!(clients.iter().map(Client::queued).sum::<usize>() <= MAX_TOTAL_PENDING);
         let mut bytes = [0; 11];
@@ -838,7 +865,7 @@ mod stream_tests {
         let (mut lagging, second) = pair(b"old-backlog|".to_vec(), false);
         let mut clients = vec![first, second];
         let batch: Vec<u8> = (0..300).flat_map(|i| format!("frame-{i:03}|").into_bytes()).collect();
-        send_to_clients(&mut clients, &batch);
+        send_to_clients(&mut clients, &batch, MAX_STREAM_PENDING);
         assert_eq!(clients.len(), 2);
         assert_eq!(read_available(&mut fast), batch);
         let mut expected = b"old-backlog|".to_vec();
@@ -846,7 +873,7 @@ mod stream_tests {
         assert_eq!(read_available(&mut lagging), expected);
         assert!(clients.iter().all(|c| c.queued() == 0));
         // a second round follows without repeating the first
-        send_to_clients(&mut clients, b"next|");
+        send_to_clients(&mut clients, b"next|", MAX_STREAM_PENDING);
         assert_eq!(read_available(&mut fast), b"next|");
         assert_eq!(read_available(&mut lagging), b"next|");
     }
@@ -861,14 +888,14 @@ mod stream_tests {
         // pipe is empty now; a batch larger than the pipe is split between
         // the kernel and the client queue
         let big: Vec<u8> = (0..200_000u32).map(|i| (i % 251) as u8).collect();
-        send_to_clients(&mut clients, &big);
+        send_to_clients(&mut clients, &big, MAX_STREAM_PENDING);
         assert_eq!(clients.len(), 1);
         let queued = clients[0].queued();
         assert!(queued > 0 && queued < big.len(), "queued {queued}");
         let mut got = read_available(&mut reader);
         assert_eq!(got.len(), big.len() - queued);
         // a later frame joins the queue behind the remainder, not before it
-        send_to_clients(&mut clients, b"tail");
+        send_to_clients(&mut clients, b"tail", MAX_STREAM_PENDING);
         while clients[0].queued() > 0 {
             got.extend(read_available(&mut reader));
             let mut fds: Vec<_> = clients.iter().map(Client::poll_fd).collect();
@@ -887,7 +914,7 @@ mod stream_tests {
     fn oneshot_client_closes_after_its_backlog_even_when_delivered_by_a_batch() {
         let (mut reader, client) = pair(Vec::new(), true);
         let mut clients = vec![client];
-        send_to_clients(&mut clients, b"only this");
+        send_to_clients(&mut clients, b"only this", MAX_STREAM_PENDING);
         assert!(clients.is_empty(), "delivered oneshot must close");
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).unwrap();
