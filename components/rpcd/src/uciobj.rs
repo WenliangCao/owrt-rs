@@ -1118,6 +1118,13 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
     let timeout: i32 = arg(raw, "timeout", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(APPLY_TIMEOUT);
     purge_dir(SNAPSHOT_FILES);
     purge_dir(SNAPSHOT_DELTA);
+    if has_apply {
+        // The owner explicitly made its pending apply permanent. There is no
+        // snapshot left to restore or retry after this successful cancellation.
+        rctx.apply.borrow_mut().deadline = None;
+        rctx.sessions.borrow_mut().apply_sid = None;
+        return code(0);
+    }
     if !has_apply {
         let mut ctx = Context::new();
         set_savedir(&mut ctx, Some(sid));

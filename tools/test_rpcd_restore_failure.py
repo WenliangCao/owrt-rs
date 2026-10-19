@@ -42,6 +42,26 @@ def inner(root, side, fault):
         assert fixture.wait(lambda: len(service.events) == 1)
         run = root / ('var/run/rpcd' if side == 'original' else 'var/run/rpcd-rs')
         snapshot = run / 'snapshot-files/v030restore'
+        if fault == 'cancel':
+            if side == 'candidate':
+                # The existing cross-session protection must remain intact.
+                other_status, other_replies = client.invoke(session, 'create', integer('timeout', 60))
+                assert other_status == 0
+                other = response_data(other_replies)[0][b'ubus_rpc_session']
+                assert client.invoke(uci, 'apply', string('ubus_rpc_session', other))[0] == 6
+                assert snapshot.exists()
+            # The owner may make its pending apply permanent. This removes the
+            # snapshots; the retry path must not mistake it for a storage fault.
+            assert client.invoke(uci, 'apply', args)[0] == 0
+            time.sleep(2.4)
+            commit_code = client.invoke(uci, 'commit', args + string('config', 'v030restore'))[0]
+            confirm_code = client.invoke(uci, 'confirm', args)[0]
+            observations = {'side': side, 'fault': fault, 'commit_code': commit_code,
+                            'confirm_code': confirm_code, 'alive': fixture.subject.poll() is None}
+            write(fixture.output / 'result.json', json.dumps(observations, indent=2) + '\n')
+            print(json.dumps(observations), flush=True)
+            assert commit_code == 0 and confirm_code == 5 and observations['alive']
+            return
         delta = run / ('uci-' + sid.decode())
         saved_delta = (run / 'snapshot-delta/v030restore').read_bytes()
         # A bind mount changes only this namespace, leaving the base image intact.
@@ -100,7 +120,7 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--sides', nargs='+', choices=['original', 'candidate'], default=['candidate'])
     parser.add_argument('--repeat', type=int, default=1)
-    parser.add_argument('--faults', nargs='+', choices=['healthy', 'manual', 'timer', 'delta', 'full'], default=['healthy', 'manual', 'timer', 'delta', 'full'])
+    parser.add_argument('--faults', nargs='+', choices=['healthy', 'manual', 'timer', 'delta', 'full', 'cancel'], default=['healthy', 'manual', 'timer', 'delta', 'full'])
     args = parser.parse_args()
     assert os.geteuid() == 0 and sys.platform == 'linux' and args.repeat > 0
     args.output.mkdir(parents=True, exist_ok=False)
