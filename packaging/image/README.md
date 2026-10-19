@@ -61,6 +61,17 @@ Upgrade the complete firmware using sysupgrade with selected configuration
 retention. The native APK is an image construction input, not a supported live
 PID1/bus upgrade mechanism. Do not mix it with the old layered deployment tools.
 
+Keep `owrt-control-plane` installed, including after staging C recovery.
+`apk del owrt-control-plane` does not restore the installed stock packages:
+apk 3.0.5 removes all thirteen replaced paths, their thirteen recovery copies,
+and `owrt-recover-c` itself. This includes `/sbin/procd`, so a subsequent boot
+has no PID 1 executable. The independent v0.3.0 review reproduced this in four
+isolated copies of the exact image, with package scripts enabled. Removing the
+package is not a rollback procedure; use the complete recovery operation below
+or an explicitly authorized whole-image replacement. A failing pre-deinstall
+script is not an uninstall guard: this apk version continues purging files
+after that script fails.
+
 On first migration, `05-owrt-native` removes the old log/rpcd/uhttpd disable
 commands from sysupgrade's generated `10_disable_services`. These names now
 start Rust. It records `native-nine-v1` in `/etc/owrt-control-plane-layout`, which
