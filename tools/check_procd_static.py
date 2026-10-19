@@ -67,6 +67,17 @@ def cases(root, call):
         counts.append(len(updates.read_text().splitlines()) if updates.exists() else 0)
     results["instance-update"] = counts
 
+    own_updates = root / "tmp/own-updates"
+    call("set", {"name": "own-observer", "autostart": False, "instances": {"one": {}},
+         "triggers": [["instance.update", [["run_script", "/bin/sh", "-c",
+                       "echo update >> /tmp/own-updates"]], 0]]})
+    time.sleep(0.5)
+    own_counts = [len(own_updates.read_text().splitlines()) if own_updates.exists() else 0]
+    call("delete", {"name": "own-observer"})
+    time.sleep(0.5)
+    own_counts.append(len(own_updates.read_text().splitlines()) if own_updates.exists() else 0)
+    results["own-instance-update"] = own_counts
+
     call("set", {"name": "negative", "triggers": [["test.negative",
          [["run_script", "/bin/sh", "-c", "echo fired > /tmp/negative"]], -1]]})
     call("event", {"type": "test.negative", "data": {}})

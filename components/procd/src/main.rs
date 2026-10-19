@@ -1914,13 +1914,17 @@ impl Procd {
                 let names: Vec<String> =
                     self.services[&name].instances.keys().cloned().collect();
                 if let Some(s) = self.services.get_mut(&name) {
-                    s.deleted = true;
                     s.data.clear();
                 }
                 for i in names {
                     self.instance_stop(&name, &i, true);
                     self.collect_stopped(&name, &i);
                     self.instance_update_trigger();
+                }
+                // C marks the service deleted only after vlist_flush_all.
+                // Keep its own triggers alive through the last instance event.
+                if let Some(s) = self.services.get_mut(&name) {
+                    s.deleted = true;
                 }
                 if self.services.get(&name).is_some_and(|s| s.can_be_freed()) {
                     self.service_only_event("service.stop", &name);
