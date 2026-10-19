@@ -43,7 +43,7 @@ pub struct Trigger {
     pub kind: String,
     /// The script array, kept encoded so it can be re-walked per event.
     pub script: Vec<u8>,
-    pub timeout_ms: u32,
+    pub timeout_ms: i32,
     /// Which object registered it. The C keys trigger_del on the `id`
     /// pointer -- a service or an instance -- so a service's rules and its
     /// instances' rules are released independently.
@@ -93,7 +93,7 @@ impl Triggers {
             }
             let mut kind: Option<String> = None;
             let mut script: Option<Vec<u8>> = None;
-            let mut timeout: u32 = 0;
+            let mut timeout: i32 = 0;
             for (i, e) in cur.children().enumerate() {
                 match i {
                     0 => kind = e.as_str().map(str::to_string),
@@ -103,7 +103,7 @@ impl Triggers {
                         }
                     }
                     2 if e.ty == MsgType::Int32 as u32 => {
-                        timeout = e.as_u32().unwrap_or(0);
+                        timeout = e.as_u32().unwrap_or(0) as i32;
                     }
                     _ => {}
                 }
@@ -134,7 +134,7 @@ impl Triggers {
     /// `trigger_event()`: run every matching trigger's script with the event
     /// data as variables, and queue the `run_script` commands it produced.
     pub fn fire(&mut self, event: &str, vars: &BTreeMap<String, String>, now: i64) {
-        let mut queued: Vec<(Vec<String>, u32)> = Vec::new();
+        let mut queued: Vec<(Vec<String>, i32)> = Vec::new();
         for t in self.list.iter() {
             if !matches(event, &t.kind) {
                 continue;
@@ -168,7 +168,7 @@ impl Triggers {
     /// `trigger_command_add()`. A pending copy has its timer extended, never
     /// shortened; a running copy is marked for one requeue; otherwise a new
     /// entry is created with a delay of at least 1 ms.
-    fn queue(&mut self, argv: Vec<String>, timeout_ms: u32, now: i64) {
+    fn queue(&mut self, argv: Vec<String>, timeout_ms: i32, now: i64) {
         if let Some(cmd) = self.pending.iter_mut().find(|c| c.argv == argv) {
             // The C tests `!cmd->delay.pending`, which is true for a command
             // that is RUNNING *and* for one whose delay already elapsed and

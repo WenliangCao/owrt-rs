@@ -41,7 +41,7 @@ fw4/odhcpd 的调用方验证由整合检查记录。
 |---|---|
 | procd instance 顶层类型策略 | 四轮复现并修复；见下 |
 | procd instance.update 事件 | 四轮复现并修复；见下 |
-| procd 负 trigger timeout | 待复现 |
+| procd 负 trigger timeout | 四轮复现并修复；见下 |
 | procd watchdog 驱动实际 timeout | 四轮 ioctl 注入复现并修复；见下 |
 | procd jsonscript include | 待复现 |
 | rpcd 损坏 freeze 的 UTF-8 / 时间溢出 | 待复现 |
@@ -87,3 +87,11 @@ C probe 的构建参数为 `-I<exact-components>` 和
 `-DPROCD_WATCHDOG_SOURCE='"<exact-components>/procd/watchdog.c"'`；Rust 用
 `cargo build --release --example watchdog_status --manifest-path components/procd/Cargo.toml`
 后对两程序各运行四次即可复现。所有构建和运行均在 Oracle Linux。
+
+## procd 负 trigger timeout
+
+C trigger 的 timeout 是 signed int，负值首次入队按 1 ms 处理；Rust 原先将同一
+INT32 保留为 u32，`-1` 变成约 49.7 天。`procd-static-red` 四轮 C 执行动作、Rust
+未执行，零 timeout 阳性均执行。改为 i32 后，`procd-static-green` 四轮所有类型、
+事件、负 timeout 和零 timeout 与 C 相同。500 ms 观察窗仅判断动作是否执行，
+不将它解释成 1 ms 调度精度验证；既有 pending 延期和运行中 requeue 规则保持。
