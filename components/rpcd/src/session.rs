@@ -403,7 +403,10 @@ impl Store {
         let (Some(sid), Some(timeout), Some(expires), Some(data)) = (sid, timeout, expires, data) else {
             return false;
         };
-        let mut ses = Session::new(&sid[..sid.len().min(SID_LEN)]);
+        if !validate_sid(&sid) {
+            return false;
+        }
+        let mut ses = Session::new(&sid);
         ses.timeout = timeout as i32;
         let mut user: Option<String> = None;
         for f in blob::fields(&data) {
@@ -417,7 +420,7 @@ impl Store {
                 setup_acls(&mut ses, Some(&login));
             }
         }
-        let ms = (expires as i64 * 1000).clamp(0, i32::MAX as i64) as u64;
+        let ms = (expires as i64).saturating_mul(1000).clamp(0, i32::MAX as i64) as u64;
         ses.expires = Some(Instant::now() + Duration::from_millis(ms));
         self.insert(ses);
         true
@@ -1095,4 +1098,38 @@ mod tests {
         assert!(store.from_blob(replacement.as_bytes()));
         assert!(store.next_expiry().unwrap() < touched);
     }
+
+    fn frozen_session(sid: &str, expires: u64) -> BlobBuf {
+        let mut blob = BlobBuf::new();
+        blob.msg_string("ubus_rpc_session", sid);
+        blob.msg_u32("timeout", 120);
+        blob.msg_u64("expires", expires);
+        let data = blob.msg_open_table("data");
+        blob.msg_close(data);
+        blob
+    }
+
+    #[test]
+    fn thaw_rejects_corrupt_session_ids_without_panicking() {
+        let mut store = empty_store();
+        for sid in [format!("{}é", "a".repeat(31)), "a".repeat(31), "g".repeat(32), "a".repeat(33)] {
+            assert!(!store.from_blob(frozen_session(&sid, 120).as_bytes()));
+            assert!(store.sessions.is_empty());
+        }
+        assert!(store.from_blob(frozen_session(&"a".repeat(32), 120).as_bytes()));
+    }
+
+    #[test]
+    fn thaw_clamps_corrupt_expiration_without_overflow() {
+        for expires in [120, i32::MAX as u64, i64::MAX as u64 / 1000 + 1, i64::MAX as u64, u64::MAX] {
+            let mut store = empty_store();
+            let before = Instant::now();
+            assert!(store.from_blob(frozen_session(&"a".repeat(32), expires).as_bytes()));
+            let remaining = store.next_expiry().unwrap().saturating_duration_since(before);
+            let expected = (expires as i64).saturating_mul(1000).clamp(0, i32::MAX as i64) as u64;
+            assert!(remaining >= Duration::from_millis(expected));
+            assert!(remaining < Duration::from_millis(expected + 1000));
+        }
+    }
+
 }
