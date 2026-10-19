@@ -36,6 +36,8 @@ class NativeDnsmasqTests(unittest.TestCase):
             "reference_elf_sha256": "f6e4eecb8882522d304e13b2ccccc268743e4d267c4a3e41db63c62009752d39"}
         self.assertEqual(NEXT_SPEC, expected)
         self.assertEqual(NEXT_SPEC["version"], "0.3.2-r1")
+        frozen = json.loads((REPO / "manifests/dnsmasq-pgo-frozen-v032.json").read_text())
+        self.assertEqual(NEXT_SPEC["dnsmasq_build"], frozen)
 
     def test_only_exact_ten_and_eleven_native_inventories_are_accepted(self):
         self.assertEqual(native_image.native_layout(SPEC["components"]), "native-ten")
@@ -310,7 +312,7 @@ class NativeDnsmasqTests(unittest.TestCase):
             frozen = ci_build_dnsmasq.release_source(work, SPEC["dnsmasq_build"])
             files, digest = ci_build_dnsmasq.source_identity(SPEC["dnsmasq_build"], frozen)
         self.assertEqual(len(files), 212)
-        self.assertEqual(digest, "0f87482e7482f472c879db4cdb98b725d1c047f6867e606aacacf8e2d33162b7")
+        self.assertEqual(digest, "c3daefd7b94be1e42120f6ae9cec7c56264ed2dc430639ceea5d63812d151725")
 
     def test_source_drift_cannot_inherit_accepted_identity(self):
         with patch.object(ci_build_dnsmasq.audit, "inputs", return_value={"changed": "a" * 64}):
