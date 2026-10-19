@@ -119,6 +119,10 @@ def main():
     args = parser.parse_args()
     assert sys.platform == "linux" and os.geteuid() == 0 and not sys.flags.optimize
     os.umask(0o077)
+    # Qualification source snapshots are immutable, including imported helper
+    # modules. Propagate this to the trial-builder child as well as this process.
+    sys.dont_write_bytecode = True
+    os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
     root, output = args.rootfs.resolve(), args.out.resolve()
     assert "private" in output.parts and not output.exists()
     assert sha(args.backup) == args.backup_sha256
@@ -143,7 +147,7 @@ def main():
         trial = output / "trial-config.tar.gz"
         prepare = Path(__file__).with_name("native_trial_prepare.py")
         with (output / "trial-prepare.log").open("wb") as log:
-            subprocess.run([sys.executable, str(prepare), str(backup), str(args.manifest), str(args.bounded), str(trial),
+            subprocess.run([sys.executable, "-B", str(prepare), str(backup), str(args.manifest), str(args.bounded), str(trial),
                             "--rootfs", str(root), "--rollback-image", str(args.rollback), "--rollback-sha256", ROLLBACK_SHA,
                             "--rollback-version", "v0.3.1"], check=True, stdout=log, stderr=subprocess.STDOUT)
         metadata = json.loads(trial.with_suffix(".json").read_text())
