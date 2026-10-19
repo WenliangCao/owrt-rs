@@ -20,12 +20,60 @@ class ObserveOnly(unittest.TestCase):
     def test_eleven_observation_also_checks_live_odhcpd(self):
         self.exercise_observe(odhcpd=True)
 
-    def exercise_observe(self, odhcpd=False):
+    def test_migrated_system_and_marker_confirm_only_after_boot(self):
+        self.exercise_observe(migration=True, migrated=True)
+
+    def test_migration_does_not_accept_old_system_after_boot(self):
+        self.exercise_observe(migration=True, success=False)
+
+    def test_without_migration_new_system_is_still_rejected(self):
+        self.exercise_observe(migrated=True, success=False)
+
+    def test_migration_keeps_other_configurations_and_protected_files_strict(self):
+        for fault in ("network", "protected", "system", "marker", "missing-marker"):
+            with self.subTest(fault=fault):
+                self.exercise_observe(migration=True, migrated=True, fault=fault, success=False)
+
+    def test_final_confirmation_rechecks_both_migration_fingerprints(self):
+        for fault in ("late-system", "late-marker", "late-network", "late-protected"):
+            with self.subTest(fault=fault):
+                self.exercise_observe(migration=True, migrated=True, fault=fault, success=False)
+
+    def test_stage_and_activate_never_accept_postboot_configurations(self):
+        for phase in ("stage", "activate"):
+            with self.subTest(phase=phase):
+                self.exercise_observe(migration=True, migrated=True, phase=phase, success=False)
+        self.exercise_observe(migration=True, phase="stage")
+
+    def test_migration_schema_is_fixed_and_checked_before_remote_access(self):
+        valid = {"system_sha256": "e" * 64, "marker_sha256": "f" * 64}
+        invalid = [None, {}, [], {"system_sha256": "e" * 64},
+                   {**valid, "path": "/etc/config/network"},
+                   {**valid, "system_sha256": "E" * 64},
+                   {**valid, "marker_sha256": "short"}, {**valid, "marker_sha256": 1}]
+        for value in invalid:
+            with self.subTest(value=value):
+                self.exercise_observe(migration=True, gate_override=value, success=False,
+                                      no_remote=True)
+
+    def test_migration_requires_system_in_original_configuration_inventory(self):
+        self.exercise_observe(migration=True, migrated=True, omit_system=True, success=False)
+
+    def test_stage_receipt_binds_migration_expectations(self):
+        for phase in ("activate", "observe"):
+            with self.subTest(phase=phase):
+                self.exercise_observe(migration=True, migrated=phase == "observe", phase=phase,
+                                      receipt_changed=True, success=False)
+
+    def exercise_observe(self, odhcpd=False, migration=False, migrated=False, phase="observe",
+                         fault=None, success=True, omit_system=False, receipt_changed=False,
+                         no_remote=False, **overrides):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)
             old_boot = "11111111-1111-1111-1111-111111111111"
             new_boot = "22222222-2222-2222-2222-222222222222"
             digest = "a" * 64
+            migration_info = {"system_sha256": "e" * 64, "marker_sha256": "f" * 64}
             paths = {name: "/sbin/" + name for name in
                      ("procd", "ubusd", "netifd", "rpcd", "logd", "uci", "fw4")}
             paths.update({"httpd": "/usr/sbin/uhttpd", "dnsmasq": "/usr/sbin/dnsmasq",
@@ -41,30 +89,46 @@ class ObserveOnly(unittest.TestCase):
                 (base / name).write_bytes(b"fixture")
             image_hash = driver.sha(base / "image.bin")
             (base / "manifest.json").write_text(json.dumps(manifest))
-            (base / "recovery-gate.json").write_text(json.dumps({
-                "ready_for_staging": True, "rollback_source_commit": "b" * 40,
-                "ujail_sha256": "c" * 64,
-                "previous_boot_id": old_boot, "image_path": str(base / "image.bin"),
-                "manifest_path": str(base / "manifest.json"), "guard_evidence_sha256": image_hash,
-                "backup_sha256": {}}))
+            gate = {"ready_for_staging": True, "rollback_source_commit": "b" * 40,
+                    "ujail_sha256": "c" * 64,
+                    "previous_boot_id": old_boot, "image_path": str(base / "image.bin"),
+                    "manifest_path": str(base / "manifest.json"), "guard_evidence_sha256": image_hash,
+                    "backup_sha256": {}}
+            if migration:
+                gate["log_settings_migration"] = overrides.get("gate_override", migration_info)
+            (base / "recovery-gate.json").write_text(json.dumps(gate))
             (base / "trial-config.tar.json").write_text(json.dumps({
                 "image": {"sha256": image_hash}, "archive_sha256": image_hash,
                 "token": "private-token", "payload_sha256": {"root/fixture": digest}}))
-            (base / "stage-ready.json").write_text(json.dumps({
-                "sysupgrade_test_passed": True, "driver_sha256": driver.sha(Path(driver.__file__)),
-                "image_sha256": image_hash, "config_sha256": image_hash}))
-            (base / "config-before.sha256").write_text(digest + "  /etc/config/network\n")
-            (base / "protected-before.sha256").write_text(digest + "  /etc/shadow\n")
+            ready = {"sysupgrade_test_passed": True, "driver_sha256": driver.sha(Path(driver.__file__)),
+                     "image_sha256": image_hash, "config_sha256": image_hash}
+            if migration:
+                ready["log_settings_migration"] = dict(migration_info)
+                if receipt_changed:
+                    ready["log_settings_migration"]["marker_sha256"] = "0" * 64
+            (base / "stage-ready.json").write_text(json.dumps(ready))
+            configurations = ["/etc/config/network", "/etc/config/system"] + [f"/etc/config/fixture{i}" for i in range(17)]
+            if omit_system:
+                configurations.remove("/etc/config/system")
+            protected = ["/etc/shadow"] + [f"/etc/protected-fixture{i}" for i in range(11)]
+            for name, entries in (("config-before.sha256", configurations), ("protected-before.sha256", protected)):
+                (base / name).write_text("".join(digest + "  " + path + "\n" for path in entries))
             commands = []
+            config_reads = 0
 
             def remote(arguments, **_):
+                nonlocal config_reads
+                if arguments[0] == "scp":
+                    self.assertEqual(phase, "stage")
+                    commands.append("scp")
+                    return subprocess.CompletedProcess(arguments, 0, "", "")
                 self.assertEqual(arguments[0], "ssh")
                 command = arguments[-1]
                 commands.append(command)
-                self.assertNotIn("sysupgrade", command)
+                self.assertNotIn("sysupgrade -f", command)
                 self.assertNotIn("reboot", command)
                 if command == "cat /proc/sys/kernel/random/boot_id":
-                    output = new_boot
+                    output = new_boot if phase == "observe" else old_boot
                 elif command == "cat /usr/share/owrt-control-plane/release.json":
                     output = json.dumps(manifest)
                 elif command.startswith("set -eu\nsha256sum"):
@@ -74,7 +138,29 @@ class ObserveOnly(unittest.TestCase):
                         names += ("odhcpd",)
                     output = "\n".join(name + " " + digest for name in names)
                 elif command.startswith("sha256sum "):
-                    output = "\n".join(digest + "  " + path for path in command.split()[1:])
+                    names = command.split()[1:]
+                    if "/etc/config/network" in names:
+                        config_reads += 1
+                    active_fault = fault.removeprefix("late-") if fault and (
+                        not fault.startswith("late-") or config_reads >= 2) else None
+                    values = {name: digest for name in names}
+                    if "/etc/config/system" in values:
+                        values["/etc/config/system"] = migration_info["system_sha256"] if migrated else digest
+                    if "/etc/owrt-log-settings-v1" in values:
+                        values["/etc/owrt-log-settings-v1"] = migration_info["marker_sha256"]
+                        if active_fault == "missing-marker":
+                            return subprocess.CompletedProcess(arguments, 1, "", "missing marker")
+                    targets = {"network": "/etc/config/network", "system": "/etc/config/system",
+                               "protected": "/etc/shadow", "marker": "/etc/owrt-log-settings-v1"}
+                    if targets.get(active_fault) in values:
+                        values[targets[active_fault]] = "0" * 64
+                    for name in ("/tmp/owrt-native-image.bin", "/tmp/owrt-native-config.tar.gz"):
+                        if name in values:
+                            values[name] = image_hash
+                    output = "\n".join(value + "  " + name for name, value in values.items())
+                elif command.startswith("/sbin/sysupgrade -T "):
+                    self.assertEqual(phase, "stage")
+                    output = "Image check passed"
                 elif command == "ubus -S -t 3 call luci getMountPoints":
                     output = '{"result": []}'
                 elif command.startswith(("set -eu\nfor s", "printf %s ", "/bin/sh /root/owrt-native-trial/native_trial_guard.sh confirm ")):
@@ -83,19 +169,44 @@ class ObserveOnly(unittest.TestCase):
                     self.fail("unhandled SSH command: " + command)
                 return subprocess.CompletedProcess(arguments, 0, output, "")
 
-            clock = iter(range(0, 2000, 100))
-            argv = [driver.__file__, "observe", directory, "--previous-boot-id", old_boot, "--label", "normal-reboot"]
+            clock = iter(range(0, 4000, 100))
+            argv = [driver.__file__, phase, directory, "--previous-boot-id", old_boot, "--label", "normal-reboot"]
             with patch("sys.argv", argv), patch.object(driver.subprocess, "run", side_effect=remote), \
-                    patch.object(driver.subprocess, "Popen", side_effect=AssertionError("observe attempted to launch an upgrade")), \
-                    patch.object(driver, "probe", return_value={"boot_id": new_boot}), \
+                    patch.object(driver.subprocess, "Popen", side_effect=AssertionError("fixture attempted to launch an upgrade")), \
+                    patch.object(driver, "probe", return_value={"boot_id": new_boot if phase == "observe" else old_boot}), \
                     patch.object(driver, "dnsmasq_runtime", return_value=[{"sha256": digest}]), \
                     patch.object(driver.time, "monotonic", side_effect=lambda: next(clock)), \
                     patch.object(driver.time, "sleep"), contextlib.redirect_stdout(io.StringIO()):
-                driver.main()
-            result = json.loads((base / "result-normal-reboot.json").read_text())
-            self.assertEqual(result["boot_id"], new_boot)
-            self.assertGreaterEqual(result["continuous_client_health_s"], 180)
-            self.assertTrue(any(" confirm private-token " + new_boot in command for command in commands))
+                if success:
+                    driver.main()
+                else:
+                    with self.assertRaises((RuntimeError, SystemExit)):
+                        driver.main()
+            confirms = [command for command in commands if " confirm private-token " in command]
+            if no_remote:
+                self.assertEqual(commands, [])
+            if success and phase == "observe":
+                result = json.loads((base / "result-normal-reboot.json").read_text())
+                self.assertEqual(result["boot_id"], new_boot)
+                self.assertGreaterEqual(result["continuous_client_health_s"], 180)
+                self.assertEqual(len(confirms), 1)
+                self.assertEqual(config_reads, 2)
+                if migration:
+                    self.assertEqual(result["log_settings_migration"], migration_info)
+                    self.assertEqual(sum("/etc/owrt-log-settings-v1" in command for command in commands), 2)
+            elif success and phase == "stage":
+                staged = json.loads((base / "stage-ready.json").read_text())
+                self.assertEqual(staged["log_settings_migration"], migration_info)
+                self.assertEqual(config_reads, 1)
+                self.assertFalse(any("/etc/owrt-log-settings-v1" in command for command in commands))
+            else:
+                self.assertEqual(confirms, [])
+                self.assertFalse((base / "result-normal-reboot.json").exists())
+                if phase != "observe":
+                    self.assertNotIn("scp", commands)
+            if fault and fault.startswith("late-"):
+                events = [json.loads(line) for line in (base / "window-normal-reboot.jsonl").read_text().splitlines()]
+                self.assertTrue(any(row["event"] == "health_pass" for row in events), "never reached the healthy initial snapshot")
             self.assertFalse((base / "ACTIVATION_STARTED").exists())
 
 

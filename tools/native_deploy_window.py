@@ -116,6 +116,12 @@ def main():
             "verified rollback source identity is missing")
     require(re.fullmatch(r"[0-9a-f]{64}", gate["ujail_sha256"]) is not None,
             "exact candidate image ujail identity is missing")
+    migration = gate.get("log_settings_migration")
+    if "log_settings_migration" in gate:
+        require(isinstance(migration, dict)
+                and set(migration) == {"system_sha256", "marker_sha256"}
+                and all(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value)
+                        for value in migration.values()), "invalid log settings migration identity")
     image = Path(gate["image_path"])
     config = base / "trial-config.tar.gz"
     trial = json.loads((base / "trial-config.tar.json").read_text())
@@ -144,9 +150,15 @@ def main():
             stream.write(json.dumps(row) + "\n")
         print(json.dumps(row), flush=True)
 
-    def configurations():
+    def configurations(after_boot=False):
         for filename in ("config-before.sha256", "protected-before.sha256"):
             entries = dict(line.split(None, 1)[::-1] for line in (base / filename).read_text().splitlines())
+            if migration is not None and filename == "config-before.sha256":
+                require("/etc/config/system" in entries, "migration requires original system configuration")
+                require("/etc/owrt-log-settings-v1" not in entries, "migration marker is not a configuration exception")
+                if after_boot:
+                    entries["/etc/config/system"] = migration["system_sha256"]
+                    entries["/etc/owrt-log-settings-v1"] = migration["marker_sha256"]
             observed = remote("sha256sum " + " ".join(shlex.quote(p) for p in entries))
             actual = dict(line.split(None, 1)[::-1] for line in observed.splitlines())
             require(actual == entries, "configuration changed: " + filename)
@@ -223,7 +235,8 @@ test ! -e /root/owrt-native-trial/c-bridge-used
         health = probe(host=args.host, interface=args.interface, require_client_egress=True)
         ready = {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "boot_id": health["boot_id"],
                  "image_sha256": sha(image), "config_sha256": sha(config), "sysupgrade_test_passed": True,
-                 "driver_sha256": sha(Path(__file__).resolve()), "client_health": health}
+                 "driver_sha256": sha(Path(__file__).resolve()), "client_health": health,
+                 "log_settings_migration": migration}
         (base / "stage-ready.json").write_text(json.dumps(ready, indent=2) + "\n")
         log("staged_and_checked", image_sha256=sha(image), client_health=health)
         return
@@ -231,6 +244,7 @@ test ! -e /root/owrt-native-trial/c-bridge-used
     ready = json.loads((base / "stage-ready.json").read_text())
     require(ready["sysupgrade_test_passed"] and ready["driver_sha256"] == sha(Path(__file__).resolve()), "staging gate changed")
     require(ready["image_sha256"] == sha(image) and ready["config_sha256"] == sha(config), "staged artifacts changed")
+    require(ready.get("log_settings_migration") == migration, "staged log settings migration changed")
     upgrade = None
     if args.phase == "activate":
         staged_files()
@@ -261,7 +275,7 @@ test ! -e /root/owrt-native-trial/c-bridge-used
             require(health["boot_id"] == boot, "boot changed during health probe")
             if verified_boot != boot:
                 identity = native_identities()
-                configurations()
+                configurations(after_boot=True)
                 (base / ("native-identity-" + args.label + ".json")).write_text(json.dumps(identity, indent=2) + "\n")
                 verified_boot = boot
                 stable = None
@@ -271,13 +285,15 @@ test ! -e /root/owrt-native-trial/c-bridge-used
             log("health_pass", elapsed_s=round(time.monotonic() - start, 1), continuous_s=round(held, 1), health=health)
             if held >= 180:
                 native_identities()
-                configurations()
+                configurations(after_boot=True)
                 remote("/bin/sh /root/owrt-native-trial/native_trial_guard.sh confirm " + shlex.quote(trial["token"]) + " " + shlex.quote(boot), timeout=40)
                 result = {"status": "native_image_healthy_and_client_confirmed", "boot_id": boot,
                           "observation_label": args.label,
                           "continuous_client_health_s": held, "image_sha256": sha(image),
                           "source_commit": manifest["source_commit"], "health": health,
                           "automatic_guard_remains_armed": True, "physical_power_cycle_tested": False}
+                if migration is not None:
+                    result["log_settings_migration"] = migration
                 (base / ("result-" + args.label + ".json")).write_text(json.dumps(result, indent=2) + "\n")
                 log("confirmed", result=result)
                 if upgrade is not None and upgrade.poll() is None:

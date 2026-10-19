@@ -44,3 +44,27 @@ stock config_generate 后首次应用和缺失 system section 的重试边界均
 原始输出为同一 Oracle 目录 `packages-final-seed-{1,2}.json`。
 首次 fixture 未沿用 stock collector 外层的 sort 管道，因不存在的可选 keep 路径退出；
 保留 `red-green-4x.log`。SSH 短暂中断及早期 hashseed 工具错误均未计通过。
+
+## 部署窗口的迁移指纹
+
+旧 `native_deploy_window.py` 在新 boot 仍要求 system 的旧字节 hash，合法迁移会一直
+无法确认。gate 现在可携带固定的 `log_settings_migration` 对象，且只能包含
+`system_sha256`、`marker_sha256` 两个小写 SHA256；它们必须来自最终镜像加实际备份
+的离线迁移预演。stage-ready 记录该对象，activate/observe 要求原样匹配。
+
+stage/activate 前仍核对原来的全部配置和保护文件。仅新 boot 初次身份校验及最终
+确认前的两次检查，将已有 `/etc/config/system` 的期望替换为绑定 hash，并要求
+`/etc/owrt-log-settings-v1` 精确匹配 marker hash。没有任意路径例外，其他配置与保护
+文件仍逐项完全相等；无迁移字段保持原行为，最终确认收据保留采用的迁移指纹。
+
+Oracle `/home/ubuntu/v032-deploy-migration-20261019/evidence/` 保存同一最终测试代码的
+`red-final.json`、`green-final.json` 及每轮日志 hash。合法迁移用例在旧 driver 四轮均
+退出 1；修后 11 个 ObserveOnly 方法（含子场景）四轮全绿，完整既有工具套件
+**25/25**。覆盖 19 配置/12 保护、错误或缺失 marker、system/network/保护文件篡改、
+首次健康后到最终确认前的改动、stage 前拒绝新 hash、空/坏/多键 schema 和 stage
+收据变化。SSH/scp/Popen 全部由 fixture 拦截，时钟受控；这不是设备 180 秒健康观察，
+也没有连接路由器或刷写。独立只读 diff 复核未见新增阻断。
+
+修后 driver SHA256：
+`d9bbba1a5e7c4cb484db03bdbe3662fc5227b8e536c03936248fa659841bd2f6`。
+仅工具和测试改变，组件源码与既有 ELF 资格不变。
