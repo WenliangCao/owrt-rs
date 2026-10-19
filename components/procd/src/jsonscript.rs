@@ -26,7 +26,7 @@
 //! unset variable expands to nothing rather than failing -- that asymmetry is
 //! deliberate in the C and callers rely on it.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use owrt_ubus::blob::{Field, MsgType};
 
@@ -49,13 +49,16 @@ pub struct Ctx<'a> {
     out: Run,
     /// `ctx->abort`, set by `return`.
     abort: bool,
-    /// The one file name `include` can resolve. procd's trigger context
-    /// registers `rule_load_script`, which answers only for the trigger's
-    /// own type -- and that file is the one already running.
+    /// The name of the already-running root file. A trigger can resolve only
+    /// this name; hotplug also resolves other paths through its file cache.
     own_type: Option<&'a str>,
     /// `ctx->handle_var`: hotplug.c's `rule_handle_var` derives
     /// DEVNAME/DEVICENAME from DEVPATH; trigger.c's returns NULL.
     devname_fallback: bool,
+    /// Hotplug caches files across events; the visited set is per event, as
+    /// json_script_file.seq prevents both cycles and repeat includes.
+    files: Option<&'a mut BTreeMap<String, Vec<u8>>>,
+    visited: BTreeSet<String>,
 }
 
 /// Run one block against one variable set. `own_type` is the trigger's type,
@@ -68,22 +71,29 @@ pub fn run_rule(block: Field<'_>, vars: &BTreeMap<String, String>, own_type: Opt
         abort: false,
         own_type,
         devname_fallback: false,
+        files: None,
+        visited: BTreeSet::new(),
     };
     ctx.process_cmd(block);
     ctx.out
 }
 
-/// `json_script_run` under plug/hotplug.c's context: no `include`, and the
+/// `json_script_run` under plug/hotplug.c's context: cached file includes and the
 /// DEVNAME/DEVICENAME fallback. The fallback is answered by the lookup, not
 /// written into `vars`, so an `exec`'s environment and the `hotplug.<subsys>`
 /// notification carry only what the kernel sent. (R81 F22.)
-pub fn run_hotplug_rule(block: Field<'_>, vars: &BTreeMap<String, String>) -> Run {
+pub fn run_hotplug_rule(
+    block: Field<'_>, vars: &BTreeMap<String, String>, root: &str,
+    files: &mut BTreeMap<String, Vec<u8>>,
+) -> Run {
     let mut ctx = Ctx {
         vars,
         out: Run::default(),
         abort: false,
-        own_type: None,
+        own_type: Some(root),
         devname_fallback: true,
+        files: Some(files),
+        visited: BTreeSet::new(),
     };
     ctx.process_cmd(block);
     ctx.out
@@ -150,16 +160,23 @@ impl Ctx<'_> {
                 // missing or non-string one returns 0 with no error. A name
                 // the file handler cannot resolve is ALSO a silent 0 -- the
                 // C tests `if (!f) return 0` and never calls handle_error.
-                // The one name procd's rule_load_script resolves is the
-                // trigger's own type, i.e. the file already running, so
-                // __json_script_run's seq guard fires: "Recursive include"
-                // through handle_error, and the block is not run again.
-                let name = cur.children().nth(1).and_then(|f| f.as_str());
-                if let (Some(n), Some(own)) = (name, self.own_type) {
-                    if n == own {
-                        self.error("Recursive include");
-                    }
+                let Some(name) = cur.children().nth(1).and_then(|f| f.as_str()) else { return 0 };
+                if self.own_type == Some(name) || self.visited.contains(name) {
+                    self.error("Recursive include");
+                    return 0;
                 }
+                // Trigger contexts resolve only their own rule. Hotplug's
+                // rule_handle_file reads and retains each successful load.
+                let Some(files) = self.files.as_mut() else { return 0 };
+                if !files.contains_key(name) {
+                    let Some(data) = crate::hotplug::load_rules(name) else { return 0 };
+                    files.insert(name.to_string(), data);
+                }
+                let data = files[name].clone();
+                self.visited.insert(name.to_string());
+                self.process_cmd(Field { name: "", ty: MsgType::Array as u32, data: &data });
+                // A return ends this included file, not the caller's block.
+                self.abort = false;
                 return 0;
             }
             _ => {}
@@ -476,7 +493,8 @@ mod tests {
     #[test]
     fn percent_rules() {
         let v = vars(&[("A", "1")]);
-        let ctx = Ctx { vars: &v, out: Run::default(), abort: false, own_type: None, devname_fallback: false };
+        let ctx = Ctx { vars: &v, out: Run::default(), abort: false, own_type: None,
+            devname_fallback: false, files: None, visited: BTreeSet::new() };
         assert_eq!(ctx.eval_string("plain").unwrap(), "plain");
         assert_eq!(ctx.eval_string("%A%").unwrap(), "1");
         assert_eq!(ctx.eval_string("x%A%y").unwrap(), "x1y");
@@ -570,7 +588,7 @@ mod include_tests {
         ]"#;
         let blob = crate::hotplug::rules_blob(rules).expect("rules parse");
         let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
-        let out = run_hotplug_rule(block, &vars);
+        let out = run_hotplug_rule(block, &vars, "", &mut BTreeMap::new());
         assert_eq!(
             out.commands,
             vec![("exec".to_string(), vec!["/bin/echo".into(), "tun".into(), "tun".into()])]

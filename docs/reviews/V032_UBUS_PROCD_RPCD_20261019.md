@@ -43,7 +43,7 @@ fw4/odhcpd 的调用方验证由整合检查记录。
 | procd instance.update 事件 | 四轮复现并修复；见下 |
 | procd 负 trigger timeout | 四轮复现并修复；见下 |
 | procd watchdog 驱动实际 timeout | 四轮 ioctl 注入复现并修复；见下 |
-| procd jsonscript include | 待复现 |
+| procd jsonscript include | 四轮复现并修复；见下 |
 | rpcd 损坏 freeze 的 UTF-8 / 时间溢出 | 待复现 |
 | rpcd 非法 UTF-8 SID 降为 None | 待复现 |
 | rpcd UCI 错误被 unload 清除 | 待复现 |
@@ -95,3 +95,18 @@ INT32 保留为 u32，`-1` 变成约 49.7 天。`procd-static-red` 四轮 C 执�
 未执行，零 timeout 阳性均执行。改为 i32 后，`procd-static-green` 四轮所有类型、
 事件、负 timeout 和零 timeout 与 C 相同。500 ms 观察窗仅判断动作是否执行，
 不将它解释成 1 ms 调度精度验证；既有 pending 延期和运行中 requeue 规则保持。
+
+## procd hotplug include
+
+精确 C 的 `rule_handle_file` 会加载 include 的 JSON；Rust 原先一律忽略。私有
+netlink 事件四轮均见 C 动作为 `child/child-after/main`，Rust 仅 `main`。
+修复为每个 hotplug 上下文缓存成功加载的文件，每个事件单独记录已执行文件，
+同一文件重复 include 和循环 include 均报错并跳过；缺失文件继续保持静默跳过。
+included 文件内 return 只结束该文件，主文件继续。
+
+`check_procd_include.py` 四轮红绿均运行真实镜像 C 和静态 musl Rust，修改已加载的
+child 文件再发送第二个事件，双方都继续使用缓存的旧动作；最终每轮两个事件均为
+`child/child-after/main`，循环后继续、重复抑制、缺文件、return 后不可达动作及
+daemon 存活一并检查。证据为 `procd-include-{red,green}/result.json`。
+组合产品源码完整 procd 单测 **89 通过，0 失败**，日志 `procd-combined-tests-2.log`。
+早期组合测试少更新一个测试夹具初始化，编译失败记录仍保留于 `procd-combined-tests.log`。

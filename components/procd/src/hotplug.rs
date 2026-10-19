@@ -73,6 +73,8 @@ pub struct Hotplug {
     fd: OwnedFd,
     /// The rules, as a blobmsg ARRAY payload converted from the JSON file.
     rules: Vec<u8>,
+    rule_file: String,
+    included_rules: BTreeMap<String, Vec<u8>>,
     queue: VecDeque<Queued>,
     /// The currently forked queue child, with its button context.
     child: Option<(i32, Queued)>,
@@ -85,7 +87,7 @@ pub struct Hotplug {
 use owrt_ubus::convert::json_to_fields as json_to_blob;
 
 /// `rule_handle_file` + caching: the file is read once.
-fn load_rules(path: &str) -> Option<Vec<u8>> {
+pub(crate) fn load_rules(path: &str) -> Option<Vec<u8>> {
     rules_blob(&std::fs::read(path).ok()?)
 }
 
@@ -153,6 +155,8 @@ impl Hotplug {
         Some(Hotplug {
             fd,
             rules,
+            rule_file: rule_file.to_string(),
+            included_rules: BTreeMap::new(),
             queue: VecDeque::new(),
             child: None,
             buttons: Vec::new(),
@@ -397,7 +401,7 @@ impl Hotplug {
                 ty: MsgType::Array as u32,
                 data: &rules,
             };
-            let out = jsonscript::run_hotplug_rule(block, vars);
+            let out = jsonscript::run_hotplug_rule(block, vars, &self.rule_file, &mut self.included_rules);
             for e in out.errors {
                 // rule_handle_error()
                 log!(sys::LOG_ERR, "ERROR: {e}");
@@ -584,6 +588,8 @@ mod tests {
         let mut hp = Hotplug {
             fd: std::fs::File::open("/dev/null").unwrap().into(),
             rules: Vec::new(),
+            rule_file: String::new(),
+            included_rules: BTreeMap::new(),
             queue: VecDeque::new(),
             child: None,
             buttons: Vec::new(),
@@ -642,7 +648,7 @@ mod tests {
             ty: MsgType::Array as u32,
             data: &blob,
         };
-        let out = jsonscript::run_hotplug_rule(block, &v);
+        let out = jsonscript::run_hotplug_rule(block, &v, "", &mut BTreeMap::new());
         assert_eq!(
             out.commands,
             vec![(
@@ -667,7 +673,7 @@ mod tests {
             ty: MsgType::Array as u32,
             data: &blob,
         };
-        let out = jsonscript::run_hotplug_rule(block, &v);
+        let out = jsonscript::run_hotplug_rule(block, &v, "", &mut BTreeMap::new());
         assert_eq!(
             out.commands,
             vec![(
@@ -703,7 +709,7 @@ mod tests {
             ty: MsgType::Array as u32,
             data: &blob,
         };
-        let out = jsonscript::run_hotplug_rule(block, &vars);
+        let out = jsonscript::run_hotplug_rule(block, &vars, "", &mut BTreeMap::new());
         assert!(out.errors.is_empty(), "{:?}", out.errors);
         assert_eq!(
             out.commands,
