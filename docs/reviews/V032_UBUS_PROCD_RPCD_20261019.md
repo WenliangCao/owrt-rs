@@ -44,11 +44,11 @@ fw4/odhcpd 的调用方验证由整合检查记录。
 | procd 负 trigger timeout | 四轮复现并修复；见下 |
 | procd watchdog 驱动实际 timeout | 四轮 ioctl 注入复现并修复；见下 |
 | procd jsonscript include | 四轮复现并修复；见下 |
-| rpcd 损坏 freeze 的 UTF-8 / 时间溢出 | 待复现 |
-| rpcd 非法 UTF-8 SID 降为 None | 待复现 |
-| rpcd UCI 错误被 unload 清除 | 待复现 |
-| rpcd 非规范 base64 padding | 待复现 |
-| rpcd LuCI 显式空 name 过滤 | 待复现 |
+| rpcd 损坏 freeze 的 UTF-8 / 时间溢出 | 四轮 panic 已复现并修复；详见 [rpcd 专项](V032_RPCD_STATIC_20261019.md) |
+| rpcd 非法 UTF-8 SID 降为 None | 真实 file/uci/session RPC 四轮 C/Rust 差分已修；缺省 SID 本地 root 控制保留；详见 [rpcd 专项](V032_RPCD_STATIC_20261019.md) |
+| rpcd UCI 错误被 unload 清除 | 七种保存/commit/apply 失败已复现并加固；C 同有缺陷；详见 [rpcd 专项](V032_RPCD_STATIC_20261019.md) |
+| rpcd 非规范 base64 padding | 四轮实际 file.write 与 C 拒绝对照已修；详见 [rpcd 专项](V032_RPCD_STATIC_20261019.md) |
+| rpcd LuCI 显式空 name 过滤 | 四轮真实 getInitList 与 C 对照已修；详见 [rpcd 专项](V032_RPCD_STATIC_20261019.md) |
 
 ## procd 类型策略
 

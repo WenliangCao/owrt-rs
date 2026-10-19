@@ -1,7 +1,7 @@
 //! rpcd uci.c port on top of `owrt_uci` (contract C7). Each ubus call gets a
 //! fresh uci context whose delta path is set the way `rpc_uci_set_savedir`
-//! does; `ctx.err` tracking mirrors the C cursor so status mapping (including
-//! the places where a trailing `uci_unload` resets the error) stays literal.
+//! does; `ctx.err` tracking mirrors the C cursor. Mutations retain errors
+//! across cleanup so failed writes cannot be reported as successful.
 
 use crate::session::{arg, arg_sid, arg_str, Reply};
 use crate::Ctx;
@@ -432,12 +432,10 @@ fn add(rctx: &Ctx, raw: &[u8]) -> Reply {
             let mut b = BlobBuf::new();
             b.msg_string("section", ptr.section.as_deref().unwrap_or(""));
             ctx.unload(pidx);
-            ctx.err = None;
             return with(uci_status(&ctx), b.into_payload());
         }
     }
     ctx.unload(pidx);
-    ctx.err = None;
     code(if err != 0 { err } else { uci_status(&ctx) })
 }
 
@@ -554,7 +552,6 @@ fn set(rctx: &Ctx, raw: &[u8]) -> Reply {
         let _ = tr!(ctx, delta::save(&mut ctx, pidx));
     }
     ctx.unload(pidx);
-    ctx.err = None;
     code(if err != 0 { err } else { uci_status(&ctx) })
 }
 
@@ -655,7 +652,6 @@ fn delete(rctx: &Ctx, raw: &[u8]) -> Reply {
         let _ = tr!(ctx, delta::save(&mut ctx, pidx));
     }
     ctx.unload(pidx);
-    ctx.err = None;
     code(if err != 0 { err } else { uci_status(&ctx) })
 }
 
@@ -695,7 +691,6 @@ fn rename(rctx: &Ctx, raw: &[u8]) -> Reply {
         let _ = tr!(ctx, delta::save(&mut ctx, pidx));
     }
     ctx.unload(pidx);
-    ctx.err = None;
     code(uci_status(&ctx))
 }
 
@@ -737,7 +732,6 @@ fn order(rctx: &Ctx, raw: &[u8]) -> Reply {
         let _ = tr!(ctx, delta::save(&mut ctx, pidx));
     }
     ctx.unload(pidx);
-    ctx.err = None;
     code(if err != 0 { err } else { uci_status(&ctx) })
 }
 
@@ -902,8 +896,9 @@ fn revert_commit(rctx: &Ctx, conn: &mut Connection, raw: &[u8], commit: bool) ->
         if let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) {
             let _ = tr!(ctx, file::commit(&mut ctx, pidx, false));
             ctx.unload(pidx);
-            ctx.err = None;
-            trigger_event(rctx, Some(conn), config);
+            if ctx.err.is_none() {
+                trigger_event(rctx, Some(conn), config);
+            }
         }
     } else {
         let mut ptr = Ptr { package: Some(config.to_owned()), ..Ptr::default() };
@@ -911,7 +906,6 @@ fn revert_commit(rctx: &Ctx, conn: &mut Connection, raw: &[u8], commit: bool) ->
             if let Some(pidx) = ptr.p {
                 let _ = tr!(ctx, delta::revert(&mut ctx, &mut ptr));
                 ctx.unload(pidx);
-                ctx.err = None;
             }
         }
     }
@@ -966,13 +960,14 @@ fn commit_config(ctx: &mut Context, config: &str) {
     if let Ok(pidx) = tr!(ctx, file::load(ctx, config)) {
         let _ = tr!(ctx, file::commit(ctx, pidx, false));
         ctx.unload(pidx);
-        ctx.err = None;
     }
 }
 
 fn apply_config(rctx: &Ctx, ctx: &mut Context, conn: Option<&mut Connection>, config: &str) {
     commit_config(ctx, config);
-    trigger_event(rctx, conn, config);
+    if ctx.err.is_none() {
+        trigger_event(rctx, conn, config);
+    }
 }
 
 /// Keep the current file intact until the complete snapshot has been written.
@@ -1190,11 +1185,15 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         }
         for config in configs {
             apply_config(rctx, &mut ctx, Some(conn), config);
+            if ctx.err.is_some() {
+                break;
+            }
         }
         if rollback {
             let msecs: i64 = if timeout > 0 && timeout <= i32::MAX / 1000 { timeout as i64 * 1000 } else { i32::MAX as i64 };
             rctx.apply.borrow_mut().deadline = Some(Instant::now() + Duration::from_millis(msecs as u64));
         }
+        return code(uci_status(&ctx));
     }
     code(0)
 }
