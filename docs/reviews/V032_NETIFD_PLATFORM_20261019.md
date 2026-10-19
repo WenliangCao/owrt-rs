@@ -47,7 +47,15 @@ Oracle 四次实测均为 64 项、2060 字节：旧实现把一个 12 字节 sl
 
 ## 待完成的独立候选
 
-四项静态候选（跨 vif VLAN/STA 编号、SET_DATA 非字符串数据、
-无线状态 ifname、协议 PD 长度）仍分别取证；本段不把未测试项记为通过。
+无线候选使用同一受控 handler、同一个 radio 下的两个 vif、共享 VLAN 和各自 STA；
+参考精确镜像 C netifd 调用的 `wireless-device.uc`。四轮中 C 的三项检查均通过，
+Rust 的跨 vif 编号、非字符串 SET_DATA、VLAN ifname 三项均失败。
+
+`wdev_config_init` 的 VLAN/STA 计数器属于每个 vif，Rust 原先跨 vif 累加。
+现把两个计数器移入 vif 循环；四轮 `--checks indices` 中双方都输出各自的 `01`，
+其余两项仍明确记录失败，没有藏进绿色结果。证据为 `wireless-red-{1..4}` 和
+`wireless-indices-green-{1..4}`，回归工具 `components/netifd/tests/wireless_review.py`。
+
+SET_DATA 非字符串数据、无线状态 ifname、协议 PD 长度仍分别修复或取证。
 下一轮将用实际内核 ioctl 和精确镜像的 C netifd / wifi-scripts 判断边界，
 只修改至少四轮重复确认的差异。

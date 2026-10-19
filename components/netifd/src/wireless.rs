@@ -1216,12 +1216,11 @@ pub fn handler_json(radio: &Radio, handlers: &[Handler], device_data: &str) -> S
 
     let vlan_spec = h.map(|h| h.attrs_of("vlan")).unwrap_or(&[]);
     let sta_spec = h.map(|h| h.attrs_of("station")).unwrap_or(&[]);
-    // the %02d counters run across every vif, not per vif
-    let mut vlan_idx = 0usize;
-    let mut sta_idx = 0usize;
-
     let mut ifaces: Vec<(String, String)> = Vec::new();
     for (n, v) in radio.vifs.iter().enumerate() {
+        // wdev_config_init numbers children independently within each vif.
+        let mut vlan_idx = 0usize;
+        let mut sta_idx = 0usize;
         let mut cfg: Vec<(String, String)> = attribute_list(&v.opts, if_spec)
             .into_iter()
             .filter_map(|(k, p)| projected(&p).map(|p| (k, p)))
