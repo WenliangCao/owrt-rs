@@ -56,6 +56,17 @@ Rust 的跨 vif 编号、非字符串 SET_DATA、VLAN ifname 三项均失败。
 其余两项仍明确记录失败，没有藏进绿色结果。证据为 `wireless-red-{1..4}` 和
 `wireless-indices-green-{1..4}`，回归工具 `components/netifd/tests/wireless_review.py`。
 
-SET_DATA 非字符串数据、无线状态 ifname、协议 PD 长度仍分别修复或取证。
-下一轮将用实际内核 ioctl 和精确镜像的 C netifd / wifi-scripts 判断边界，
-只修改至少四轮重复确认的差异。
+SET_DATA 非字符串数据、无线状态 ifname 仍分别修复或取证。
+
+## PD 长度
+
+精确 C `proto.c:parse_prefix_option` 只接受 `1..64` 的 delegated prefix。
+Rust 解析边界现在使用相同范围，避免把 0 或 65..128 交给依赖该范围的分配逻辑。
+通过实际 `notify_proto` 逐一送入 0、65..128，另以 56、64 为阳性控制；四轮中 C
+均拒绝非法长度而旧 Rust 均接受，修后四轮双方均拒绝，合法长度和 daemon 存活均正常。
+没有据此宣称真实配置发生过崩溃。
+
+证据为同一 Oracle 目录 `prefix-red-replace-{1..4}`、`prefix-green-{1..4}`；
+回归加入 `proto_spawn_failure.py` 默认集合。早期 `prefix-red-*` 使用 `keep=true`，
+C 会保留前一合法前缀，因而“非法更新后表应为空”的夹具判断不成立；这些原始数据保留，
+有效对照使用普通 replacement 更新。

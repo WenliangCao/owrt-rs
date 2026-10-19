@@ -17,13 +17,14 @@ import sys
 import tempfile
 import time
 
-CASES = ("healthy_spawn", "fail_spawn", "dependency", "bridge_remove", "bridge_last_port", "bridge_options")
+CASES = ("healthy_spawn", "fail_spawn", "dependency", "bridge_remove", "bridge_last_port", "bridge_options", "prefix_lengths")
 ORIGINAL_CHECKS = {}
 CHECKS = {case: {"recovered", "same_daemon"} for case in CASES}
 CHECKS["bridge_remove"] = {"removed_from_kernel", "removed_from_status", "dynamic_preserved"}
 CHECKS["bridge_last_port"] = {"removed_from_kernel", "unavailable", "address_removed"}
 CHECKS["dependency"] = {"initially_unavailable", "recovered", "loss_detected", "recovered_again", "same_daemon"}
 CHECKS["bridge_options"] = {"snooping_on_applied", "snooping_off_applied", "configured_port_preserved", "same_daemon"}
+CHECKS["prefix_lengths"] = {"invalid_lengths_rejected", "valid_lengths_kept", "same_daemon"}
 
 PROTO = r'''#!/bin/sh
 . /lib/functions.sh
@@ -192,6 +193,20 @@ def inner(root, side, case):
             addrs = json.loads(run("ip", "-j", "addr", "show", capture_output=True).stdout)
             write(output / "after-addresses.json", json.dumps(addrs, indent=2))
             result["address_removed"] = all(a.get("local") != "10.90.0.1" for link in addrs for a in link["addr_info"])
+    elif case == "prefix_lengths":
+        call("network.interface.wan", "up")
+        wait_for(lambda: snapshot("ready").get("up"))
+        observations = []
+        for length in (56, 0, *range(65, 129), 64):
+            call("network.interface.wan", "notify_proto", {"action": 0, "link-up": True,
+                                                          "ip6prefix": [f"2001:db8:1::/{length}"]})
+            observed = snapshot(f"prefix-{length}").get("ipv6-prefix", [])
+            observations.append({"length": length, "prefixes": observed})
+        write(output / "prefixes.json", json.dumps(observations, indent=2))
+        result["invalid_lengths_rejected"] = all(not row["prefixes"] for row in observations if row["length"] not in (56, 64))
+        result["valid_lengths_kept"] = all(any(p["mask"] == row["length"] for p in row["prefixes"])
+                                          for row in observations if row["length"] in (56, 64))
+        result["same_daemon"] = daemon.poll() is None
     elif case == "dependency":
         time.sleep(0.5)
         result["initially_unavailable"] = snapshot("initial").get("available") is False

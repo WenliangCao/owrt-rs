@@ -1331,7 +1331,7 @@ pub fn parse_prefix6(text: &str) -> Option<Prefix6> {
     let (a, l) = net.split_once('/')?;
     let addr: std::net::Ipv6Addr = a.trim().parse().ok()?;
     let length: u8 = l.trim().parse().ok()?;
-    if length > 128 {
+    if !(1..=64).contains(&length) {
         return None;
     }
     let num = |p: Option<&str>| -> Option<u32> {
