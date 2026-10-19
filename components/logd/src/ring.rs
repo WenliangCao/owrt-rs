@@ -43,7 +43,7 @@ impl Record<'_> {
 pub struct Ring {
     arena: Vec<u8>,
     capacity: usize,
-    /// Offsets of retained records, oldest first (ids are contiguous).
+    /// Offsets of retained records, oldest first (ids wrap at u32::MAX).
     offsets: VecDeque<u32>,
     newest: usize,
     next_id: u32,
@@ -165,10 +165,9 @@ impl Ring {
 
     /// Entries with id >= min, oldest first, where `min` follows C log_list:
     /// `min = count ? (count < current_id ? current_id - count : 0) : 0`.
-    /// `count` is signed: 0 or a value >= current_id yields all entries; a
-    /// negative count yields none (min = current_id - count > current_id).
-    /// Retained ids are contiguous and end at current_id - 1, so the window is
-    /// a suffix of the list and needs no scan.
+    /// `count` is signed. Compare each stored id, as C does: after the id
+    /// wraps, matching records can be on both sides of a nonmatching record.
+    /// Deriving a suffix from current_id and the retained count loses history.
     pub fn list(&self, count: i64) -> impl Iterator<Item = Record<'_>> + '_ {
         let cur = self.next_id as i64;
         let min = if count != 0 {
@@ -176,13 +175,10 @@ impl Ring {
         } else {
             0
         };
-        let len = self.offsets.len() as i64;
-        let oldest = cur - len;
-        let skip = (min - oldest).clamp(0, len) as usize;
         self.offsets
             .iter()
-            .skip(skip)
             .map(move |&offset| self.record_at(offset as usize))
+            .filter(move |record| i64::from(record.id) >= min)
     }
 }
 
@@ -424,6 +420,36 @@ mod tests {
             assert_eq!(rec.text.last(), Some(&0));
             assert_eq!(rec.time_ms, 1_000 + rec.id as u64);
         }
+    }
+
+    #[test]
+    fn list_keeps_history_on_both_sides_of_id_wrap() {
+        let mut r = Ring::new(4096);
+        r.next_id = u32::MAX - 1;
+        add(&mut r, "before a");
+        add(&mut r, "before b");
+        for count in [-1, 0, 1, 2] {
+            assert_eq!(ids(&r, count), [u32::MAX - 1, u32::MAX], "count {count}");
+        }
+        add(&mut r, "after a");
+        add(&mut r, "after b");
+        assert_eq!(ids(&r, 0), [u32::MAX - 1, u32::MAX, 0, 1]);
+        assert_eq!(ids(&r, 1), [u32::MAX - 1, u32::MAX, 1]);
+        assert_eq!(ids(&r, -1), [u32::MAX - 1, u32::MAX]);
+        assert_eq!(r.list(0).map(|record| record.msg().to_vec()).collect::<Vec<_>>(),
+                   [b"before a".as_slice(), b"before b", b"after a", b"after b"]);
+    }
+
+    #[test]
+    fn evicting_wrapped_history_restores_ordinary_count_windows() {
+        let mut r = Ring::new(108);
+        r.next_id = u32::MAX - 1;
+        for message in ["a", "b", "c", "d"] {
+            add(&mut r, message);
+        }
+        assert_eq!(ids(&r, 0), [0, 1]);
+        assert_eq!(ids(&r, 1), [1]);
+        assert!(ids(&r, -1).is_empty());
     }
 
     #[test]
