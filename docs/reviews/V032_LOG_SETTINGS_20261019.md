@@ -8,6 +8,18 @@
 `/etc/config/system`。因此不能把 8 说成 25.12.5 的 UCI 默认值，也没有证据确定
 它由谁、在哪次操作写入。
 
+进一步核对精确镜像的 LuCI：`view/system/system.js` 把 conloglevel 的第一个
+选项设为 8，未设显式 default；`form.js` 的 ListValue 默认 optional=false，并把
+原 keylist 顺序传给 `ui.Select`。`ui.js` 在这种情况下不插入空选项，原配置缺省时
+select 会落到第一项；表单 parse 会把与缺省配置不同的非空值写入 UCI。
+因此保存 LuCI System 页面是一个能写入 8 的明确代码路径，而不是 config_generate
+的默认值。**这是源码解释的可能来源，不能证明历史上实际发生过哪次页面保存。**
+当前设备与 09-03/09-10 两份完整 overlay 备份均没有 `.ash_history`，无法进一步归因。
+三份精确 JS SHA256 分别为 system.js
+`de84bf99630270a5a4acb4e267dbc1daaa62aac288f7490932b7e9d0ff7e68b0`、form.js
+`b68bebcbb5eef7256790b9dcb821bf6b1d4104b72fb076dda2e67268d7254787`、ui.js
+`8deb2472a0da3a8cb50b0b45a9fb8e7b1b0bf4b7f6fa141aa7233b5387664441`。
+
 匹配 procd `58eb263d` 的 `initd/init.c`、`initd/early.c` 及其余源码没有
 `kernel_init`、`klogctl` 或 conloglevel/printk 设置路径，更没有把 8 写回 UCI。
 精确 image 的 `/etc/init.d/system` 读取已有 conloglevel 后运行 `dmesg -n`；
