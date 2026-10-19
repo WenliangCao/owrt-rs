@@ -13,11 +13,13 @@ use std::os::fd::OwnedFd;
 use std::ops::Bound::{Included, Unbounded};
 
 /// What a handler decided: reply with this status, reply with nothing (the
-/// handler already sent what was needed), or the command was parked.
+/// handler already sent what was needed), park the command, or disconnect
+/// a client that exceeded its pending command budget.
 enum Outcome {
     Status(i32),
     NoStatus,
     Queued,
+    Disconnect,
 }
 
 struct Pattern {
@@ -232,6 +234,7 @@ impl Server {
         let peer = msg.header.peer;
         let outcome = self.handle(client, msg);
         match outcome {
+            Outcome::Disconnect => false,
             Outcome::Queued | Outcome::NoStatus => true,
             Outcome::Status(code) => {
                 self.send_status(client, seq, peer, code);
@@ -408,34 +411,36 @@ impl Server {
     fn lookup_entry(&mut self, client: u32, msg: InMsg) -> Outcome {
         let busy = self.clients.get(&client).is_some_and(|c| !c.tx_empty());
         if busy {
-            if let Some(c) = self.clients.get_mut(&client) {
-                c.cmd_queue.push_back(PendingCmd { msg: msg.into_owned(), next: None });
-            }
-            return Outcome::Queued;
+            return self.queue_lookup(client, msg, None);
         }
         match self.lookup(client, &msg, None) {
             Ok(outcome) => outcome,
-            Err(next) => {
-                if let Some(c) = self.clients.get_mut(&client) {
-                    c.cmd_queue.push_back(PendingCmd { msg: msg.into_owned(), next });
-                }
-                Outcome::Queued
-            }
+            Err(next) => self.queue_lookup(client, msg, next),
         }
     }
 
+    fn queue_lookup(&mut self, client: u32, msg: InMsg, next: Option<Vec<u8>>) -> Outcome {
+        let Some(c) = self.clients.get_mut(&client) else { return Outcome::Disconnect };
+        if !c.can_queue_command(&msg, next.as_deref()) {
+            return Outcome::Disconnect;
+        }
+        c.cmd_queue.push_back(PendingCmd { msg: msg.into_owned(), next });
+        Outcome::Queued
+    }
+
     /// Resume parked LOOKUPs now that the queue drained. Mirrors
-    /// `ubus_client_cmd_queue_process`.
-    pub fn process_cmd_queue(&mut self, client: u32) {
+    /// `ubus_client_cmd_queue_process`. False disconnects this client when
+    /// a new continuation path would exceed its command memory budget.
+    pub fn process_cmd_queue(&mut self, client: u32) -> bool {
         loop {
             // A completed reply may itself have started buffering. Leave the
             // next LOOKUP parked until that output drains as well.
             if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
-                return;
+                return true;
             }
             let Some(cmd) = self.clients.get_mut(&client).and_then(|c| c.cmd_queue.pop_front())
             else {
-                return;
+                return true;
             };
             match self.lookup(client, &cmd.msg, cmd.next) {
                 Ok(outcome) => {
@@ -444,10 +449,12 @@ impl Server {
                     }
                 }
                 Err(next) => {
-                    if let Some(c) = self.clients.get_mut(&client) {
-                        c.cmd_queue.push_front(PendingCmd { msg: cmd.msg, next });
+                    let Some(c) = self.clients.get_mut(&client) else { return false };
+                    if !c.can_queue_command(&cmd.msg, next.as_deref()) {
+                        return false;
                     }
-                    return;
+                    c.cmd_queue.push_front(PendingCmd { msg: cmd.msg, next });
+                    return true;
                 }
             }
         }
@@ -1839,7 +1846,7 @@ mod tests {
             }
             assert!(c.flush());
             if c.tx_empty() {
-                server.process_cmd_queue(client);
+                assert!(server.process_cmd_queue(client));
             }
         }
     }
@@ -2219,6 +2226,114 @@ mod tests {
             assert_eq!(attrs_of(&frames[index].1[4..])[attr::STATUS as usize].unwrap().as_u32(),
                 Some(if index == 45 { status::NOT_FOUND as u32 } else { 0 }));
         }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn assert_pending_lookup_limit(padding: usize, limit: usize) {
+        use std::io::Read;
+        use std::os::unix::net::UnixStream;
+        const CALLER: u32 = 2000;
+        let mut server = Server::new(String::new()).unwrap();
+        let (caller, _peer) = lookup_client();
+        let (healthy, mut healthy_peer) = lookup_client();
+        server.clients.insert(CALLER, Box::new(caller));
+        server.clients.insert(CALLER + 1, Box::new(healthy));
+        let mut echo = BlobBuf::new();
+        echo.put(0, &vec![0; 256 * 1024]);
+        assert!(server.receive(CALLER, InMsg {
+            header: Header { ty: ty::PING, seq: 0, peer: 0 },
+            blob: Cow::Borrowed(echo.as_bytes()), fd: None,
+        }));
+        assert!(!server.clients[&CALLER].tx_empty(), "fixture must force backpressure");
+        for index in 0..=limit {
+            let mut request = BlobBuf::new();
+            request.put_string(attr::OBJPATH, "missing");
+            request.put(0, &vec![0; padding]);
+            let (fd, mut witness) = UnixStream::pair().unwrap();
+            witness.set_nonblocking(true).unwrap();
+            let accepted = server.receive(CALLER, InMsg {
+                header: Header { ty: ty::LOOKUP, seq: index as u16 + 1, peer: 0 },
+                blob: Cow::Borrowed(request.as_bytes()), fd: Some(fd.into()),
+            });
+            assert_eq!(witness.read(&mut [0u8; 1]).unwrap(), 0, "LOOKUP must close its descriptor");
+            assert_eq!(accepted, index < limit, "slow reader exceeded its pending command budget");
+        }
+        assert_eq!(server.clients[&CALLER].cmd_queue.len(), limit);
+        server.remove_client(CALLER);
+        let mut ping = BlobBuf::new();
+        assert!(server.receive(CALLER + 1, InMsg {
+            header: Header { ty: ty::PING, seq: 500, peer: 0 },
+            blob: Cow::Borrowed(ping.as_bytes()), fd: None,
+        }));
+        let frames = lookup_frames(&drain_lookup(&mut server, CALLER + 1, &mut healthy_peer));
+        assert_eq!(frames.len(), 2);
+        assert_eq!((frames[0].0.ty, frames[0].0.seq), (ty::DATA, 500));
+        assert_eq!((frames[1].0.ty, frames[1].0.seq), (ty::STATUS, 500));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn pending_lookups_stop_at_the_command_count_limit() {
+        assert_pending_lookup_limit(0, 64);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn pending_lookups_stop_at_the_command_byte_limit() {
+        assert_pending_lookup_limit(256 * 1024, 7);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn a_growing_lookup_cursor_cannot_exceed_the_pending_byte_limit() {
+        use std::io::Read;
+        const CALLER: u32 = 2000;
+        let mut server = Server::new(String::new()).unwrap();
+        let (caller, mut peer) = lookup_client();
+        server.clients.insert(CALLER, Box::new(caller));
+        server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: Vec::new() });
+        for (id, byte) in [(4000, b'a'), (4001, b'z')] {
+            server.reg.create(Some(3000), Some(id)).unwrap();
+            assert!(server.reg.set_path(id, &vec![byte; 300 * 1024]));
+        }
+        let mut echo = BlobBuf::new();
+        echo.put(0, &vec![0; 256 * 1024]);
+        assert!(server.receive(CALLER, InMsg {
+            header: Header { ty: ty::PING, seq: 0, peer: 0 },
+            blob: Cow::Borrowed(echo.as_bytes()), fd: None,
+        }));
+        let mut all = BlobBuf::new();
+        assert!(server.receive(CALLER, InMsg {
+            header: Header { ty: ty::LOOKUP, seq: 1, peer: 0 },
+            blob: Cow::Borrowed(all.as_bytes()), fd: None,
+        }));
+        let mut missing = BlobBuf::new();
+        missing.put_string(attr::OBJPATH, "missing");
+        missing.put(0, &vec![0; 256 * 1024]);
+        for seq in 2..9 {
+            assert!(server.receive(CALLER, InMsg {
+                header: Header { ty: ty::LOOKUP, seq, peer: 0 },
+                blob: Cow::Borrowed(missing.as_bytes()), fd: None,
+            }));
+        }
+        assert_eq!(server.clients[&CALLER].cmd_queue.len(), 8);
+        let until = std::time::Instant::now() + std::time::Duration::from_secs(2);
+        while !server.clients[&CALLER].tx_empty() {
+            assert!(std::time::Instant::now() < until);
+            let mut bytes = [0; 8192];
+            match peer.read(&mut bytes) {
+                Ok(0) => panic!("unexpected EOF"),
+                Ok(_) => {},
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {},
+                Err(error) => panic!("read: {error}"),
+            }
+            assert!(server.clients.get_mut(&CALLER).unwrap().flush());
+        }
+        // The first pending LOOKUP now needs a 300 KiB owned path to resume.
+        // Seven existing 256 KiB requests leave less room than that.
+        assert!(!server.process_cmd_queue(CALLER));
+        assert_eq!(server.clients[&CALLER].cmd_queue.len(), 7);
+        server.remove_client(CALLER);
     }
 
 }

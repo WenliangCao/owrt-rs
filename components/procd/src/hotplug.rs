@@ -279,6 +279,14 @@ impl Hotplug {
         let Some(cmd) = self.queue.pop_front() else {
             return;
         };
+        // queue_next() calls handle_button_start when this command takes
+        // the slot. The previous child may have armed a timeout after this
+        // event was queued, so cancelling at enqueue time is too early.
+        if cmd.kind == CmdKind::Button {
+            if let Some(name) = cmd.vars.get("BUTTON") {
+                self.buttons.retain(|b| &b.name != name);
+            }
+        }
         match cmd.kind {
             // pump() intercepts StartConsole before this point; it never
             // reaches the fork path.
@@ -422,11 +430,6 @@ impl Hotplug {
                 argv,
             }),
             "button" => {
-                // handle_button_start: a new event for this button cancels
-                // its pending timeout.
-                if let Some(name) = vars.get("BUTTON") {
-                    self.buttons.retain(|b| &b.name != name);
-                }
                 self.queue.push_back(Queued {
                     kind: CmdKind::Button,
                     vars: vars.clone(),
@@ -572,6 +575,55 @@ fn firmware_child(dir: &str, vars: &BTreeMap<String, String>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn queued_button_release_cancels_timeout_created_by_previous_child() {
+        let dir = std::env::temp_dir().join(format!("procd-button-order-{}", std::process::id()));
+        std::fs::create_dir(&dir).unwrap();
+        let trace = dir.join("actions");
+        let mut hp = Hotplug {
+            fd: std::fs::File::open("/dev/null").unwrap().into(),
+            rules: Vec::new(),
+            queue: VecDeque::new(),
+            child: None,
+            buttons: Vec::new(),
+            coldplug: Coldplug::Idle,
+            quiet_at: 0,
+        };
+        let argv = vec!["/bin/sh".into(), "-c".into(),
+            "echo \"$ACTION\" >> \"$TRACE\"; [ \"$ACTION\" != pressed ]".into()];
+        let mut vars = BTreeMap::from([
+            ("BUTTON".into(), "reset".into()),
+            ("ACTION".into(), "pressed".into()),
+            ("TRACE".into(), trace.to_str().unwrap().into()),
+        ]);
+        hp.dispatch("button", argv.clone(), &vars, 100);
+        hp.pump(100);
+        assert!(hp.child.is_some(), "press handler must have started");
+
+        // Release arrives before the press child has been reaped. The press
+        // handler will return 1 and arm a one-second timeout on completion.
+        vars.insert("ACTION".into(), "released".into());
+        hp.dispatch("button", argv, &vars, 100);
+        fn reap(hp: &mut Hotplug) {
+            let raw = hp.child.as_ref().unwrap().0;
+            let pid = rustix::process::Pid::from_raw(raw).unwrap();
+            let (_, status) = rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::empty())
+                .unwrap().unwrap();
+            assert!(hp.reaped(raw, status.as_raw()));
+        }
+        reap(&mut hp);
+        assert_eq!(hp.buttons.len(), 1, "press completion must arm the timeout");
+        hp.pump(100);
+        reap(&mut hp);
+        hp.pump(1200);
+        let stale_timeout = hp.child.is_some();
+        if stale_timeout { reap(&mut hp); }
+        let actions = std::fs::read_to_string(&trace).unwrap();
+        std::fs::remove_dir_all(dir).unwrap();
+        assert!(!stale_timeout, "released button must not run a stale timeout handler");
+        assert_eq!(actions, "pressed\nreleased\n");
+    }
 
     #[test]
     fn a_uevent_datagram_becomes_exactly_the_kernels_variables() {

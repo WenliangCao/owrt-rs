@@ -571,21 +571,27 @@ fn preference_bits(preference: i8) -> u8 {
 }
 
 fn interval_ms(minimum: u32, maximum: u32, sent: u32, random: u32) -> u64 {
-    // Keep C's unsigned subtraction/multiplication and final signed int. A
-    // prefix can expire below MinRtrAdvInterval; do not silently retune it.
+    let maximum_ms = u64::from(maximum.max(1)) * 1000;
+    // The runtime maximum also follows the shortest prefix lifetime. Apply
+    // the configuration's 3/4 relationship again when that maximum falls
+    // below the configured minimum; C's unsigned subtraction can otherwise
+    // postpone advertisements for days after the first three packets.
+    let minimum_ms = if maximum < minimum {
+        maximum_ms * 3 / 4
+    } else {
+        u64::from(minimum) * 1000
+    };
     let range = if maximum != minimum {
-        maximum.wrapping_sub(minimum).wrapping_mul(1000)
+        maximum_ms - minimum_ms
     } else {
         500
     };
     let absolute = i64::from(random as i32).unsigned_abs();
-    let mut interval =
-        (absolute % u64::from(range.max(1)) + u64::from(minimum.wrapping_mul(1000))) as i32;
+    let mut interval = minimum_ms + absolute % range.max(1);
     if sent.wrapping_add(1) < 3 && interval > 16_000 {
         interval = 16_000;
     }
-    // A C timeout scheduled in the past is immediately due in the event loop.
-    interval.max(0) as u64
+    interval
 }
 
 fn search_option(domains: &[String], lifetime: u32) -> Option<Vec<u8>> {
@@ -819,6 +825,46 @@ mod tests {
         assert_eq!(multicast.destination, ALL_NODES);
         router.trigger(clock(36_000));
         assert_eq!(router.deadline(), Some(37_000));
+    }
+
+    #[test]
+    fn short_prefixes_are_readvertised_within_the_advertised_lifetime() {
+        let pool = pool();
+        for lifetime in [1, 2, 3, 60, 199] {
+            for random in [0, 1, i32::MAX as u32, 0x8000_0000, u32::MAX] {
+                let mut kernel = kernel();
+                let mut router = Router::new("br-lan", clock(0));
+                for _ in 0..4 {
+                    let now = router.deadline().unwrap();
+                    // Model an upstream refresh of the same prefix. Extending
+                    // its lease must not require an unrelated RA trigger.
+                    for address in &mut kernel.links[0].addresses {
+                        if address.scope == 0 {
+                            address.preferred_until = clock(now).seconds() + lifetime;
+                            address.valid_until = clock(now).seconds() + lifetime;
+                        }
+                    }
+                    let mut request = context(&pool, &kernel, now);
+                    request.random = random;
+                    let packet = router.timer(&request).unwrap();
+                    let pio = options(&packet.bytes, 3)[0];
+                    let wire_lifetime = u32::from_be_bytes(pio[4..8].try_into().unwrap());
+                    assert_eq!(u64::from(wire_lifetime), lifetime);
+                    let next = router.deadline().unwrap();
+                    assert!(
+                        next > now,
+                        "a short prefix must not cause an immediate timer loop"
+                    );
+                    assert!(
+                        next - now <= u64::from(wire_lifetime) * 1000,
+                        "next RA in {} ms outlives its {} second prefix",
+                        next - now,
+                        wire_lifetime
+                    );
+                    router.sent();
+                }
+            }
+        }
     }
 
     #[test]

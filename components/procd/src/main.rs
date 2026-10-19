@@ -885,7 +885,8 @@ impl Procd {
                 self.inittab[i].pid = Some(pid);
             }
             Err(e) => {
-                log!(sys::LOG_ERR, "Failed to execute {}: {e}", argv[0]);
+                log!(sys::LOG_ERR, "Failed to execute {}: {e}",
+                    argv.first().map(String::as_str).unwrap_or("<empty command>"));
                 // The C has forked by the time execvp fails, so the failure
                 // is a child exit and child_exit() re-arms the 500 ms
                 // respawn -- a command that appears later gets picked up.
@@ -1079,6 +1080,9 @@ impl Procd {
             d.reregister();
             self.dispatch = d;
         }
+        if self.boot == Boot::Ubus {
+            self.register_initial_hotplug();
+        }
         self.watch_obj = self.conn.add_anonymous_object(1000)?;
         self.conn
             .register_event_handler(self.watch_obj, Some("ubus.object.add"), 1000)?;
@@ -1088,6 +1092,22 @@ impl Procd {
         self.watch_pending.clear();
         self.resubscribe();
         Ok(())
+    }
+
+    fn register_initial_hotplug(&mut self) {
+        let count = self.dispatch.register_all();
+        for _ in 0..count {
+            let now = self.now_ms();
+            self.dispatch.pump_registration(&mut self.conn, now);
+            self.maintain_initial_registration();
+        }
+    }
+
+    fn boot_bus_ready(&mut self) {
+        if self.boot == Boot::Ubus {
+            self.run_init_script("ubus");
+            self.state_next();
+        }
     }
 
     // -- ubus --------------------------------------------------------------
@@ -2550,21 +2570,29 @@ fn run() -> io::Result<()> {
             inst.user = Some("ubus".to_string());
             inst.group = Some("ubus".to_string());
         }
-        let mut pid = match proc::start(&inst, "ubus") {
-            Ok((pid, _, _)) => pid,
-            Err(e) => {
-                log!(sys::LOG_ERR, "failed to start ubusd: {e}");
-                0
-            }
-        };
+        let mut pid = 0;
+        let mut spawn_at = Instant::now();
         let conn = loop {
+            if pid == 0 && Instant::now() >= spawn_at {
+                pid = match proc::start(&inst, "ubus") {
+                    Ok((pid, _, _)) => pid,
+                    Err(error) => {
+                        log!(sys::LOG_ERR, "failed to start ubusd: {error}");
+                        0
+                    }
+                };
+                // Command::spawn can fail without leaving a child to reap.
+                // Retry those failures as well as exited children, while
+                // keeping the watchdog serviced between attempts.
+                spawn_at = Instant::now() + std::time::Duration::from_secs(1);
+            }
             match Connection::connect(None) {
                 Ok(c) => break c,
                 Err(_) => {
                     while let Some((dead, wstatus)) = proc::reap_any() {
                         if dead == pid {
-                            std::thread::sleep(std::time::Duration::from_secs(1));
-                            pid = proc::start(&inst, "ubus").map(|(p, _, _)| p).unwrap_or(0);
+                            pid = 0;
+                            spawn_at = Instant::now() + std::time::Duration::from_secs(1);
                         } else {
                             // A coldplug command may still be running here;
                             // its exit belongs to the hotplug queue, or the
@@ -2578,9 +2606,12 @@ fn run() -> io::Result<()> {
                 }
             }
         };
-        inst.state = Run::Running;
+        inst.state = if pid > 0 { Run::Running } else { Run::Stopped };
         inst.pid = pid;
         inst.started = base.elapsed().as_millis() as i64;
+        if pid == 0 {
+            inst.deadline = Some(inst.started + 1000);
+        }
         early_ubus = Some((inst, pid));
         conn
     } else {
@@ -2631,43 +2662,27 @@ fn run() -> io::Result<()> {
         }
     }
 
-    p.objects.service = p.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
-    p.objects.container = p.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
-    p.objects.system = p.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
-    // ubus_init_hotplug(): the hotplug.<subsys> objects exist in the
-    // supervisor mode too.
-    let initial_subsystems = p.dispatch.register_all();
-    for _ in 0..initial_subsystems {
-        let now = p.now_ms();
-        p.dispatch.pump_registration(&mut p.conn, now);
-        // Initial registration precedes rcS, so dispatch has no script
-        // jobs yet. Do not pump dispatch recursively while registering.
-        p.maintain_initial_registration();
-    }
-
-    // watch_ubus(): an anonymous subscriber object, then a subscription to
-    // ubusd's event object so `ubus.object.add` tells us when a watched path
-    // finally appears. netifd registers network.interface after procd is
-    // already running, so without this the watch would never attach.
-    p.watch_obj = p.conn.add_anonymous_object(1000)?;
-    if let Err(e) = p
-        .conn
-        // ubusd rejects a registration with no pattern (Invalid argument),
-        // so this asks for the one event the C asks for. Recreation is
-        // handled by re-checking ids in resubscribe(), not by watching for
-        // removal.
-        .register_event_handler(p.watch_obj, Some("ubus.object.add"), 1000)
-    {
-        log!(sys::LOG_ERR, "failed to add ubus event handler: {e}");
-    }
-
-    if pid1 {
-        // rc("ubus", "running") from service_start_early's set, then
-        // procd_state_ubus_connect(): the connection exists, so the machine
-        // moves to STATE_INIT.
-        p.run_init_script("ubus");
-        p.state_next();
-    }
+    // HELLO is not a completed registration. A bus failure here must enter
+    // the same recovery loop as a later disconnect, never return from PID 1.
+    let registered = (|| -> io::Result<()> {
+        p.objects.service = p.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
+        p.objects.container = p.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
+        p.objects.system = p.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
+        p.register_initial_hotplug();
+        p.watch_obj = p.conn.add_anonymous_object(1000)?;
+        p.conn.register_event_handler(p.watch_obj, Some("ubus.object.add"), 1000)
+    })();
+    let mut connected = match registered {
+        Ok(()) => {
+            p.boot_bus_ready();
+            true
+        }
+        Err(error) => {
+            log!(sys::LOG_ERR, "initial ubus registration failed: {error}; reconnecting");
+            let _ = p.conn.shutdown();
+            false
+        }
+    };
 
     // Bus connection state, kept separate from supervision state. procd
     // reconnects with a 50ms..1s backoff (ubus.c); losing ubusd must not
@@ -2675,7 +2690,6 @@ fn run() -> io::Result<()> {
     // with it.
     let mut backoff_ms: i32 = 50;
     let mut reconnect_at: i64 = 0;
-    let mut connected = true;
     // The maintenance pass runs on every wake that is not a pure read on the
     // bus: timers, child exits, pipe output, uevents, inotify, signals, and
     // any bus method that changes supervised state. It starts armed.
@@ -2709,6 +2723,7 @@ fn run() -> io::Result<()> {
             match p.reconnect() {
                 Ok(()) => {
                     debug!(2, "Connected to ubus");
+                    p.boot_bus_ready();
                     connected = true;
                     backoff_ms = 50;
                     maintenance_due = true;

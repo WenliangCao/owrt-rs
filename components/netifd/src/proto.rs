@@ -242,6 +242,9 @@ pub struct ProtoState {
     pub teardown_config: Option<Box<crate::config::InterfaceConfig>>,
     /// The setup/teardown/renew script.
     pub script: Slot,
+    /// Rust observes exec failures synchronously; deliver the missing child
+    /// completion on the next loop turn, like the C's exit-127 callback.
+    pub script_start_failed: bool,
     /// The helper netifd runs on the script's behalf (action 1).
     pub task: Slot,
     /// `-1` for "none"; passed to teardown as `ERROR=<n>`.

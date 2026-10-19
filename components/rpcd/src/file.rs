@@ -239,8 +239,9 @@ pub fn md5(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     if !m.unwrap().is_file() {
         return Err(status::NOT_SUPPORTED);
     }
-    let data = fs::read(&path).map_err(|e| errno_status(&e))?;
-    Ok(Some(Json::Object(vec![("md5".into(), Json::Str(util::hex(&util::md5(&data))))])))
+    let mut input = fs::File::open(&path).map_err(|e| errno_status(&e))?;
+    let digest = owrt_ubus::digest::md5_reader(&mut input).map_err(|e| errno_status(&e))?;
+    Ok(Some(Json::Object(vec![("md5".into(), Json::Str(util::hex(&digest)))])))
 }
 
 fn list(ctx: &Ctx, args: PathArgs<'_>) -> Result<Vec<u8>, i32> {

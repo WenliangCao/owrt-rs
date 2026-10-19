@@ -10,7 +10,6 @@ use owrt_ubus::{status, BlobBuf, Connection};
 use owrt_uci::model::{LOOKUP_COMPLETE, LOOKUP_EXTENDED};
 use owrt_uci::{delta, file, ops, Cmd, Context, Error, OptionValue, Ptr};
 use std::fs;
-use std::io::{Read, Write};
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt};
 use std::time::{Duration, Instant};
 
@@ -28,6 +27,7 @@ fn savedir_of(sid: &str) -> String {
 #[derive(Default)]
 pub struct Apply {
     pub deadline: Option<Instant>,
+    rollback_in_progress: bool,
     pending_events: std::collections::BTreeSet<String>,
     last_event: Option<String>,
     pub event_retry: Option<Instant>,
@@ -975,17 +975,60 @@ fn apply_config(rctx: &Ctx, ctx: &mut Context, conn: Option<&mut Connection>, co
     trigger_event(rctx, conn, config);
 }
 
-/// rpc_uci_copy_file: the target is created (truncated) even when the source
-/// cannot be opened.
-fn copy_file(src: &str, target: &str, file: &str) {
-    let input = fs::File::open(format!("{src}{file}")).ok();
-    let out = fs::OpenOptions::new().write(true).read(true).create(true).truncate(true).mode(0o666).open(format!("{target}{file}")).ok();
-    if let (Some(mut i), Some(mut o)) = (input, out) {
-        let mut buf = Vec::new();
-        if i.read_to_end(&mut buf).is_ok() {
-            let _ = o.write_all(&buf);
+/// Keep the current file intact until the complete snapshot has been written.
+fn restore_file(src: &str, target: &str, file: &str) -> std::io::Result<()> {
+    let mut input = fs::File::open(format!("{src}{file}"))?;
+    let path = format!("{target}{file}");
+    let destination = match fs::canonicalize(&path) {
+        Ok(path) => path,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => match fs::symlink_metadata(&path) {
+            // An existing dangling link is not a missing destination. Keep
+            // it and the snapshot so a later retry can restore its target.
+            Ok(_) => return Err(error),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => path.into(),
+            Err(error) => return Err(error),
+        },
+        Err(error) => return Err(error),
+    };
+    let metadata = match fs::metadata(&destination) {
+        Ok(metadata) => Some(metadata),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+        Err(error) => return Err(error),
+    };
+    let permissions = match &metadata {
+        Some(metadata) => metadata.permissions(),
+        None => input.metadata()?.permissions(),
+    };
+    let parent = destination.parent().ok_or_else(|| std::io::Error::other("rollback destination has no parent"))?;
+    let template = parent.join(".rpcd-rollback-XXXXXX");
+    let (mut output, temporary) = owrt_uci::sys::mkstemp(&template.to_string_lossy())?;
+    let result = (|| {
+        std::io::copy(&mut input, &mut output)?;
+        if let Some(metadata) = &metadata {
+            rustix::fs::fchown(&output,
+                Some(rustix::process::Uid::from_raw(metadata.uid())),
+                Some(rustix::process::Gid::from_raw(metadata.gid())))?;
         }
+        // chown may clear set-id bits, so restore the mode afterwards.
+        output.set_permissions(permissions)?;
+        output.sync_all()?;
+        fs::rename(&temporary, &destination)?;
+        fs::File::open(parent)?.sync_all()
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(temporary);
     }
+    result
+}
+
+/// A partial rollback snapshot must never become authoritative.
+fn copy_snapshot(src: &str, target: &str, file: &str) -> std::io::Result<()> {
+    let mut input = fs::File::open(format!("{src}{file}"))?;
+    let mut output = fs::OpenOptions::new()
+        .write(true).create(true).truncate(true).mode(0o600)
+        .open(format!("{target}{file}"))?;
+    std::io::copy(&mut input, &mut output)?;
+    output.sync_all()
 }
 
 /// glob("<dir>/*", GLOB_PERIOD): sorted names including "." and "..".
@@ -1027,44 +1070,58 @@ fn apply_access(rctx: &Ctx, sid: &str, dir: &str, names: &[String]) -> i32 {
 }
 
 /// rpc_uci_do_rollback over the snapshot-files listing.
-pub fn do_rollback(rctx: &Ctx, mut conn: Option<&mut Connection>, names: &[String]) {
+pub fn do_rollback(rctx: &Ctx, mut conn: Option<&mut Connection>, names: &[String]) -> std::io::Result<()> {
+    // Once restoration starts, only a complete rollback may retire its state.
+    // A failed batch may already have replaced some files on disk.
+    rctx.apply.borrow_mut().rollback_in_progress = true;
     let apply_sid = rctx.sessions.borrow().apply_sid.clone();
     let deny = match &apply_sid {
         Some(sid) => apply_access(rctx, sid, SNAPSHOT_FILES.trim_end_matches('/'), names),
         None => status::NOT_FOUND,
     };
     let tmp = apply_sid.as_deref().map(|sid| format!("{}/", savedir_of(sid))).unwrap_or_default();
-    if deny == 0 {
-        let _ = fs::DirBuilder::new().mode(0o700).create(tmp.trim_end_matches('/'));
+    let mut failure = if deny == 0 {
+        fs::DirBuilder::new().recursive(true).mode(0o700).create(tmp.trim_end_matches('/')).err()
+    } else { None };
+    if !names.iter().any(|name| !name.starts_with('.')) {
+        failure = Some(std::io::Error::other("rollback snapshot is unavailable"));
     }
-    let mut ctx = Context::new();
-    replace_savedir(&mut ctx, Some("/dev/null"));
     for config in names {
         if config.starts_with('.') {
             continue;
         }
-        copy_file(SNAPSHOT_FILES, UCI_DIR, config);
-        commit_config(&mut ctx, config);
-        if deny != 0 {
-            continue;
+        // The snapshot is already a committed config. Do not merge any deltas.
+        let restored = restore_file(SNAPSHOT_FILES, UCI_DIR, config).and_then(|()| {
+            if deny == 0 { restore_file(SNAPSHOT_DELTA, &tmp, config) } else { Ok(()) }
+        });
+        if let Err(error) = restored {
+            failure = Some(error);
         }
-        copy_file(SNAPSHOT_DELTA, &tmp, config);
+    }
+    if let Some(error) = failure {
+        // A temporary flash/filesystem error must not consume the only backup.
+        rctx.apply.borrow_mut().deadline = Some(Instant::now() + Duration::from_secs(1));
+        return Err(error);
     }
     purge_dir(SNAPSHOT_FILES);
     purge_dir(SNAPSHOT_DELTA);
     rctx.apply.borrow_mut().deadline = None;
+    rctx.apply.borrow_mut().rollback_in_progress = false;
     rctx.sessions.borrow_mut().apply_sid = None;
     // Restore every file before a procd event can wait for a reply. Manual
     // rollback retains its synchronous event attempts; a timer queues them.
     for config in names.iter().filter(|name| !name.starts_with('.')) {
         trigger_event(rctx, conn.as_deref_mut(), config);
     }
+    Ok(())
 }
 
 /// The apply rollback timer fired.
 pub fn apply_timeout(rctx: &Ctx) {
     let names = glob_period(SNAPSHOT_FILES.trim_end_matches('/'));
-    do_rollback(rctx, None, &names);
+    if let Err(error) = do_rollback(rctx, None, &names) {
+        eprintln!("rpcd-rs: rollback failed, retaining snapshots for retry: {error}");
+    }
 }
 
 fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
@@ -1074,14 +1131,35 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         return code(status::PERMISSION_DENIED);
     }
     let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return code(status::INVALID_ARGUMENT) };
+    if rctx.sessions.borrow().apply_sid.as_deref().is_some_and(|owner| owner != sid) {
+        // Like confirm/rollback, unchecked apply may discard only this
+        // session's snapshot. Other sessions must not cancel its safety timer.
+        return code(status::PERMISSION_DENIED);
+    }
+    if rctx.apply.borrow().rollback_in_progress {
+        return code(status::UNKNOWN_ERROR);
+    }
     let timeout: i32 = arg(raw, "timeout", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(APPLY_TIMEOUT);
     purge_dir(SNAPSHOT_FILES);
     purge_dir(SNAPSHOT_DELTA);
+    if has_apply {
+        // The owner explicitly made its pending apply permanent. There is no
+        // snapshot left to restore or retry after this successful cancellation.
+        rctx.apply.borrow_mut().deadline = None;
+        rctx.sessions.borrow_mut().apply_sid = None;
+        return code(0);
+    }
     if !has_apply {
         let mut ctx = Context::new();
         set_savedir(&mut ctx, Some(sid));
-        let _ = fs::DirBuilder::new().mode(0o700).create(SNAPSHOT_FILES.trim_end_matches('/'));
-        let _ = fs::DirBuilder::new().mode(0o700).create(SNAPSHOT_DELTA.trim_end_matches('/'));
+        // Preserve the existing empty-directory behavior for NO_DATA and
+        // permission-denied requests, but never ignore a creation failure.
+        let directories = [SNAPSHOT_FILES, SNAPSHOT_DELTA].into_iter().try_for_each(|path| {
+            fs::DirBuilder::new().recursive(true).mode(0o700).create(path)
+        });
+        if directories.is_err() {
+            return code(status::UNKNOWN_ERROR);
+        }
         let dir = savedir_of(sid);
         let names = glob_period(&dir);
         let tmp = format!("{dir}/");
@@ -1089,19 +1167,28 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         if ret != 0 {
             return code(ret);
         }
+        let configs: Vec<_> = names.iter().filter(|config| {
+            !config.starts_with('.') && file_size(&format!("{dir}/{config}")).is_some_and(|n| n > 0)
+        }).collect();
+        // Back up the complete batch before committing its first package.
+        // Otherwise a later ENOSPC can leave an earlier package applied and
+        // a truncated snapshot that the rollback timer would copy over it.
+        let snapshots = (|| -> std::io::Result<()> {
+            for config in &configs {
+                copy_snapshot(UCI_DIR, SNAPSHOT_FILES, config)?;
+                copy_snapshot(&tmp, SNAPSHOT_DELTA, config)?;
+            }
+            Ok(())
+        })();
+        if snapshots.is_err() {
+            purge_dir(SNAPSHOT_FILES);
+            purge_dir(SNAPSHOT_DELTA);
+            return code(status::UNKNOWN_ERROR);
+        }
         if rollback {
             rctx.sessions.borrow_mut().apply_sid = Some(sid.to_owned());
         }
-        for config in &names {
-            if config.starts_with('.') {
-                continue;
-            }
-            match file_size(&format!("{dir}/{config}")) {
-                Some(n) if n > 0 => {}
-                _ => continue,
-            }
-            copy_file(UCI_DIR, SNAPSHOT_FILES, config);
-            copy_file(&tmp, SNAPSHOT_DELTA, config);
+        for config in configs {
             apply_config(rctx, &mut ctx, Some(conn), config);
         }
         if rollback {
@@ -1119,6 +1206,9 @@ fn confirm(rctx: &Ctx, raw: &[u8]) -> Reply {
     if apply_sid != sid {
         return code(status::PERMISSION_DENIED);
     }
+    if rctx.apply.borrow().rollback_in_progress {
+        return code(status::UNKNOWN_ERROR);
+    }
     purge_dir(SNAPSHOT_FILES);
     purge_dir(SNAPSHOT_DELTA);
     rctx.apply.borrow_mut().deadline = None;
@@ -1134,8 +1224,13 @@ fn rollback(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         return code(status::PERMISSION_DENIED);
     }
     let names = glob_period(SNAPSHOT_FILES.trim_end_matches('/'));
-    do_rollback(rctx, Some(conn), &names);
-    code(0)
+    match do_rollback(rctx, Some(conn), &names) {
+        Ok(()) => code(0),
+        Err(error) => {
+            eprintln!("rpcd-rs: rollback failed, retaining snapshots for retry: {error}");
+            code(status::UNKNOWN_ERROR)
+        }
+    }
 }
 
 /// rpc_uci_reload: `/sbin/reload_config` two seconds after the reply.

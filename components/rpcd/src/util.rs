@@ -3,6 +3,7 @@
 
 use std::io::{BufRead, BufReader};
 
+#[cfg(test)]
 pub use owrt_ubus::digest::md5;
 
 pub fn hex(bytes: &[u8]) -> String {

@@ -570,6 +570,12 @@ fn read_request_into<R: Read>(
     raw: &mut Vec<u8>,
     spare: &mut Option<Request>,
 ) -> io::Result<ParseOutcome> {
+    // The per-line limit alone permits an arbitrary number of retained
+    // headers before the deadline. Bound both wire bytes and field overhead.
+    // Unlike uhttpd's growing header blob, reject excess input with 413.
+    const MAX_HEAD_BYTES: usize = 64 * 1024;
+    const MAX_HEADER_FIELDS: usize = 512;
+    let mut head_bytes = 0;
     let mut first_line = true;
     loop {
         match read_head_line(reader, raw, 4096, deadline, first_line)? {
@@ -579,6 +585,10 @@ fn read_request_into<R: Read>(
                 return Ok(bad_line(413, "Request Entity Too Large"))
             }
             HeadLine::Line => {}
+        }
+        head_bytes += raw.len();
+        if head_bytes > MAX_HEAD_BYTES {
+            return Ok(bad_line(413, "Request Entity Too Large"));
         }
         // A stray blank line is input: from here on the whole budget applies.
         first_line = false;
@@ -641,10 +651,17 @@ fn read_request_into<R: Read>(
             }
             HeadLine::Line | HeadLine::Idle => {}
         }
+        head_bytes += raw.len();
+        if head_bytes > MAX_HEAD_BYTES {
+            return Ok(bad_header(413, "Request Entity Too Large", version));
+        }
         let line = String::from_utf8_lossy(raw);
         let trimmed = line.trim_end_matches(['\r', '\n']);
         if trimmed.is_empty() {
             break;
+        }
+        if used_headers == MAX_HEADER_FIELDS {
+            return Ok(bad_header(413, "Request Entity Too Large", version));
         }
         // A NUL/control byte cannot be represented in a CGI environment
         // and must not be silently accepted or truncate a header in C.
@@ -1539,6 +1556,71 @@ pub fn html_escape(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn head_with_size(size: usize) -> Vec<u8> {
+        let mut head = b"GET / HTTP/1.1\r\n".to_vec();
+        while size - head.len() - 2 > 4096 {
+            head.extend_from_slice(b"X:");
+            head.extend(std::iter::repeat_n(b'a', 4092));
+            head.extend_from_slice(b"\r\n");
+        }
+        let last = size - head.len() - 2;
+        assert!(last >= 4);
+        head.extend_from_slice(b"X:");
+        head.extend(std::iter::repeat_n(b'a', last - 4));
+        head.extend_from_slice(b"\r\n\r\n");
+        assert_eq!(head.len(), size);
+        head
+    }
+
+    #[test]
+    fn request_header_limits_bound_bytes_and_count() {
+        for size in [65535, 65536, 65537] {
+            let mut input = BufReader::new(io::Cursor::new(head_with_size(size)));
+            let result = read_request(&mut input, true, None).unwrap();
+            if size <= 65536 {
+                assert!(matches!(result, ParseOutcome::Request(_)), "size {size}");
+            } else {
+                assert!(matches!(result, ParseOutcome::Bad { code: 413, .. }), "size {size}");
+            }
+        }
+        for count in [512, 513] {
+            let mut head = b"GET / HTTP/1.1\r\n".to_vec();
+            for _ in 0..count { head.extend_from_slice(b"X:\r\n"); }
+            head.extend_from_slice(b"\r\n");
+            let mut input = BufReader::new(io::Cursor::new(head));
+            let result = read_request(&mut input, true, None).unwrap();
+            if count == 512 {
+                assert!(matches!(result, ParseOutcome::Request(_)));
+            } else {
+                assert!(matches!(result, ParseOutcome::Bad { code: 413, .. }));
+            }
+        }
+        // Leading blank lines also consume the same request-head budget.
+        let mut head = b"\r\n".repeat(32768);
+        head.extend_from_slice(b"GET / HTTP/1.1\r\n\r\n");
+        let mut input = BufReader::new(io::Cursor::new(head));
+        assert!(matches!(read_request(&mut input, true, None).unwrap(), ParseOutcome::Bad { code: 413, .. }));
+    }
+
+    #[test]
+    fn request_header_limits_reset_only_after_one_complete_request() {
+        let mut input = head_with_size(65536);
+        input.extend_from_slice(&head_with_size(65536));
+        let mut reader = BufReader::new(io::Cursor::new(input));
+        let mut heads = HeadBuffer::default();
+        for _ in 0..2 {
+            let ParseOutcome::Request(request) = heads.read_request(&mut reader, true, None).unwrap() else {
+                panic!("each complete pipelined head has its own budget");
+            };
+            heads.recycle(request);
+        }
+        assert!(matches!(heads.read_request(&mut reader, true, None).unwrap(), ParseOutcome::Eof));
+        let mut input = head_with_size(65537);
+        input.extend_from_slice(b"GET / HTTP/1.1\r\n\r\n");
+        let mut reader = BufReader::new(io::Cursor::new(input));
+        assert!(matches!(heads.read_request(&mut reader, true, None).unwrap(), ParseOutcome::Bad { code: 413, .. }));
+    }
 
     #[test]
     fn date_roundtrip() {

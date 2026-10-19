@@ -88,6 +88,19 @@ fn fgets_chunks(data: &[u8]) -> Vec<&[u8]> {
     out
 }
 
+fn parse_abi(line: &[u8], abi: &mut Vec<u8>) {
+    let Some(payload) = line.get(2..) else { return };
+    let mut toks = payload.split(|c| matches!(c, b' ' | b'=' | b'\n')).filter(|t| !t.is_empty());
+    while let Some(tok) = toks.next() {
+        if tok == b"openwrt:abiversion" {
+            if let Some(v) = toks.next() {
+                *abi = v.iter().take(127).copied().collect();
+            }
+            break;
+        }
+    }
+}
+
 fn packagelist(raw: &[u8]) -> Reply {
     let all = arg(raw, "all", MsgType::Int8).and_then(|f| f.as_bool()).unwrap_or(false);
     let Ok(db) = fs::read("/lib/apk/db/installed") else { return code(status::NOT_FOUND) };
@@ -134,17 +147,7 @@ fn packagelist(raw: &[u8]) -> Reply {
         match line.first() {
             Some(b'P') => pkg = scan_token(line).unwrap_or_default(),
             Some(b'V') => ver = scan_token(line).unwrap_or_default(),
-            Some(b'g') => {
-                let mut toks = line[2..].split(|c| matches!(c, b' ' | b'=' | b'\n')).filter(|t| !t.is_empty());
-                while let Some(tok) = toks.next() {
-                    if tok == b"openwrt:abiversion" {
-                        if let Some(v) = toks.next() {
-                            abi = v.iter().take(127).copied().collect();
-                        }
-                        break;
-                    }
-                }
-            }
+            Some(b'g') => parse_abi(line, &mut abi),
             _ => {
                 if is_blank(line) {
                     if !pkg.is_empty() && !ver.is_empty() {
@@ -194,17 +197,21 @@ fn password_set(raw: &[u8]) -> Reply {
         Err(e) => return code(errno_status(&e)),
     };
     let mut stdin = child.stdin.take().expect("piped");
-    let write = |s: &mut std::process::ChildStdin, data: &[u8]| -> Result<(), std::io::Error> { s.write_all(data) };
-    if let Err(e) = write(&mut stdin, password.as_bytes()).and_then(|_| write(&mut stdin, b"\n")) {
-        return code(errno_status(&e));
-    }
-    std::thread::sleep(Duration::from_millis(100));
-    if let Err(e) = write(&mut stdin, password.as_bytes()).and_then(|_| write(&mut stdin, b"\n")) {
-        return code(errno_status(&e));
-    }
+    let written = (|| -> std::io::Result<()> {
+        stdin.write_all(password.as_bytes())?;
+        stdin.write_all(b"\n")?;
+        std::thread::sleep(Duration::from_millis(100));
+        stdin.write_all(password.as_bytes())?;
+        stdin.write_all(b"\n")
+    })();
+    // A rejected username can close the pipe before our second write. Child
+    // does not reap on drop, so close stdin and wait on every post-spawn path.
     drop(stdin);
     let _ = child.wait();
-    code(0)
+    match written {
+        Ok(()) => code(0),
+        Err(error) => code(errno_status(&error)),
+    }
 }
 
 pub enum Outcome {
@@ -264,6 +271,17 @@ pub fn call(req: Request, ctx: &Ctx, deferrer: &Deferrer) -> Outcome {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn truncated_abi_field_preserves_the_previous_value() {
+        let mut abi = Vec::new();
+        parse_abi(b"g:openwrt:abiversion=2026\n", &mut abi);
+        assert_eq!(abi, b"2026");
+        for line in [b"g".as_slice(), b"g:", b"g:openwrt:abiversion="] {
+            parse_abi(line, &mut abi);
+            assert_eq!(abi, b"2026");
+        }
+    }
 
     #[test]
     fn world_match() {

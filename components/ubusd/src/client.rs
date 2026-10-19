@@ -12,6 +12,9 @@ use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 pub const PREFIX_LEN: usize = Header::LEN + 4;
 /// `UBUS_CLIENT_MAX_TXQ_LEN`.
 pub const MAX_TXQ_LEN: i64 = MAX_MSGLEN as i64;
+/// A slow reader may pipeline LOOKUPs, but cannot retain arbitrary input.
+const MAX_PENDING_COMMANDS: usize = 64;
+const MAX_PENDING_BYTES: usize = 2 * MAX_MSGLEN;
 
 /// A message as received: header, the whole head blob (its own 4-byte header
 /// included) and at most one descriptor that rode along with it.
@@ -150,6 +153,20 @@ impl Client {
 
     pub fn tx_empty(&self) -> bool {
         self.tx.is_empty()
+    }
+
+    /// Include the owned continuation path as well as the original frame.
+    /// Recompute over at most 64 commands so popping/requeueing needs no
+    /// separate accounting state that could drift on an error path.
+    pub fn can_queue_command(&self, msg: &InMsg<'_>, next: Option<&[u8]>) -> bool {
+        if self.cmd_queue.len() >= MAX_PENDING_COMMANDS {
+            return false;
+        }
+        let queued: usize = self.cmd_queue.iter().map(|cmd| {
+            Header::LEN + cmd.msg.blob.len() + cmd.next.as_ref().map_or(0, Vec::len)
+        }).sum();
+        let needed = Header::LEN + msg.blob.len() + next.map_or(0, |path| path.len());
+        needed <= MAX_PENDING_BYTES.saturating_sub(queued)
     }
 
     /// Queue a message, dropping it silently when the client is too far behind

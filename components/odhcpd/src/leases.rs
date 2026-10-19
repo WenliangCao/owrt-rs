@@ -7,8 +7,10 @@ use std::fmt::Write as _;
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::net::{Ipv6Addr, SocketAddrV6};
-use std::path::Path;
+use std::os::unix::process::CommandExt;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
+use std::time::{Duration, Instant};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LeaseKind {
@@ -280,19 +282,143 @@ pub struct StateFiles {
     // directly to preserve that trigger boundary without a crypto dependency.
     published_mapping: Option<Vec<(Ipv6Addr, Vec<u8>)>>,
     published_hosts: Option<BTreeMap<String, String>>,
-    children: Vec<Child>,
+    trigger: Option<TriggerRun>,
+    trigger_path: Option<PathBuf>,
+    trigger_pending: bool,
+    trigger_retry_at: Option<u64>,
+}
+
+const TRIGGER_TIMEOUT_MS: u64 = 35_000;
+const TRIGGER_RETRY_MS: u64 = 1_000;
+
+struct TriggerRun {
+    child: Child,
+    deadline: u64,
+    killed: bool,
+}
+
+fn kill_trigger(child: &Child) -> io::Result<()> {
+    let pid = i32::try_from(child.id())
+        .ok()
+        .filter(|pid| *pid > 1)
+        .and_then(rustix::process::Pid::from_raw)
+        .ok_or_else(|| io::Error::other("invalid lease trigger process group"))?;
+    // Each trigger starts its own process group. Kill its synchronous helpers
+    // too, while the unreaped direct child still reserves the group leader PID.
+    match rustix::process::kill_process_group(pid, rustix::process::Signal::KILL) {
+        Ok(()) | Err(rustix::io::Errno::SRCH) => Ok(()),
+        Err(error) => Err(error.into()),
+    }
 }
 
 impl StateFiles {
-    /// Reap only children launched by this writer; never consume another module's child.
-    pub fn reap(&mut self) {
-        self.children
-            .retain_mut(|child| matches!(child.try_wait(), Ok(None)));
+    pub fn trigger_deadline(&self) -> Option<u64> {
+        self.trigger.as_ref().map(|run| run.deadline).or_else(|| {
+            self.trigger_pending
+                .then_some(self.trigger_retry_at.unwrap_or(0))
+        })
+    }
+
+    /// At most one callback runs. Repeated updates request one later callback
+    /// against the latest files; the protocol loop never waits for a script.
+    pub fn poll_trigger(&mut self, config: &Config, clock: Clock) -> io::Result<()> {
+        let now = clock.monotonic_ms;
+        if self.trigger_path != config.lease_trigger {
+            self.trigger_pending =
+                config.lease_trigger.is_some() && (self.trigger_pending || self.trigger.is_some());
+            self.trigger_path.clone_from(&config.lease_trigger);
+            self.trigger_retry_at = None;
+            if let Some(run) = &mut self.trigger {
+                kill_trigger(&run.child)?;
+                run.killed = true;
+                run.deadline = now.saturating_add(TRIGGER_RETRY_MS);
+            }
+        }
+        if let Some(run) = &mut self.trigger {
+            match run.child.try_wait() {
+                Ok(Some(status)) => {
+                    self.trigger = None;
+                    if !status.success() && self.trigger_path.is_some() {
+                        self.trigger_pending = true;
+                        self.trigger_retry_at = Some(now.saturating_add(TRIGGER_RETRY_MS));
+                    }
+                }
+                Ok(None) => {
+                    if now >= run.deadline {
+                        run.deadline = now.saturating_add(TRIGGER_RETRY_MS);
+                        if !run.killed {
+                            kill_trigger(&run.child)?;
+                            run.killed = true;
+                            self.trigger_pending = self.trigger_path.is_some();
+                            return Err(io::Error::new(
+                                io::ErrorKind::TimedOut,
+                                "lease trigger exceeded 35 seconds; killed its process group",
+                            ));
+                        }
+                    }
+                    return Ok(());
+                }
+                Err(error) => {
+                    run.deadline = now.saturating_add(TRIGGER_RETRY_MS);
+                    return Err(error);
+                }
+            }
+        }
+        if !self.trigger_pending || self.trigger_retry_at.is_some_and(|at| now < at) {
+            return Ok(());
+        }
+        let Some(path) = &self.trigger_path else {
+            self.trigger_pending = false;
+            self.trigger_retry_at = None;
+            return Ok(());
+        };
+        match Command::new(path).process_group(0).spawn() {
+            Ok(child) => {
+                self.trigger = Some(TriggerRun {
+                    child,
+                    deadline: now.saturating_add(TRIGGER_TIMEOUT_MS),
+                    killed: false,
+                });
+                self.trigger_pending = false;
+                self.trigger_retry_at = None;
+                Ok(())
+            }
+            Err(error) => {
+                self.trigger_retry_at = Some(now.saturating_add(TRIGGER_RETRY_MS));
+                Err(error)
+            }
+        }
+    }
+
+    /// Shutdown only: bounded reaping after killing our own callback group.
+    pub fn stop_trigger(&mut self) -> io::Result<()> {
+        self.trigger_pending = false;
+        self.trigger_retry_at = None;
+        self.trigger_path = None;
+        let Some(mut run) = self.trigger.take() else {
+            return Ok(());
+        };
+        if run.child.try_wait()?.is_some() {
+            return Ok(());
+        }
+        kill_trigger(&run.child)?;
+        let until = Instant::now() + Duration::from_secs(1);
+        loop {
+            if run.child.try_wait()?.is_some() {
+                return Ok(());
+            }
+            if Instant::now() >= until {
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "lease trigger did not exit after SIGKILL",
+                ));
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
     }
 
     /// Returns whether the host mapping changed. Lease deadlines alone do not run the trigger.
     pub fn write(&mut self, config: &Config, leases: &[Lease], clock: Clock) -> io::Result<bool> {
-        self.reap();
         if let Some(path) = &config.lease_file {
             atomic_write(path, state_text(leases, clock).as_bytes())?;
         }
@@ -319,6 +445,7 @@ impl StateFiles {
             })
             .collect();
         if self.published_mapping.as_ref() == Some(&mapping) {
+            self.poll_trigger(config, clock)?;
             return Ok(false);
         }
         if let Some(directory) = &config.hosts_dir {
@@ -346,12 +473,17 @@ impl StateFiles {
                 }
             }
         }
-        if let Some(script) = &config.lease_trigger {
-            self.children.push(Command::new(script).spawn()?);
-        }
         self.published_mapping = Some(mapping);
         self.published_hosts = Some(hosts);
+        self.trigger_pending = config.lease_trigger.is_some();
+        self.poll_trigger(config, clock)?;
         Ok(true)
+    }
+}
+
+impl Drop for StateFiles {
+    fn drop(&mut self) {
+        let _ = self.stop_trigger();
     }
 }
 
@@ -427,8 +559,8 @@ mod tests {
             };
             let mut files = StateFiles::default();
             assert!(files.write(&config, &[lease.clone()], clock).unwrap());
-            for child in &mut files.children {
-                child.wait().unwrap();
+            if let Some(run) = &mut files.trigger {
+                run.child.wait().unwrap();
             }
             let first_hosts = fs::read(directory.join("hosts/odhcpd.hosts.lan")).unwrap();
             lease.valid_until += 100;
@@ -445,8 +577,8 @@ mod tests {
                 .contains("2000005500"));
             lease.addresses.clear();
             assert!(files.write(&config, &[lease], clock).unwrap());
-            for child in &mut files.children {
-                child.wait().unwrap();
+            if let Some(run) = &mut files.trigger {
+                run.child.wait().unwrap();
             }
             assert_eq!(fs::read(&count).unwrap(), b"xx");
             assert!(fs::read(directory.join("hosts/odhcpd.hosts.lan"))

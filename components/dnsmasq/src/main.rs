@@ -1751,24 +1751,44 @@ fn run_inner(
                     } else {
                         Vec::new()
                     }
+                } else if poll.retry_bound_listeners {
+                    eligible.clone()
                 } else {
                     pending_static_dns.clone()
                 };
+                let retrying = poll.retry_bound_listeners;
                 poll.retry_bound_listeners = false;
                 for address in attempts {
-                    if !eligible.contains(&address)
-                        || bound_listeners.iter().any(|(bound, _)| *bound == address)
-                    {
+                    if !eligible.contains(&address) {
                         continue;
                     }
-                    let (udp, tcp, mut bind_errors) = if dns_addresses.contains(&address) {
-                        open_late_dns_listener(address, &daemon_config, &interfaces)
+                    let existing = bound_listeners.iter()
+                        .find(|(bound, _)| *bound == address)
+                        .map(|(_, token)| *token);
+                    let listener = existing.and_then(|token| {
+                        poll.listeners.iter().find(|listener| listener.token == token)
+                    });
+                    let needed = if dns_addresses.contains(&address) {
+                        (
+                            listener.is_none_or(|listener| listener.udp.is_none()),
+                            listener.is_none_or(|listener| listener.tcp.is_none()),
+                        )
+                    } else {
+                        (false, false)
+                    };
+                    // Preserve successful sockets while retrying only the missing DNS protocol.
+                    if existing.is_some() && !needed.0 && !needed.1 {
+                        continue;
+                    }
+                    let (udp, tcp, mut bind_errors) = if needed.0 || needed.1 {
+                        open_late_dns_listener(address, &daemon_config, &interfaces, needed)
                     } else {
                         (None, None, Vec::new())
                     };
+                    poll.retry_bound_listeners |= !bind_errors.is_empty();
                     let mut opened = udp.is_some() || tcp.is_some();
                     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-                    if let Some(tftp) = &mut poll.tftp {
+                    if let Some(tftp) = poll.tftp.as_mut().filter(|_| existing.is_none()) {
                         match tftp.bind_listener(address) {
                             Ok(bound) => opened |= bound,
                             Err(error)
@@ -1797,7 +1817,7 @@ fn run_inner(
                                 }
                             }
                         }
-                        for error in bind_errors {
+                        for error in bind_errors.into_iter().filter(|_| !retrying) {
                             logger.emit(LogEvent::new(
                                 Service::Dns,
                                 Priority::Warning,
@@ -1826,12 +1846,28 @@ fn run_inner(
                                 .iter()
                                 .any(|interface| interface.address == address.ip())
                         {
-                            persistent_unowned.push(address);
+                            if !persistent_unowned.contains(&address) {
+                                persistent_unowned.push(address);
+                            }
                         }
-                        let token = SocketToken(next_listener);
-                        next_listener += 1;
-                        poll.add_listener(token, udp, tcp);
-                        bound_listeners.push((address, token));
+                        if let Some(token) = existing {
+                            if let Some(listener) = poll.listeners.iter_mut()
+                                .find(|listener| listener.token == token) {
+                                if udp.is_some() {
+                                    listener.udp = udp;
+                                }
+                                if tcp.is_some() {
+                                    listener.tcp = tcp;
+                                }
+                            } else {
+                                poll.add_listener(token, udp, tcp);
+                            }
+                        } else {
+                            let token = SocketToken(next_listener);
+                            next_listener += 1;
+                            poll.add_listener(token, udp, tcp);
+                            bound_listeners.push((address, token));
+                        }
                         pending_static_dns.retain(|pending| *pending != address);
                     }
                 }
@@ -1847,6 +1883,7 @@ fn run_inner(
                 }
             }
             poll.interface_refresh.complete(Instant::now(), failed_snapshot
+                || poll.retry_bound_listeners
                 || pending_listener_retry(&pending_static_dns, &interface_snapshot.borrow())
                 || poll.tftp_pending_interfaces());
         }
@@ -2021,37 +2058,44 @@ fn open_dns_listener(
     Ok((udp, tcp))
 }
 
-/// Runtime listener creation preserves independently successful transports.
-/// The owner records the address once any DNS/TFTP socket succeeds, like
-/// C iface->done, and never fills in a failed half until that address retires.
+/// Fill only the missing DNS transports; successful sockets remain owned by the poll loop.
 fn open_late_dns_listener(
     address: SocketAddr,
     config: &DnsConfig,
     interfaces: &[DnsInterface],
+    needed: (bool, bool),
 ) -> (Option<Arc<DnsSocket>>, Option<TcpListener>, Vec<io::Error>) {
     let mut errors = Vec::new();
-    let udp = match optional_listener(
-        DnsSocket::bind_config(address, config, interfaces),
-        config.bind_dynamic,
-    ) {
-        Ok(socket) => socket.map(Arc::new),
-        Err(error) => {
-            errors.push(error);
-            None
+    let udp = if needed.0 {
+        match optional_listener(
+            DnsSocket::bind_config(address, config, interfaces),
+            config.bind_dynamic,
+        ) {
+            Ok(socket) => socket.map(Arc::new),
+            Err(error) => {
+                errors.push(error);
+                None
+            }
         }
+    } else {
+        None
     };
-    let tcp = match optional_listener(
-        listeners::tcp_bind(address).and_then(|tcp| {
-            tcp.set_nonblocking(true)?;
-            Ok(tcp)
-        }),
-        config.bind_dynamic,
-    ) {
-        Ok(socket) => socket,
-        Err(error) => {
-            errors.push(error);
-            None
+    let tcp = if needed.1 {
+        match optional_listener(
+            listeners::tcp_bind(address).and_then(|tcp| {
+                tcp.set_nonblocking(true)?;
+                Ok(tcp)
+            }),
+            config.bind_dynamic,
+        ) {
+            Ok(socket) => socket,
+            Err(error) => {
+                errors.push(error);
+                None
+            }
         }
+    } else {
+        None
     };
     (udp, tcp, errors)
 }
@@ -7519,14 +7563,14 @@ mod tests {
         // Every new fd derives policy from its own creation snapshot.
         for known in [false, true] {
             if known { interfaces = listeners::snapshot().unwrap(); }
-            let (udp, tcp, errors) = open_late_dns_listener(address, &config, &interfaces);
+            let (udp, tcp, errors) = open_late_dns_listener(address, &config, &interfaces, (true, true));
             assert!(errors.is_empty(), "{errors:?}");
             let udp = udp.unwrap();
             check(&udp, known);
             drop((udp, tcp));
         }
         config.bind_dynamic = true;
-        let (udp, tcp, errors) = open_late_dns_listener(address, &config, &interfaces);
+        let (udp, tcp, errors) = open_late_dns_listener(address, &config, &interfaces, (true, true));
         assert!(errors.is_empty(), "{errors:?}");
         check(&udp.unwrap(), false);
         drop(tcp);

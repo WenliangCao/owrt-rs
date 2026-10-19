@@ -87,6 +87,15 @@ delta 文件的写入、读取与过滤、配置目录列举。不替换 `libuci
 - 内存耗尽路径（`Out of memory`）。
 - `ucimap`、Lua 绑定、`uci_hash_options`：不在 CLI 路径上。
 
+### 提交失败时保留草稿
+
+候选有意收紧原版先清空 delta 再写配置的失败边界。commit 重放 savedir 时持有其
+排他锁，临时配置完整写入并同步、rename 成功后才清空该 delta；创建、写入、同步或
+rename 失败返回 I/O error，原有草稿保留以便重试。锁持续到清理完成，避免丢弃期间
+另一个 save 新追加的内容。回归 `components/uci/tests/commit_failure.rs` 验证失败后
+同一 Context 重试，list-add 只应用一次。这不承诺配置与 delta 的跨文件断电原子性，
+也未改变配置文件原有的 flock/rename 并发粒度。
+
 ## 5. R92 非 UTF-8 改名的处置
 
 值仍为原始字节；model 的 package/section/option 名是 UTF-8。`rename` 的新名无法表示时，
@@ -96,3 +105,14 @@ delta 文件的写入、读取与过滤、配置目录列举。不替换 `libuci
 **R88 的同 batch CLI 描述收窄**：两侧 CLI 在每个 batch 命令后卸载包；精确原版的 rename → export
 不会直接导出该 raw 名字，raw delta 与立即报错行为仍不同。`r92_compat_probe.py` 的 `uci_rename`
 分别验证 section/option、delta、后续加载、配置文件保持及无 U+FFFD；库单测验证 model/delta 原子拒绝。
+
+### 提交后的草稿清理失败
+
+独立复核补充：saved delta 存在时，安装新配置前在目标目录创建旧配置的临时硬链接，
+配置文件的原锁保持到整个操作结束。若随后清空 delta 失败，先用该备份恢复旧配置，
+再返回 I/O error；草稿不变，重试不会重复 list-add。备份创建失败则不替换配置。
+若清理和恢复 rename 都失败，返回 Unknown error，保留 `.包名.uci-backup-*` 供人工恢复；
+此时不能盲目重试 commit。成功提交或成功恢复后清理临时备份（清理失败可能留下旧备份）。
+这要求目标目录支持硬链接，不提供多文件断电原子性，也没有消除既有flock/rename并发粒度。
+`components/uci/tests/commit_cleanup_failure.py` 在Oracle对真实CLI注入ftruncate/rename错误，
+覆盖正常、提交rename失败、delta清理失败及恢复也失败四类边界。

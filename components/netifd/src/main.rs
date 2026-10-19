@@ -473,6 +473,21 @@ impl Netifd {
         }
         self.cfg = new;
 
+        // bridge_config_init flushes configured members that left the UCI
+        // list. Dynamic wireless members are not in the old list and survive.
+        let mut removed_port = false;
+        for bridge in old.devices.iter().filter(|d| d.kind.as_deref() == Some("bridge")) {
+            let retained = self.cfg.devices.iter().find(|d| d.name == bridge.name)
+                .map(|d| d.ports.clone()).unwrap_or_default();
+            for port in bridge.ports.iter().filter(|p| !retained.contains(p)) {
+                self.bridge_port_detach(&bridge.name, port);
+                removed_port = true;
+            }
+        }
+        if removed_port {
+            self.update_presence();
+        }
+
         if self.handlers.is_empty() {
             self.handlers = proto::discover(std::path::Path::new(&self.protodir));
             let names: Vec<&str> = self.handlers.iter().map(|h| h.name.as_str()).collect();
@@ -1721,8 +1736,10 @@ impl Netifd {
                 );
                 let dir = self.protodir.clone();
                 let st = self.proto_state(name);
+                st.script_start_failed = false;
                 // the scripts source ../netifd-proto.sh, so cwd matters
                 if let Err(e) = st.script.start_in(&argv, &env, &dir) {
+                    st.script_start_failed = true;
                     logging::log!(Warning, "{name}: cannot run {action}: {e}");
                 }
             }
@@ -2471,6 +2488,14 @@ impl Netifd {
         let names: Vec<String> = self.protos.iter().map(|(n, _)| n.clone()).collect();
         for name in names {
             for which in [proto::Which::Script, proto::Which::Task] {
+                if which == proto::Which::Script
+                    && std::mem::take(&mut self.proto_state(&name).script_start_failed)
+                {
+                    // Do not finish inside proto_cmd: repeated exec failures
+                    // would recurse through teardown and setup indefinitely.
+                    self.finish_proto_task(&name, which);
+                    continue;
+                }
                 let exited = {
                     let st = self.proto_state(&name);
                     let slot = match which {
@@ -3325,6 +3350,7 @@ impl Netifd {
             // kept its claim while the protocol was Down awaiting carrier.
             self.iface_unclaim(&name, false);
             self.interfaces.retain(|i| i.name != name);
+            self.host_deps.retain(|dep| dep.owner != name);
             self.cfg.interfaces.retain(|c| c.name != name);
             self.free_unused_devices();
             if let Err(e) = self.objects.remove_interface(&mut self.conn, &name) {
@@ -3415,6 +3441,43 @@ impl Netifd {
             .filter(|d| d.owner == name)
             .all(|d| d.satisfied_by.is_some());
         self.set_available(name, all);
+    }
+
+    /// Replay the C's global up/update watches and per-interface down watches.
+    /// Restore the list before advancing protocols: setup can clear its deps.
+    fn host_dependency_event(&mut self, name: &str, event: Event) {
+        let mut deps = std::mem::take(&mut self.host_deps);
+        let mut ready = Vec::new();
+        let mut lost = Vec::new();
+        for dep in &mut deps {
+            match event {
+                Event::Up | Event::Update if dep.satisfied_by.is_none() => {
+                    self.resolve_host_dep(dep);
+                    if dep.satisfied_by.is_some() && !ready.contains(&dep.owner) {
+                        ready.push(dep.owner.clone());
+                    }
+                }
+                Event::Down | Event::UpFailed
+                    if dep.satisfied_by.as_deref() == Some(name) =>
+                {
+                    dep.satisfied_by = None;
+                    if !lost.contains(&dep.owner) {
+                        lost.push(dep.owner.clone());
+                    }
+                }
+                _ => {}
+            }
+        }
+        self.host_deps = deps;
+        for owner in ready {
+            self.check_dependencies(&owner);
+        }
+        for owner in lost {
+            if self.protos.iter().any(|(n, st)| n == &owner && st.sm == proto::Sm::Idle) {
+                self.link_lost(&owner);
+                self.proto_cmd(&owner, proto::Cmd::Teardown);
+            }
+        }
     }
 
     /// `netifd_add_host_route` -> `interface_ip_add_target_route`: which
@@ -3775,6 +3838,7 @@ impl Netifd {
         }
 
         self.call_hotplug(name, ev);
+        self.host_dependency_event(name, ev);
     }
 
     /// `run_cmd`: fork `/sbin/hotplug-call iface` with the event in the
