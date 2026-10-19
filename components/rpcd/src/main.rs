@@ -503,6 +503,21 @@ mod reconnect_tests {
     use super::*;
 
     #[test]
+    fn file_read_denies_non_utf8_session_id_before_opening_the_path() {
+        let ctx = Ctx {
+            socket: None, exec_timeout_ms: 1000,
+            sessions: RefCell::new(session::Store::new()),
+            apply: Default::default(), delayed: Default::default(), uci_read_cache: Default::default(),
+        };
+        let mut args = owrt_ubus::BlobBuf::new();
+        args.msg_string("path", "/does-not-exist");
+        args.msg_string_bytes("ubus_rpc_session", b"\xff");
+        let json = fields_to_json(args.payload()).unwrap();
+        assert_eq!(file::read(&ctx, &json), Err(status::PERMISSION_DENIED));
+        assert!(ctx.file_access_bytes(None, b"/does-not-exist", "read"));
+    }
+
+    #[test]
     fn old_worker_completion_cannot_enter_a_reconnected_generation() {
         let (old, receiver) = Deferrer::channel(-1);
         drop(receiver);

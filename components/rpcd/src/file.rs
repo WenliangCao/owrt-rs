@@ -50,12 +50,13 @@ fn errno_status(e: &std::io::Error) -> i32 {
     }
 }
 
-fn arg_str<'a>(args: &'a Json, key: &str) -> Option<&'a str> {
-    args.get(key).and_then(Json::as_str)
-}
-
 fn arg_bool(args: &Json, key: &str) -> bool {
     matches!(args.get(key), Some(Json::Bool(true)))
+}
+
+fn arg_sid(args: &Json) -> Option<&str> {
+    args.get("ubus_rpc_session").and_then(Json::as_bytes)
+        .map(|value| std::str::from_utf8(value).unwrap_or(""))
 }
 
 fn add_stat(out: &mut BlobBuf, m: &fs::Metadata, names: &mut util::IdentityNames) {
@@ -112,7 +113,7 @@ struct PathArgs<'a> {
 
 impl<'a> PathArgs<'a> {
     fn from_json(args: &'a Json) -> Self {
-        Self { path: args.get("path").and_then(Json::as_bytes), sid: arg_str(args, "ubus_rpc_session") }
+        Self { path: args.get("path").and_then(Json::as_bytes), sid: arg_sid(args) }
     }
 
     fn from_blob(data: &'a [u8]) -> Self {
@@ -131,7 +132,7 @@ impl<'a> PathArgs<'a> {
         };
         Self {
             path: path.and_then(string_bytes),
-            sid: sid.and_then(string_bytes).and_then(|v| std::str::from_utf8(v).ok()),
+            sid: sid.and_then(string_bytes).map(|v| std::str::from_utf8(v).unwrap_or("")),
         }
     }
 }
@@ -378,7 +379,7 @@ type ExecPlan = (OsString, Vec<OsString>, Vec<(OsString, OsString)>);
 /// non-blocking, so it stays on the request loop exactly as in C.
 fn exec_prepare(ctx: &Ctx, args: &Json) -> Result<ExecPlan, i32> {
     let Some(cmd) = args.get("command").and_then(Json::as_bytes) else { return Err(status::INVALID_ARGUMENT) };
-    let sid = arg_str(args, "ubus_rpc_session");
+    let sid = arg_sid(args);
     let params: Vec<OsString> = match args.get("params") {
         Some(Json::Array(a)) => a.iter().filter_map(|v| v.as_bytes().map(|b| OsString::from_vec(b.to_vec()))).collect(),
         _ => Vec::new(),
@@ -651,6 +652,17 @@ mod tests {
     use std::time::Instant;
 
     #[test]
+    fn non_utf8_session_id_never_becomes_a_local_root_request() {
+        let mut args = BlobBuf::new();
+        args.msg_string("path", "/does-not-exist");
+        args.msg_string_bytes("ubus_rpc_session", b"\xff");
+        let raw = PathArgs::from_blob(args.payload());
+        assert!(raw.sid.is_some(), "None is reserved for local root callers");
+        let json = owrt_ubus::convert::fields_to_json(args.payload()).unwrap();
+        assert!(PathArgs::from_json(&json).sid.is_some());
+    }
+
+    #[test]
     fn path_arguments_keep_first_fields_raw_bytes_and_empty_string_rules() {
         let mut b = BlobBuf::new();
         b.msg_string_bytes("path", b"/tmp/\xff");
@@ -666,7 +678,7 @@ mod tests {
         b.msg_string_bytes("ubus_rpc_session", b"\xff");
         b.msg_string("ubus_rpc_session", "second");
         let fields = b.into_payload();
-        assert_eq!(PathArgs::from_blob(&fields), PathArgs { path: None, sid: None });
+        assert_eq!(PathArgs::from_blob(&fields), PathArgs { path: None, sid: Some("") });
 
         let mut b = BlobBuf::new();
         b.msg_field(MsgType::String as u32, "path", b"no terminator");

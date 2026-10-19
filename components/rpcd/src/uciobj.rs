@@ -3,7 +3,7 @@
 //! does; `ctx.err` tracking mirrors the C cursor so status mapping (including
 //! the places where a trailing `uci_unload` resets the error) stays literal.
 
-use crate::session::{arg, arg_str, Reply};
+use crate::session::{arg, arg_sid, arg_str, Reply};
 use crate::Ctx;
 use owrt_ubus::blob::{self, Field, MsgType};
 use owrt_ubus::{status, BlobBuf, Connection};
@@ -299,7 +299,7 @@ fn field_data<'a>(raw: &'a [u8], name: &str, ty: MsgType) -> Option<&'a [u8]> {
 
 fn get_common(rctx: &Ctx, raw: &[u8], use_state: bool) -> Reply {
     let Some(config) = arg_str(raw, "config") else { return code(status::INVALID_ARGUMENT) };
-    let sid = arg_str(raw, "ubus_rpc_session");
+    let sid = arg_sid(raw);
     let mut ctx = Context::new();
     if !read_access(rctx, &mut ctx, sid, config) {
         return code(status::PERMISSION_DENIED);
@@ -345,7 +345,7 @@ fn add(rctx: &Ctx, raw: &[u8]) -> Reply {
     let (Some(config), Some(ty)) = (arg_str(raw, "config"), arg_str(raw, "type")) else {
         return code(status::INVALID_ARGUMENT);
     };
-    let sid = arg_str(raw, "ubus_rpc_session");
+    let sid = arg_sid(raw);
     let mut ctx = Context::new();
     if !write_access(rctx, &mut ctx, sid, config) {
         return code(status::PERMISSION_DENIED);
@@ -504,7 +504,7 @@ fn set(rctx: &Ctx, raw: &[u8]) -> Reply {
     if section.is_none() && ty.is_none() && matches.is_none() {
         return code(status::INVALID_ARGUMENT);
     }
-    let sid = arg_str(raw, "ubus_rpc_session");
+    let sid = arg_sid(raw);
     let mut ctx = Context::new();
     if !write_access(rctx, &mut ctx, sid, config) {
         return code(status::PERMISSION_DENIED);
@@ -607,7 +607,7 @@ fn delete(rctx: &Ctx, raw: &[u8]) -> Reply {
     if section.is_none() && ty.is_none() && matches.is_none() {
         return code(status::INVALID_ARGUMENT);
     }
-    let sid = arg_str(raw, "ubus_rpc_session");
+    let sid = arg_sid(raw);
     let mut ctx = Context::new();
     if !write_access(rctx, &mut ctx, sid, config) {
         return code(status::PERMISSION_DENIED);
@@ -663,7 +663,7 @@ fn rename(rctx: &Ctx, raw: &[u8]) -> Reply {
     let (Some(config), Some(section), Some(name)) = (arg_str(raw, "config"), arg_str(raw, "section"), arg_str(raw, "name")) else {
         return code(status::INVALID_ARGUMENT);
     };
-    let sid = arg_str(raw, "ubus_rpc_session");
+    let sid = arg_sid(raw);
     let mut ctx = Context::new();
     if !write_access(rctx, &mut ctx, sid, config) {
         return code(status::PERMISSION_DENIED);
@@ -703,7 +703,7 @@ fn order(rctx: &Ctx, raw: &[u8]) -> Reply {
     let (Some(config), Some(sections)) = (arg_str(raw, "config"), field_data(raw, "sections", MsgType::Array)) else {
         return code(status::INVALID_ARGUMENT);
     };
-    let sid = arg_str(raw, "ubus_rpc_session");
+    let sid = arg_sid(raw);
     let mut ctx = Context::new();
     if !write_access(rctx, &mut ctx, sid, config) {
         return code(status::PERMISSION_DENIED);
@@ -796,7 +796,7 @@ fn strtoul10(s: &str) -> u64 {
 }
 
 fn changes(rctx: &Ctx, raw: &[u8]) -> Reply {
-    let sid = arg_str(raw, "ubus_rpc_session");
+    let sid = arg_sid(raw);
     let mut ctx = Context::new();
     if let Some(config) = arg_str(raw, "config") {
         if !read_access(rctx, &mut ctx, sid, config) {
@@ -893,7 +893,7 @@ fn revert_commit(rctx: &Ctx, conn: &mut Connection, raw: &[u8], commit: bool) ->
         return code(status::PERMISSION_DENIED);
     }
     let Some(config) = arg_str(raw, "config") else { return code(status::INVALID_ARGUMENT) };
-    let sid = arg_str(raw, "ubus_rpc_session");
+    let sid = arg_sid(raw);
     let mut ctx = Context::new();
     if !write_access(rctx, &mut ctx, sid, config) {
         return code(status::PERMISSION_DENIED);
@@ -1130,7 +1130,7 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
     if has_apply && rollback {
         return code(status::PERMISSION_DENIED);
     }
-    let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return code(status::INVALID_ARGUMENT) };
+    let Some(sid) = arg_sid(raw) else { return code(status::INVALID_ARGUMENT) };
     if rctx.sessions.borrow().apply_sid.as_deref().is_some_and(|owner| owner != sid) {
         // Like confirm/rollback, unchecked apply may discard only this
         // session's snapshot. Other sessions must not cancel its safety timer.
@@ -1200,7 +1200,7 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
 }
 
 fn confirm(rctx: &Ctx, raw: &[u8]) -> Reply {
-    let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return code(status::INVALID_ARGUMENT) };
+    let Some(sid) = arg_sid(raw) else { return code(status::INVALID_ARGUMENT) };
     let apply_sid = rctx.sessions.borrow().apply_sid.clone();
     let Some(apply_sid) = apply_sid else { return code(status::NO_DATA) };
     if apply_sid != sid {
@@ -1219,7 +1219,7 @@ fn confirm(rctx: &Ctx, raw: &[u8]) -> Reply {
 fn rollback(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
     let apply_sid = rctx.sessions.borrow().apply_sid.clone();
     let Some(apply_sid) = apply_sid else { return code(status::NO_DATA) };
-    let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return code(status::INVALID_ARGUMENT) };
+    let Some(sid) = arg_sid(raw) else { return code(status::INVALID_ARGUMENT) };
     if apply_sid != sid {
         return code(status::PERMISSION_DENIED);
     }

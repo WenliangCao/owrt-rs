@@ -626,6 +626,11 @@ pub fn arg_str<'a>(raw: &'a [u8], name: &str) -> Option<&'a str> {
     arg(raw, name, MsgType::String).and_then(|f| f.as_str())
 }
 
+/// An invalid explicit SID must remain a failed lookup, never local root.
+pub fn arg_sid(raw: &[u8]) -> Option<&str> {
+    arg(raw, "ubus_rpc_session", MsgType::String).map(|f| f.as_str().unwrap_or(""))
+}
+
 pub use crate::reply::Reply;
 
 // Immutable wire templates, not cached authorization results. Every request
@@ -652,7 +657,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                 None => ok(vec![]),
             }
         }
-        "list" => match arg_str(raw, "ubus_rpc_session") {
+        "list" => match arg_sid(raw) {
             None => ok(store.sessions.values().map(|s| s.to_blob(true)).collect()),
             Some(sid) => match store.get(sid) {
                 Some(ses) => Reply::one(0, ses.to_blob(true)),
@@ -660,7 +665,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             },
         },
         "grant" | "revoke" => {
-            let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = arg_sid(raw) else { return err(status::INVALID_ARGUMENT) };
             let scope = arg_str(raw, "scope").unwrap_or("ubus").to_owned();
             let objects = arg(raw, "objects", MsgType::Array).map(|f| f.data.to_vec());
             let grant = method == "grant";
@@ -728,7 +733,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             Reply::one(0, b.into_payload())
         }
         "set" => {
-            let (Some(sid), Some(values)) = (arg_str(raw, "ubus_rpc_session"), arg(raw, "values", MsgType::Table)) else {
+            let (Some(sid), Some(values)) = (arg_sid(raw), arg(raw, "values", MsgType::Table)) else {
                 return err(status::INVALID_ARGUMENT);
             };
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
@@ -741,7 +746,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             ok(vec![])
         }
         "get" => {
-            let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = arg_sid(raw) else { return err(status::INVALID_ARGUMENT) };
             let keys = arg(raw, "keys", MsgType::Array).map(|f| f.data);
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
             let mut b = BlobBuf::new();
@@ -764,7 +769,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             Reply::one(0, b.into_payload())
         }
         "unset" => {
-            let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = arg_sid(raw) else { return err(status::INVALID_ARGUMENT) };
             let keys = arg(raw, "keys", MsgType::Array).map(|f| f.data);
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
             match keys {
@@ -783,7 +788,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             ok(vec![])
         }
         "destroy" => {
-            let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = arg_sid(raw) else { return err(status::INVALID_ARGUMENT) };
             if sid == DEFAULT_SID {
                 return err(status::PERMISSION_DENIED);
             }
@@ -1132,4 +1137,14 @@ mod tests {
         }
     }
 
+    #[test]
+    fn malformed_explicit_sid_does_not_list_every_session() {
+        let mut store = Store::new();
+        let mut args = BlobBuf::new();
+        args.msg_string_bytes("ubus_rpc_session", b"\xff");
+        let reply = call(&mut store, "list", args.payload());
+        assert_eq!(reply.code, status::NOT_FOUND);
+        assert!(reply.data.iter().next().is_none());
+        assert_eq!(call(&mut store, "list", &[]).code, 0);
+    }
 }
