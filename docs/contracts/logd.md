@@ -28,8 +28,8 @@
    正文。写入位置到达末端时回绕到起点，被覆盖区间内的旧记录淘汰。保留集合与原实现一致。
 5. `read`：`lines=N` 表示只返回 `id >= current_id - N` 的记录；`lines` 缺省表示全部，显式 0 不返回历史。
    `stream=false` 时一次性返回 `{"log":[...]}`；`stream=true`（缺省）时原版新建 pipe，候选使用
-   Unix stream socketpair（R89 之前已有的差异），把读端随 STATUS 传给调用方，写端按同样的
-   blob 帧写出积压记录；`oneshot=true` 写完即关，否则保持并推送新记录。两类 fd 的内核
+   pipe，并尽力把容量设为 256 KiB（失败则保持内核默认值），把读端随 STATUS 传给调用方，写端按同样的
+   blob 帧写出积压记录；`oneshot=true` 写完即关，否则保持并推送新记录。两侧 pipe 的内核
    缓冲容量不同，容量和背压性能须分别实测，不能假定均为 64 KiB。
 6. `write {event}` 以 source=1 入库，经过与 `/dev/log` 相同的处理。
 
