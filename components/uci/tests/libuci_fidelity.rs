@@ -11,6 +11,25 @@ use owrt_uci::model::{OptionValue, Ptr, LOOKUP_DONE};
 use owrt_uci::{ops, parse, Context, Error};
 use std::io::Cursor;
 
+#[test]
+fn reorder_strtoul_saturates_before_narrowing_to_int() {
+    for (value, expected) in [
+        ("", 0),
+        ("  +1tail", 1),
+        ("-1", -1),
+        ("4294967297", 1),
+        ("18446744073709551615", -1),
+        ("18446744073709551616", -1),
+        ("18446744073709551617", -1),
+        ("-18446744073709551615", 1),
+        ("-18446744073709551616", -1),
+        ("-18446744073709551617", -1),
+        ("99999999999999999999999999999999999999999999", -1),
+    ] {
+        assert_eq!(owrt_uci::delta::strtoul_int(value), expected, "{value}");
+    }
+}
+
 fn load(text: &[u8]) -> (Context<'static>, usize) {
     let mut ctx = Context::new();
     let mut r = Cursor::new(text.to_vec());

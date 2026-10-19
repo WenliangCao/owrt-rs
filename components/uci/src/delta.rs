@@ -59,7 +59,12 @@ pub fn strtoul_int(s: &str) -> i32 {
     };
     let mut v: u64 = 0;
     for b in digits.bytes().take_while(|b| b.is_ascii_digit()) {
-        v = v.wrapping_mul(10).wrapping_add((b - b'0') as u64);
+        let Some(next) = v.checked_mul(10).and_then(|v| v.checked_add((b - b'0') as u64)) else {
+            // strtoul returns ULONG_MAX on overflow, even with a minus sign.
+            // The pinned aarch64 C ABI has a 64-bit unsigned long.
+            return u64::MAX as i32;
+        };
+        v = next;
     }
     let v = if neg { v.wrapping_neg() } else { v };
     v as i32
