@@ -763,8 +763,7 @@ impl Default for RadioState {
     }
 }
 
-/// `status`, as compact JSON. `interfaces[].ifname` is omitted: it comes from
-/// the handler's notify data, which needs the radio to have come up.
+/// `status`, as compact JSON. Report ifnames received through handler notify.
 pub fn status_json(
     radios: &[Radio],
     handlers: &[Handler],
@@ -799,20 +798,26 @@ pub fn status_json(
                 if let Some((_, n)) = ifnames.iter().find(|(sec, _)| *sec == v.section) {
                     fields.push(("ifname".into(), format!("\"{}\"", esc(n))));
                 }
-                let sub_list = |subs: &[Sub], spec: &[(String, u32)]| -> String {
+                let sub_list = |subs: &[Sub], spec: &[(String, u32)], vlan: bool| -> String {
                     let items: Vec<String> = subs
                         .iter()
                         .map(|sub| {
-                            obj(&[
+                            let mut fields = vec![
                                 ("section".into(), format!("\"{}\"", esc(&sub.section))),
                                 ("config".into(), attr_obj(&sub.opts, spec)),
-                            ])
+                            ];
+                            let key = if vlan { format!("{}/{}", v.section, sub.section) }
+                                else { sub.section.clone() };
+                            if let Some((_, name)) = ifnames.iter().find(|(section, _)| *section == key) {
+                                fields.push(("ifname".into(), format!("\"{}\"", esc(name))));
+                            }
+                            obj(&fields)
                         })
                         .collect();
                     format!("[{}]", items.join(","))
                 };
-                fields.push(("vlans".into(), sub_list(&v.vlans, vlan_spec)));
-                fields.push(("stations".into(), sub_list(&v.stas, sta_spec)));
+                fields.push(("vlans".into(), sub_list(&v.vlans, vlan_spec, true)));
+                fields.push(("stations".into(), sub_list(&v.stas, sta_spec, false)));
                 obj(&fields)
             })
             .collect();
@@ -882,6 +887,11 @@ pub fn status_into_blob(
                 let config = b.msg_open_table("config");
                 attrs_into_blob(b, &sub.opts, spec(kind), false);
                 b.msg_close(config);
+                let key = if kind == "vlan" { format!("{}/{}", v.section, sub.section) }
+                    else { sub.section.clone() };
+                if let Some((_, name)) = ifnames.iter().find(|(section, _)| *section == key) {
+                    b.msg_string("ifname", name);
+                }
                 b.msg_close(item);
             }
             b.msg_close(list);
@@ -1091,7 +1101,11 @@ mod status_blob_tests {
                             autostart: bits & 4 != 0,
                             retry_setup_failed: bits & 8 != 0,
                         };
-                        for ifnames in [vec![], vec![("vif".into(), "phy0-ap0".into())]] {
+                        for ifnames in [vec![], vec![
+                            ("vif".into(), "phy0-ap0".into()),
+                            ("vif/sub".into(), "phy0-ap0.10".into()),
+                            ("sub".into(), "station0".into()),
+                        ]] {
                             let mut expected = BlobBuf::new();
                             json_text_into_blob(
                                 &mut expected,

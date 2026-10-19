@@ -24,6 +24,7 @@ config wifi-iface 'ap1'
  option ssid 'second'
 config wifi-vlan 'shared'
  option vid '10'
+ list network 'lan'
 config wifi-station 'sta0'
  option iface 'ap0'
  option mac '02:00:00:00:00:01'
@@ -38,7 +39,7 @@ if [ "${1:-}" = dump ] || [ "${2:-}" = dump ]; then
 fi
 printf '%s\n' "$4" > "/tmp/out/$2.json"
 if [ "$2" = setup ]; then
- ubus call network.wireless notify '{"device":"radio0","command":0}'
+ while [ ! -f /tmp/out/setup-release ]; do sleep 0.05; done
 fi
 '''
 
@@ -64,6 +65,9 @@ def inner(root, side):
     for name, minor in (("null", 3), ("zero", 5), ("urandom", 9)):
         run("mknod", "-m", "666", root / "dev" / name, "c", "1", minor)
     run("ip", "link", "set", "lo", "up")
+    for name in ("vlan-01", "vlan-02"):
+        run("ip", "link", "add", name, "type", "dummy")
+        run("ip", "link", "set", name, "up")
     out = root / "tmp/out"
 
     def start(binary):
@@ -83,7 +87,7 @@ def inner(root, side):
     binary = "/sbin/netifd" if side == "original" else "/tmp/netifd-rs"
     daemon = start(binary)
     wait_for(lambda: (out / "setup.json").exists())
-    wait_for(lambda: call("status").get("radio0", {}).get("up"))
+    wait_for(lambda: call("status").get("radio0", {}).get("pending"))
     assert Path(f"/proc/{daemon.pid}/exe").resolve() == root / binary.lstrip("/")
     setup = json.loads((out / "setup.json").read_text())
     interfaces = setup["interfaces"]
@@ -99,12 +103,20 @@ def inner(root, side):
         assert len(value["vlans"]) == 1
         call("notify", {"device": "radio0", "command": 1, "interface": key,
                         "vlan": next(iter(value["vlans"])), "data": {"ifname": "vlan-" + key}})
+    call("notify", {"device": "radio0", "command": 0})
+    (out / "setup-release").touch()
+    wait_for(lambda: call("status").get("radio0", {}).get("up"))
+    time.sleep(2)
     status = call("status")
     save("status.json", status)
     rows = status["radio0"]["interfaces"]
     results["ifname"] = all(row.get("ifname") == "ap-" + key
                             and row["vlans"][0].get("ifname") == "vlan-" + key
                             for row, key in zip(rows, ("01", "02")))
+    links = json.loads(run("ip", "-j", "link", "show", capture_output=True).stdout)
+    save("links.json", links)
+    results["ifname"] &= all(next(link for link in links if link["ifname"] == name).get("master") == "br-test"
+                             for name in ("vlan-01", "vlan-02"))
     data = {"token": "T1", "counter": 7, "ready": True, "nested": {"a": [1, False, "x"]}}
     call("notify", {"device": "radio0", "command": 1, "data": data})
     call("down", {"device": "radio0"})
@@ -138,7 +150,7 @@ def main():
             for part in ("out", "run/ubus", "lock", "state", "resolv.conf.d"):
                 (root / "tmp" / part).mkdir(parents=True, exist_ok=True)
             shutil.copy2(args.candidate, root / "tmp/netifd-rs")
-            (root / "etc/config/network").write_text("config interface 'loopback'\n option device 'lo'\n option proto 'static'\n option ipaddr '127.0.0.1/8'\n")
+            (root / "etc/config/network").write_text("config interface 'loopback'\n option device 'lo'\n option proto 'static'\n option ipaddr '127.0.0.1/8'\nconfig device\n option name 'br-test'\n option type 'bridge'\n option bridge_empty '1'\nconfig interface 'lan'\n option device 'br-test'\n option proto 'static'\n option ipaddr '192.168.99.1/24'\n")
             (root / "etc/config/wireless").write_text(WIRELESS)
             handler = root / "lib/netifd/wireless/mac80211.sh"
             handler.write_text(HANDLER)

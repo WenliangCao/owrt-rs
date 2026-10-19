@@ -4687,7 +4687,7 @@ struct WRadio {
     retry: u32,
     retry_setup_failed: bool,
     autostart: bool,
-    /// `handler_data[section].ifname`, reported by the handler through notify.
+    /// Handler ifnames keyed by section, or parent/section for a VLAN.
     ifnames: Vec<(String, String)>,
     /// The configuration actually passed to this generation's handler.
     handler_config: owrt_ubus::json::Json,
@@ -5073,14 +5073,17 @@ impl Netifd {
         let Some(Json::Object(vifs)) = r.handler_config.get("interfaces") else { return };
         let mut records = Vec::new();
         for (_, vif) in vifs {
-            records.push((vif, false));
+            records.push((vif, None));
             if let Some(Json::Object(vlans)) = vif.get("vlans") {
-                records.extend(vlans.iter().map(|(_, v)| (v, true)));
+                records.extend(vlans.iter().map(|(_, v)| (v, Some(vif))));
             }
         }
-        for (record, vlan) in records {
+        for (record, parent) in records {
             let Some(section) = record.get("name").and_then(Json::as_str) else { continue };
-            let Some((_, port)) = r.ifnames.iter().find(|(s, _)| s == section) else { continue };
+            let key = parent.and_then(|vif| vif.get("name")).and_then(Json::as_str)
+                .map(|vif| format!("{vif}/{section}")).unwrap_or_else(|| section.to_string());
+            let Some((_, port)) = r.ifnames.iter().find(|(s, _)| *s == key) else { continue };
+            let vlan = parent.is_some();
             let Some(config) = record.get("config") else { continue };
             let Some(networks) = config.get("network").and_then(Json::as_array) else { continue };
             if self.sys.if_index(port).unwrap_or(0) == 0 {
@@ -5377,12 +5380,16 @@ impl Netifd {
                 let record = self.wradios.iter().find(|r| r.name == dev)
                     .and_then(|r| r.handler_config.get("interfaces"))
                     .and_then(|v| v.get(&key));
-                let record = if let Some(vlan) = vlan {
-                    record.and_then(|v| v.get("vlans")).and_then(|v| v.get(&vlan))
-                } else { record };
-                let section = record.and_then(|v| v.get("name"))
-                    .and_then(owrt_ubus::json::Json::as_str).map(str::to_string);
-                let Some(section) = section else { return status::NOT_FOUND };
+                let Some(section) = record.and_then(|v| v.get("name"))
+                    .and_then(owrt_ubus::json::Json::as_str) else { return status::NOT_FOUND };
+                // A wifi-vlan section can be shared by multiple vifs. Match
+                // wdev_set_data's parent/name key so their ifnames stay distinct.
+                let section = if let Some(vlan) = vlan {
+                    let Some(child) = record.and_then(|v| v.get("vlans"))
+                        .and_then(|v| v.get(&vlan)).and_then(|v| v.get("name"))
+                        .and_then(owrt_ubus::json::Json::as_str) else { return status::NOT_FOUND };
+                    format!("{section}/{child}")
+                } else { section.to_string() };
                 let ifname = find("data")
                     .and_then(|f| f.children().into_iter().find(|c| c.name == "ifname"))
                     .and_then(|c| c.as_str().map(|s| s.to_string()));
