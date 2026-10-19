@@ -407,7 +407,7 @@ def verify(work, spec, apk):
         shutil.copy2(source, output / source.name)
     hashes = {c["binary"]: c["rust_sha256"] for c in manifest["components"].values()}
     result = dict(inputs["image"], schema_version=3, deployment_layout=layout,
-                  packages={n: installed[n]["version"] for n in translations | {spec["package"]}}, components=manifest["components"],
+                  packages={n: installed[n]["version"] for n in sorted(translations | {spec["package"]})}, components=manifest["components"],
                   integration_files=manifest["integration_files"], stock_manifest_sha256=manifest["stock_manifest_sha256"],
                   binary_sha256=hashes, stock_packages=manifest["stock_packages"],
                   image={"file": image.name, "size": image.stat().st_size, "sha256": sha(image)},
