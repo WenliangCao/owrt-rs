@@ -70,7 +70,8 @@ def run(*args):
 def verify_ax3000t_fit(kernel, original, metadata):
     """Audit the FIT extracted from the final image against the pinned stock FIT."""
     expected = {
-        "change": "disable-absent-mt7531", "hardware_variant": "AN8855-only",
+        "change": "disable-absent-mt7531-and-quiet-console", "hardware_variant": "AN8855-only",
+        "bootargs_append": " loglevel=4",
         "node": "/soc/ethernet@15100000/mdio-bus/switch@1f", "status": "disabled",
         "source_date_epoch": 1782737960,
         "kernel_payload_sha1": "a422b6a6bfff051626511cdaf910bdae50365105",
@@ -97,9 +98,11 @@ def verify_ax3000t_fit(kernel, original, metadata):
         assert sha(dtb) == metadata["dtb_sha256"], "final FIT DTB identity mismatch"
         shutil.copyfile(original_dtb, expected_dtb)
         run("fdtput", "-t", "s", expected_dtb, metadata["node"], "status", "disabled")
+        run("fdtput", "-t", "s", expected_dtb, "/chosen", "bootargs-append", metadata["bootargs_append"])
         assert dtb.read_bytes() == expected_dtb.read_bytes(), "unexpected DTB change in final FIT"
         assert run("fdtget", "-t", "s", dtb, metadata["node"], "compatible") == "mediatek,mt7531"
         assert run("fdtget", "-t", "s", dtb, metadata["node"], "status") == "disabled"
+        assert run("fdtget", "-t", "s", dtb, "/chosen", "bootargs-append") == "loglevel=4"
 
 
 def packages(apk, root):

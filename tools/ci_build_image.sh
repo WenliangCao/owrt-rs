@@ -63,7 +63,7 @@ IB=$(ls -d "$WORK"/openwrt-imagebuilder-$ver-*/ | head -1); IB=${IB%/}
 # Only the AN8855 hardware revision is supported by this image. Keep the
 # upstream DTB untouched; ImageBuilder consumes the prebuilt FIT, not that DTB.
 # Run before compiling packages so changed upstream inputs fail immediately.
-log "disable the absent MT7531 in the AX3000T FIT (AN8855 only)"
+log "disable the absent MT7531 and append the AX3000T console level (AN8855 only)"
 python3 - "$ver" "$IB" "$WORK" "$OUT" > "$OUT/ax3000t-fit.log" 2>&1 <<'FITPY' || { cat "$OUT/ax3000t-fit.log"; exit 1; }
 import difflib
 import hashlib
@@ -83,6 +83,8 @@ fit = linux / "xiaomi_mi-router-ax3000t-kernel.bin"
 dtb = linux / "image-mt7981b-xiaomi-mi-router-ax3000t.dtb"
 its = fit.with_suffix(".bin.its")
 node = "/soc/ethernet@15100000/mdio-bus/switch@1f"
+# OpenWrt's fdt.c uses strlcat without adding a separator.
+bootargs_append = " loglevel=4"
 
 def require(condition, message):
     if not condition:
@@ -106,6 +108,8 @@ for tool in ("dumpimage", "fdtget", "fdtput", "dtc"):
 require(run("fdtget", "-t", "s", dtb, node, "compatible").strip() == "mediatek,mt7531",
         "unexpected switch compatible")
 require("status" not in run("fdtget", "-p", dtb, node).split(), "switch already has status")
+require(not {"bootargs-append", "bootargs-override"}.intersection(
+        run("fdtget", "-p", dtb, "/chosen").split()), "chosen already has a command-line override")
 # Read the timestamp from the hash-pinned FIT itself, never from a copied file's mtime.
 epoch = int(run("fdtget", "-t", "u", fit, "/", "timestamp").strip())
 require(epoch == 1782737960, "unexpected original FIT timestamp")
@@ -121,18 +125,24 @@ with tempfile.TemporaryDirectory(prefix="ax3000t-fit-", dir=work) as tmp:
     require(kernel_sha1 == "a422b6a6bfff051626511cdaf910bdae50365105", "unexpected kernel payload")
     shutil.copyfile(extracted, changed)
     run("fdtput", "-t", "s", changed, node, "status", "disabled")
+    run("fdtput", "-t", "s", changed, "/chosen", "bootargs-append", bootargs_append)
     require(run("fdtget", "-t", "s", changed, node, "status").strip() == "disabled",
             "switch was not disabled")
+    require(run("fdtget", "-t", "s", changed, "/chosen", "bootargs-append").rstrip("\n") == bootargs_append,
+            "console level was not appended with a separator")
     before = run("dtc", "-q", "-I", "dtb", "-O", "dts", extracted).splitlines(keepends=True)
     after = run("dtc", "-q", "-I", "dtb", "-O", "dts", changed).splitlines(keepends=True)
     changes = [op for op in difflib.SequenceMatcher(a=before, b=after, autojunk=False).get_opcodes()
                if op[0] != "equal"]
-    require(len(changes) == 1, "DTB has changes beyond the one status property")
-    kind, old_start, old_end, new_start, new_end = changes[0]
-    require(kind == "insert" and old_start == old_end and new_end == new_start + 1
-            and after[new_start].strip() == 'status = "disabled";'
-            and before[old_start - 1].strip() == "switch@1f {",
-            "DTB diff is not the sole switch@1f status insertion")
+    expected_insertions = {("switch@1f {", 'status = "disabled";'),
+                           ("chosen {", 'bootargs-append = " loglevel=4";')}
+    require(len(changes) == 2, "DTB must have exactly two property insertions")
+    actual_insertions = set()
+    for kind, old_start, old_end, new_start, new_end in changes:
+        require(kind == "insert" and old_start == old_end and new_end == new_start + 1,
+                "DTB diff contains more than a property insertion")
+        actual_insertions.add((before[old_start - 1].strip(), after[new_start].strip()))
+    require(actual_insertions == expected_insertions, "unexpected DTB property insertion")
     print("".join(difflib.unified_diff(before, after, fromfile="original.dts", tofile="disabled.dts")))
     # The pinned upstream ITS supplies all FIT metadata. Replace only its two incbin paths.
     source = its.read_text()
@@ -152,7 +162,8 @@ with tempfile.TemporaryDirectory(prefix="ax3000t-fit-", dir=work) as tmp:
     require(kernel_check.read_bytes() == kernel.read_bytes() and sha(kernel_check, "sha1") == kernel_sha1,
             "repacked FIT changed the kernel payload")
     require(dtb_check.read_bytes() == changed.read_bytes(), "repacked FIT has the wrong DTB")
-    record = dict(change="disable-absent-mt7531", hardware_variant="AN8855-only", node=node,
+    record = dict(change="disable-absent-mt7531-and-quiet-console", hardware_variant="AN8855-only", node=node,
+                  bootargs_append=bootargs_append,
                   status="disabled", source_date_epoch=epoch, kernel_payload_sha1=kernel_sha1,
                   original_dtb_sha256=original_dtb, original_fit_sha256=original_fit,
                   dtb_sha256=sha(changed), fit_sha256=sha(new_fit))
