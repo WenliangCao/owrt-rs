@@ -33,17 +33,17 @@ const LOCK: &str = "/var/run/fw4.lock";
 
 struct Lock(#[allow(dead_code)] std::fs::File);
 
-fn lock() -> Option<Lock> {
+fn lock() -> Lock {
     let f = std::fs::OpenOptions::new()
         .create(true)
         .truncate(false)
         .write(true)
         .open(LOCK)
-        .ok()?;
-    if rustix::fs::flock(&f, rustix::fs::FlockOperation::LockExclusive).is_err() {
-        return None;
+        .unwrap_or_else(|error| die(false, &format!("Unable to open '{LOCK}': {error}")));
+    if let Err(error) = rustix::fs::flock(&f, rustix::fs::FlockOperation::LockExclusive) {
+        die(false, &format!("Unable to lock '{LOCK}': {error}"));
     }
-    Some(Lock(f))
+    Lock(f)
 }
 
 fn is_mock() -> bool {
@@ -416,7 +416,7 @@ fn start(quiet: bool, verbose: bool, mode: &str, sigpipe: SignalDisposition) -> 
     // nft and includes are separate children of the stock shell wrapper.
     let _ = unix::restore_signal(owrt_ubus::sys::SIGPIPE, sigpipe);
     let effective = rendered.as_ref().and_then(|r| r.effective.as_ref());
-    if mode == "reload" && _lock.is_some() && effective.is_some_and(reload::unchanged) {
+    if mode == "reload" && effective.is_some_and(reload::unchanged) {
         return run_includes(quiet);
     }
     // Never certify a failed/partial apply, including a renderer abort.
@@ -427,7 +427,7 @@ fn start(quiet: bool, verbose: bool, mode: &str, sigpipe: SignalDisposition) -> 
         .unwrap_or_default();
     let generation = effective.and_then(|_| reload::generation());
     let applied = nft_load(ruleset, verbose, false, false, sigpipe) == 0;
-    if applied && _lock.is_some() {
+    if applied {
         if let (Some(effective), Some(generation)) = (effective, generation) {
             reload::remember(effective, generation);
         }
@@ -550,7 +550,7 @@ pub fn run(mut args: Vec<String>) -> ! {
             0
         }
         "reload-sets" => {
-            let _lock = if is_mock() { None } else { lock() };
+            let _lock = if is_mock() { None } else { Some(lock()) };
             if !is_mock() {
                 reload::invalidate();
             }
@@ -569,7 +569,7 @@ pub fn run(mut args: Vec<String>) -> ! {
             run_includes(quiet)
         }
         "network" | "device" | "zone" => {
-            let _lock = if is_mock() { None } else { lock() };
+            let _lock = if is_mock() { None } else { Some(lock()) };
             lookup(
                 quiet,
                 action,
