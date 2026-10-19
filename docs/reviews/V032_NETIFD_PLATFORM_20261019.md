@@ -56,7 +56,16 @@ Rust 的跨 vif 编号、非字符串 SET_DATA、VLAN ifname 三项均失败。
 其余两项仍明确记录失败，没有藏进绿色结果。证据为 `wireless-red-{1..4}` 和
 `wireless-indices-green-{1..4}`，回归工具 `components/netifd/tests/wireless_review.py`。
 
-SET_DATA 非字符串数据、无线状态 ifname 仍分别修复或取证。
+无线状态 ifname 仍在修复。
+
+## SET_DATA 类型保留
+
+精确镜像 `wireless-device.uc:wdev_set_data` 将 device data 原样传给后续 handler。
+Rust 原先只收字符串；现在完整转换并保存整数、布尔、数组和嵌套对象，非法深度在改变
+状态前返回 `INVALID_ARGUMENT`。同一 handler 经 notify 注入字符串 token、整数 7、
+布尔 true 和含混合数组的对象，再检查实际 teardown argv。四轮 `wireless-red-*`
+中 C 均保留所有类型而 Rust 丢非字符串；`wireless-data-green-{1..4}` 中双方均通过。
+这些轮次仍显式记录未修的 ifname 失败，不作为完整无线绿色回归。
 
 ## PD 长度
 

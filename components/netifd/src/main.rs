@@ -5362,16 +5362,11 @@ impl Netifd {
                 // piece of handler data `status` reports.
                 let Some(key) = vif else {
                     // no `interface`: this is the device-level record
-                    let fields: Vec<(String, String)> = find("data")
-                        .map(|f| {
-                            f.children()
-                                .filter_map(|c| {
-                                    let v = c.as_str()?;
-                                    Some((c.name.to_string(), owrt_ubus::json::Json::Str(v.to_string()).to_compact()))
-                                })
-                                .collect()
-                        })
-                        .unwrap_or_default();
+                    let fields = find("data").into_iter().flat_map(|f| f.children())
+                        .map(|field| owrt_ubus::convert::field_to_json(&field)
+                            .map(|value| (field.name.to_string(), value.to_compact())))
+                        .collect::<Result<Vec<_>, _>>();
+                    let Ok(fields) = fields else { return status::INVALID_ARGUMENT };
                     if let Some(r) = self.wradio(&dev) {
                         r.device_data = fields;
                     }
