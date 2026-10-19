@@ -17,12 +17,13 @@ import sys
 import tempfile
 import time
 
-CASES = ("healthy_spawn", "fail_spawn", "dependency", "bridge_remove", "bridge_last_port")
+CASES = ("healthy_spawn", "fail_spawn", "dependency", "bridge_remove", "bridge_last_port", "bridge_options")
 ORIGINAL_CHECKS = {}
 CHECKS = {case: {"recovered", "same_daemon"} for case in CASES}
 CHECKS["bridge_remove"] = {"removed_from_kernel", "removed_from_status", "dynamic_preserved"}
 CHECKS["bridge_last_port"] = {"removed_from_kernel", "unavailable", "address_removed"}
 CHECKS["dependency"] = {"initially_unavailable", "recovered", "loss_detected", "recovered_again", "same_daemon"}
+CHECKS["bridge_options"] = {"snooping_on_applied", "snooping_off_applied", "configured_port_preserved", "same_daemon"}
 
 PROTO = r'''#!/bin/sh
 . /lib/functions.sh
@@ -146,7 +147,24 @@ def inner(root, side, case):
     assert daemon.poll() is None
     assert Path(f"/proc/{daemon.pid}/exe").resolve() == root / binary.lstrip("/")
     result = {}
-    if case.startswith("bridge_"):
+    if case == "bridge_options":
+        wait_for(lambda: snapshot("ready").get("up"))
+        bridge = root / "sys/class/net/br-test/bridge"
+        assert (bridge / "multicast_snooping").read_text().strip() == "0"
+        path = root / "etc/config/network"
+        for old, new, label in ((0, 1, "on"), (1, 0, "off")):
+            path.write_text(path.read_text().replace(f"option igmp_snooping '{old}'", f"option igmp_snooping '{new}'"))
+            call("network", "reload")
+            time.sleep(1)
+            actual = {name: (bridge / name).read_text().strip()
+                      for name in ("multicast_snooping", "multicast_querier")}
+            write(output / (label + "-kernel.json"), json.dumps(actual, indent=2))
+            write(output / (label + "-device.json"), json.dumps(call("network.device", "status", {"name": "br-test"}), indent=2))
+            result["snooping_" + label + "_applied"] = all(value == str(new) for value in actual.values())
+        links = json.loads(run("ip", "-j", "link", "show", capture_output=True).stdout)
+        result["configured_port_preserved"] = next(x for x in links if x["ifname"] == "veth1").get("master") == "br-test"
+        result["same_daemon"] = daemon.poll() is None
+    elif case.startswith("bridge_"):
         wait_for(lambda: snapshot("ready").get("up"))
         if case == "bridge_remove":
             run("ip", "link", "add", "dynamic0", "type", "dummy")
@@ -241,7 +259,7 @@ def main():
                     write(root / "tmp/dependency", "")
                 if case.startswith("bridge_"):
                     empty = 1 if case == "bridge_remove" else 0
-                    write(root / "etc/config/network", "config device\n option name 'br-test'\n option type 'bridge'\n" + f" option bridge_empty '{empty}'\n" + " list ports 'veth1'\nconfig interface 'wan'\n option device 'br-test'\n option proto 'static'\n option ipaddr '10.90.0.1/24'\n")
+                    write(root / "etc/config/network", "config device\n option name 'br-test'\n option type 'bridge'\n" + f" option bridge_empty '{empty}'\n" + " option igmp_snooping '0'\n list ports 'veth1'\nconfig interface 'wan'\n option device 'br-test'\n option proto 'static'\n option ipaddr '10.90.0.1/24'\n")
                 write(root / "etc/config/wireless", "")
                 write(root / "lib/netifd/proto/probe.sh", PROTO, True)
                 write(root / "tmp/helper.sh", HELPER, True)

@@ -479,7 +479,7 @@ pub fn encode_prefix_reject(dev: &str, addr: Ipv6Addr, mask: u8, add: bool) -> (
 
 /// Bridge creation parameters. Only the options this device's config can reach
 /// are present; anything else would be dead code here.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BridgeConfig {
     pub stp: bool,
     pub stp_kernel: bool,
@@ -639,6 +639,11 @@ impl System {
     pub fn bridge_addbr(&mut self, name: &str, cfg: &BridgeConfig) -> io::Result<()> {
         let (ty, hdr, attrs) = encode_addbr(name, cfg);
         self.nl.request(ty, netlink::NLM_F_CREATE | netlink::NLM_F_EXCL, &hdr, &attrs)
+    }
+
+    pub fn bridge_set_options(&mut self, name: &str, cfg: &BridgeConfig) -> io::Result<()> {
+        let (ty, hdr, attrs) = encode_addbr(name, cfg);
+        self.nl.request(ty, 0, &hdr, &attrs)
     }
 
     pub fn bridge_delbr(&mut self, name: &str) -> io::Result<()> {

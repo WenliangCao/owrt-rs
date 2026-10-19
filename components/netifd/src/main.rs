@@ -1203,6 +1203,7 @@ impl Netifd {
             }
             if let Some(v) = dc.igmp_snooping {
                 brcfg.igmp_snoop = v;
+                brcfg.multicast_querier = v;
             }
             if let Some(v) = dc.vlan_filtering {
                 brcfg.vlan_filtering = v;
@@ -1228,6 +1229,15 @@ impl Netifd {
             if existing == 0 {
                 if let Err(e) = self.sys.bridge_addbr(&dc.name, &brcfg) {
                     logging::log!(Warning, "cannot create bridge {}: {e}", dc.name);
+                    continue;
+                }
+            } else if self.devices.get(&dc.name).and_then(|d| d.bridge.as_ref())
+                .map(|b| &b.config) != Some(&brcfg)
+            {
+                // C bridge_reload reapplies changed options on restart.
+                // Update the existing bridge without replacing its members.
+                if let Err(e) = self.sys.bridge_set_options(&dc.name, &brcfg) {
+                    logging::log!(Warning, "cannot update bridge {}: {e}", dc.name);
                     continue;
                 }
             }
