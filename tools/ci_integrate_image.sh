@@ -26,7 +26,8 @@ sudo -n python3 "$repo/tools/native_image.py" prepare "$work" "$spec" "$apk"
 # Reuse the verified original filesystem. ImageBuilder's ordinary package
 # install resolves rolling feeds, even for a fixed OpenWrt release number.
 sudo -n cp -a "$work/native/base-rootfs" "$work/native/assembled-rootfs"
-sudo -n "$apk" --root "$work/native/assembled-rootfs" --no-network --no-scripts \
+# APK's on-disk log embeds wall-clock time; keep build diagnostics in install.log.
+sudo -n "$apk" --root "$work/native/assembled-rootfs" --no-network --no-scripts --no-logfile \
     --allow-untrusted add "$work"/native/*.apk > "$work/native/install.log" 2>&1 \
     || { tail -50 "$work/native/install.log"; exit 1; }
 epoch=$(git -C "$repo" show -s --format=%ct HEAD)
