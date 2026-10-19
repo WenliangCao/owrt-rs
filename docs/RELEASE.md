@@ -1,5 +1,18 @@
 # 集成固件的发布与维护
 
+2026-10-19 更新：**v0.3.1 / `0.3.1-r1` / `native-eleven`** 收录 v0.3.0 独立可靠性审查的修复，
+已完成保配置刷写、两次各约 192 秒的客户端健康（首次启动与用户物理断电重启），守卫已解除。
+正式镜像来自 [CI 39246891830](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39246891830)，
+源码及标签目标 `c4acff16546f3e23397a37cf5d2ee5037d85ccca`，镜像 SHA256
+`099db9920bc59cfa943f2656a8c057e6eb00360bee71d5f513b5ed39aee34c3d`；已发布为
+[正式 Latest](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.1)，13 个附件回读一致。
+十个非 DNS ELF 绑定 core-safe-check `39246031676` 的实际构建；dnsmasq 仍是 v0.3.0 的
+`0421a5d0…`。发行构建现从冻结提交 `e21245d2` 的 git 归档取 dnsmasq 输入，不再读当前检出，
+逐字节参考门不变；收录 dnsmasq 修复需要重新冻结 PGO。延迟触发的 tag 构建 `39254445396` 已取消，
+未上传资产。离线回滚目标为 v0.3.0。见[部署记录](reviews/DEPLOYMENT_V0_3_1_20261019.md)。
+
+以下为 v0.3.0 发布时的状态。
+
 2026-10-18 更新：新增 odhcpd-rs 的 **v0.3.0 / `0.3.0-r1` / `native-eleven`**
 已完成保配置刷写、187.711 秒初始客户端健康、真实客户端自然 Renew，以及唯一
 一次 20 秒 WAN6 断开/自动恢复。用户接受 Mac 的撤销处理延迟；离线核对精确 C
