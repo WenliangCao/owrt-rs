@@ -121,9 +121,21 @@ pub fn ethtool_query(fd: impl AsFd, name: &str, buffer: &mut [u8]) -> io::Result
                 u64::from_ne_bytes(buffer.get(8..16).ok_or_else(invalid)?.try_into().unwrap());
             16 + 4 * mask.count_ones() as usize
         }
-        0x1b => 12usize
-            .checked_add((word(8)? as usize).checked_mul(32).ok_or_else(invalid)?)
-            .ok_or_else(invalid)?,
+        0x1b => {
+            // GSTRINGS ignores the input len and writes the kernel's count.
+            // Only the fixed feature-name table is used by netifd; unlike
+            // driver statistics, its size cannot change between these calls.
+            if word(4)? != 4 || buffer.len() < 12 {
+                return Err(invalid());
+            }
+            let mut info = [0u8; 20];
+            info[..4].copy_from_slice(&0x37u32.to_ne_bytes());
+            info[8..16].copy_from_slice(&(1u64 << 4).to_ne_bytes());
+            ethtool_query(fd.as_fd(), name, &mut info)?;
+            let count = u32::from_ne_bytes(info[16..20].try_into().unwrap()) as usize;
+            12usize.checked_add(count.checked_mul(32).ok_or_else(invalid)?)
+                .ok_or_else(invalid)?
+        }
         0x3a => 8usize
             .checked_add((word(4)? as usize).checked_mul(16).ok_or_else(invalid)?)
             .ok_or_else(invalid)?,
@@ -135,8 +147,8 @@ pub fn ethtool_query(fd: impl AsFd, name: &str, buffer: &mut [u8]) -> io::Result
     let mut request = ethtool_ifreq(name, buffer);
     // SAFETY: supported Linux64 ifreq holds a pointer to this exclusive live
     // command-sized buffer. Commands above have no nested user pointers.
-    // GSTRINGS uses the feature count queried for this same fixed driver by
-    // the caller; that driver does not change its feature string table.
+    // GSTRINGS is bounded by the kernel's fixed feature count queried above,
+    // not the untrusted input len that the ioctl itself ignores.
     if unsafe {
         ioctl(
             fd.as_fd().as_raw_fd(),
