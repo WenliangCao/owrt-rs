@@ -200,16 +200,28 @@ def source_epoch(spec, release_commit):
     return epoch
 
 
-def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use"):
-    # Target-only validation supplies a git archive whose complete input digest
-    # must match its frozen spec. Release builds retain the clean-checkout gate.
+def release_source(work, spec):
+    """Extract the accepted product commit, so later shared-library edits on
+    the release branch cannot change the frozen dnsmasq inputs."""
+    archive = work / "out/dnsmasq-source.tar"
+    subprocess.run(["git", "-C", str(REPO), "archive", "--format=tar", "--output", str(archive),
+                    spec["source_commit"], "--", *spec["source_files"]], check=True)
+    frozen = work / "out/dnsmasq-frozen-source"
+    frozen.mkdir()
+    subprocess.run(["tar", "-xf", str(archive), "-C", str(frozen)], check=True)
+    return frozen
+
+
+def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", release_commit=None):
+    # Frozen inputs come from a git archive whose complete input digest must
+    # match the spec. A release build also records its own checkout commit.
     validate_pgo_stage(spec, pgo_stage, frozen_source)
     root = REPO if frozen_source is None else frozen_source
     files, digest = source_identity(spec, frozen_source)
     out = work / "out/dnsmasq"
     source = out / "source"
     audit.snapshot(root, source, files)
-    commit = (spec["source_commit"] if frozen_source is not None else
+    commit = release_commit or (spec["source_commit"] if frozen_source is not None else
               subprocess.check_output(["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True).strip())
     report.update(source_files=files, source_digest=digest,
                   source_commit=commit,
@@ -380,7 +392,8 @@ def main():
         raise InterruptedError(f"dnsmasq release build interrupted by signal {signum}")
     previous = {number: signal.signal(number, interrupted) for number in (signal.SIGINT, signal.SIGTERM)}
     try:
-        build(work, spec, report)
+        head = subprocess.check_output(["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True).strip()
+        build(work, spec, report, frozen_source=release_source(work, spec), release_commit=head)
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         report.update(status="failed", error=str(error))
         raise

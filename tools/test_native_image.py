@@ -29,13 +29,13 @@ FILES = REPO / "packaging/openwrt/owrt-dnsmasq/files"
 class NativeDnsmasqTests(unittest.TestCase):
     def test_current_recipe_includes_the_qualified_odhcpd(self):
         expected = copy.deepcopy(SPEC)
-        expected["version"] = "0.3.0-r1"
+        expected["version"] = "0.3.1-r1"
         expected["components"]["odhcpd"] = {
             "path": "/usr/sbin/odhcpd", "binary": "odhcpd-rs", "stock_package": "odhcpd-ipv6only",
             "stock_sha256": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
             "reference_elf_sha256": "589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e"}
         self.assertEqual(NEXT_SPEC, expected)
-        self.assertEqual(NEXT_SPEC["version"], "0.3.0-r1")
+        self.assertEqual(NEXT_SPEC["version"], "0.3.1-r1")
 
     def test_only_exact_ten_and_eleven_native_inventories_are_accepted(self):
         self.assertEqual(native_image.native_layout(SPEC["components"]), "native-ten")
@@ -300,8 +300,15 @@ class NativeDnsmasqTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "epoch"):
             native_image.verify_dnsmasq_reference(dict(report, source_date_epoch=2346), spec)
 
-    def test_current_source_matches_frozen_product(self):
-        files, digest = ci_build_dnsmasq.source_identity(SPEC["dnsmasq_build"])
+    @unittest.skipUnless(subprocess.run(
+        ["git", "-C", str(REPO), "cat-file", "-e", SPEC["dnsmasq_build"]["source_commit"] + "^{commit}"],
+        capture_output=True).returncode == 0, "shallow checkout lacks the accepted dnsmasq commit")
+    def test_release_source_is_the_frozen_product(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary)
+            (work / "out").mkdir()
+            frozen = ci_build_dnsmasq.release_source(work, SPEC["dnsmasq_build"])
+            files, digest = ci_build_dnsmasq.source_identity(SPEC["dnsmasq_build"], frozen)
         self.assertEqual(len(files), 212)
         self.assertEqual(digest, "0f87482e7482f472c879db4cdb98b725d1c047f6867e606aacacf8e2d33162b7")
 
