@@ -26,7 +26,10 @@ import subprocess
 import sys
 
 
-WORKLOAD_PLAN_SHA256 = "dcb13b5d341a946e86704772ce1802687564ee2fbee58e3030d832f7abc17b66"
+# The original private plan was retired after v0.2.2. This committed manifest
+# rebinds the recovered tools (all six ELF hashes unchanged) and official SDK;
+# it contains no old product/source/profile identity.
+WORKLOAD_PLAN_SHA256 = "8568f3e496cbe1d11663bbcc0696c291fdce3e46d3dfdac8271b82ead37943cd"
 HELPER_SHA256 = "bdf39f4d42d601f0141360f4bdd2ab8b11ba540cb4ceed47ab4f319a5b7d1d6a"
 
 
@@ -61,6 +64,12 @@ def empty_directory(path, *, fresh=False):
         require(not path.exists(), "attempt already exists; preserve it and use a new path")
     path.mkdir(exist_ok=not fresh)
     require(not any(path.iterdir()), "profile directory is not empty")
+
+
+def reference_plan(item):
+    path = checked_file(item)
+    require(sha(path) == WORKLOAD_PLAN_SHA256, "frozen workload manifest changed")
+    return path, json.loads(path.read_text())
 
 
 def validate_ci(built, freeze, baseline, elf):
@@ -125,17 +134,14 @@ def load_original(inputs, hashes):
 
 def prepare(request, base):
     require(request["schema"] == 1, "unknown request schema")
-    reference_path = checked_file(request["reference_plan"])
-    require(sha(reference_path) == WORKLOAD_PLAN_SHA256, "original workload plan changed")
-    reference = json.loads(reference_path.read_text())
-    baseline = json.loads(checked_file(reference["baseline_receipt"]).read_text())
+    reference_path, reference = reference_plan(request["reference_plan"])
     freeze_path = checked_file(request["source_spec"])
     freeze = json.loads(freeze_path.read_text())
     ci_path = checked_file(request["ci_build"])
     elf = checked_file(request["generate_elf"])
     require(os.access(elf, os.X_OK), "instrumented ELF must be executable after artifact extraction")
     built = json.loads(ci_path.read_text())
-    default = validate_ci(built, freeze, baseline, elf)
+    default = validate_ci(built, freeze, reference, elf)
     smoke_path = checked_file(request["smoke_runtime"])
     smoke = json.loads(smoke_path.read_text())
     validate_smoke(smoke, sha(elf))
@@ -161,8 +167,8 @@ def prepare(request, base):
                                        (inputs / "pgo_lifecycle_exit.c").read_text())
     require(helper_build["source_sha256"] == reference["training_lifecycle_source_sha256"]
             == hashlib.sha256(source.encode()).hexdigest(), "reused helper source differs")
-    require(helper_build["compiler_sha256"] == sha(reference["sdk_cc"])
-            and helper_build["elf_sha256"] == sha(helper) == HELPER_SHA256
+    require(helper_build["compiler_sha256"] == reference["helper_compiler_sha256"] == sha(reference["sdk_cc"])
+            and helper_build["elf_sha256"] == reference["helper_elf_sha256"] == sha(helper) == HELPER_SHA256
             and helper_build["argv"] == reference["helper_build_argv"], "reused helper compiler/ELF differs")
     shutil.copy2(helper, base / "device_perf_lifecycle")
     shutil.copy2(helper_base / "helper-build.json", base / "helper-build.json")

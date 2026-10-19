@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   candidate-build:
-    if: github.ref == 'refs/heads/research/core-safe-20261017'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/an8855-dtb-trim'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

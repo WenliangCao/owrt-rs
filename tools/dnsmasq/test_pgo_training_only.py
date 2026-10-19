@@ -47,6 +47,28 @@ class TrainingOnlyTests(unittest.TestCase):
         self.assertEqual(training.validate_ci(self.ci, self.reference, self.baseline, self.elf),
                          Path("/tmp/dnsmasq-synthetic-pgo"))
 
+    def test_committed_workload_manifest_and_changed_identity(self):
+        manifest = Path(__file__).resolve().parents[2] / "manifests/dnsmasq-pgo-training-v032.json"
+        item = {"path": str(manifest), "sha256": training.sha(manifest)}
+        _, reference = training.reference_plan(item)
+        self.assertEqual(reference["training_seed"], 539365398)
+        self.assertEqual(reference["evaluation_seed"], 2699265)
+        self.assertEqual(reference["expected_profile_count"], 50)
+        self.assertEqual(len(reference["scenes"]), 11)
+        self.assertEqual(reference["helper_elf_sha256"], training.HELPER_SHA256)
+        self.assertNotIn("baseline_receipt", reference)
+        self.assertNotIn("generate_elf", reference)
+        self.assertNotIn("source_commit", reference)
+        reference["training_seed"] += 1
+        changed = self.file(self.root / "changed-reference.json", json.dumps(reference).encode())
+        with self.assertRaisesRegex(ValueError, "frozen workload manifest changed"):
+            training.reference_plan(changed)
+
+    def test_changed_sdk_is_rejected_without_old_product_receipt(self):
+        reference = {"sdk": {"archive_sha256": "f" * 64}}
+        with self.assertRaisesRegex(ValueError, "SDK archive differs"):
+            training.validate_ci(self.ci, self.reference, reference, self.elf)
+
     def test_old_host_plain_and_different_source_refused(self):
         for key, bad in (("status", "built-and-audited"), ("release_qualified", True),
                          ("pgo_stage", "use"), ("source_commit", "f" * 40), ("source_digest", "f" * 64)):

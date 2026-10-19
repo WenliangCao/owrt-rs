@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "scope": "v0.3.2 synthetic training inputs only; no product ELF or profile reuse",
+  "recovered_tools_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+  "original_plan_sha256": "1ff57e91a438a2b56e161d688fc19e65aa9214c6c0827c8a7aa20a344be9af26",
+  "loadgen_source_commit": "ca9fea5b32952578b125d3daee3a41f17ea65f04",
+  "sdk": {
+    "archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25"
+  },
+  "cpu": 0,
+  "training_seed": 539365398,
+  "evaluation_seed": 2699265,
+  "expected_profile_count": 50,
+  "passes": 1,
+  "weight_policy": "One pass per scene, each raw file unit weight; no selective reruns or evaluation/smoke profiles",
+  "scenes": [
+    [
+      "udp-hit",
+      "udp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-miss",
+      "udp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-mixed",
+      "udp",
+      "mixed",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-hit",
+      "tcp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-miss",
+      "tcp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "dhcp-home6",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      6
+    ],
+    [
+      "dhcp",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      150
+    ],
+    [
+      "startup-small",
+      "life-startup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "config-small",
+      "life-config",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-small",
+      "life-hup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-large",
+      "life-hup",
+      999,
+      150,
+      20,
+      1000,
+      150
+    ]
+  ],
+  "input_sha256": {
+    "pgo_train.py": "10d5fc63b9fc55d639b5182c9f9b0afb53a4b77da6824ddb9888bfaadc72ee0a",
+    "pgo_train_cargo.py": "fd5c7494c8f390f312bf4ae8904507f7a4bde2c69e3c22216b9f094c7e2c6b35",
+    "pgo_sdk_smoke.py": "4157e50ae1d53a422c6365d426c3ae3f23c957d086e17d1913c4980d0e49ae66",
+    "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+    "perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_lifecycle.c": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4",
+    "pgo_lifecycle_exit.c": "2e3ad050bb5d33a97796068618f2fd6b0b87861a83a06e67cf1b8b444127cc2d"
+  },
+  "workload_tools": {
+    "m6a_loadgen": {
+      "path": "/home/ubuntu/v032-dnsmasq-20261019/pgo-inputs/rebuild-original/m6a_loadgen",
+      "sha256": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd"
+    },
+    "m6a_upstream": {
+      "path": "/home/ubuntu/v032-dnsmasq-20261019/pgo-inputs/m6a_upstream",
+      "sha256": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68"
+    },
+    "device_perf_resource_probe": {
+      "path": "/home/ubuntu/v032-dnsmasq-20261019/pgo-inputs/device_perf_resource_probe",
+      "sha256": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f"
+    },
+    "device_perf_netns": {
+      "path": "/home/ubuntu/v032-dnsmasq-20261019/pgo-inputs/device_perf_netns",
+      "sha256": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0"
+    },
+    "nice10": {
+      "path": "/home/ubuntu/v032-dnsmasq-20261019/pgo-inputs/nice10",
+      "sha256": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac"
+    }
+  },
+  "profdata": {
+    "path": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+    "version": "LLVM 22.1.8-rust-1.98.1-stable",
+    "sha256": "c7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e",
+    "observation": "Reported by loop and root; reverify on the reserved host before use"
+  },
+  "attempt": "/home/ubuntu/v032-dnsmasq-20261019/pgo-inputs/rebuild-original",
+  "training_lifecycle_source_sha256": "49666bd37b81a2a089db389b6b9543d52156f3c4b865c54f0d5e479b8d27cb48",
+  "sdk_cc": "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+  "helper_build_argv": [
+    "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+    "-Os",
+    "-static",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "/home/ubuntu/v032-dnsmasq-20261019/pgo-inputs/rebuild-original/device_perf_lifecycle.c",
+    "-o",
+    "/home/ubuntu/v032-dnsmasq-20261019/pgo-inputs/rebuild-original/device_perf_lifecycle"
+  ],
+  "helper_elf_sha256": "bdf39f4d42d601f0141360f4bdd2ab8b11ba540cb4ceed47ab4f319a5b7d1d6a",
+  "helper_compiler_sha256": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57"
+}
