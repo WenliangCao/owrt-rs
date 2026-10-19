@@ -197,17 +197,21 @@ fn password_set(raw: &[u8]) -> Reply {
         Err(e) => return code(errno_status(&e)),
     };
     let mut stdin = child.stdin.take().expect("piped");
-    let write = |s: &mut std::process::ChildStdin, data: &[u8]| -> Result<(), std::io::Error> { s.write_all(data) };
-    if let Err(e) = write(&mut stdin, password.as_bytes()).and_then(|_| write(&mut stdin, b"\n")) {
-        return code(errno_status(&e));
-    }
-    std::thread::sleep(Duration::from_millis(100));
-    if let Err(e) = write(&mut stdin, password.as_bytes()).and_then(|_| write(&mut stdin, b"\n")) {
-        return code(errno_status(&e));
-    }
+    let written = (|| -> std::io::Result<()> {
+        stdin.write_all(password.as_bytes())?;
+        stdin.write_all(b"\n")?;
+        std::thread::sleep(Duration::from_millis(100));
+        stdin.write_all(password.as_bytes())?;
+        stdin.write_all(b"\n")
+    })();
+    // A rejected username can close the pipe before our second write. Child
+    // does not reap on drop, so close stdin and wait on every post-spawn path.
     drop(stdin);
     let _ = child.wait();
-    code(0)
+    match written {
+        Ok(()) => code(0),
+        Err(error) => code(errno_status(&error)),
+    }
 }
 
 pub enum Outcome {
