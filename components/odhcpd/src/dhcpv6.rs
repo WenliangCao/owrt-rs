@@ -16,6 +16,8 @@ const IA_PD: u16 = 25;
 const IA_PREFIX: u16 = 26;
 const MAX_LEASES: usize = 4096;
 const IA_REPLY_LIMIT: usize = 512;
+// IPv6 payload length includes the eight-byte UDP header (no jumbograms).
+const MAX_UDP_PAYLOAD: usize = u16::MAX as usize - 8;
 
 pub struct RequestContext<'a> {
     pub source: SocketAddrV6,
@@ -671,6 +673,11 @@ impl Dhcpv6 {
             .into_iter()
             .flat_map(|address| address.octets())
             .collect();
+        // Reject before changing leases: the option length must not wrap when
+        // an administrator configures more than 4095 IPv6 DNS addresses.
+        if dns.len() > u16::MAX as usize {
+            return None;
+        }
         if !dns.is_empty() {
             push_option(&mut reply, 23, &dns);
         }
@@ -978,7 +985,7 @@ impl Dhcpv6 {
             }
         }
         Some(DhcpOutcome {
-            reply: Some(reply),
+            reply: (reply.len() <= MAX_UDP_PAYLOAD).then_some(reply),
             write_state,
         })
     }
