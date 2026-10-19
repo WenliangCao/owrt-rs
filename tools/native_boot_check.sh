@@ -142,6 +142,8 @@ cat > "$root/tmp/native-drive.sh" <<'DRIVE'
 set -eu
 trap 'touch /tmp/out/FAILED; echo FAILED >> /tmp/out/verdict' EXIT
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+test -f /proc/kmsg && test ! -s /proc/kmsg
+printf '%s\n' regular-empty > /tmp/out/kmsg-fixture-runtime.check
 for wait in $(seq 1 45); do
     if ubus -S -t 1 call network.interface.lan status > /tmp/out/lan.json 2>/dev/null &&
        grep -q '"up":true' /tmp/out/lan.json &&
@@ -281,6 +283,12 @@ container=1 timeout -s KILL 120 unshare --mount --net --pid --uts --ipc --fork -
     test -s "$root/tmp/out/fixture-root-mount.txt"
     mount -t proc proc /proc
     mount --bind /proc "$root/proc"
+    # Kernel log reads consume global host state even inside a PID namespace.
+    # Keep the exact logd/init argv, but expose only an empty regular fixture.
+    : > "$root/tmp/kmsg-empty"
+    mount --bind "$root/tmp/kmsg-empty" "$root/proc/kmsg"
+    test -f "$root/proc/kmsg" && test ! -s "$root/proc/kmsg"
+    stat -c "%f %s" "$root/proc/kmsg" > "$root/tmp/out/kmsg-fixture-host.stat"
     mount -t sysfs -o ro sysfs "$root/sys"
     mount -t tmpfs -o mode=0755 tmpfs "$root/dev"
     mknod -m 666 "$root/dev/null" c 1 3
@@ -299,7 +307,7 @@ cp -a "$root/tmp/out/." "$out/"
 test "$(cat "$out/verdict")" = PASS
 test "$status" -ne 124 && test "$status" -ne 137
 python3 - "$image" "$out" <<'PY'
-import hashlib,json,sys
+import hashlib,json,stat,sys
 from pathlib import Path
 root,out=map(Path,sys.argv[1:])
 manifest=json.loads((root/'usr/share/owrt-control-plane/release.json').read_text())
@@ -338,6 +346,9 @@ mounts=json.loads((out/'mounts.json').read_text())['result']
 assert not any(m['mount'] in {item['path'] for item in manifest['components'].values()} for m in mounts)
 client=json.loads((out/'client-result.json').read_text())
 assert client['passed'] and client['lease_file_matches_client']
+mode, size = (out/'kmsg-fixture-host.stat').read_text().split()
+assert stat.S_ISREG(int(mode, 16)) and int(size) == 0
+assert (out/'kmsg-fixture-runtime.check').read_text().strip() == 'regular-empty'
 metrics=json.loads((out/'dnsmasq-metrics.json').read_text())
 assert isinstance(metrics,dict) and metrics
 for item in manifest['integration_files'].values():
@@ -346,6 +357,7 @@ for item in manifest['integration_files'].values():
 result={'pid1_and_six_daemon_identities':True,'standard_service_paths':True,
         'synthetic_LAN_and_WAN_up':True,'HTTP_and_HTTPS_content':True,
         'first_boot_certificate_generation':True,'log_roundtrip':True,
+        'kernel_log_isolated_by_empty_regular_file':True,
         'uci_and_reload_config':True,'fw4_matches_stock_and_checks':True,
         'no_executable_bind_mounts':True,'PID1_reboot_exits_namespace':True,
         'exact_dnsmasq_init_and_ACL':True,'veth_client_DHCP_OFFER_ACK_and_options':True,
