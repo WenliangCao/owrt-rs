@@ -573,6 +573,21 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     let mut bad_field = false;
 
     for f in entry.children() {
+        use owrt_ubus::blob::MsgType;
+        let expected = match f.name {
+            "command" | "netdev" | "file" | "triggers" | "respawn" | "watch"
+            | "error" | "watchdog" => Some(MsgType::Array),
+            "env" | "data" | "limits" | "jail" => Some(MsgType::Table),
+            "nice" | "reload_signal" | "term_timeout" => Some(MsgType::Int32),
+            "stdout" | "stderr" | "no_new_privs" | "trace" => Some(MsgType::Int8),
+            "user" | "group" | "seccomp" | "capabilities" | "pidfile" | "facility"
+            | "extroot" | "overlaydir" | "tmpoverlaysize" | "bundle" => Some(MsgType::String),
+            _ => None,
+        };
+        // blobmsg_parse ignores fields whose outer type fails the policy.
+        if expected.is_some_and(|ty| f.ty != ty as u32) {
+            continue;
+        }
         match f.name {
             // blobmsg_parse drops a field whose top-level type does not
             // match the policy, so `command: "/bin/true"` (a string, not an
@@ -640,15 +655,23 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             // is NOT a config change in the C.
             "netdev" => {
                 let mut by_name: BTreeMap<String, u32> = BTreeMap::new();
-                for n in f.children().filter_map(|c| c.as_str()) {
-                    by_name.entry(n.to_string()).or_insert_with(|| crate::sys::if_nametoindex(n));
+                for c in f.children() {
+                    if let Some(n) = c.as_str() {
+                        by_name.entry(n.to_string()).or_insert_with(|| crate::sys::if_nametoindex(n));
+                    } else {
+                        bad_field = true;
+                    }
                 }
                 i.netdev = by_name.into_iter().collect();
             }
             "file" => {
                 let mut by_path: BTreeMap<String, [u8; 16]> = BTreeMap::new();
-                for p in f.children().filter_map(|c| c.as_str()) {
-                    by_path.entry(p.to_string()).or_insert_with(|| crate::sys::file_md5(p));
+                for c in f.children() {
+                    if let Some(p) = c.as_str() {
+                        by_path.entry(p.to_string()).or_insert_with(|| crate::sys::file_md5(p));
+                    } else {
+                        bad_field = true;
+                    }
                 }
                 i.file = by_path.into_iter().collect();
             }

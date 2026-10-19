@@ -1463,7 +1463,7 @@ impl Procd {
                 }
                 "instances" => {
                     saw_instances = true;
-                    for e in f.children() {
+                    for e in f.children().filter(|e| e.ty == owrt_ubus::MsgType::Table as u32) {
                         let iname = e.name.to_string();
                         fresh.insert(iname.clone(), instance::parse(&iname, e));
                     }

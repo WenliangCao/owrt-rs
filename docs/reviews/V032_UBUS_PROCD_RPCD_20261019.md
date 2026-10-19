@@ -39,7 +39,7 @@ fw4/odhcpd 的调用方验证由整合检查记录。
 
 | 组件 / 项目 | 当前状态 |
 |---|---|
-| procd instance 顶层类型策略 | 待复现 |
+| procd instance 顶层类型策略 | 四轮复现并修复；见下 |
 | procd instance.update 事件 | 待复现 |
 | procd 负 trigger timeout | 待复现 |
 | procd watchdog 驱动实际 timeout | 待复现 |
@@ -49,3 +49,15 @@ fw4/odhcpd 的调用方验证由整合检查记录。
 | rpcd UCI 错误被 unload 清除 | 待复现 |
 | rpcd 非规范 base64 padding | 待复现 |
 | rpcd LuCI 显式空 name 过滤 | 待复现 |
+
+## procd 类型策略
+
+`check_procd_static.py` 在私有 PID/mount/net namespace 的精确镜像副本运行真实
+C/Rust daemon。四轮均见 9 个类型用例分歧：错误顶层 respawn/env/limits/data/netdev/error
+类型被采用，netdev/file 非字符串元素未拒绝整个实例，非 TABLE 实例仍被登记。
+其中 env/limits/data ARRAY 产生 ubus CLI 无法解析的 JSON。修复统一执行 C 的顶层
+类型策略、拒绝不合法的 netdev/file 元素，并在 service 入口跳过非 TABLE 实例。
+`procd-static-red/result.json` 四轮红；`procd-types-green-2/result.json` 四轮所有类型
+用例与 C 相同，尚余事件/负 timeout 的预期分歧。file 顶层错误类型在本夹具中没有
+可见输出分歧；它和其余字段统一经过同一策略。原始失败夹具和第一版候选未删，
+前者缺少镜像启动时由 devtmpfs 提供的 `/dev/null`，零 timeout 阳性失败，不计复现。
