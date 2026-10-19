@@ -33,7 +33,7 @@ class NativeDnsmasqTests(unittest.TestCase):
         expected["components"]["odhcpd"] = {
             "path": "/usr/sbin/odhcpd", "binary": "odhcpd-rs", "stock_package": "odhcpd-ipv6only",
             "stock_sha256": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
-            "reference_elf_sha256": "589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e"}
+            "reference_elf_sha256": "f61c2b9216c0e0a65e06a4b53bfc1f0957fc8cb1dfa0a5e070730b7067981d60"}
         self.assertEqual(NEXT_SPEC, expected)
         self.assertEqual(NEXT_SPEC["version"], "0.3.1-r1")
 

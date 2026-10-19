@@ -11,63 +11,63 @@
       "stock_sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
       "stock_package": "firewall4",
       "binary": "fw4-rs",
-      "reference_elf_sha256": "1f53b868cb3fc9c205257a41bd17918d93cc38ba7cb84138e57154d10840f3f8"
+      "reference_elf_sha256": "bc75a3ef996cd5295727361d0667bc24d609d4ab4f51d6ccb60d74cfcd744eac"
     },
     "httpd": {
       "path": "/usr/sbin/uhttpd",
       "stock_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
       "stock_package": "uhttpd",
       "binary": "httpd-rs",
-      "reference_elf_sha256": "f7da1ab1e91c8669db8a7e66496cafb44a6541279f2373b27f4fbedc23020f87"
+      "reference_elf_sha256": "0df9b329e2a70ebfea866cfbc0781cf60fed2b8dd83b8a597f3b6df06fca1109"
     },
     "logd": {
       "path": "/sbin/logd",
       "stock_sha256": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
       "stock_package": "logd",
       "binary": "logd-rs",
-      "reference_elf_sha256": "b64dc342f1a9201da0c0be8acea9d5f7c64accff16df387ea2ed07444439572e"
+      "reference_elf_sha256": "a1b2ef0baeaa5b3b73b95e2561479c9a9cc92e69a552163c3172c6fb6f904350"
     },
     "netifd": {
       "path": "/sbin/netifd",
       "stock_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
       "stock_package": "netifd",
       "binary": "netifd-rs",
-      "reference_elf_sha256": "cd02d474cfc557fb43231c947c29b442a0178efdaea6902e9b4bf2a0d03310ef"
+      "reference_elf_sha256": "310394647b2b1f9df5e033711536f9f8379260290b124482959b80cd7bc5db53"
     },
     "procd": {
       "path": "/sbin/procd",
       "stock_sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
       "stock_package": "procd",
       "binary": "procd-rs",
-      "reference_elf_sha256": "d66b0f1dd488313999235c267f07bc26573aa7cb7fcb5bd6664efd288c61ade6"
+      "reference_elf_sha256": "cfe1890358c9061507d8637669226acc7a9c5a7eef03638292933e222f98f63e"
     },
     "reload-config": {
       "path": "/sbin/reload_config",
       "stock_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
       "stock_package": "procd",
       "binary": "reload_config_rs",
-      "reference_elf_sha256": "3d8ffa37d216021dd5285b21cfdb6eb63b05eb5e00b2b6ab20ec9720bdd125ed"
+      "reference_elf_sha256": "f45cb18fb2b9a3de60862d27eab4d6ebba9beffca0bfdd8720298c9e2a54954f"
     },
     "rpcd": {
       "path": "/sbin/rpcd",
       "stock_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
       "stock_package": "rpcd",
       "binary": "rpcd-rs",
-      "reference_elf_sha256": "dad2ed085e3d8fba90e45c55daf0783080d7478c5e3d19e0658f2e54eca4ffc2"
+      "reference_elf_sha256": "e821c4ffab51d2251637e863d6b7c060055b993cb40492fd407f61ba99d81d9a"
     },
     "ubusd": {
       "path": "/sbin/ubusd",
       "stock_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
       "stock_package": "ubusd",
       "binary": "ubusd-rs",
-      "reference_elf_sha256": "ee1d44a0a4612acf4724e05cf64d028c154ce93d7fbbd399982c61068d52a73e"
+      "reference_elf_sha256": "6aa1a369c78d93ee1fb7cdf28d55128bd5a4640455e865836381d3d1ba6088f0"
     },
     "uci": {
       "path": "/sbin/uci",
       "stock_sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
       "stock_package": "uci",
       "binary": "uci-rs",
-      "reference_elf_sha256": "0503bfe0eaa07d25aadaf083d5a2eb5b1bf3db3d6b99ff4febc1dd5619ac58af"
+      "reference_elf_sha256": "db687d78d70ebaf7f33f14238b6c3fc102129ab7f17fab52c008599f449cac08"
     },
     "dnsmasq": {
       "path": "/usr/sbin/dnsmasq",
@@ -80,7 +80,7 @@
       "stock_sha256": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
       "stock_package": "odhcpd-ipv6only",
       "binary": "odhcpd-rs",
-      "reference_elf_sha256": "589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e"
+      "reference_elf_sha256": "f61c2b9216c0e0a65e06a4b53bfc1f0957fc8cb1dfa0a5e070730b7067981d60"
     }
   },
   "stock_image": {
