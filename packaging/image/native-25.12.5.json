@@ -4,7 +4,7 @@
   "profile": "xiaomi_mi-router-ax3000t",
   "architecture": "aarch64_cortex-a53",
   "package": "owrt-control-plane",
-  "version": "0.3.1-r1",
+  "version": "0.3.2-r1",
   "components": {
     "fw4": {
       "path": "/sbin/fw4",
