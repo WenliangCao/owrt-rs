@@ -35,6 +35,50 @@ V4 = {'lan': '10.77.0.1', 'wan': '10.78.0.1'}
 V6 = {'lan': 'fd42:77::1', 'wan': 'fd42:78::1'}
 PEER = {'lan': 'lpeer', 'wan': 'wpeer'}
 MODES = {'wildcard': '', 'static': 'bind-interfaces\n', 'dynamic': 'bind-dynamic\n'}
+RECOVERY_PROFILES = {'runtime-shared-dns-both', 'runtime-shared-all'}
+
+
+def recovery_case(item):
+    return item['mode']=='dynamic' and item['profile'] in RECOVERY_PROFILES
+
+
+def recovery_sockets(item, label, side):
+    """Exact fixture inventories; C keeps its documented iface->done defect."""
+    protocols = [('tcp', DNS_PORT), ('udp', 69), ('udp', DNS_PORT)]
+    rows = [dict(transport=proto, address=address, port=port)
+            for address in [V4['lan'], '127.0.0.1', '::1', V6['lan'], 'fe80::1']
+            for proto,port in protocols]
+    if label not in ['shared-before', 'shared-removed']:
+        recovered = (label=='shared-released' and side=='rust' or
+                     label=='shared-trigger' and (side=='rust' or item['profile']=='runtime-shared-all'))
+        added = protocols if recovered else [('udp', 69)] if item['profile']=='runtime-shared-dns-both' else []
+        rows.extend(dict(transport=proto, address='10.77.0.9', port=port) for proto,port in added)
+    if label=='shared-trigger':
+        rows.extend(dict(transport=proto, address='10.77.0.10', port=port) for proto,port in protocols)
+    return sorted(rows, key=lambda row:(row['transport'],row['address'],row['port']))
+
+
+def recovery_reply(case):
+    source=V4['lan'] if case.startswith('shared-healthy-') else '10.77.0.9'
+    if case.endswith('-tftp'):
+        return dict(packet=(b'\0\3\0\1synthetic listener boot\n').hex(), source=source, dedicated=True)
+    return {'source':source, 'semantic':{'flags':0x8580, 'id':0x5e01,
+        'questions':[['ready.test',1,1]], 'records':[{'section':'answer','name':'ready.test',
+        'type':1,'class':1,'ttl':0,'data':'192.0.2.53'}]}}
+
+
+def recovery_difference(item, c, rust):
+    if not recovery_case(item) or c==rust or c['case']!=rust['case']:return False
+    case=c['case']
+    if case in ['shared-released','shared-trigger']:
+        return (set(c)==set(rust)=={'case','sockets','preserved_healthy_sockets'} and
+                c['preserved_healthy_sockets'] is rust['preserved_healthy_sockets'] is True and
+                c['sockets']==recovery_sockets(item,case,'c') and
+                rust['sockets']==recovery_sockets(item,case,'rust'))
+    if (case.startswith(('shared-after-release-','shared-after-trigger-')) and
+            not expected_answer(item,case,'c') and expected_answer(item,case,'rust')):
+        return c==dict(case=case,answer=None) and rust==dict(case=case,answer=recovery_reply(case))
+    return False
 
 
 def save(path, value):
@@ -265,7 +309,7 @@ def exec_socket_fault(number,kind,argv):
     os.execvp(argv[0],argv)
 
 
-def inventory(pid):
+def inventory(pid, include_inode=False):
     inodes = set()
     for fd in Path(f'/proc/{pid}/fd').iterdir():
         with contextlib.suppress(FileNotFoundError):
@@ -281,7 +325,9 @@ def inventory(pid):
             if port not in [DNS_PORT,53,69,67,4011]: continue
             raw=bytes.fromhex(addr)
             raw=b''.join(raw[i:i+4][::-1] for i in range(0,len(raw),4))
-            result.append(dict(transport=filename[:3],address=str(ipaddress.ip_address(raw)),port=port))
+            row=dict(transport=filename[:3],address=str(ipaddress.ip_address(raw)),port=port)
+            if include_inode:row['inode']=parts[9]
+            result.append(row)
     return sorted(result,key=lambda row:(row['transport'],row['address'],row['port']))
 
 
@@ -295,12 +341,21 @@ class Observer:
         self.net,self.process,self.out,self.port=net,process,out,port
         self.log=log
         self.rows=[]
-    def sockets(self, label, delay=.25):
+        self.socket_identities={}
+    def sockets(self, label, delay=.25, retain=False, retired=()):
         time.sleep(delay)
         if self.log:self.log.drain()
         assert self.process.poll() is None, 'daemon exited during '+label
-        value=inventory(self.process.pid)
-        self.rows.append(dict(case=label, sockets=value))
+        value=inventory(self.process.pid, include_inode=retain)
+        row=dict(case=label, sockets=value)
+        if retain:
+            save(self.out/(label+'-socket-identities.json'),value)
+            current={(entry['transport'],entry['address'],entry['port']):entry['inode'] for entry in value}
+            row['preserved_healthy_sockets']=all(current.get(key)==inode
+                for key,inode in self.socket_identities.items() if key[1] not in retired)
+            self.socket_identities=current
+            row['sockets']=[{key:item for key,item in entry.items() if key!='inode'} for entry in value]
+        self.rows.append(row)
         snapshot(self.out/(label+'-network.json'))
         return value
     def ask(self,label,dest,transport='udp',link=None,local=False):
@@ -454,10 +509,15 @@ def execute(root,side,item,out):
                     observer.ask('dad-final-'+transport,'fd42:77::9',transport,'lpeer')
                 observer.ask('dad-surviving-udp',V4['lan'],link='lpeer')
             elif profile.startswith('runtime-shared-'):
+                recovering=recovery_case(item)
+                def healthy(phase):
+                    if recovering:
+                        for proto in ['udp','tcp','tftp']:
+                            observer.ask('shared-healthy-'+phase+'-'+proto,V4['lan'],proto,'lpeer')
                 blocked=[]
                 if profile in ['runtime-shared-dns-both','runtime-shared-all']:blocked.extend([('udp',port),('tcp',port)])
                 if profile in ['runtime-shared-tftp','runtime-shared-all']:blocked.append(('udp',69))
-                observer.sockets('shared-before')
+                observer.sockets('shared-before',retain=recovering)
                 for proto,blocked_port in blocked:
                     endpoint=socket.socket(socket.AF_INET,socket.SOCK_STREAM if proto=='tcp' else socket.SOCK_DGRAM)
                     endpoint.setsockopt(socket.SOL_IP,15,1)
@@ -465,17 +525,23 @@ def execute(root,side,item,out):
                     if proto=='tcp':endpoint.listen(1)
                     blockers.append(endpoint)
                 ip('addr','add','10.77.0.9/24','dev','lan')
-                observer.sockets('shared-partial')
+                observer.sockets('shared-partial',retain=recovering)
+                healthy('partial')
                 for proto in ['udp','tcp','tftp']:observer.ask('shared-before-release-'+proto,'10.77.0.9',proto,'lpeer')
                 for endpoint in blockers:endpoint.close()
                 blockers.clear()
-                observer.sockets('shared-released')
+                # F23 retries every second. Observe after two retry deadlines,
+                # rather than let the old .25s query series straddle recovery.
+                observer.sockets('shared-released',2.2 if recovering else .25,retain=recovering)
+                healthy('released')
                 for proto in ['udp','tcp','tftp']:observer.ask('shared-after-release-'+proto,'10.77.0.9',proto,'lpeer')
                 ip('addr','add','10.77.0.10/24','dev','lan')
-                observer.sockets('shared-trigger')
+                observer.sockets('shared-trigger',retain=recovering)
+                healthy('trigger')
                 for proto in ['udp','tcp','tftp']:observer.ask('shared-after-trigger-'+proto,'10.77.0.9',proto,'lpeer')
                 ip('addr','del','10.77.0.9/24','dev','lan');ip('addr','del','10.77.0.10/24','dev','lan')
-                observer.sockets('shared-removed')
+                observer.sockets('shared-removed',retain=recovering,retired=('10.77.0.9','10.77.0.10'))
+                healthy('removed')
             elif profile.startswith('runtime-occupied-'):
                 transport=profile.rsplit('-',1)[1]
                 observer.sockets('before-occupied')
@@ -599,10 +665,17 @@ def validate(result,cases):
             ended=next((row for row in observations if row['case']=='exit'),None)
             if not ended or ended.get('exit')!=0 or ended.get('forced'): failures.append(item['name']+': incomplete cleanup')
         for row in observations:
+            if recovery_case(item) and row['case'] in ['shared-before','shared-partial','shared-released','shared-trigger','shared-removed']:
+                if row.get('sockets')!=recovery_sockets(item,row['case'],result.get('side','c')):
+                    failures.append(item['name']+': recovery socket inventory '+row['case'])
+                if row.get('preserved_healthy_sockets') is not True:
+                    failures.append(item['name']+': healthy socket replaced '+row['case'])
             if 'answer' not in row: continue
             expected = expected_answer(item, row['case'], result.get('side','c'))
             if expected is not None and bool(row['answer']) != expected:
                 failures.append(item['name']+': reference guard '+row['case'])
+            if recovery_case(item) and row['answer'] and row['answer']!=recovery_reply(row['case']):
+                failures.append(item['name']+': exact recovery reply '+row['case'])
             if row['answer'] and 'semantic' in row['answer']:
                 semantic=row['answer']['semantic']
                 if semantic['flags']&15 or not any(rr['type']==1 and rr['data']=='192.0.2.53' for rr in semantic['records']):
@@ -652,12 +725,16 @@ def expected_labels(item):
         labels.append('dad-surviving-udp')
     elif profile.startswith('runtime-shared-'):
         labels.extend(['shared-before','shared-partial'])
+        if recovery_case(item):labels.extend('shared-healthy-partial-'+proto for proto in ['udp','tcp','tftp'])
         labels.extend('shared-before-release-'+proto for proto in ['udp','tcp','tftp'])
         labels.append('shared-released')
+        if recovery_case(item):labels.extend('shared-healthy-released-'+proto for proto in ['udp','tcp','tftp'])
         labels.extend('shared-after-release-'+proto for proto in ['udp','tcp','tftp'])
         labels.append('shared-trigger')
+        if recovery_case(item):labels.extend('shared-healthy-trigger-'+proto for proto in ['udp','tcp','tftp'])
         labels.extend('shared-after-trigger-'+proto for proto in ['udp','tcp','tftp'])
         labels.append('shared-removed')
+        if recovery_case(item):labels.extend('shared-healthy-removed-'+proto for proto in ['udp','tcp','tftp'])
     elif profile.startswith('runtime-occupied-'):
         labels.extend(['before-occupied','partial-occupied','partial-udp','partial-tcp','after-blocker-release','partial-removed'])
     elif profile=='tftp-single-scope':
@@ -695,6 +772,9 @@ def expected_answer(item,case,side='c'):
     proto=case.rsplit('-',1)[-1]
     if item.get('port')==0 and proto!='tftp':return False
     if case.startswith('shared-'):
+        if case.startswith('shared-healthy-'):return True
+        if recovery_case(item) and side=='rust' and case.startswith(('shared-after-release-','shared-after-trigger-')):
+            return True
         if profile=='runtime-shared-all':return case.startswith('shared-after-trigger-')
         return (proto=='tftp')==(profile=='runtime-shared-dns-both')
     if case.startswith('dad-'):
@@ -775,6 +855,14 @@ def compare(left,right,cases):
                 if '-scope-tftp' in case and item['profile']!='tftp-single-scope' and expected_answer(item,case,'rust'):
                     if cr.get('answer') is None and rr.get('answer'):
                         normalized['rows'][index]['answer']=None
+                if recovery_difference(item,cr,rr):
+                    # Both exact side-specific contracts were checked above.
+                    # Normalize only the prescribed recovery fields; any other
+                    # row/key difference still rejects the complete case.
+                    if 'sockets' in cr:
+                        normalized['rows'][index]['sockets']=cr['sockets']
+                    if 'answer' in cr:
+                        normalized['rows'][index]['answer']=None
         if c!=normalized: failures.append(dict(name=c['name'],c=c,rust=r))
     return failures
 
@@ -792,7 +880,70 @@ def reference_differences(left,right,cases):
                         classification='original-defect-ipv6-transfer-scope-cleared',
                         source='dnsmasq-2.93/src/tftp.c:291-296,347-374',
                         positive_control='tftp-single-scope-'+item['mode']))
+            if recovery_difference(item,cr,rr):
+                classified.append(dict(name=c['name'],case=case,c=cr,rust=rr,
+                    classification='F23-retry-missing-bound-transports',
+                    source='dnsmasq-2.93/src/network.c:1177-1200; Rust main.rs InterfaceRefresh 1s retry',
+                    positive_control='exact side-specific replies/inventories and retained healthy socket inodes'))
     return classified
+
+
+def recovery_negative_controls(left, right, cases):
+    controls=[]
+    by_name={item['name']:item for item in cases}
+    for index,observed in enumerate(right['rows']):
+        item=by_name[observed['name']]
+        if not recovery_case(item):continue
+        def reject(name, label, mutate, side='rust'):
+            changed=copy.deepcopy(right if side=='rust' else left)
+            row=next(row for row in changed['rows'][index]['rows'] if row['case']==label)
+            mutate(row)
+            failures=compare(left,changed,cases) if side=='rust' else compare(changed,right,cases)
+            controls.append(dict(name=name+'-'+item['name'],rejected=bool(failures)))
+        reject('missing-recovery','shared-after-release-udp',lambda row:row.update(answer=None))
+        reject('changed-C-defect','shared-after-release-udp',
+               lambda row:row.update(answer=recovery_reply(row['case'])),'c')
+        reject('wrong-recovery-id','shared-after-release-udp',
+               lambda row:row['answer']['semantic'].update(id=0))
+        reject('extra-recovery-record','shared-after-release-tcp',
+               lambda row:row['answer']['semantic']['records'].append(dict(row['answer']['semantic']['records'][0])))
+        reject('wrong-recovery-source','shared-after-release-tftp',
+               lambda row:row['answer'].update(source='10.77.0.254'))
+        reject('wrong-recovery-packet','shared-after-release-tftp',
+               lambda row:row['answer'].update(packet='00050001'))
+        reject('missing-recovery-socket','shared-released',lambda row:row['sockets'].pop())
+        reject('extra-recovery-socket','shared-released',
+               lambda row:row['sockets'].append(dict(transport='udp',address=V4['wan'],port=DNS_PORT)))
+        reject('replaced-healthy-socket','shared-released',
+               lambda row:row.update(preserved_healthy_sockets=False))
+        reject('lost-healthy-reply','shared-healthy-released-udp',lambda row:row.update(answer=None))
+        reject('unknown-recovery-difference','shared-released',lambda row:row.update(unexpected=True))
+        reject('forced-recovery-cleanup','exit',lambda row:row.update(forced=True))
+    return controls
+
+
+def negative_controls(left, right, cases):
+    controls=[]
+    corrupt=copy.deepcopy(right)
+    corrupt['rows'].pop()
+    controls.append(dict(name='missing-case',rejected=bool(compare(left,corrupt,cases))))
+    corrupt=copy.deepcopy(right);corrupt['failures']=[dict(error='injected')]
+    controls.append(dict(name='failure-inventory',rejected=bool(compare(left,corrupt,cases))))
+    for index,row in enumerate(right['rows']):
+        reply=next((row for row in row['rows'] if row.get('answer')),None)
+        if reply:
+            corrupt=copy.deepcopy(right)
+            target=next(row for row in corrupt['rows'][index]['rows'] if row.get('answer'))
+            target['answer']=None
+            controls.append(dict(name='lost-service-'+row['name'],rejected=bool(compare(left,corrupt,cases))))
+        warning=next((item for item in row['rows'] if item.get('messages')),None)
+        if warning:
+            corrupt=copy.deepcopy(right)
+            target=next(item for item in corrupt['rows'][index]['rows'] if item.get('messages'))
+            target['messages'][0]['priority']=31
+            controls.append(dict(name='warning-priority-'+row['name'],rejected=bool(compare(left,corrupt,cases))))
+    controls.extend(recovery_negative_controls(left,right,cases))
+    return controls
 
 
 def main():
@@ -814,7 +965,7 @@ def main():
         for requirement in checklist['requirements']:
             if requirement['id']=='partial-dynamic-listener':
                 requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['runtime-shared-tftp','runtime-shared-dns-both','runtime-shared-all']))
-                requirement['boundary']='A successful UDP, TCP or TFTP transport sets iface->done for all three. Missing transports do not reappear when blockers are released. If all three fail, a later interface event retries the whole group.'
+                requirement['boundary']='C: a successful UDP, TCP or TFTP transport sets iface->done for all three; missing transports do not reappear after blocker release. If all fail, an interface event retries the group. Authorized Rust F23: runtime-shared-dns-both/all recover every missing transport after a 2.2s retry window, retain healthy socket inodes and exact replies, and retire added addresses. Other profiles retain the C contract.'
             if requirement['id']=='tftp-selection':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-only']))
             if requirement['id']=='tftp-selection':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-unowned-dedicated','tftp-static-renamed']))
             if requirement['id']=='dad-capabilities':requirement['profiles']=list(dict.fromkeys(requirement['profiles']+['tftp-dad-low-port']))
@@ -847,26 +998,7 @@ def main():
     selected=[item for item in cases if not args.select or item['name'] in args.select]
     left,right=[json.loads((args.out/side/'observed.json').read_text()) for side in ['c','rust']]
     failures=compare(left,right,selected)
-    controls=[]
-    if not failures:
-        corrupt=copy.deepcopy(right)
-        corrupt['rows'].pop()
-        controls.append(dict(name='missing-case',rejected=bool(compare(left,corrupt,selected))))
-        corrupt=copy.deepcopy(right);corrupt['failures']=[dict(error='injected')]
-        controls.append(dict(name='failure-inventory',rejected=bool(compare(left,corrupt,selected))))
-        for index,row in enumerate(right['rows']):
-            reply=next((row for row in row['rows'] if row.get('answer')),None)
-            if reply:
-                corrupt=copy.deepcopy(right)
-                target=next(row for row in corrupt['rows'][index]['rows'] if row.get('answer'))
-                target['answer']=None
-                controls.append(dict(name='lost-service-'+row['name'],rejected=bool(compare(left,corrupt,selected))))
-            warning=next((item for item in row['rows'] if item.get('messages')),None)
-            if warning:
-                corrupt=copy.deepcopy(right)
-                target=next(item for item in corrupt['rows'][index]['rows'] if item.get('messages'))
-                target['messages'][0]['priority']=31
-                controls.append(dict(name='warning-priority-'+row['name'],rejected=bool(compare(left,corrupt,selected))))
+    controls=negative_controls(left,right,selected) if not failures else []
     result=dict(cases=len(selected),observations=sum(len(row['rows']) for row in right['rows']),failures=failures,
                 exits=exits,negative_controls=controls,binary_sha256=right['binary_sha256'],bytes=args.rust_binary.stat().st_size,
                 reference_differences=reference_differences(left,right,selected),
