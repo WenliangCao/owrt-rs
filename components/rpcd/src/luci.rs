@@ -398,7 +398,7 @@ fn get_version() -> Json {
 }
 
 fn get_init_list(args: &Json) -> Json {
-    let want = arg_str(args, "name");
+    let want = arg_str(args, "name").filter(|name| !name.is_empty());
     let mut scripts: Vec<(String, Json)> = Vec::new();
     for name in init_list() {
         if let Some(w) = want {
