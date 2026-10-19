@@ -55,7 +55,7 @@ check-abi:
 
 check-tools:
 	@# bash scripts (`<<<`, `<( )`) must be checked with bash: CI's sh is dash
-	@for f in tools/*.sh tools/benchmark/*.sh packaging/image/owrt-recover-c packaging/image/05-owrt-native; do \
+	@for f in tools/*.sh tools/benchmark/*.sh packaging/image/owrt-recover-c packaging/image/05-owrt-native packaging/image/06-owrt-log-settings; do \
 		if head -1 "$$f" | grep -q bash; then bash -n "$$f" || exit 1; else sh -n "$$f" || exit 1; fi; \
 	done
 	@python3 -m py_compile tools/*.py tools/benchmark/*.py tools/dnsmasq/*.py

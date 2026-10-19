@@ -268,6 +268,8 @@ def prepare(work, spec, apk):
     (payload / METADATA / "stock.sha256").write_text(stock_text)
     install(REPO / "packaging/image/owrt-recover-c", payload / "usr/sbin/owrt-recover-c")
     install(REPO / "packaging/image/05-owrt-native", payload / "etc/uci-defaults/05-owrt-native")
+    install(REPO / "packaging/image/06-owrt-log-settings", payload / "etc/uci-defaults/06-owrt-log-settings")
+    install(REPO / "packaging/image/owrt-log-settings.keep", payload / "lib/upgrade/keep.d/owrt-log-settings", 0o644)
     keep = payload / "lib/upgrade/keep.d/owrt-control-plane"
     keep.parent.mkdir(parents=True, exist_ok=True)
     keep.write_text("/etc/owrt-control-plane-layout\n")

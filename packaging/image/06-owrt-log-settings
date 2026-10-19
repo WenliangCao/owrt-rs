@@ -1,0 +1,22 @@
+#!/bin/sh
+# Migrate the old logging settings once, including preserved sysupgrade config.
+# The marker survives later upgrades so subsequent user choices stay intact.
+set -eu
+marker=/etc/owrt-log-settings-v1
+[ ! -e "$marker" ] || exit 0
+
+# config_generate creates this section before uci-defaults runs. Leave the
+# script pending if it is unavailable; do not mark an incomplete migration.
+uci -q get 'system.@system[0]' >/dev/null
+case "$(uci -q get 'system.@system[0].log_size' || true)" in
+    ''|128) uci set 'system.@system[0].log_size=2048' ;;
+esac
+case "$(uci -q get 'system.@system[0].conloglevel' || true)" in
+    ''|8) uci set 'system.@system[0].conloglevel=4' ;;
+esac
+uci commit system
+sync
+printf '%s\n' complete > "$marker.new"
+mv -f "$marker.new" "$marker"
+sync
+exit 0
