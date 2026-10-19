@@ -233,6 +233,7 @@ pub struct LeaseStore {
     leases: BTreeMap<LeaseId, Lease>,
     expiry: BTreeSet<(i64, LeaseId)>,
     capacity: usize,
+    allocation_budget: usize,
     sequence: u64,
     changes: Changes,
     counters: LeaseCounters,
@@ -244,6 +245,7 @@ impl LeaseStore {
             leases: BTreeMap::new(),
             expiry: BTreeSet::new(),
             capacity,
+            allocation_budget: usize::MAX,
             sequence: 0,
             changes: Changes::default(),
             counters: LeaseCounters::default(),
@@ -256,6 +258,19 @@ impl LeaseStore {
 
     pub fn is_empty(&self) -> bool {
         self.leases.is_empty()
+    }
+
+    /// Reserve space for undelivered deletions before one packet transaction.
+    /// Pruning during that transaction must not return a credit: the removed
+    /// record still needs its helper callback. Renewals do not spend credits.
+    pub(super) fn set_script_backlog(&mut self, pending: Option<usize>) {
+        self.allocation_budget = pending.map_or(usize::MAX, |pending| {
+            self.capacity
+                .saturating_mul(2)
+                .max(64)
+                .saturating_sub(self.len())
+                .saturating_sub(pending)
+        });
     }
 
     fn key(&self, address: Ipv4Addr) -> Option<LeaseId> {
@@ -397,7 +412,7 @@ impl LeaseStore {
         address: Ipv4Addr,
         identity: ClientIdentity,
     ) -> Result<(), LeaseError> {
-        if self.leases.len() >= self.capacity {
+        if self.leases.len() >= self.capacity || self.allocation_budget == 0 {
             return Err(LeaseError::Full);
         }
         let sequence = self
@@ -405,6 +420,7 @@ impl LeaseStore {
             .checked_add(1)
             .ok_or(LeaseError::SequenceExhausted)?;
         self.sequence = sequence;
+        self.allocation_budget -= 1;
         let id = LeaseId { address, sequence };
         self.leases.insert(
             id,
@@ -1076,6 +1092,92 @@ mod tests {
         store.allocate(address(3), client(3, None)).unwrap();
         assert_eq!(expiry_time(0, 100), None);
         assert_eq!(expiry_time(1, i64::MAX), None);
+    }
+
+    #[test]
+    fn stalled_script_bounds_churn_and_delivers_every_admitted_delete() {
+        let mut store = LeaseStore::new(1);
+        let mut queue = ScriptQueue::default();
+        for _ in 0..64 {
+            store.set_script_backlog(Some(queue.pending_deletions()));
+            store.allocate(address(1), client(1, None)).unwrap();
+            queue.add_pruned(store.prune(Some(address(1)), 0));
+        }
+        for _ in 0..1024 {
+            store.set_script_backlog(Some(queue.pending_deletions()));
+            assert_eq!(store.allocate(address(1), client(1, None)), Err(LeaseError::Full));
+        }
+        assert!(store.is_empty());
+        assert_eq!(queue.pending_deletions(), 64);
+        let mut delivered = 0;
+        while let Some(event) = queue.next(&mut store, ScriptOptions::default()) {
+            assert_eq!(event.action, ScriptAction::Delete);
+            delivered += 1;
+        }
+        assert_eq!(delivered, 64);
+        store.set_script_backlog(Some(queue.pending_deletions()));
+        store.allocate(address(1), client(1, None)).unwrap();
+    }
+
+    #[test]
+    fn stalled_script_keeps_renewal_and_prune_but_cannot_recycle_transaction_credit() {
+        let mut store = LeaseStore::new(2);
+        store.allocate(address(1), client(1, None)).unwrap();
+        store.set_script_backlog(Some(63));
+        store.set_expires(address(1), 120, 100).unwrap();
+        assert_eq!(store.get(address(1)).unwrap().expires, Some(220));
+        let removed = store.prune(Some(address(1)), 100);
+        assert_eq!(removed.len(), 1);
+        assert_eq!(store.allocate(address(2), client(1, None)), Err(LeaseError::Full));
+        store.set_script_backlog(Some(63));
+        store.allocate(address(2), client(1, None)).unwrap();
+        store.prune(Some(address(2)), 100);
+        assert_eq!(store.allocate(address(1), client(1, None)), Err(LeaseError::Full));
+        store.set_script_backlog(None);
+        store.allocate(address(1), client(1, None)).unwrap();
+    }
+
+    #[test]
+    fn script_backlog_budget_scales_with_configured_lease_capacity() {
+        let mut store = LeaseStore::new(150);
+        store.set_script_backlog(Some(299));
+        store.allocate(address(1), client(1, None)).unwrap();
+        assert_eq!(store.allocate(address(2), client(2, None)), Err(LeaseError::Full));
+        store.set_script_backlog(Some(298));
+        store.allocate(address(2), client(2, None)).unwrap();
+        store.set_script_backlog(Some(usize::MAX));
+        assert_eq!(store.allocate(address(3), client(3, None)), Err(LeaseError::Full));
+        let mut largest = LeaseStore::new(usize::MAX);
+        largest.set_script_backlog(Some(usize::MAX - 1));
+        largest.allocate(address(1), client(1, None)).unwrap();
+        assert_eq!(largest.allocate(address(2), client(2, None)), Err(LeaseError::Full));
+    }
+
+    #[test]
+    fn expiry_of_full_active_table_preserves_all_deleted_records_at_backlog_limit() {
+        let mut store = LeaseStore::new(2);
+        let mut queue = ScriptQueue::default();
+        for _ in 0..62 {
+            store.set_script_backlog(Some(queue.pending_deletions()));
+            store.allocate(address(1), client(1, None)).unwrap();
+            queue.add_pruned(store.prune(Some(address(1)), 0));
+        }
+        store.set_script_backlog(Some(queue.pending_deletions()));
+        for last in [1, 2] {
+            store.allocate(address(last), client(last, None)).unwrap();
+            store.set_expires(address(last), 120, 100).unwrap();
+        }
+        store.set_script_backlog(Some(queue.pending_deletions()));
+        queue.add_pruned(store.prune(None, 220));
+        assert!(store.is_empty());
+        assert_eq!(queue.pending_deletions(), 64);
+        assert_eq!(store.allocate(address(1), client(1, None)), Err(LeaseError::Full));
+        let mut delivered = BTreeSet::new();
+        while let Some(event) = queue.next(&mut store, ScriptOptions::default()) {
+            assert_eq!(event.action, ScriptAction::Delete);
+            assert!(delivered.insert(event.lease.id()));
+        }
+        assert_eq!(delivered.len(), 64);
     }
 
     #[test]

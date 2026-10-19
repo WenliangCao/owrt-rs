@@ -2458,6 +2458,12 @@ impl LocalProvider {
             self.reply_hostname = name.as_ref().map(|(name, _)| name.clone());
             Ok(name)
         };
+        // Bound retained lease records when a script stops consuming events.
+        // The existing allocation refusal keeps DNS and existing renewals
+        // running; callbacks are never discarded and resume without a timeout.
+        self.leases.set_script_backlog(
+            self.config.script.as_ref().map(|_| self.scripts.pending_deletions()),
+        );
         let mut provider = StateProvider::new(
             &mut self.leases,
             &mut ranges,

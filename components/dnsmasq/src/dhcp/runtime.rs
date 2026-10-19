@@ -3036,6 +3036,61 @@ mod tests {
     }
 
     #[test]
+    fn script_backpressure_cannot_be_bypassed_by_address_change_or_packet_expiry() {
+        let old = Ipv4Addr::new(192, 0, 2, 10);
+        let requested = Ipv4Addr::new(192, 0, 2, 11);
+        let server = Ipv4Addr::new(192, 0, 2, 1);
+        let bytes = packet(
+            &[53, 1, 3, 50, 4, 192, 0, 2, 11, 54, 4, 192, 0, 2, 1, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let dispatch = dispatch_for(&bytes);
+        for expired in [false, true] {
+            let mut store = LeaseStore::new(1);
+            store.allocate(old, state::identity(dispatch.packet, false)).unwrap();
+            store.set_expires(old, if expired { 1 } else { 600 }, 1).unwrap();
+            store.set_script_backlog(Some(63));
+            let mut ranges = [AddressRange {
+                start: old,
+                end: requested,
+                netmask: Ipv4Addr::new(255, 255, 255, 0),
+                router: server,
+                local: server,
+                lease_time: 600,
+                kind: RangeKind::Dynamic,
+                filter: Vec::new(),
+                epoch: 0,
+            }];
+            let environment = Environment {
+                now: 100,
+                interface: 0,
+                authoritative: true,
+                unicast_destination: false,
+                ignored: false,
+                ignore_client_id: false,
+                fqdn_only: false,
+                rapid_commit: false,
+                bootp_dynamic: false,
+                consecutive_addresses: false,
+                override_server: None,
+                fallback_server: server,
+                server_aliases: &[],
+            };
+            let mut provider = StateProvider::new(
+                &mut store, &mut ranges, &[], None, &[], environment,
+                |_, _, _| ProbeResult::Available { offer_hash: 1 },
+            );
+            let outcome = provider.resolve(&dispatch).unwrap();
+            assert!(matches!(outcome.reply, Reply::Nak { reason: state::Refusal::NoLeasesLeft, .. }));
+            assert_eq!(outcome.removed.len(), 1);
+            assert_eq!(outcome.removed[0].address, old);
+            assert!(provider.store.is_empty());
+        }
+    }
+
+    #[test]
     fn state_provider_prunes_expired_even_for_no_reply_message() {
         let expired = Ipv4Addr::new(192, 0, 2, 10);
         let bytes = packet(
