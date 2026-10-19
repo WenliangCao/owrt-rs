@@ -63,14 +63,14 @@ def cases(root, call):
         ("delete", {"name": "subject"}),
     ):
         call(operation, payload)
-        time.sleep(0.15)
+        time.sleep(0.5)
         counts.append(len(updates.read_text().splitlines()) if updates.exists() else 0)
     results["instance-update"] = counts
 
     call("set", {"name": "negative", "triggers": [["test.negative",
          [["run_script", "/bin/sh", "-c", "echo fired > /tmp/negative"]], -1]]})
     call("event", {"type": "test.negative", "data": {}})
-    time.sleep(0.15)
+    time.sleep(0.5)
     results["negative-timeout"] = (root / "tmp/negative").exists()
     call("set", {"name": "zero", "triggers": [["test.zero",
          [["run_script", "/bin/sh", "-c", "echo fired > /tmp/zero"]], 0]]})

@@ -1573,10 +1573,11 @@ impl Procd {
                 }
                 service::InstanceChange::Stop => {
                     // `add` leaves untouched names alone; only `set` flushes.
-                    if !add {
-                        self.instance_stop(&name, &iname, true);
-                        self.collect_stopped(&name, &iname);
+                    if add {
+                        continue;
                     }
+                    self.instance_stop(&name, &iname, true);
+                    self.collect_stopped(&name, &iname);
                 }
                 service::InstanceChange::Update => {
                     let new = fresh.remove(&iname).expect("plan named a fresh instance");
@@ -1591,6 +1592,7 @@ impl Procd {
                     self.register_instance_triggers(&name, &iname);
                 }
             }
+            self.instance_update_trigger();
         }
 
         if data_changed {
@@ -1872,6 +1874,13 @@ impl Procd {
             .unwrap_or_default()
     }
 
+    /// service_instance_update emits this internal event for every vlist diff,
+    /// including unchanged replacements and deletion. There is no ubus notify.
+    fn instance_update_trigger(&mut self) {
+        let now = self.now_ms();
+        self.triggers.fire("instance.update", &BTreeMap::new(), now);
+    }
+
     /// `service_handle_delete()`. Without `instance`, the whole service goes;
     /// with it, only that instance.
     fn handle_delete(&mut self, req: &Request) -> i32 {
@@ -1899,6 +1908,7 @@ impl Procd {
                 }
                 self.instance_stop(&name, &i, true);
                 self.collect_stopped(&name, &i);
+                self.instance_update_trigger();
             }
             None => {
                 let names: Vec<String> =
@@ -1910,6 +1920,7 @@ impl Procd {
                 for i in names {
                     self.instance_stop(&name, &i, true);
                     self.collect_stopped(&name, &i);
+                    self.instance_update_trigger();
                 }
                 if self.services.get(&name).is_some_and(|s| s.can_be_freed()) {
                     self.service_only_event("service.stop", &name);
@@ -2237,6 +2248,7 @@ impl Procd {
         for iname in doomed {
             self.instance_stop(&name, &iname, true);
             self.collect_stopped(&name, &iname);
+            self.instance_update_trigger();
         }
         status::OK
     }
