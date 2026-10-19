@@ -330,26 +330,53 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
         Ok(())
     })();
 
-    sys::unlock(&f1);
-    drop(f1);
     if do_rename {
         let tmp = tmpname.clone().unwrap_or_default();
-        let renamed = (|| -> std::io::Result<()> {
+        let mut backup = None;
+        let installed = (|| -> std::io::Result<std::path::PathBuf> {
             let real = fs::canonicalize(&path)?;
             let md = fs::metadata(&real)?;
             fs::set_permissions(&tmp, fs::Permissions::from_mode(md.mode() & 0o7777))?;
-            fs::rename(&tmp, &real)
+            if saved_delta.is_some() {
+                // Retain the old inode until draft cleanup also succeeds.
+                // A failed truncate must not turn a retry into a second list-add.
+                let parent = real.parent().ok_or_else(|| std::io::Error::other("config has no parent"))?;
+                let template = parent.join(format!(".{name}.uci-backup-XXXXXX"));
+                let (placeholder, old) = sys::mkstemp(&template.to_string_lossy())?;
+                drop(placeholder);
+                fs::remove_file(&old)?;
+                fs::hard_link(&real, &old)?;
+                backup = Some(old);
+            }
+            fs::rename(&tmp, &real)?;
+            Ok(real)
         })();
-        if renamed.is_err() {
-            let _ = fs::remove_file(&tmp);
-            return Err(Error::Io);
-        }
+        let real = match installed {
+            Ok(real) => real,
+            Err(_) => {
+                let _ = fs::remove_file(&tmp);
+                if let Some(old) = backup { let _ = fs::remove_file(old); }
+                return Err(Error::Io);
+            }
+        };
         if let Some(stream) = saved_delta {
-            stream.set_len(0).map_err(|_| Error::Io)?;
+            if stream.set_len(0).is_err() {
+                if let Some(old) = backup {
+                    if fs::rename(&old, &real).is_err() {
+                        // Both operations failed: keep the original backup for
+                        // recovery and distinguish an uncertain commit from a
+                        // restored, retryable I/O failure.
+                        return Err(Error::Unknown);
+                    }
+                }
+                return Err(Error::Io);
+            }
         }
+        if let Some(old) = backup { let _ = fs::remove_file(old); }
     } else if let Some(tmp) = &tmpname {
         let _ = fs::remove_file(tmp);
     }
+    sys::unlock(&f1);
     body
 }
 

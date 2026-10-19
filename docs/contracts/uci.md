@@ -105,3 +105,14 @@ rename 失败返回 I/O error，原有草稿保留以便重试。锁持续到清
 **R88 的同 batch CLI 描述收窄**：两侧 CLI 在每个 batch 命令后卸载包；精确原版的 rename → export
 不会直接导出该 raw 名字，raw delta 与立即报错行为仍不同。`r92_compat_probe.py` 的 `uci_rename`
 分别验证 section/option、delta、后续加载、配置文件保持及无 U+FFFD；库单测验证 model/delta 原子拒绝。
+
+### 提交后的草稿清理失败
+
+独立复核补充：saved delta 存在时，安装新配置前在目标目录创建旧配置的临时硬链接，
+配置文件的原锁保持到整个操作结束。若随后清空 delta 失败，先用该备份恢复旧配置，
+再返回 I/O error；草稿不变，重试不会重复 list-add。备份创建失败则不替换配置。
+若清理和恢复 rename 都失败，返回 Unknown error，保留 `.包名.uci-backup-*` 供人工恢复；
+此时不能盲目重试 commit。成功提交或成功恢复后清理临时备份（清理失败可能留下旧备份）。
+这要求目标目录支持硬链接，不提供多文件断电原子性，也没有消除既有flock/rename并发粒度。
+`components/uci/tests/commit_cleanup_failure.py` 在Oracle对真实CLI注入ftruncate/rename错误，
+覆盖正常、提交rename失败、delta清理失败及恢复也失败四类边界。
