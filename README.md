@@ -1,4 +1,4 @@
-# owrt-control-plane-rs
+# owrt-rs
 
 逐步用 Rust 替换 OpenWrt 中能够替换的部分。当前在 Xiaomi Mi Router AX3000T 上运行，
 基于 OpenWrt 25.12.5；已发布版本为 [v0.3.2](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.2)（原厂 bootloader、AN8855 硬件专用），
