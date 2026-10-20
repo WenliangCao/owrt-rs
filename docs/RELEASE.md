@@ -1,5 +1,21 @@
 # 集成固件的发布与维护
 
+2026-10-20 更新：**v0.3.2 / `0.3.2-r1` / `native-eleven`** 已发布为
+[正式 Latest](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.2)，
+仅适用于原厂 bootloader、AN8855 硬件版本的 AX3000T。标签固定实际构建提交
+`6c22fe189ea232611d950f86a5632471c9ee07b6`，正式镜像来自
+[CI 39332950407](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39332950407)，
+由 [39332953466](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39332953466)
+逐字节复现；镜像 SHA256
+`9f8e4b10225ca9c49e0e08d096cf645667c5687b1b42784adab50d3751a3e179`。
+13个附件先以草稿上传、完整回读验证，再转正并再次下载核验。发布使用已刷入原字节，
+没有重建；release-image 在推送标签期间短暂停用并恢复为 active。
+保配置刷写后600秒观察31/31健康采样通过，临时守卫已清理；未执行物理断电复验。
+新增 dnsmasq PGO 冻结包含F23/F25及共享库修复，原始失败和已知差异保留。
+见[发布说明](releases/v0.3.2.md)、[部署实测](reviews/V032_DEPLOY_20261020.md)。
+
+以下为 v0.3.1 发布时的状态。
+
 2026-10-19 更新：**v0.3.1 / `0.3.1-r1` / `native-eleven`** 收录 v0.3.0 独立可靠性审查的修复，
 已完成保配置刷写、两次各约 192 秒的客户端健康（首次启动与用户物理断电重启），守卫已解除。
 正式镜像来自 [CI 39246891830](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/39246891830)，
@@ -86,7 +102,7 @@ v0.2.1 的另外九个 ELF、dnsmasq init/ACL 与 v0.2.0 逐字节相同。历�
 | 原位整合 | `tools/ci_integrate_image.sh`、`tools/native_image.py` 固定官方镜像与 LuCI 源码归档 SHA256，离线安装统一 APK 与四个中文包，以匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
 | 内容审计 | 十一个程序、init/ACL、APK 所有权、十三份 stock 恢复文件、配置及其余原包内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
 
-最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前版本的 canonical 参考为 `0421a5d02a4b5e8fb23c60572f0de113628fe1b2d88ebc92485a9359d9d80244`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/dnsmasq-k-pgo-inputs-20261017)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.2.1 的 CI 已精确复现 K；v0.2.2 的统一 generator/use 已完成且 0 PGO missing/mismatch，整镜像重建仍必须逐字节复现新参考。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格仍分别记录，不能混用；本轮 v0.2.0/J 直接比较使用实际 `8472be5a…`。
+最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前 v0.3.2 的 canonical 参考为 `2a22f6327d81e25c8bf9e891d21842e5ef0d33ec074e5004506388f3b616e2a2`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/dnsmasq-k-pgo-inputs-20261017)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.3.2 使用全新11场景/50 profiles及冻结输入，不沿用 v0.3.0/v0.3.1 的 `0421a5d0…` ELF。历史 v0.2.1 的 CI 精确复现 K，v0.2.2 的统一 generator/use 完成且 0 PGO missing/mismatch；这些资格保留各自原身份。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格也分别记录，不能混用。
 
 可先在 Actions 页面选择已审阅分支，或执行：
 

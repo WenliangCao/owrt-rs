@@ -1,10 +1,18 @@
 # owrt-control-plane-rs
 
 逐步用 Rust 替换 OpenWrt 中能够替换的部分。当前在 Xiaomi Mi Router AX3000T 上运行，
-基于 OpenWrt 25.12.5；已发布版本为 [v0.3.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.1)，
+基于 OpenWrt 25.12.5；已发布版本为 [v0.3.2](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.2)（原厂 bootloader、AN8855 硬件专用），
 包含 procd、ubusd、netifd、rpcd、logd、httpd、fw4、uci、reload_config、dnsmasq、odhcpd 共 11 个 Rust 组件。
 
 以下按时间倒序记录，日期统一使用 Europe/Berlin。链接指向当时的报告与发布记录。
+
+## 2026-10-20
+
+- 发布并刷入 [v0.3.2：AN8855 启动与可靠性修复](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.2)（源码 `6c22fe18`）：禁用不存在的 MT7531，追加控制台 loglevel=4，
+  一次性迁移旧日志容量到 2 MiB；收录 dnsmasq 监听恢复、有界 helper 背压及剩余 P2 修复，
+  完成新 PGO 训练与冻结。两轮完整镜像逐字节一致，保配置刷写后 600 秒观察 31/31 健康采样通过，
+  临时守卫已清理；本版未做物理断电复验。
+  [发布说明](docs/releases/v0.3.2.md)、[部署实测](docs/reviews/V032_DEPLOY_20261020.md)、[离线资格](docs/reviews/V032_RELEASE_20261019.md)
 
 ## 2026-10-19
 
