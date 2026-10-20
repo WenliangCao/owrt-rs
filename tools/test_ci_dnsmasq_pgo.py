@@ -139,6 +139,7 @@ class PgoReleaseTests(unittest.TestCase):
                 "profile_bytes": self.profile.stat().st_size}
         def fake_download(command, log):
             self.assertEqual(command[:4], ["gh", "release", "download", "build-inputs"])
+            self.assertEqual(command[command.index("--repo") + 1], "owner/repo")
             target = Path(command[command.index("--dir") + 1]) / "profile.profdata"
             target.write_bytes(self.profile.read_bytes())
         with patch.object(builder.audit, "run", side_effect=fake_download):
@@ -148,6 +149,36 @@ class PgoReleaseTests(unittest.TestCase):
         out.mkdir()
         with patch.object(builder.audit, "run", side_effect=fake_download), self.assertRaises(ValueError):
             builder.download_profile({**spec, "profile_sha256": "0" * 64}, out)
+
+    def test_legacy_profile_location_moves_without_changing_frozen_identity(self):
+        original = "WenliangCao/owrt-control-plane-rs"
+        spec = {"profile_url": f"https://github.com/{original}/releases/download/build-inputs/profile.profdata",
+                "profile_sha256": wrapper.sha(self.profile), "profile_bytes": self.profile.stat().st_size}
+        frozen = dict(spec)
+        for repository, expected in ((original, "WenliangCao/owrt-rs"),
+                                     (original + "-other", original + "-other"),
+                                     ("other/owrt-control-plane-rs", "other/owrt-control-plane-rs")):
+            with self.subTest(repository=repository), tempfile.TemporaryDirectory() as directory:
+                current = {**spec, "profile_url": spec["profile_url"].replace(original, repository)}
+                def fake_download(command, log):
+                    self.assertEqual(command[command.index("--repo") + 1], expected)
+                    target = Path(command[command.index("--dir") + 1]) / "profile.profdata"
+                    target.write_bytes(self.profile.read_bytes())
+                with patch.object(builder.audit, "run", side_effect=fake_download):
+                    profile, command = builder.download_profile(current, Path(directory))
+                self.assertEqual(command[command.index("--repo") + 1], expected)
+                self.assertEqual(wrapper.sha(profile), frozen["profile_sha256"])
+        for invalid in ({**spec, "profile_sha256": "0" * 64},
+                        {**spec, "profile_bytes": spec["profile_bytes"] + 1}):
+            with self.subTest(invalid=invalid), tempfile.TemporaryDirectory() as directory:
+                def fake_download(command, log):
+                    self.assertEqual(command[command.index("--repo") + 1], "WenliangCao/owrt-rs")
+                    target = Path(command[command.index("--dir") + 1]) / "profile.profdata"
+                    target.write_bytes(self.profile.read_bytes())
+                with patch.object(builder.audit, "run", side_effect=fake_download), \
+                     self.assertRaisesRegex(ValueError, "downloaded PGO profile differs"):
+                    builder.download_profile(invalid, Path(directory))
+        self.assertEqual(spec, frozen)
 
     def test_missing_or_mismatched_profile_diagnostics_fail_closed(self):
         report = {"pgo": {key: self.plan[key] for key in ("profile_sha256", "profile_bytes")}}

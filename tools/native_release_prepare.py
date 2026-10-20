@@ -86,7 +86,7 @@ def main():
         member = tarfile.TarInfo("SHA256SUMS")
         member.size, member.mode = len(sums), 0o644
         archive.addfile(member, io.BytesIO(sums))
-    repo = "https://github.com/WenliangCao/owrt-control-plane-rs"
+    repo = "https://github.com/WenliangCao/owrt-rs"
     result = {"schema": 1, "release_tag": args.tag, "release_kind": "qualified native AX3000T firmware milestone",
               "build_source_commit": source, "tag_target_commit": source, "evidence_commit": evidence,
               "canonical_run_url": f"{repo}/actions/runs/{validation['canonical_run']}",

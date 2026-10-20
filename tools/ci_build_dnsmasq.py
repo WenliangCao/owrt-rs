@@ -50,6 +50,10 @@ def profile_asset(url):
 
 def download_profile(spec, out):
     repo, tag, name = profile_asset(spec["profile_url"])
+    # Frozen evidence retains its original URL; the audited assets now live in
+    # the independent public repository. Preserve the profile identity below.
+    if repo == "WenliangCao/owrt-control-plane-rs":
+        repo = "WenliangCao/owrt-rs"
     audit.require(re.fullmatch(r"[0-9a-f]{64}", spec["profile_sha256"])
                   and isinstance(spec["profile_bytes"], int) and spec["profile_bytes"] > 0,
                   "invalid frozen PGO profile identity")

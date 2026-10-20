@@ -1,14 +1,14 @@
 # owrt-rs
 
 逐步用 Rust 替换 OpenWrt 中能够替换的部分。当前在 Xiaomi Mi Router AX3000T 上运行，
-基于 OpenWrt 25.12.5；已发布版本为 [v0.3.2](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.2)（原厂 bootloader、AN8855 硬件专用），
+基于 OpenWrt 25.12.5；已发布版本为 [v0.3.2](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.2)（原厂 bootloader、AN8855 硬件专用），
 包含 procd、ubusd、netifd、rpcd、logd、httpd、fw4、uci、reload_config、dnsmasq、odhcpd 共 11 个 Rust 组件。
 
 以下按时间倒序记录，日期统一使用 Europe/Berlin。链接指向当时的报告与发布记录。
 
 ## 2026-10-20
 
-- 发布并刷入 [v0.3.2：AN8855 启动与可靠性修复](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.2)（源码 `6c22fe18`）：禁用不存在的 MT7531，追加控制台 loglevel=4，
+- 发布并刷入 [v0.3.2：AN8855 启动与可靠性修复](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.2)（源码 `6c22fe18`）：禁用不存在的 MT7531，追加控制台 loglevel=4，
   一次性迁移旧日志容量到 2 MiB；收录 dnsmasq 监听恢复、有界 helper 背压及剩余 P2 修复，
   完成新 PGO 训练与冻结。两轮完整镜像逐字节一致，保配置刷写后 600 秒观察 31/31 健康采样通过，
   临时守卫已清理；本版未做物理断电复验。
@@ -16,7 +16,7 @@
 
 ## 2026-10-19
 
-- 发布并刷入 [v0.3.1：可靠性修复](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.1)（源码 `c4acff16`）：收录 v0.3.0 独立可靠性审查的修复，重点是 procd
+- 发布并刷入 [v0.3.1：可靠性修复](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.1)（源码 `c4acff16`）：收录 v0.3.0 独立可靠性审查的修复，重点是 procd
   启动期注册/ubusd 首次启动失败后无法恢复，以及配置回滚、DHCPv6/RA、netifd 恢复和
   输入内存上界问题。dnsmasq 保持 v0.3.0 的同一 ELF。保配置刷写后客户端健康 192.5 秒，
   物理断电重启后 192.6 秒，守卫已解除。
@@ -42,7 +42,7 @@
 - 启用硬件流卸载和 WED。Mac 下载对照中，路由器 CPU 中位数从 52.6% 降至 15.0%，
   每 GiB CPU 成本降低约 72%；吞吐差异在轮内波动内，三分钟客户端健康通过。
   上传、下载满载延迟均明显增加，CAKE 仍未配置。[测量与取舍](docs/reviews/NETWORK_OFFLOAD_20261018_RESULT.md)
-- 发布并刷入 [v0.3.0：新增 odhcpd](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.0)。
+- 发布并刷入 [v0.3.0：新增 odhcpd](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.0)。
   odhcpd-rs 接管本机 RA/SLAAC、DHCPv6 IA_NA/IA_PD、租约与 leasetrigger、ubus dhcp 对象、
   UCI 配置和 netifd 前缀订阅。[功能记录](docs/reviews/ODHCPD_PROTOTYPE_20261018.md)
 - 修复 odhcpd 独立审计发现的接口错误隔离、配置更新和前缀撤销等问题，最终 SDK 程序通过
@@ -53,7 +53,7 @@
 - 刷机后验证真实客户端 DHCPv6 自然续租，以及一次 20 秒 WAN6 断开/恢复；离线确认撤销报文与 C 一致。
   客户端撤销标记延迟和一次孤立 DNS 查询失败保留在[部署报告](docs/reviews/ODHCPD_V030_DEPLOYMENT_20261018.md)，
   报文对照见[C 一致性记录](docs/reviews/ODHCPD_WITHDRAWAL_C_PARITY_20261018.md)。
-- 发布并刷入 [v0.2.3：减少防火墙重建和续租写入](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.3)。
+- 发布并刷入 [v0.2.3：减少防火墙重建和续租写入](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.2.3)。
   刷机后的 300 秒观察中，WAN6 出现 4 种地址集合，防火墙规则和 flowtable handles 保持不变。
   [部署记录](docs/reviews/DEPLOYMENT_V0_2_3_20261017.md)
 
@@ -67,16 +67,16 @@
 - 测量 v0.2.2 开机和续租事件：WAN 约 16.75 秒 up，客户端约 33 秒可联网；
   确认重复 WAN6 更新未改变有效防火墙规则。决定不重写 DHCP 脚本，改做上述两项优化。
   [测量报告](docs/reviews/DHCP_EVENT_REBOOT_20261017.md)
-- 发布并刷入 [v0.2.2：十组件安全整理](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.2)。
+- 发布并刷入 [v0.2.2：十组件安全整理](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.2.2)。
   业务代码中的 unsafe 集中到系统接口封装，业务 crate 启用 `forbid(unsafe_code)`；
   路由器目标构建零编译警告，CI 将编译警告视为失败。[验收报告](docs/reviews/CORE_SAFE_20261017.md)
-- 发布并刷入 [v0.2.1：dnsmasq 缓存查询优化](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.1)。
+- 发布并刷入 [v0.2.1：dnsmasq 缓存查询优化](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.2.1)。
   纳入普通缓存命中快路径、UDP 接收优化、同名 A/AAAA 缓存提示与固定 PGO；
   完成一小时运行观察。[版本记录](docs/reviews/RELEASE_V0_2_1_20261017_NOTES.md)、[部署记录](docs/reviews/DEPLOYMENT_V0_2_1_20261017.md)
 
 ## 2026-10-14
 
-- 发布并刷入 [v0.2.0：新增 dnsmasq](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0)，
+- 发布并刷入 [v0.2.0：新增 dnsmasq](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.2.0)，
   Rust 组件从 9 个增加到 10 个；dnsmasq-rs 接管 DNS 与 DHCPv4 服务。
   完成保留配置升级、正常重启和用户物理断电复测。
   [版本记录](docs/reviews/RELEASE_V0_2_0_20261014_NOTES.md)、[部署记录](docs/reviews/DEPLOYMENT_V0_2_0_20261014.md)
@@ -85,7 +85,7 @@
 
 ## 2026-10-09
 
-- 发布并刷入 [v0.1.1：修复 CLI 断管道与 IPv6 路由](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.1.1)。
+- 发布并刷入 [v0.1.1：修复 CLI 断管道与 IPv6 路由](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.1.1)。
   fw4、uci 等命令在输出端关闭时不再 panic；netifd 补齐 IPv6 offlink 保护路由、
   下游前缀 source rule 及 PD 自然到期清理。
   [CLI 修复](docs/reviews/health-20261008-cli.md)、[netifd 修复](docs/reviews/health-20261008-netifd.md)
@@ -94,7 +94,7 @@
 
 ## 2026-09-29
 
-- 发布并刷入 [v0.1.0：九组件集成固件](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)。
+- 发布并刷入 [v0.1.0：九组件集成固件](https://github.com/WenliangCao/owrt-rs/releases/tag/ax3000t-rust9-v0.1.0)。
   九个 Rust 程序由统一包安装到标准路径，结束此前的独立包与覆盖挂载部署；
   保留配置升级、连续客户端验收和用户物理断电复测通过。[部署记录](docs/reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)
 - 修复 netifd 在 WAN carrier 延迟到达时丢失设备 claim 的问题，完成重新部署和断电恢复检查。
@@ -165,6 +165,7 @@
 - rpcd 先接管 file/luci 插件，再接管 session/uci/rc 与其余插件对象，停止原 rpcd。
   [插件接管](reports/ax3000t-stock-openwrt-25.12.5/R13_RPCD.md)、[核心接管](reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md)、[完整接管](reports/ax3000t-stock-openwrt-25.12.5/R18_RPCD_PLUGINS.md)
 
-[发布记录](https://github.com/WenliangCao/owrt-control-plane-rs/releases) ·
+[发布记录](https://github.com/WenliangCao/owrt-rs/releases) ·
 [组件源码](components/) · [发布与恢复说明](docs/RELEASE.md) ·
-[审计及测量报告](docs/reviews/) · [早期报告](reports/ax3000t-stock-openwrt-25.12.5/)
+[审计及测量报告](docs/reviews/) · [早期报告](reports/ax3000t-stock-openwrt-25.12.5/) ·
+[公开仓库与历史源码映射](docs/history/PRIVACY_MIGRATION_20261020.md)
