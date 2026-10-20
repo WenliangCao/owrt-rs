@@ -19,6 +19,8 @@ import sys
 import tomllib
 from urllib.parse import unquote, urlsplit
 
+from source_history import resolve_commit
+
 sys.path.insert(0, str(Path(__file__).resolve().parent / "dnsmasq"))
 import build_package as audit
 from compiler_warnings import scan as scan_compiler_warnings
@@ -194,7 +196,7 @@ def source_epoch(spec, release_commit):
     frozen = spec.get("source_date_epoch")
     commit = spec["source_commit"] if frozen is not None else release_commit
     epoch = subprocess.check_output(
-        ["git", "-C", str(REPO), "show", "-s", "--format=%ct", commit], text=True).strip()
+        ["git", "-C", str(REPO), "show", "-s", "--format=%ct", resolve_commit(REPO, commit)], text=True).strip()
     audit.require(frozen is None or (type(frozen) is int and frozen > 0 and str(frozen) == epoch),
                   "source timestamp differs from frozen product commit")
     return epoch
@@ -205,7 +207,7 @@ def release_source(work, spec):
     the release branch cannot change the frozen dnsmasq inputs."""
     archive = work / "out/dnsmasq-source.tar"
     subprocess.run(["git", "-C", str(REPO), "archive", "--format=tar", "--output", str(archive),
-                    spec["source_commit"], "--", *spec["source_files"]], check=True)
+                    resolve_commit(REPO, spec["source_commit"]), "--", *spec["source_files"]], check=True)
     frozen = work / "out/dnsmasq-frozen-source"
     frozen.mkdir()
     subprocess.run(["tar", "-xf", str(archive), "-C", str(frozen)], check=True)
@@ -225,6 +227,7 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
               subprocess.check_output(["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True).strip())
     report.update(source_files=files, source_digest=digest,
                   source_commit=commit,
+                  accepted_product_git_commit=resolve_commit(REPO, spec["source_commit"]),
                   accepted_product_commit=spec["source_commit"], build_mode="compile-and-package")
     epoch = source_epoch(spec, commit)
     archive_name, archive_hash = json.loads((source / "manifests/release-25.12.5.json").read_text())["inputs"]["sdk"].split(" sha256 ")

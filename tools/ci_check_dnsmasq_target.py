@@ -32,8 +32,9 @@ def freeze_source(out, spec):
     # Git, not the current checkout, supplies every product/recipe input.
     files = builder.audit.inputs(builder.REPO)
     archive = out / "source.tar"
+    git_commit = builder.resolve_commit(builder.REPO, spec["source_commit"])
     subprocess.run(["git", "-C", str(builder.REPO), "archive", "--format=tar",
-                    "--output", str(archive), spec["source_commit"], "--", *files], check=True)
+                    "--output", str(archive), git_commit, "--", *files], check=True)
     frozen = out / "frozen-source"
     frozen.mkdir()
     subprocess.run(["tar", "-xf", str(archive), "-C", str(frozen)], check=True)
@@ -41,7 +42,7 @@ def freeze_source(out, spec):
     builder.audit.require(len(files) == spec.get("source_file_count", len(files)),
                           "frozen source input count differs from candidate")
     builder.write(out / "source-manifest.json", {
-        "commit": spec["source_commit"], "digest": digest, "files": files,
+        "commit": spec["source_commit"], "git_commit": git_commit, "digest": digest, "files": files,
         "archive_sha256": builder.audit.sha(archive)})
     return frozen
 
@@ -121,6 +122,8 @@ def run(work, *, spec=None, pgo_stage="frozen-use"):
     finally:
         if "accepted_product_commit" in report:
             report["checked_product_commit"] = report.pop("accepted_product_commit")
+        if "accepted_product_git_commit" in report:
+            report["checked_product_git_commit"] = report.pop("accepted_product_git_commit")
         report["warnings"] = scan(sorted(out.glob("*.log")))
         builder.write(out / "warnings.json", report["warnings"])
         retain_outputs(out, report)

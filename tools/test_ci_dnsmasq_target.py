@@ -75,6 +75,8 @@ class TargetCheckTests(unittest.TestCase):
             (out / "payload/usr/sbin/dnsmasq").write_bytes(b"actual elf")
             (out / "dnsmasq-2.93-r4.apk").write_bytes(b"actual apk")
             report["accepted_product_commit"] = spec["source_commit"]
+            report["accepted_product_git_commit"] = target.builder.resolve_commit(
+                target.builder.REPO, spec["source_commit"])
 
         with patch.object(target.platform, "system", return_value="Linux"), \
              patch.object(target.platform, "machine", return_value="x86_64"), \
@@ -86,6 +88,8 @@ class TargetCheckTests(unittest.TestCase):
         out = self.root / "out/dnsmasq"
         report = json.loads((out / "manifest.json").read_text())
         self.assertEqual(report["status"], "failed")
+        self.assertEqual(report["checked_product_git_commit"], target.builder.resolve_commit(
+            target.builder.REPO, report["checked_product_commit"]))
         self.assertFalse(report["warnings"]["strict_compiler_warnings_zero"])
         self.assertEqual((out / "dnsmasq-rs").read_bytes(), b"actual elf")
         self.assertIn("dnsmasq-2.93-r4.apk", report["retained"])

@@ -303,7 +303,8 @@ class NativeDnsmasqTests(unittest.TestCase):
             native_image.verify_dnsmasq_reference(dict(report, source_date_epoch=2346), spec)
 
     @unittest.skipUnless(subprocess.run(
-        ["git", "-C", str(REPO), "cat-file", "-e", SPEC["dnsmasq_build"]["source_commit"] + "^{commit}"],
+        ["git", "-C", str(REPO), "cat-file", "-e",
+         ci_build_dnsmasq.resolve_commit(REPO, SPEC["dnsmasq_build"]["source_commit"]) + "^{commit}"],
         capture_output=True).returncode == 0, "shallow checkout lacks the accepted dnsmasq commit")
     def test_release_source_is_the_frozen_product(self):
         with tempfile.TemporaryDirectory() as temporary:
