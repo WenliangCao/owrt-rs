@@ -1,9 +1,10 @@
 # Privacy history migration — 2026-10-20
 
-The repository remains **private**. This is not authorization to publish it.
 The owner authorized removal of personal identifiers from the current files and
-Git history. The original history and uncommitted work were backed up outside
-this repository, with restricted permissions, before rewriting.
+Git history, followed by publication in a new, independent `WenliangCao/owrt-rs`
+repository. The original repository stays private. The original history and
+uncommitted work were backed up outside this repository, with restricted
+permissions, before rewriting.
 
 ## Changes
 
@@ -36,8 +37,12 @@ SHA256 digests and epochs after extraction from sanitized Git objects. None of t
 redacted files belongs to those closures. Original source manifests, PGO plans,
 profiles and uploaded release attachments are not rebuilt or replaced.
 
-All 10 existing releases retain their 113 uploaded attachments. Release notes add
-an original-to-sanitized tag commit notice without replacing their original text.
+All 10 existing releases are migrated with their 113 attachments, preserving
+every attachment byte and SHA256. Release notes retain original build identities
+and add an original-to-sanitized tag commit notice. Links to migrated source and
+release content use the new repository; old CI run IDs remain archival evidence.
+GitHub assigns new release/asset IDs and publication timestamps; the migration
+notes record the original release dates.
 GitHub-generated source archives necessarily follow the rewritten tags. Old tags'
 original tooling is historical evidence; use current tooling and the map to
 resolve old source IDs, rather than assuming every historical workflow is updated.
@@ -61,13 +66,24 @@ confirmed actual private key, access token, password or personal server address.
 Scanning is bounded to the documented indicators and formats, not proof against
 arbitrary unknown or obfuscated secrets.
 
-GitHub's read-only `refs/pull/1/head` retains the old PR ancestry, which contains
-device identifiers. Force-updating branches and tags cannot remove that ref or
-cached old commit views. A concrete Support request and affected commit list are
-prepared privately outside this repository. No request has been sent. GitHub
-Support decides whether this personal-information cleanup qualifies for removal.
-The repository must remain private pending resolution of that boundary and a
-separate decision by the owner to publish.
+The original repository retained a read-only `refs/pull/1/head` and cached old
+commits after its branches and tags were rewritten. The owner chose to retain
+that repository privately and publish through a newly created repository instead
+of depending on removal of GitHub's old PR/cache objects.
+
+The public repository is independent, not a fork or GitHub repository import.
+Only the sanitized main branch, 408 existing tags, and the audited release assets
+are transferred. Old PRs, Actions runs, local archive refs, backups and private
+configuration are not transferred. The original repository remains private.
+
+Publication checks cover every object fetched from the new repository, known
+sensitive old object IDs, and anonymous access to the original PR/commit paths.
+Keeping an original SHA as text in an evidence manifest or commit map does not
+transfer the corresponding original Git object. Current build tooling also maps
+the legacy release repository name to `WenliangCao/owrt-rs` for profile downloads;
+frozen manifests, filenames, profile sizes and digest checks remain unchanged.
+The download alias and existing source/provenance checks passed all 55 Python
+tests on the remote Linux host before publication.
 
 See GitHub's [sensitive-data removal guidance](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository).
 

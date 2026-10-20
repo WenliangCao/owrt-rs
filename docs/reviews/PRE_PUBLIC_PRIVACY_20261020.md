@@ -4,9 +4,10 @@
 
 > Incrementally rewriting and optimizing OpenWrt components in Rust for Xiaomi AX3000T (AN8855).
 
-**仓库保持 PRIVATE，未授权或执行公开。未发现已确认的真实私钥、令牌或密码，
+**首次检查时仓库保持 PRIVATE。未发现已确认的真实私钥、令牌或密码，
 初次检查发现当前文件及远程可达 Git 历史含有个人标识；下述发现记录清理前状态。
-用户随后授权完整脱敏，清理结果见 [历史迁移说明](../history/PRIVACY_MIGRATION_20261020.md)。**
+用户随后授权完整脱敏，并通过独立新仓库公开；原仓库继续私有。
+清理与迁移结果见 [历史迁移说明](../history/PRIVACY_MIGRATION_20261020.md)。**
 这份报告不复述邮箱、MAC、SSID、服务器地址或个人目录的实际值。
 
 ## 检查范围

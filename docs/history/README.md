@@ -22,3 +22,9 @@ resolved `accepted_product_git_commit`; diagnostic reports use the corresponding
 Use the current build tools to resolve historical frozen sources. Tooling inside
 an old tag predates this mapping and may still query unavailable original IDs.
 The mapping cannot make a changed input satisfy a historical frozen checksum.
+
+The public `WenliangCao/owrt-rs` repository was created independently after this
+cleanup. Original PR/cache objects remain confined to the separate private
+archive. Historical release URLs can name the old repository; current download
+tooling uses the canonical public repository while verifying the same original
+asset filename, size and SHA256. See [migration details](PRIVACY_MIGRATION_20261020.md).
