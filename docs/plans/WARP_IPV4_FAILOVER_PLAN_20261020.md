@@ -1,6 +1,6 @@
 # 楼宇 IPv4 故障时自动切换到 Cloudflare WARP（方案）
 
-2026-10-20。状态：**待用户批准，路由器尚未改动。**
+2026-10-20。状态：**已上线（22:38，用户批准"现在就上"）。** 实现见 `tools/warp-failover/`，结果见文末。
 
 ## 背景与证据
 
@@ -34,7 +34,7 @@
    - 路由器自身的流量始终走原 WAN，所以探测测到的永远是楼宇原生 IPv4 的真实状态。
 6. **探测与切换逻辑**：一个 procd 服务 `warp-failover`（shell 脚本），每 10 秒运行一次。
    - 每轮从路由器原生 WAN 对 4 个 IPv4 目标发起 TCP 连接，例如 Cloudflare、Google、Apple、Fastly 的 IP 字面地址，超时 3 秒。
-   - **切到 WARP**：连续 3 轮（约 30 秒）中每轮至少 3 个目标失败。
+   - **切到 WARP**：连续 3 轮（约 40 秒）中每轮最多 2 个目标连通（即至少 2 个失败）。实现时比原计划收紧：正常时约 10% 的失败率下，单轮误判约 5%，连续 3 轮约 0.01%。
    - **切回直连**：已切到 WARP 后，连续 12 轮（约 2 分钟）中每轮至少 3 个目标成功。
    - 两侧阈值不对称，用来防止来回频繁切换。
    - 探测必须用 TCP，不能用 ping：10-19 那次故障期间 ping 外网是通的，坏的只有 TCP。
@@ -76,3 +76,19 @@
    - 确认约 30 秒内自动切换，syslog 里有切换记录；
    - 确认 B 站可以打开；
    - IPv4 恢复后，确认约 2 分钟内自动切回。
+
+## 上线结果（2026-10-20 22:38–22:41，楼宇 IPv4 故障进行中）
+
+- 安装：`kmod-wireguard`、`wireguard-tools` 及依赖共 10 个官方包（含 `ip-tiny`，`/sbin/ip` 由 BusyBox 换为 iproute2 6.18）。
+- 隧道：经 IPv6 与 `[2606:4700:d0::a29f:c001]:2408` 握手成功。
+- 强制切到 WARP：
+  - `cdn-cgi/trace` 显示 `warp=on colo=TXL`；
+  - B 站 HTTPS 3/3 成功，0.28–0.42 s；
+  - 单连接下载约 279 Mbit/s；
+  - IPv6 仍是 `warp=off`，保持直连。
+- 自动模式：恢复自动约 40 秒后，日志记录 `switched to WARP (native ipv4 0/4)`。
+- 回滚门：在 180 s 内确认，计时器到期后未回滚（`rolled back` 0 次）；服务已设为开机自启。
+- 备份在 `private/backup/warp-failover-20261020/`；WARP 账号文件在 `private/warp/`，不进 Git。
+- 待验证：IPv4 恢复后约 2–3 分钟内自动切回直连（下次故障结束时检查 `logread | grep warp-failover`）。
+
+回滚：`/etc/init.d/warp-failover stop && /etc/init.d/warp-failover disable`，然后把 `/etc/config/firewall` 恢复为备份并执行 `fw4 reload`。

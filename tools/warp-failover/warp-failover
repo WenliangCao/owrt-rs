@@ -1,0 +1,109 @@
+#!/bin/sh
+# Route LAN IPv4 through Cloudflare WARP while the building's native IPv4 is down.
+# The tunnel itself runs over IPv6. Router-originated traffic always uses the
+# native WAN, so the probes below measure native IPv4, never the tunnel.
+
+DEV=warp
+TABLE=100
+PRIO=1000
+CONF=/etc/warp/wg.conf
+ADDR_FILE=/etc/warp/address4
+FORCE_FILE=/tmp/warp-failover.force
+PROBE_DIR=/tmp/warp-failover.probe.$$
+TARGETS="1.1.1.1 142.250.185.68 17.253.144.10 151.101.1.140"
+INTERVAL=10
+BAD_ROUNDS=3	# rounds with <=2/4 targets reachable before switching to WARP
+GOOD_ROUNDS=12	# rounds with >=3/4 targets reachable before switching back
+
+log() { logger -t warp-failover "$*"; }
+
+tunnel_up() {
+	ip link show "$DEV" >/dev/null 2>&1 && return 0
+	ip link add "$DEV" type wireguard || return 1
+	wg setconf "$DEV" "$CONF" &&
+		ip -4 addr add "$(cat "$ADDR_FILE")" dev "$DEV" &&
+		ip link set "$DEV" mtu 1280 up &&
+		ip -4 route replace default dev "$DEV" table "$TABLE"
+}
+
+active() { ip -4 rule show pref "$PRIO" | grep -q "lookup $TABLE"; }
+
+use_warp() {
+	active && return
+	ip -4 rule add iif br-lan lookup "$TABLE" pref "$PRIO"
+	log "switched to WARP ($1)"
+}
+
+use_native() {
+	active || return
+	ip -4 rule del pref "$PRIO"
+	log "switched to native IPv4 ($1)"
+}
+
+cleanup() {
+	ip -4 rule del pref "$PRIO" 2>/dev/null
+	ip link del "$DEV" 2>/dev/null
+	rm -rf "$PROBE_DIR"
+}
+
+# Count targets that complete a TCP handshake over native IPv4.
+# uclient-fetch exits 0 on success and 8 on an HTTP error reply; both mean TCP worked.
+probe() {
+	rm -rf "$PROBE_DIR"
+	mkdir -p "$PROBE_DIR"
+	for t in $TARGETS; do
+		(
+			uclient-fetch -q -T 3 -O /dev/null "http://$t/" >/dev/null 2>&1
+			case $? in 0 | 8) touch "$PROBE_DIR/$t" ;; esac
+		) &
+	done
+	wait
+	ls "$PROBE_DIR" | wc -l
+}
+
+run() {
+	trap 'cleanup; exit 0' INT TERM
+	use_native "service start"
+	tunnel_up || log "tunnel setup failed"
+	bad=0
+	good=0
+	while :; do
+		tunnel_up || log "tunnel setup failed"
+		mode=$(cat "$FORCE_FILE" 2>/dev/null)
+		case "$mode" in
+		on) use_warp "forced" ;;
+		off) use_native "forced" ;;
+		*)
+			n=$(probe)
+			if [ "$n" -le 2 ]; then
+				bad=$((bad + 1))
+				good=0
+			else
+				good=$((good + 1))
+				bad=0
+			fi
+			[ "$bad" -ge "$BAD_ROUNDS" ] && use_warp "native ipv4 $n/4"
+			[ "$good" -ge "$GOOD_ROUNDS" ] && use_native "native ipv4 $n/4"
+			;;
+		esac
+		sleep "$INTERVAL"
+	done
+}
+
+case "$1" in
+run) run ;;
+cleanup) cleanup ;;
+force-on) echo on >"$FORCE_FILE" ;;
+force-off) echo off >"$FORCE_FILE" ;;
+auto) rm -f "$FORCE_FILE" ;;
+status)
+	active && echo "mode: WARP" || echo "mode: native"
+	echo "force: $(cat "$FORCE_FILE" 2>/dev/null || echo auto)"
+	echo "native ipv4 probe: $(probe)/4"
+	wg show "$DEV" latest-handshakes 2>/dev/null
+	;;
+*)
+	echo "usage: $0 run|cleanup|force-on|force-off|auto|status" >&2
+	exit 1
+	;;
+esac
