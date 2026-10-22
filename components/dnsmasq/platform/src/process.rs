@@ -124,9 +124,10 @@ fn group(name: Option<CString>, gid: u32) -> Option<(u32, Vec<u8>)> {
         if code != 0 || result.is_null() {
             return None;
         }
-        // SAFETY: the successful record is initialized and owns a terminated
-        // name in buffer; no concurrent lookup can alter this private storage.
+        // SAFETY: the successful non-null result initializes our record.
         let entry = unsafe { entry.assume_init() };
+        // SAFETY: the successful lookup stores a terminated name in buffer;
+        // it remains live and no concurrent lookup can alter this private storage.
         let name = unsafe { CStr::from_ptr(entry.name) }.to_bytes().to_vec();
         return Some((entry.gid, name));
     }

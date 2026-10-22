@@ -151,6 +151,17 @@ def main(arguments):
             execute(command, args.output / f"{name}-{step}.log", env)
         if args.mode == "test" and manifest.parent == ROOT / "components/dnsmasq":
             namespace_tests(manifest, host, args.output, env)
+    if not args.benchmark and args.mode in ("check", "fmt-check"):
+        # Fuzz targets are standalone binaries, not libtest targets. Keep
+        # their API/format checks separate from the 14 component test gates.
+        fuzz = ROOT / "components/dnsmasq/fuzz/Cargo.toml"
+        if args.mode == "check":
+            command = ["mbx", "check", "--locked", "--manifest-path", str(fuzz),
+                       "--target", host, "--bins"]
+        else:
+            command = ["mbx", "fmt", "--manifest-path", str(fuzz), "--check"]
+        execute(command, args.output / f"dnsmasq-fuzz-{args.mode}.log", env)
+        print(f"Rust fuzz {args.mode}: passed", flush=True)
     print(f"Rust {args.mode}: passed ({len(manifests)} crates)", flush=True)
     return 0
 

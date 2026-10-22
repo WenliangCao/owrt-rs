@@ -72,7 +72,7 @@ fuzz_target!(|data: &[u8]| {
     names.extend(
         config
             .records
-            .raw
+            .raw_records()
             .iter()
             .map(|record| record.name.as_slice()),
     );

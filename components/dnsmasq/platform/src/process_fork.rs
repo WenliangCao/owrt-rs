@@ -256,32 +256,6 @@ pub(super) fn exit_status(result: std::thread::Result<i32>) -> i32 {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{exit_status, SignalSet};
-
-    #[test]
-    fn signal_storage_matches_linux_libc_sigset_t() {
-        assert_eq!(std::mem::size_of::<SignalSet>(), 128);
-        assert_eq!(
-            std::mem::align_of::<SignalSet>(),
-            std::mem::align_of::<usize>()
-        );
-    }
-
-    #[test]
-    fn terminating_branch_never_drops_a_panicking_payload() {
-        struct PanicOnDrop;
-        impl Drop for PanicOnDrop {
-            fn drop(&mut self) {
-                panic!("panic payload must not unwind into the copied process state");
-            }
-        }
-        assert_eq!(exit_status(Err(Box::new(PanicOnDrop))), 5);
-        assert_eq!(exit_status(Ok(7)), 7);
-    }
-}
-
 fn close_other_fds(keep: &[i32]) -> bool {
     fn close_range(first: u32, last: u32) -> bool {
         // SAFETY: Linux64 close_range syscall 436 uses scalar bounds and flags.
@@ -308,4 +282,30 @@ fn close_other_fds(keep: &[i32]) -> bool {
         first = fd + 1;
     }
     close_range(first, u32::MAX)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{exit_status, SignalSet};
+
+    #[test]
+    fn signal_storage_matches_linux_libc_sigset_t() {
+        assert_eq!(std::mem::size_of::<SignalSet>(), 128);
+        assert_eq!(
+            std::mem::align_of::<SignalSet>(),
+            std::mem::align_of::<usize>()
+        );
+    }
+
+    #[test]
+    fn terminating_branch_never_drops_a_panicking_payload() {
+        struct PanicOnDrop;
+        impl Drop for PanicOnDrop {
+            fn drop(&mut self) {
+                panic!("panic payload must not unwind into the copied process state");
+            }
+        }
+        assert_eq!(exit_status(Err(Box::new(PanicOnDrop))), 5);
+        assert_eq!(exit_status(Ok(7)), 7);
+    }
 }

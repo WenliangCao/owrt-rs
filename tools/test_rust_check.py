@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Guard the Linux-only compile boundary and isolated test-runner command matrix."""
 import json
+import contextlib
+import io
 from pathlib import Path
 import subprocess
 import tempfile
@@ -11,6 +13,38 @@ import rust_check as gate
 
 
 class RustGateTests(unittest.TestCase):
+    def recorded_entry(self, arguments):
+        output = io.StringIO()
+        with patch.object(gate.platform, "system", return_value="Linux"), \
+                patch.object(gate.os, "geteuid", return_value=1000), \
+                patch.object(gate.shutil, "which", return_value="/tools/mbx"), \
+                patch.object(gate.subprocess, "check_output", return_value="host: x86_64-unknown-linux-gnu\n"), \
+                patch.object(gate, "execute") as execute, \
+                contextlib.redirect_stdout(output):
+            self.assertEqual(gate.main(arguments), 0)
+        return [call.args[0] for call in execute.call_args_list], output.getvalue()
+
+    def test_component_check_entry_also_checks_locked_fuzz_bins(self):
+        commands, output = self.recorded_entry(["check"])
+        fuzz = str(gate.ROOT / "components/dnsmasq/fuzz/Cargo.toml")
+        self.assertEqual([command for command in commands if fuzz in command], [[
+            "mbx", "check", "--locked", "--manifest-path", fuzz,
+            "--target", "x86_64-unknown-linux-gnu", "--bins",
+        ]])
+        self.assertIn("Rust check: passed (14 crates)", output)
+        self.assertIn("Rust fuzz check: passed", output)
+
+    def test_fmt_entry_includes_fuzz_but_benchmark_entries_stay_scoped(self):
+        fuzz = str(gate.ROOT / "components/dnsmasq/fuzz/Cargo.toml")
+        commands, output = self.recorded_entry(["fmt-check"])
+        self.assertIn(["mbx", "fmt", "--manifest-path", fuzz, "--check"], commands)
+        self.assertIn("Rust fuzz fmt-check: passed", output)
+        for mode in ["check", "fmt-check"]:
+            commands, output = self.recorded_entry([mode, "--benchmark"])
+            self.assertTrue(commands)
+            self.assertFalse(any(fuzz in command for command in commands))
+            self.assertNotIn("Rust fuzz", output)
+
     def test_mac_is_rejected_before_a_compiler_or_runner_is_started(self):
         with patch.object(gate.platform, "system", return_value="Darwin"), \
                 patch.object(gate.subprocess, "run") as run, \
