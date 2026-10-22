@@ -90,11 +90,11 @@ impl Ethtool {
         let mut b = vec![0u8; 48 + 4 * 3 * 127];
         b[0..4].copy_from_slice(&ETHTOOL_GLINKSETTINGS.to_le_bytes());
         self.call(name, &mut b)?;
-        let nwords = b[15] as i8;
-        if nwords >= 0 || u32_at(&b, 0) != ETHTOOL_GLINKSETTINGS {
+        if u32_at(&b, 0) != ETHTOOL_GLINKSETTINGS {
             return Err(io::Error::from_raw_os_error(95)); // EOPNOTSUPP
         }
-        b[15] = (-nwords) as u8;
+        b[15] = requested_words(b[15] as i8)
+            .ok_or_else(|| io::Error::from_raw_os_error(95))?;
         self.call(name, &mut b)?;
         let nwords = b[15] as i8;
         if nwords <= 0 || u32_at(&b, 0) != ETHTOOL_GLINKSETTINGS {
@@ -206,6 +206,12 @@ impl Ethtool {
         self.call(name, &mut b).ok()?;
         Some(u32_at(&b, 4) != 0)
     }
+}
+
+/// The first GLINKSETTINGS reply negates a 1..=127 word count. Reject -128
+/// before negation: it cannot fit the signed count used by the second call.
+fn requested_words(reply: i8) -> Option<u8> {
+    reply.checked_neg().filter(|words| *words > 0).map(|words| words as u8)
 }
 
 /// Test one bit of a link-mode mask, mirroring
@@ -406,6 +412,16 @@ fn statistics_at(path: &CStr) -> Vec<(&'static str, u64)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn link_settings_handshake_rejects_unrepresentable_word_counts() {
+        assert_eq!(requested_words(-1), Some(1));
+        assert_eq!(requested_words(-127), Some(127));
+        for count in [i8::MIN, 0, 1, i8::MAX] {
+            assert_eq!(requested_words(count), None, "invalid count {count}");
+        }
+    }
+
 
     #[test]
     fn link_modes_use_the_generated_order_and_suffixes() {

@@ -1445,6 +1445,21 @@ mod prefix6_tests {
     use std::net::Ipv6Addr;
 
     #[test]
+    fn unsupported_excluded_prefix_cannot_reach_an_invalid_assignment_shift() {
+        let parsed = parse_prefix6("2001:db8::/56,3600,7200,excluded=2001:db8::/80").unwrap();
+        let mut prefix = crate::ip::DevicePrefix::new(parsed.addr, parsed.length, "wan", Some("wan"));
+        prefix.excl = parsed.excl;
+        let request = crate::ip::AssignRequest {
+            name: "lan".into(),
+            length: 64,
+            hint: None,
+            weight: 0,
+            classes: Vec::new(),
+        };
+        assert!(crate::ip::assign(&prefix, &[request]).is_empty());
+    }
+
+    #[test]
     fn the_plain_form_is_prefix_preferred_valid() {
         let p = parse_prefix6("2001:db8:1:2::/60,3600,7200").unwrap();
         assert_eq!(p.addr, "2001:db8:1:2::".parse::<Ipv6Addr>().unwrap());

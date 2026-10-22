@@ -33,7 +33,7 @@ use std::sync::Mutex;
 static RETIRED: Mutex<Vec<Child>> = Mutex::new(Vec::new());
 
 pub fn reap_retired() {
-    RETIRED.lock().unwrap_or_else(|e| e.into_inner()).retain_mut(|child| {
+    RETIRED.lock().expect("retired child list lock poisoned").retain_mut(|child| {
         matches!(child.try_wait(), Ok(None))
     });
 }
@@ -190,7 +190,7 @@ impl Process {
         if matches!(self.child.try_wait(), Ok(None)) {
             self.child.stdout.take();
             self.child.stderr.take();
-            RETIRED.lock().unwrap_or_else(|e| e.into_inner()).push(self.child);
+            RETIRED.lock().expect("retired child list lock poisoned").push(self.child);
         }
     }
 }
@@ -284,6 +284,14 @@ mod tests {
         vec!["/bin/sh".into(), "-c".into(), script.into()]
     }
 
+    fn wait_stopped(pid: u32) {
+        use rustix::process::{waitid, Pid, WaitId, WaitIdOptions};
+        let pid = Pid::from_raw(pid as i32).expect("spawned child pid");
+        waitid(WaitId::Pid(pid), WaitIdOptions::STOPPED | WaitIdOptions::NOWAIT)
+            .unwrap()
+            .expect("child reached the synchronization point");
+    }
+
     #[test]
     fn a_process_reports_its_exit_status_once() {
         let mut s = Slot::default();
@@ -373,9 +381,9 @@ mod tests {
         // R81 F09: `netifd_kill_process` uses SIGKILL. A helper that traps TERM
         // (or is stuck in D state) must not hold the event loop.
         let mut s = Slot::default();
-        s.start(&sh("trap '' TERM; exec sleep 30"), &[]).unwrap();
+        s.start(&sh("trap '' TERM; kill -STOP $$; exec sleep 30"), &[]).unwrap();
         let pid = s.pid().unwrap();
-        std::thread::sleep(std::time::Duration::from_millis(150));
+        wait_stopped(pid);
         let t = std::time::Instant::now();
         s.terminate();
         assert!(t.elapsed() < std::time::Duration::from_secs(2), "took {:?}", t.elapsed());
@@ -420,7 +428,10 @@ mod tests {
     #[test]
     fn a_partial_line_is_held_back_until_its_newline() {
         let mut s = Slot::default();
-        s.start(&sh("printf half; sleep 0.4; printf 'done\n'; sleep 30"), &[]).unwrap();
+        s.start(&sh("printf half; kill -STOP $$; printf 'done\n'; exec sleep 30"), &[]).unwrap();
+        wait_stopped(s.pid().unwrap());
+        assert!(s.poll_lines().is_empty(), "an unterminated line must stay buffered");
+        s.signal(18).unwrap(); // SIGCONT: release the writer after checking the prefix.
         // "half" alone must never be logged as a line of its own
         let mut seen: Vec<String> = Vec::new();
         for _ in 0..200 {

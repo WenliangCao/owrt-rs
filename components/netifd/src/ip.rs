@@ -150,7 +150,19 @@ fn later_order(a: &(AssignRequest, Entry), b: &(AssignRequest, Entry)) -> std::c
 /// `requests` must be in netifd's interface order, which is its vlist order:
 /// by interface name. The returned assignments are in the list's own order,
 /// which is what `ipv6-prefix-assignment` and the `assigned` table report.
+/// Returns no assignments when the parent or exclusion cannot be represented
+/// by the signed subnet-offset model; a zero-length exclusion is absent.
 pub fn assign(prefix: &DevicePrefix, requests: &[AssignRequest]) -> Vec<Assignment> {
+    // The signed offset model needs a positive end sentinel. A /1 would
+    // require 2^63, and lengths above /64 cannot contain an assignable subnet.
+    // Fail closed for unrepresentable exclusions too: ignoring one could hand
+    // out a subnet explicitly withheld by the upstream. The pinned C uses
+    // undefined shifts for these lengths; normal /48../64 behavior is retained.
+    if !(2..=64).contains(&prefix.length)
+        || prefix.excl.is_some_and(|(_, length)| length == 1 || length > 64)
+    {
+        return Vec::new();
+    }
     // the end-of-assignment sentinel
     let mut list = vec![Entry {
         name: String::new(),
@@ -159,7 +171,7 @@ pub fn assign(prefix: &DevicePrefix, requests: &[AssignRequest]) -> Vec<Assignme
     }];
 
     // the excluded prefix, inserted at the head as the C's list_add does
-    if let Some((excl_addr, excl_length)) = prefix.excl {
+    if let Some((excl_addr, excl_length)) = prefix.excl.filter(|(_, length)| *length != 0) {
         let o = excl_addr.octets();
         let word1 = u32::from_be_bytes([o[4], o[5], o[6], o[7]]) as i64;
         list.insert(
@@ -317,6 +329,32 @@ mod tests {
         assert_eq!(clear_if_addr(a, 60), "2001:db8:1::".parse::<Ipv6Addr>().unwrap());
         assert_eq!(clear_if_addr(a, 64), "2001:db8:1:2::".parse::<Ipv6Addr>().unwrap());
         assert_eq!(clear_if_addr(a, 0), Ipv6Addr::UNSPECIFIED);
+    }
+
+    #[test]
+    fn unrepresentable_prefixes_never_allocate_or_panic() {
+        let address = "2001:db8::".parse().unwrap();
+        for length in [0, 1, 65, 128, 255] {
+            let prefix = DevicePrefix::new(address, length, "wan", Some("wan"));
+            assert!(assign(&prefix, &[req("lan", 64)]).is_empty());
+        }
+        for length in [1, 65, 80, 128, 255] {
+            let mut prefix = DevicePrefix::new(address, 56, "wan", Some("wan"));
+            prefix.excl = Some((address, length));
+            assert!(assign(&prefix, &[req("lan", 64)]).is_empty());
+        }
+    }
+
+    #[test]
+    fn normal_prefix_range_and_zero_length_exclusion_keep_their_assignments() {
+        for length in 48..=64 {
+            let mut prefix = DevicePrefix::new("2001:db8::".parse().unwrap(), length, "wan", Some("wan"));
+            let expected = vec![Assignment { name: "lan".into(), length: 64, assigned: 0 }];
+            assert_eq!(assign(&prefix, &[req("lan", 64)]), expected);
+            // The C tests excl_length > 0: /0 means no exclusion.
+            prefix.excl = Some(("2001:db8::".parse().unwrap(), 0));
+            assert_eq!(assign(&prefix, &[req("lan", 64)]), expected);
+        }
     }
 
     #[test]

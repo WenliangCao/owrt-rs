@@ -4680,7 +4680,7 @@ fn keep_proto_route(old: &interface::Route, new: &interface::Route, now: u64) ->
 // ---------------------------------------------------------------------------
 
 /// One radio's live state, mirroring `wdev` in wireless-device.uc.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 struct WRadio {
     name: String,
     state: wireless::WState,

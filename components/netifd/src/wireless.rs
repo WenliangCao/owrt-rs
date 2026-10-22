@@ -255,6 +255,35 @@ pub fn discover(dir: &Path) -> Vec<Handler> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn wireless_debug_redacts_options_and_cached_payloads() {
+        let secret = "wpa-key-that-must-not-be-logged";
+        let opts = vec![("key".into(), Val::Str(secret.into()))];
+        let sub = Sub { section: "station".into(), opts: opts.clone() };
+        let vif = Vif {
+            section: "lan".into(),
+            opts: opts.clone(),
+            stas: vec![sub.clone()],
+            status_config: secret.as_bytes().to_vec(),
+            ..Default::default()
+        };
+        let radio = Radio {
+            name: "radio0".into(),
+            opts,
+            vifs: vec![vif.clone()],
+            status_config: secret.as_bytes().to_vec(),
+        };
+        let encoded = format!("{:?}", secret.as_bytes());
+        for debug in [format!("{sub:?}"), format!("{vif:?}"), format!("{radio:?}"), format!("{radio:#?}")] {
+            assert!(!debug.contains(secret), "credential leaked: {debug}");
+            assert!(!debug.contains(&encoded), "encoded credential leaked: {debug}");
+            assert!(!debug.contains("status_config"));
+        }
+        assert_eq!(radio.status_config, secret.as_bytes());
+        assert_eq!(vif.opts[0].1, Val::Str(secret.into()));
+    }
+
+
     fn h(dump: &str) -> Handler {
         handler_from(Path::new("/x.sh"), &json::parse(dump).unwrap()).unwrap()
     }
@@ -494,14 +523,14 @@ pub fn attribute_list(opts: &[(String, Val)], spec: &[(String, u32)]) -> Vec<(St
 }
 
 /// One `config wifi-vlan` or `config wifi-station`, attached to a vif.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Default)]
 pub struct Sub {
     pub section: String,
     pub opts: Vec<(String, Val)>,
 }
 
 /// One `config wifi-iface`.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Default)]
 pub struct Vif {
     pub section: String,
     pub opts: Vec<(String, Val)>,
@@ -516,13 +545,46 @@ pub struct Vif {
 }
 
 /// One `config wifi-device`.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Default)]
 pub struct Radio {
     pub name: String,
     pub opts: Vec<(String, Val)>,
     pub vifs: Vec<Vif>,
     /// Dynamic state and handler ifnames are never stored here.
     pub status_config: Vec<u8>,
+}
+
+// Options and cached blobmsg tables can contain WPA/SAE keys. Summarize
+// those collections rather than printing either text or encoded credentials.
+impl std::fmt::Debug for Sub {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Sub")
+            .field("section", &self.section)
+            .field("option_count", &self.opts.len())
+            .finish_non_exhaustive()
+    }
+}
+
+impl std::fmt::Debug for Vif {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Vif")
+            .field("section", &self.section)
+            .field("option_count", &self.opts.len())
+            .field("vlans", &self.vlans)
+            .field("stas", &self.stas)
+            .field("radios", &self.radios)
+            .finish_non_exhaustive()
+    }
+}
+
+impl std::fmt::Debug for Radio {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Radio")
+            .field("name", &self.name)
+            .field("option_count", &self.opts.len())
+            .field("vifs", &self.vifs)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Radio {

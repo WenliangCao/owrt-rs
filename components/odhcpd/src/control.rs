@@ -196,7 +196,7 @@ impl Bus {
         let mut ignored = self
             .ignored_interfaces
             .write()
-            .unwrap_or_else(|poison| poison.into_inner());
+            .expect("ignored interface policy lock poisoned");
         *ignored = names;
     }
 
@@ -314,7 +314,7 @@ fn notification_ignored(fields: &[u8], ignored_interfaces: &RwLock<Vec<String>>)
     };
     ignored_interfaces
         .read()
-        .unwrap_or_else(|poison| poison.into_inner())
+        .expect("ignored interface policy lock poisoned")
         .iter()
         .any(|ignored| ignored == name)
 }

@@ -65,9 +65,9 @@ fn configured_dns_must_fit_option_and_udp_lengths() {
             assert!(length <= options.len() - 4);
             if code == 23 {
                 assert_eq!(length, count * 16);
-                for address in options[4..4 + length].chunks_exact(16) {
+                for address in options[4..4 + length].as_chunks::<16>().0 {
                     assert_eq!(
-                        address,
+                        *address,
                         "fd00::1".parse::<std::net::Ipv6Addr>().unwrap().octets()
                     );
                 }

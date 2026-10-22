@@ -61,11 +61,13 @@ fn interpret(reply: &[u8]) -> Option<bool> {
     let len = u32::from_ne_bytes(reply[0..4].try_into().ok()?) as usize;
     let kind = u16::from_ne_bytes(reply[4..6].try_into().ok()?);
     let seq = u32::from_ne_bytes(reply[8..12].try_into().ok()?);
-    if len > reply.len() || seq != SEQ {
+    if len < 16 || len > reply.len() || seq != SEQ {
         return None;
     }
     if kind == (NFNL_SUBSYS_NFTABLES << 8) | NFT_MSG_NEWFLOWTABLE {
-        return Some(true);
+        // Every nf_tables object includes nfgenmsg after nlmsghdr. A header
+        // alone cannot establish that this is an inet flowtable object.
+        return (len >= 20 && reply[16] == NFPROTO_INET && reply[17] == 0).then_some(true);
     }
     if kind == NLMSG_ERROR && len >= 20 {
         return match i32::from_ne_bytes(reply[16..20].try_into().ok()?) {
@@ -180,13 +182,20 @@ mod tests {
         assert_eq!(interpret(&short), None, "error without a code");
     }
 
-    /// Never panics; with the capability it agrees with itself, without it it
-    /// reports `None` so the caller keeps firewall4's nft path.
     #[test]
-    fn exists_is_total() {
-        let a = exists("fw4", "ft");
-        let b = exists("fw4", "ft");
-        assert_eq!(a, b);
+    fn malformed_object_headers_fall_back_to_nft() {
+        for length in [0u32, 15, 16, 19, 21] {
+            let mut object = reply(nfnl(NFT_MSG_NEWFLOWTABLE), SEQ, &[1, 0, 0, 0]);
+            object[..4].copy_from_slice(&length.to_ne_bytes());
+            assert_eq!(interpret(&object), None, "declared length {length}");
+        }
+        for header in [[2, 0, 0, 0], [1, 1, 0, 0]] {
+            assert_eq!(interpret(&reply(nfnl(NFT_MSG_NEWFLOWTABLE), SEQ, &header)), None);
+        }
+    }
+
+    #[test]
+    fn oversized_names_fall_back_without_querying_the_kernel() {
         assert_eq!(exists("fw4", &"n".repeat(60)), None);
     }
 }

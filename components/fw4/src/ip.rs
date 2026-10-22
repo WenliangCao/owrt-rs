@@ -193,15 +193,17 @@ fn format_v6(a: &[u8]) -> String {
 
 fn mask_byte(bits: i64, invert: bool) -> u8 {
     // (0xff << (8 - b)) & 0xff with 64-bit shift semantics
-    let sh = 8 - bits;
-    let shifted: i64 = if !(0..64).contains(&sh) { 0 } else { 0xff_i64 << sh };
+    let shifted = 8_i64.checked_sub(bits)
+        .filter(|shift| (0..64).contains(shift))
+        .map(|shift| 0xff_i64 << shift)
+        .unwrap_or(0);
     let v = if invert { !shifted } else { shifted };
     (v & 0xff) as u8
 }
 
 /// fw4.uc `to_mask(bits, v6)`: prefix length to dotted/colon mask string.
 pub fn to_mask(bits: i64, v6: bool) -> Option<String> {
-    let (mut bits, invert) = if bits < 0 { (-bits, true) } else { (bits, false) };
+    let (mut bits, invert) = (bits.checked_abs()?, bits < 0);
     let max = if v6 { 128 } else { 32 };
     if bits > max {
         return None;
@@ -298,6 +300,16 @@ mod tests {
         assert!(iptoarr("1:2:3:4:5:6:7:8").is_some());
         assert_eq!(iptoarr("1:2:3:4:5:6:7"), None);
         assert_eq!(iptoarr("::ffff:ffff:ffff:ffff").map(|a| a[8]), Some(255));
+    }
+
+    #[test]
+    fn extreme_mask_lengths_do_not_overflow() {
+        for bits in [i64::MIN, i64::MAX] {
+            assert_eq!(to_mask(bits, false), None);
+            assert_eq!(to_mask(bits, true), None);
+        }
+        assert_eq!(apply_mask("10.0.0.77", Mask::Bits(i64::MIN)), Some("0.0.0.0".into()));
+        assert_eq!(apply_mask("10.0.0.77", Mask::Bits(i64::MAX)), Some("10.0.0.77".into()));
     }
 
     #[test]

@@ -5,8 +5,8 @@
 //! every write is a single request that is acknowledged before the next one is
 //! sent, so a failure is attributed to the operation that caused it.
 //!
-//! Netlink is little-endian on every architecture Linux supports, so the
-//! encoders below use `to_le_bytes` unconditionally rather than native order.
+//! Netlink uses the host's native byte order. Our supported Linux targets
+//! (aarch64 and x86_64) are little-endian; these encoders preserve that ABI.
 
 use std::io;
 use std::os::fd::{AsRawFd, OwnedFd};
@@ -245,21 +245,12 @@ impl Netlink {
         let mut buf = vec![0u8; 32768];
         loop {
             let (_, n) = rustix::net::recv(&self.fd, &mut buf, RecvFlags::empty())?;
-            for m in split(&buf[..n as usize]) {
+            for m in split(&buf[..n]) {
                 if m.seq != seq {
                     continue;
                 }
                 if m.ty == NLMSG_ERROR {
-                    if m.payload.len() < 4 {
-                        return Err(io::Error::other("short NLMSG_ERROR"));
-                    }
-                    let e = i32::from_le_bytes([
-                        m.payload[0],
-                        m.payload[1],
-                        m.payload[2],
-                        m.payload[3],
-                    ]);
-                    return if e == 0 { Ok(()) } else { Err(io::Error::from_raw_os_error(-e)) };
+                    return check_error(&m.payload);
                 }
                 if m.ty == NLMSG_DONE {
                     return Ok(());
@@ -276,7 +267,7 @@ impl Netlink {
         let mut buf = vec![0u8; 1 << 17];
         'dump: loop {
             let (_, n) = rustix::net::recv(&self.fd, &mut buf, RecvFlags::empty())?;
-            for m in split(&buf[..n as usize]) {
+            for m in split(&buf[..n]) {
                 if m.seq != seq {
                     continue;
                 }
@@ -284,16 +275,7 @@ impl Netlink {
                 match m.ty {
                     NLMSG_DONE => {
                         if !m.payload.is_empty() {
-                            let bytes = m.payload.get(..4).ok_or_else(|| {
-                                io::Error::new(io::ErrorKind::InvalidData, "short NLMSG_DONE")
-                            })?;
-                            let error = i32::from_le_bytes(bytes.try_into().unwrap());
-                            if error != 0 {
-                                let errno = error.checked_neg().filter(|errno| *errno > 0)
-                                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData,
-                                        "invalid NLMSG_DONE error"))?;
-                                return Err(io::Error::from_raw_os_error(errno));
-                            }
+                            check_error(&m.payload)?;
                         }
                         // Drain the failed sequence through DONE before retrying.
                         // Missing rows must not be interpreted as device/prefix removal.
@@ -301,17 +283,7 @@ impl Netlink {
                     }
                     NLMSG_NOOP => {}
                     NLMSG_ERROR => {
-                        if m.payload.len() >= 4 {
-                            let e = i32::from_le_bytes([
-                                m.payload[0],
-                                m.payload[1],
-                                m.payload[2],
-                                m.payload[3],
-                            ]);
-                            if e != 0 {
-                                return Err(io::Error::from_raw_os_error(-e));
-                            }
-                        }
+                        check_error(&m.payload)?;
                         break 'dump;
                     }
                     _ => {
@@ -344,26 +316,14 @@ impl Netlink {
             self.reply.clear();
             let (_, n) = rustix::net::recv(&self.fd,
                 rustix::buffer::spare_capacity(&mut self.reply), RecvFlags::empty())?;
-            for m in split(&self.reply[..n as usize]) {
+            for m in split(&self.reply[..n]) {
                 if m.seq != seq {
                     continue;
                 }
                 match m.ty {
                     NLMSG_ERROR => {
-                        if m.payload.len() < 4 {
-                            return Err(io::Error::other("short NLMSG_ERROR"));
-                        }
-                        let e = i32::from_le_bytes([
-                            m.payload[0],
-                            m.payload[1],
-                            m.payload[2],
-                            m.payload[3],
-                        ]);
-                        return if e == 0 {
-                            Ok(None)
-                        } else {
-                            Err(io::Error::from_raw_os_error(-e))
-                        };
+                        check_error(&m.payload)?;
+                        return Ok(None);
                     }
                     NLMSG_DONE => return Ok(None),
                     NLMSG_NOOP => {}
@@ -381,13 +341,30 @@ impl Netlink {
             Err(rustix::io::Errno::AGAIN) => return Ok(Vec::new()),
             Err(error) => return Err(error.into()),
         };
-        if n as usize > buf.len() {
+        if n > buf.len() {
             // recv(MSG_TRUNC) reports the full datagram size. A discarded
             // tail loses events just like a receive-queue overflow.
             return Err(io::Error::from_raw_os_error(ENOBUFS));
         }
-        Ok(split(&buf[..n as usize]))
+        Ok(split(&buf[..n]))
     }
+}
+
+/// Decode the signed status carried by NLMSG_ERROR and nonempty NLMSG_DONE.
+/// Zero acknowledges success; errors must be negative and representable as a
+/// positive errno. Malformed status messages never complete a partial dump.
+fn check_error(payload: &[u8]) -> io::Result<()> {
+    let Some(bytes) = payload.get(..4) else {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "short netlink error status"));
+    };
+    let error = i32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
+    if error == 0 {
+        return Ok(());
+    }
+    let errno = error.checked_neg().filter(|errno| *errno > 0).ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidData, "invalid netlink error status")
+    })?;
+    Err(io::Error::from_raw_os_error(errno))
 }
 
 /// Split a received buffer into whole netlink messages, ignoring a trailing
@@ -479,6 +456,32 @@ mod tests {
         ])
         .expect_err("failed dump was accepted");
         assert_eq!(error.raw_os_error(), Some(ENOBUFS));
+    }
+
+    #[test]
+    fn malformed_error_status_never_publishes_a_partial_dump() {
+        for payload in [
+            &[][..],
+            &[0][..],
+            &[0, 0, 0][..],
+            &i32::MIN.to_le_bytes()[..],
+            &1i32.to_le_bytes()[..],
+        ] {
+            let error = simulated_dump(&[
+                (16, NLM_F_MULTI, &[1; 16]),
+                (NLMSG_ERROR, 0, payload),
+            ])
+            .expect_err("malformed status published the collected rows");
+            assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+        }
+    }
+
+    #[test]
+    fn acknowledged_errors_preserve_the_kernel_errno() {
+        let error = simulated_dump(&[(NLMSG_ERROR, 0, &(-22i32).to_le_bytes())])
+            .expect_err("kernel EINVAL must be returned");
+        assert_eq!(error.raw_os_error(), Some(22));
+        assert!(simulated_dump(&[(NLMSG_ERROR, 0, &[0; 4])]).unwrap().is_empty());
     }
 
     #[test]

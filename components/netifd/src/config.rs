@@ -1,8 +1,8 @@
 //! `/etc/config/network` → the device and interface model.
 //!
-//! Anything this build cannot honour is an error, never a silent skip: a
-//! config section that quietly does nothing is how a router ends up half
-//! configured with no indication of why (RUST_CORE_CONTROL_PLAN §2).
+//! Unsupported sections produce warnings while the remaining configuration
+//! stays usable, matching netifd reload behavior. Invalid static IP settings
+//! are retained as setup errors for the affected interface.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -22,6 +22,8 @@ impl fmt::Display for ConfigError {
         write!(f, "{}: {}", self.section, self.message)
     }
 }
+
+impl std::error::Error for ConfigError {}
 
 /// Section types netifd knows but this build does not implement. Naming them
 /// separately keeps the error specific ("bonding is not supported") rather
@@ -73,7 +75,7 @@ pub struct DeviceConfig {
 }
 
 /// A `config interface` section.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Default, PartialEq, Eq)]
 pub struct InterfaceConfig {
     pub name: String,
     pub device: Option<String>,
@@ -113,12 +115,39 @@ pub struct InterfaceConfig {
 }
 
 /// One option as it appeared in the file.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct RawOpt {
     pub name: String,
     pub values: Vec<String>,
     /// `list foo 'x'` rather than `option foo 'x'`.
     pub is_list: bool,
+}
+
+// Protocol options include passwords and private keys. Debug is an operational
+// summary; the original values remain available to the protocol and ubus code.
+impl fmt::Debug for InterfaceConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("InterfaceConfig")
+            .field("name", &self.name)
+            .field("device", &self.device)
+            .field("proto", &self.proto)
+            .field("auto", &self.auto)
+            .field("ipv4", &self.ipv4)
+            .field("ipv6", &self.ipv6)
+            .field("extra_count", &self.extra.len())
+            .field("raw_count", &self.raw.len())
+            .finish_non_exhaustive()
+    }
+}
+
+impl fmt::Debug for RawOpt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RawOpt")
+            .field("name", &self.name)
+            .field("value_count", &self.values.len())
+            .field("is_list", &self.is_list)
+            .finish_non_exhaustive()
+    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -609,6 +638,21 @@ pub fn load(confdir: &str) -> Result<Config, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn configuration_debug_does_not_disclose_protocol_credentials() {
+        let secret = "pppoe-password-that-must-not-be-logged";
+        let raw = RawOpt { name: "password".into(), values: vec![secret.into()], is_list: false };
+        let mut config = InterfaceConfig { name: "wan".into(), proto: "pppoe".into(), ..Default::default() };
+        config.extra.insert("password".into(), vec![secret.into()]);
+        config.raw.push(raw.clone());
+        for debug in [format!("{raw:?}"), format!("{config:?}"), format!("{config:#?}")] {
+            assert!(!debug.contains(secret), "credential leaked: {debug}");
+        }
+        assert_eq!(config.extra["password"], [secret]);
+        assert_eq!(config.raw[0].values, [secret]);
+    }
+
 
     fn pkg(text: &str) -> Package {
         // tests run in parallel and each writes its own `network` file, so the
