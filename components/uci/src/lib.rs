@@ -18,9 +18,13 @@ mod read_cache;
 pub mod show;
 pub mod sys;
 
+#[doc(inline)]
 pub use context::Context;
+#[doc(inline)]
 pub use error::{Error, Result};
+#[doc(inline)]
 pub use model::{Cmd, Delta, Opt, OptionValue, Package, Ptr, Section};
+#[doc(inline)]
 pub use read_cache::ReadCache;
 
 #[doc(hidden)]

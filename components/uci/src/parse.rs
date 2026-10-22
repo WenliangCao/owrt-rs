@@ -758,7 +758,7 @@ static ERROR_INFO: Mutex<String> = Mutex::new(String::new());
 
 /// uci_perror(ctx, prefix): prints `prefix: <errstr><error_info>` to stderr.
 pub fn perror(ctx: &Context, prefix: Option<&str>) {
-    let mut info = ERROR_INFO.lock().unwrap_or_else(|p| p.into_inner());
+    let mut info = ERROR_INFO.lock().expect("UCI error formatting panicked while holding error state");
     if let Some(s) = ctx.parse_error_info() {
         let mut s = s;
         s.truncate(126);

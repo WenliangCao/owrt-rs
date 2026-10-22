@@ -494,6 +494,11 @@ pub fn delete(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
             let Some(mut index) = sscanf_int_bytes(value) else {
                 return Ok(());
             };
+            // Negative positions select no list item. In particular, do not
+            // decrement INT_MIN as C does: its signed overflow is undefined.
+            if index < 0 {
+                return Ok(());
+            }
             let mut i = 0;
             while i < items.len() {
                 if index == 0 {
@@ -729,6 +734,25 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn list_deletion_handles_signed_index_boundaries_without_losing_values() {
+        for (index, expected) in [
+            (i32::MIN, vec!["one", "two"]), (-1, vec!["one", "two"]),
+            (i32::MAX, vec!["one", "two"]), (0, vec!["two"]), (1, vec!["one"]),
+        ] {
+            let mut ctx = Context::new();
+            let input = b"config test s\nlist items one\nlist items two\n";
+            crate::parse::import(&mut ctx, &mut input.as_slice(), Some("t"), None, true).unwrap();
+            ctx.root[0].has_delta = true;
+            let mut ptr = Ptr::default();
+            lookup_ptr(&mut ctx, &mut ptr, Some(format!("t.s.items={index}").as_bytes()), true).unwrap();
+            delete(&mut ctx, &mut ptr, false).unwrap();
+            assert_eq!(ctx.root[0].sections[0].options[0].value,
+                OptionValue::List(expected.into_iter().map(Into::into).collect()));
+            assert_eq!(ctx.root[0].delta.len(), usize::from((0..2).contains(&index)));
+        }
+    }
 
     #[test]
     fn parse_ptr_cases() {
