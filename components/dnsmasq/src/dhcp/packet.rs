@@ -39,6 +39,20 @@ pub enum VendorError {
     MalformedOptions,
 }
 
+impl std::fmt::Display for VendorError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Self::OutputTooSmall => "BOOTP vendor output buffer is too small",
+            Self::ValueTooLong => "BOOTP vendor option exceeds its wire length",
+            Self::PadHasValue => "BOOTP PAD option must not have a value",
+            Self::EndHasValue => "BOOTP END option must not have a value",
+            Self::MalformedOptions => "malformed BOOTP vendor options",
+        })
+    }
+}
+
+impl std::error::Error for VendorError {}
+
 /// Encode the RFC 1048 BOOTP vendor field used by `rfc2131.c`'s BOOTP path.
 ///
 /// The caller supplies already-selected options; policy, option ordering and
@@ -224,6 +238,20 @@ pub enum ParseError {
     HardwareTypeMissing,
     BadCookie,
 }
+
+impl std::fmt::Display for ParseError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Self::TruncatedHeader => "truncated DHCP packet header",
+            Self::NotRequest => "DHCP packet is not a request",
+            Self::HardwareAddressTooLong => "DHCP hardware address exceeds its header field",
+            Self::HardwareTypeMissing => "DHCP hardware address has no hardware type",
+            Self::BadCookie => "invalid DHCP magic cookie",
+        })
+    }
+}
+
+impl std::error::Error for ParseError {}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct OptionValue<'a> {

@@ -28,6 +28,16 @@ pub struct Expansion {
     pub error: Option<Error>,
 }
 
+impl std::fmt::Debug for Expansion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Expansion")
+            .field("rule_count", &self.rules.len())
+            .field("origin_count", &self.origins.len())
+            .field("error", &self.error)
+            .finish_non_exhaustive()
+    }
+}
+
 pub fn resolve_rules(rules: &[ServerRule], reverse: bool) -> Expansion {
     resolve_with(rules, reverse, addresses, scope_index)
 }
@@ -117,6 +127,24 @@ fn resolve_with(
 mod tests {
     use super::*;
     use crate::config::{dns::parse_rules, EncodedArg};
+    #[test]
+    fn expansion_debug_omits_configuration_values() {
+        let expansion = Expansion {
+            rules: parse_rules(
+                b"server",
+                &EncodedArg::command_line(b"private-upstream.test"),
+            )
+            .unwrap(),
+            origins: vec![0],
+            error: None,
+        };
+        for text in [format!("{expansion:?}"), format!("{expansion:#?}")] {
+            assert!(text.contains("rule_count: 1"));
+            assert!(!text.contains("private-upstream"));
+            assert!(!text.contains("112, 114, 105"));
+            assert!(!text.contains("rules:"));
+        }
+    }
     #[test]
     fn expansion_preserves_address_then_domain_order_and_filters_named_source_family() {
         let rules = parse_rules(

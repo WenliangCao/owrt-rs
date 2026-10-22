@@ -294,6 +294,14 @@ pub struct OccurrenceTracker {
     seen: HashMap<&'static str, Origin>,
 }
 
+impl fmt::Debug for OccurrenceTracker {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("OccurrenceTracker")
+            .field("tracked_options", &self.seen.len())
+            .finish_non_exhaustive()
+    }
+}
+
 impl OccurrenceTracker {
     pub fn record(&mut self, spec: &OptionSpec, origin: Origin) -> Result<bool, Error> {
         if spec.repeat != Repeat::OncePerOrigin {

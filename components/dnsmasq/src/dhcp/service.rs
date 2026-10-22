@@ -809,6 +809,29 @@ pub enum DispatchError {
     Packet(ParseError),
 }
 
+impl std::fmt::Display for DispatchError {
+    fn fmt(&self, output: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DatagramTooLarge { length, maximum } => {
+                write!(
+                    output,
+                    "DHCP datagram length {length} exceeds {maximum} bytes"
+                )
+            }
+            Self::Packet(error) => write!(output, "invalid DHCP packet: {error}"),
+        }
+    }
+}
+
+impl std::error::Error for DispatchError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::DatagramTooLarge { .. } => None,
+            Self::Packet(error) => Some(error),
+        }
+    }
+}
+
 /// Decode one received DHCP datagram and hand it to the state-machine caller.
 /// No reply is generated and no lease is mutated here.  `pxe_prefixes` are
 /// configured `dhcp-vendorclass` prefixes; matching uses the C starts-with

@@ -120,6 +120,30 @@ pub enum ReplyError {
     OptionTooLong { code: u8, length: usize },
 }
 
+impl std::fmt::Display for ReplyError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BufferTooSmall {
+                required,
+                available,
+            } => write!(
+                formatter,
+                "DHCP leasequery reply needs {required} bytes but the output buffer has {available}"
+            ),
+            Self::HardwareAddressTooLong { length } => write!(
+                formatter,
+                "DHCP leasequery hardware address has {length} bytes, exceeding its 16-byte field"
+            ),
+            Self::OptionTooLong { code, length } => write!(
+                formatter,
+                "DHCP leasequery option {code} has {length} bytes, exceeding its wire length"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for ReplyError {}
+
 /// Serialize the RFC4388 reply fields selected by [`query`]. The caller may
 /// pass additional options selected by its context/tag owner; these are
 /// appended after the RFC-mandated timers and before option 82 (agent-id),

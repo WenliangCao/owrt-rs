@@ -109,6 +109,11 @@ pub trait OutcomeProvider {
     ) {
     }
 
+    /// Encode an optional direct PXE reply into the supplied output buffer.
+    ///
+    /// On `Some`, the provider must have written a complete BOOTP header and
+    /// return its actual encoded length, no greater than the output buffer.
+    /// Violating this implementation contract is a programming bug and may panic.
     fn direct_pxe_reply(
         &mut self,
         _request: super::packet::Packet<'_>,
@@ -117,6 +122,11 @@ pub trait OutcomeProvider {
         Ok(None)
     }
 
+    /// Encode an optional leasequery reply into the supplied output buffer.
+    ///
+    /// On `Some`, the provider must have written a complete BOOTP header and
+    /// return its actual encoded length, no greater than the output buffer.
+    /// Violating this implementation contract is a programming bug and may panic.
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn lease_query_reply(
         &mut self,
@@ -594,6 +604,38 @@ pub enum RuntimeError {
     Send(io::Error),
 }
 
+impl std::fmt::Display for RuntimeError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unsupported { kind, route } => {
+                write!(
+                    formatter,
+                    "unsupported DHCP dispatch {kind:?} on route {route:?}"
+                )
+            }
+            Self::State(message) => write!(formatter, "DHCP state transition failed: {message}"),
+            Self::Interface(error) => write!(formatter, "DHCP interface lookup failed: {error}"),
+            Self::Reply(error) => write!(formatter, "DHCP reply construction failed: {error}"),
+            Self::Random(error) => write!(formatter, "DHCP entropy read failed: {error}"),
+            Self::BootLookup(error) => write!(formatter, "DHCP boot lookup failed: {error}"),
+            Self::Send(error) => write!(formatter, "DHCP reply send failed: {error}"),
+        }
+    }
+}
+
+impl std::error::Error for RuntimeError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Interface(error)
+            | Self::Random(error)
+            | Self::BootLookup(error)
+            | Self::Send(error) => Some(error),
+            Self::Reply(error) => Some(error),
+            Self::Unsupported { .. } | Self::State(_) => None,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct RuntimeFailure {
     pub error: RuntimeError,
@@ -602,6 +644,18 @@ pub struct RuntimeFailure {
     /// True once the provider returned an outcome. The runtime deliberately
     /// cannot undo state/lease side effects after this point.
     pub committed: bool,
+}
+
+impl std::fmt::Display for RuntimeFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "{}", self.error)
+    }
+}
+
+impl std::error::Error for RuntimeFailure {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.error)
+    }
 }
 
 #[derive(Debug)]
@@ -1760,6 +1814,38 @@ mod tests {
     use crate::dhcp::packet::COOKIE;
     use crate::dhcp::service::{dispatch, Ingress, Listener};
     use std::cell::Cell;
+
+    #[test]
+    fn failure_error_chain_preserves_io_errno_and_bootp_cause() {
+        use std::error::Error;
+
+        let failed = failure(
+            RuntimeError::Send(io::Error::from_raw_os_error(5)),
+            Vec::new(),
+            None,
+            true,
+        );
+        let cause = failed.source().unwrap().source().unwrap();
+        assert_eq!(
+            cause.downcast_ref::<io::Error>().unwrap().raw_os_error(),
+            Some(5)
+        );
+        assert!(failed.committed);
+
+        let failed = failure(
+            RuntimeError::Reply(ReplyError::Bootp(
+                super::super::packet::VendorError::PadHasValue,
+            )),
+            Vec::new(),
+            None,
+            true,
+        );
+        let cause = failed.source().unwrap().source().unwrap().source().unwrap();
+        assert_eq!(
+            cause.downcast_ref::<super::super::packet::VendorError>(),
+            Some(&super::super::packet::VendorError::PadHasValue)
+        );
+    }
 
     struct Sender {
         sent: Vec<(Vec<u8>, SocketAddr)>,

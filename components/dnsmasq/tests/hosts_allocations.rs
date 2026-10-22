@@ -274,6 +274,7 @@ fn failed_snapshot_copy_leaves_original_order_and_sources_intact() {
     );
     hosts.lookup(b"one.test", Some(false), false);
     let mut exercised = 0;
+    let mut completed = false;
     for failure in 0..100 {
         let (copy, failed) = with_failure(failure, || hosts.try_clone());
         assert_eq!(
@@ -293,16 +294,19 @@ fn failed_snapshot_copy_leaves_original_order_and_sources_intact() {
                 copy.addresses(b"one.test").next(),
                 hosts.addresses(b"one.test").next()
             );
+            completed = true;
             break;
         }
         exercised += 1;
         assert!(copy.is_err());
     }
     assert!(exercised > 5);
+    assert!(completed, "snapshot copy must reach a successful control");
 }
 
 #[test]
 fn expanded_names_skip_failed_allocations_without_becoming_bad_names() {
+    let mut completed = false;
     for failure in 0..80 {
         let mut hosts = Hosts::new();
         let (stats, failed) = with_failure(failure, || {
@@ -314,9 +318,11 @@ fn expanded_names_skip_failed_allocations_without_becoming_bad_names() {
         assert_eq!(stats.bad_addresses, 0);
         if !failed {
             assert_eq!(hosts.len(), 4);
+            completed = true;
             break;
         }
     }
+    assert!(completed, "expanded names must reach a successful control");
 }
 
 #[cfg(target_os = "linux")]
@@ -332,6 +338,7 @@ fn staged_hosts_records_and_diagnostics_tolerate_failed_growth() {
     .unwrap();
     let config = DnsConfig::default();
     let mut exercised = 0;
+    let mut completed = false;
     for failure in 0..100 {
         let source = HostSource {
             path: path.clone(),
@@ -361,11 +368,13 @@ fn staged_hosts_records_and_diagnostics_tolerate_failed_growth() {
             assert_eq!(hosts.len(), 3);
         }
         if !failed {
+            completed = true;
             break;
         }
         exercised += 1;
     }
     assert!(exercised > 3);
+    assert!(completed, "staged input must reach a successful control");
     std::fs::remove_file(path).unwrap();
 }
 

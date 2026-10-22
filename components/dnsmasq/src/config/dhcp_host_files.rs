@@ -19,11 +19,45 @@ pub enum HostFileErrorKind {
     Unsupported(Error),
 }
 
+impl std::fmt::Display for HostFileErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Io(error) => std::fmt::Display::fmt(error, f),
+            Self::Line(error) | Self::Unsupported(error) => std::fmt::Display::fmt(error, f),
+        }
+    }
+}
+
+impl std::error::Error for HostFileErrorKind {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(match self {
+            Self::Io(error) => error,
+            Self::Line(error) | Self::Unsupported(error) => error,
+        })
+    }
+}
+
 #[derive(Debug)]
 pub struct HostFileError {
     pub path: PathBuf,
     pub line: Option<usize>,
     pub kind: HostFileErrorKind,
+}
+
+impl std::fmt::Display for HostFileError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.path.display())?;
+        if let Some(line) = self.line {
+            write!(f, ":{line}")?;
+        }
+        write!(f, ": {}", self.kind)
+    }
+}
+
+impl std::error::Error for HostFileError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.kind)
+    }
 }
 
 #[derive(Debug)]
@@ -319,6 +353,41 @@ fn accepted_name(name: &[u8]) -> bool {
 mod tests {
     use super::*;
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn host_file_errors_keep_location_and_typed_sources() {
+        use std::error::Error as _;
+        let error = HostFileError {
+            path: "hosts.fixture".into(),
+            line: None,
+            kind: HostFileErrorKind::Io(io::Error::from(io::ErrorKind::PermissionDenied)),
+        };
+        let cause = error.source().unwrap().source().unwrap();
+        assert_eq!(
+            cause.downcast_ref::<io::Error>().unwrap().kind(),
+            io::ErrorKind::PermissionDenied
+        );
+        for kind in [
+            HostFileErrorKind::Line(Error("bad row")),
+            HostFileErrorKind::Unsupported(Error("bad row")),
+        ] {
+            let error = HostFileError {
+                path: "hosts.fixture".into(),
+                line: Some(3),
+                kind,
+            };
+            assert_eq!(error.to_string(), "hosts.fixture:3: bad row");
+            assert_eq!(
+                error
+                    .source()
+                    .unwrap()
+                    .source()
+                    .unwrap()
+                    .downcast_ref::<Error>(),
+                Some(&Error("bad row"))
+            );
+        }
+    }
 
     #[test]
     fn planned_directory_order_retains_explicit_paths_and_retires_missing_children() {

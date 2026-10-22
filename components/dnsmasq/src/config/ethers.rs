@@ -17,6 +17,15 @@ pub struct Ethers {
     origins: Vec<Origin>,
 }
 
+impl std::fmt::Debug for Ethers {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Ethers")
+            .field("host_count", &self.hosts.len())
+            .field("origin_count", &self.origins.len())
+            .finish_non_exhaustive()
+    }
+}
+
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Source {
     Main,
@@ -406,6 +415,19 @@ fn mac(input: &[u8]) -> Option<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn ethers_debug_omits_host_configuration_values() {
+        let ethers = Ethers::new(&[HostConfig {
+            hostname: Some(b"private-host".to_vec()),
+            ..Default::default()
+        }]);
+        for text in [format!("{ethers:?}"), format!("{ethers:#?}")] {
+            assert!(text.contains("host_count: 1"));
+            assert!(!text.contains("private-host"));
+            assert!(!text.contains("112, 114, 105"));
+            assert!(!text.contains("hostname"));
+        }
+    }
     #[test]
     fn directory_append_keeps_old_file_rows_until_full_bank_reload() {
         let host = |last| HostConfig {

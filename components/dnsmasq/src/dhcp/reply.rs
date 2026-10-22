@@ -61,6 +61,36 @@ pub enum ReplyError {
     Bootp(VendorError),
 }
 
+impl std::fmt::Display for ReplyError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NoReply => formatter.write_str("ignored DHCP outcome has no reply"),
+            Self::BufferTooSmall {
+                required,
+                available,
+            } => write!(
+                formatter,
+                "DHCP reply needs {required} bytes but the output buffer has {available}"
+            ),
+            Self::InvalidOption { code } => write!(formatter, "invalid DHCP reply option {code}"),
+            Self::OptionTooLong { code, length } => write!(
+                formatter,
+                "DHCP reply option {code} has {length} bytes, exceeding its wire length"
+            ),
+            Self::Bootp(error) => write!(formatter, "cannot encode BOOTP reply: {error}"),
+        }
+    }
+}
+
+impl std::error::Error for ReplyError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Bootp(error) => Some(error),
+            _ => None,
+        }
+    }
+}
+
 impl From<VendorError> for ReplyError {
     fn from(error: VendorError) -> Self {
         Self::Bootp(error)
