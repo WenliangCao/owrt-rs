@@ -1,9 +1,9 @@
 //! procd-rs: service supervision.
 //!
-//! Stage P3.1: the supervision core, running as an ordinary daemon against an
-//! existing ubusd. It is deliberately not PID 1 and does not pretend to be --
-//! inittab, rcS, hotplug and the watchdog are P3.2, and the on-device PID 1
-//! switch is P3.3 and needs a boot window.
+//! Runs service supervision against ubusd in both init and daemon modes.
+//! As PID 1, it also coordinates boot, inittab, coldplug and shutdown.
+//! A single event-loop thread owns process setup, watchdog handover, timers
+//! and ubus state; process-global operations rely on that lifecycle.
 //!
 //! Behaviour is transcribed from procd at the pinned revision
 //! 58eb263d5abe03f8c1280bdfa65a3b052614215d, mainly `service/service.c` and
@@ -1453,14 +1453,19 @@ impl Procd {
         }
 
         self.service_stop_all();
-        sysupgrade::exec_upgraded(
-            &prefix,
-            &path,
-            backup.as_deref(),
-            command.as_deref(),
-            &options,
-            &mut self.wdt,
-        );
+        #[expect(unsafe_code, reason = "sysupgrade runs on the sole supervisor thread")]
+        // SAFETY: this private owner dispatches on the sole daemon thread;
+        // service_stop_all creates no threads or concurrent environment users.
+        unsafe {
+            sysupgrade::exec_upgraded(
+                &prefix,
+                &path,
+                backup.as_deref(),
+                command.as_deref(),
+                &options,
+                &mut self.wdt,
+            );
+        }
         // exec_upgraded only returns on failure.
         status::UNKNOWN_ERROR
     }

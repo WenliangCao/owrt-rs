@@ -32,7 +32,6 @@ pub struct Respawn {
     pub retry: u32,
 }
 
-/// What an instance is doing right now.
 /// The `jail` table, as `jail_attr` parses it. Every flag maps to one ujail
 /// switch in `jail_run()`.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -80,12 +79,11 @@ pub enum Run {
 
 /// The parsed form of one `instances` table entry.
 ///
-/// Only the fields this build acts on are broken out. `raw` keeps the
-/// original blob so `list` can echo back what it was given and so an
-/// unhandled attribute is not silently dropped from the diff.
+/// Typed fields drive supervision and configuration comparisons. Data, triggers
+/// and namespace entries retain their encoded payloads for faithful ubus dumps.
 pub struct Instance {
     pub name: String,
-    /// argv. Empty means the config was rejected -- see `valid`.
+    /// argv; absent commands remain dormant, while invalid lists clear `valid`.
     pub command: Vec<String>,
     /// False when the config did not parse; such an instance is not started
     /// and `instance_dump` skips it entirely.
@@ -540,13 +538,6 @@ impl Instance {
     }
 }
 
-/// `instance_config_parse()`: turn one `instances` table entry into an
-/// `Instance`.
-///
-/// The C tolerates a lot here; where it does, so does this. Notably a
-/// `command` that is missing or empty leaves the instance *invalid* rather
-/// than failing the whole `set`, and an invalid instance is neither started
-/// nor listed.
 /// `blobmsg_get_string()` on a non-string attr, as atoi consumes it: the
 /// raw payload bytes up to the first NUL, lossily as ASCII.
 fn payload_cstr(data: &[u8]) -> String {
@@ -581,7 +572,21 @@ fn setns_argstr(entry: owrt_ubus::blob::Field<'_>) -> Option<String> {
     Some(format!("{pid}:{}", names.join(",")))
 }
 
+/// Parse an instance, preserving OpenWrt validity and jail rules.
+///
+/// Missing commands remain valid and dormant. Empty or ill-typed command
+/// lists reject the instance, which is then neither started nor listed.
 pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
+    parse_with_jail_probe(name, entry, || {
+        std::fs::metadata(crate::proc::UJAIL).is_ok()
+    })
+}
+
+fn parse_with_jail_probe(
+    name: &str,
+    entry: owrt_ubus::blob::Field<'_>,
+    jail_available: impl FnOnce() -> bool,
+) -> Instance {
     let mut i = Instance::new(name);
     let mut saw_command = false;
     let mut command_ok = true;
@@ -886,7 +891,7 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     // returns false from instance_config_parse), and any other jailed
     // instance quietly loses its jail and runs unconfined -- which is the
     // C's own choice, and the reason `require` exists.
-    if i.has_jail && std::fs::metadata(crate::proc::UJAIL).is_err() {
+    if i.has_jail && !jail_available() {
         if i.jail.requirejail {
             log!(
                 crate::sys::LOG_ERR,
@@ -969,15 +974,29 @@ mod tests {
 
     #[test]
     fn a_missing_command_is_valid_but_an_empty_one_is_not() {
-        // Built by hand rather than through parse(), which needs a real blob.
-        let mut absent = Instance::new("a");
-        absent.valid = true; // no `command` key at all
-        assert!(absent.command.is_empty());
-
-        // instance_dump skips an invalid instance entirely, so this is the
-        // difference between "listed, never starts" and "not listed".
-        let empty = Instance::new("a"); // valid stays false
-        assert!(!empty.valid);
+        for has_command in [false, true] {
+            let mut input = BlobBuf::new();
+            let table = input.msg_open_table("a");
+            if has_command {
+                let command = input.msg_open_array("command");
+                input.msg_close(command);
+            }
+            input.msg_close(table);
+            let entry = owrt_ubus::blob::fields(input.payload()).next().unwrap();
+            let instance = parse("a", entry);
+            assert_eq!(instance.valid, !has_command);
+            assert!(instance.command.is_empty());
+            let mut output = BlobBuf::new();
+            instance.dump(&mut output, false);
+            let names: Vec<_> = owrt_ubus::blob::fields(output.payload())
+                .map(|field| field.name)
+                .collect();
+            if has_command {
+                assert!(names.is_empty(), "empty command must not be listed");
+            } else {
+                assert_eq!(names, ["a"], "absent command is a listed dormant instance");
+            }
+        }
     }
 
     #[test]
@@ -1089,26 +1108,45 @@ mod validity_tests {
 mod jail_gate_tests {
     use super::*;
 
+    fn jail_entry(trace: bool, require: bool, available: impl FnOnce() -> bool) -> Instance {
+        let mut input = BlobBuf::new();
+        let table = input.msg_open_table("one");
+        let command = input.msg_open_array("command");
+        input.msg_string("", "/bin/true");
+        input.msg_close(command);
+        input.msg_bool("trace", trace);
+        let jail = input.msg_open_table("jail");
+        input.msg_bool("requirejail", require);
+        input.msg_close(jail);
+        input.msg_close(table);
+        let entry = owrt_ubus::blob::fields(input.payload()).next().unwrap();
+        parse_with_jail_probe("one", entry, available)
+    }
+
     #[test]
     fn trace_suppresses_the_jail() {
-        // `if (!in->trace && tb[INSTANCE_ATTR_JAIL])`: a traced instance is
-        // already wrapped, so it never gets a jail even if one is declared.
-        let mut i = Instance::new("one");
-        i.trace = true;
-        i.has_jail = true;
-        // The parse-time rule, applied the way parse() does.
-        if i.trace {
-            i.has_jail = false;
-        }
-        assert!(!i.has_jail);
+        let instance = jail_entry(true, true, || panic!("trace must skip the ujail probe"));
+        assert!(instance.valid);
+        assert!(!instance.has_jail);
+        assert!(instance.trace);
     }
 
     #[test]
     fn require_jail_without_ujail_is_a_config_error_not_a_silent_downgrade() {
-        // Documents the asymmetry that makes `require` meaningful: without
-        // it a missing ujail drops the sandbox and runs anyway.
-        let missing = std::fs::metadata("/definitely/no/ujail/here").is_err();
-        assert!(missing);
+        let required = jail_entry(false, true, || false);
+        assert!(
+            !required.valid,
+            "required jail cannot silently run unconfined"
+        );
+        let optional = jail_entry(false, false, || false);
+        assert!(optional.valid);
+        assert!(
+            !optional.has_jail,
+            "missing optional jail follows C downgrade"
+        );
+        let available = jail_entry(false, true, || true);
+        assert!(available.valid);
+        assert!(available.has_jail);
     }
 }
 

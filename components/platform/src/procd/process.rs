@@ -197,12 +197,15 @@ pub unsafe fn spawn_firmware<T: Send + 'static>(input: T, entry: fn(T)) -> Optio
 pub fn halt_forever(event: i32) -> ! {
     unsafe extern "C" {
         fn fork() -> i32;
+        fn _exit(status: i32) -> !;
     }
     // SAFETY: unchanged PID1 shutdown fork: parent remains alive forever;
     // child only requests reboot then exits, preserving the existing model.
     if unsafe { fork() } == 0 {
         reboot_cmd(event);
-        std::process::exit(0);
+        // SAFETY: a forked shutdown child must not run inherited atexit hooks
+        // or Rust/libc teardown which may depend on vanished parent threads.
+        unsafe { _exit(0) }
     }
     loop {
         std::thread::sleep(std::time::Duration::from_secs(1));

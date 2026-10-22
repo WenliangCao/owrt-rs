@@ -39,7 +39,16 @@ fn reap_any_collects_an_exited_inittab_session() {
         pid,
         "inittab child must lead its session"
     );
-    assert_ne!(group, rustix::process::getpgrp());
+    // The runner may be PID 1 with an inherited process group outside its
+    // namespace, whose ID is reported as zero. Inspect the child's session
+    // directly instead of assuming the runner has a visible process group.
+    assert_eq!(
+        rustix::process::getsid(Pid::from_raw(pid))
+            .unwrap()
+            .as_raw_pid(),
+        pid,
+        "inittab child must create its own session"
+    );
     let reaped = reap_any();
     if reaped.is_none() {
         // Reap the owned child even when the regression is present.

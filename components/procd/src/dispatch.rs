@@ -13,10 +13,11 @@
 //! step with directory creation/removal at runtime.
 
 use std::collections::{BTreeMap, VecDeque};
+use std::ffi::{OsStr, OsString};
 use std::os::fd::OwnedFd;
 use std::process::{Command, Stdio};
 
-use owrt_ubus::blob::MsgType;
+use owrt_ubus::blob::{Field, MsgType};
 
 pub const BASEDIR: &str = "/etc/hotplug.d";
 const PREFIX: &str = "hotplug.";
@@ -35,7 +36,7 @@ const IN_ISDIR: u32 = 0x4000_0000;
 struct Job {
     scripts: Vec<String>,
     next: usize,
-    envp: Vec<(String, String)>,
+    envp: Vec<(OsString, OsString)>,
     child: Option<i32>,
     /// Next script may start at this time (the 50 ms gap).
     at: i64,
@@ -57,6 +58,31 @@ fn valid_env_name(name: &str) -> bool {
             .bytes()
             .enumerate()
             .all(|(i, b)| b == b'_' || b.is_ascii_alphabetic() || (i > 0 && b.is_ascii_digit()))
+}
+
+/// Merge caller entries after the inherited environment; false rejects ASYNC=0.
+fn merge_environment(env_attr: Field<'_>, envp: &mut Vec<(OsString, OsString)>) -> bool {
+    let mut async_call = true;
+    for c in env_attr.children() {
+        let Some(e) = c.as_str() else { continue };
+        if e.starts_with("LD_") || e.starts_with("PATH=") || e.len() < 3 {
+            continue;
+        }
+        let Some((k, v)) = e.split_once('=') else {
+            continue;
+        };
+        if !valid_env_name(k) {
+            continue;
+        }
+        if e == "ASYNC=0" {
+            async_call = false;
+        }
+        // Parent values win, followed by the first caller value for a name.
+        if !envp.iter().any(|(name, _)| name == OsStr::new(k)) {
+            envp.push((k.into(), v.into()));
+        }
+    }
+    async_call
 }
 
 /// The subsystem directories the object set starts from.
@@ -206,28 +232,9 @@ impl Dispatch {
         let Some(env_attr) = env_attr else {
             return status::INVALID_ARGUMENT;
         };
-        // procd's own environment first: an existing name wins duplicates.
-        let mut envp: Vec<(String, String)> = std::env::vars().collect();
-        let mut async_call = true;
-        for c in env_attr.children() {
-            let Some(e) = c.as_str() else { continue };
-            if e.starts_with("LD_") || e.starts_with("PATH=") || e.len() < 3 {
-                continue;
-            }
-            let Some((k, v)) = e.split_once('=') else {
-                continue;
-            };
-            if !valid_env_name(k) {
-                continue;
-            }
-            if e == "ASYNC=0" {
-                async_call = false;
-            }
-            if !envp.iter().any(|(n, _)| n == k) {
-                envp.push((k.to_string(), v.to_string()));
-            }
-        }
-        if !async_call {
+        // Preserve inherited OS bytes; vars() panics on non-UTF8 environments.
+        let mut envp = std::env::vars_os().collect();
+        if !merge_environment(env_attr, &mut envp) {
             // "synchronous calls are unsupported for now"
             return status::NOT_SUPPORTED;
         }
@@ -373,6 +380,69 @@ mod tests {
         assert!(!valid_env_name("9FOO"), "no leading digit");
         assert!(!valid_env_name("FO-O"));
         assert!(!valid_env_name(""));
+    }
+
+    #[test]
+    fn environment_merge_preserves_os_bytes_and_parent_precedence() {
+        use owrt_ubus::blob::BlobBuf;
+        use std::os::unix::ffi::OsStringExt;
+
+        let mut inherited = vec![
+            (
+                OsString::from_vec(b"RAW_\xff".to_vec()),
+                OsString::from_vec(b"\xfevalue".to_vec()),
+            ),
+            ("KEEP".into(), OsString::from_vec(b"parent\x80".to_vec())),
+            ("PATH".into(), "/inherited".into()),
+            ("LD_PRELOAD".into(), "/inherited.so".into()),
+        ];
+        let mut request = BlobBuf::new();
+        let env = request.msg_open_array("env");
+        for entry in [
+            "KEEP=caller",
+            "NEW=first",
+            "NEW=second",
+            "PATH=/caller",
+            "LD_PRELOAD=/caller.so",
+            "9BAD=value",
+            "MISSING_EQUALS",
+            "ASYNC=1",
+        ] {
+            request.msg_string("", entry);
+        }
+        request.msg_close(env);
+        let field = owrt_ubus::blob::fields(request.payload()).next().unwrap();
+        assert!(merge_environment(field, &mut inherited));
+        assert_eq!(
+            inherited,
+            vec![
+                (
+                    OsString::from_vec(b"RAW_\xff".to_vec()),
+                    OsString::from_vec(b"\xfevalue".to_vec())
+                ),
+                ("KEEP".into(), OsString::from_vec(b"parent\x80".to_vec())),
+                ("PATH".into(), "/inherited".into()),
+                ("LD_PRELOAD".into(), "/inherited.so".into()),
+                ("NEW".into(), "first".into()),
+                ("ASYNC".into(), "1".into()),
+            ]
+        );
+    }
+
+    #[test]
+    fn synchronous_caller_is_rejected_even_when_parent_async_value_wins() {
+        use owrt_ubus::blob::BlobBuf;
+        let mut request = BlobBuf::new();
+        let env = request.msg_open_array("env");
+        request.msg_string("", "ASYNC=0");
+        request.msg_close(env);
+        let field = owrt_ubus::blob::fields(request.payload()).next().unwrap();
+        let mut inherited = vec![("ASYNC".into(), "1".into())];
+        assert!(!merge_environment(field, &mut inherited));
+        assert_eq!(
+            inherited,
+            vec![(OsString::from("ASYNC"), OsString::from("1"))]
+        );
     }
 
     #[cfg(target_os = "linux")]

@@ -128,7 +128,16 @@ pub fn option_env(name: &str, ty: u32, data: &[u8]) -> Option<(String, String)> 
 
 /// `sysupgrade_exec_upgraded()`. Returns only when something failed; on
 /// success execvp replaces this process with /sbin/upgraded.
-pub fn exec_upgraded(
+///
+/// # Safety
+/// Call only from the sole process thread, with no concurrent readers or
+/// writers of libc environment storage. The handover mutates the environment
+/// before exec and restores watchdog inheritance if exec fails.
+#[expect(
+    unsafe_code,
+    reason = "the process owner must establish environment mutation prerequisites"
+)]
+pub unsafe fn exec_upgraded(
     prefix: &str,
     path: &str,
     backup: Option<&str>,

@@ -377,27 +377,97 @@ mod tests {
 
     #[test]
     fn the_rc_queue_runs_up_to_eight_at_once() {
+        use rustix::process::{waitid, Pid, WaitId, WaitIdOptions, WaitIdStatus};
+        use std::time::{Duration, Instant};
+
+        // A failing assertion must not leave stopped scripts in the namespace.
+        struct Children(Vec<i32>);
+        impl Drop for Children {
+            fn drop(&mut self) {
+                for pid in self.0.drain(..) {
+                    proc::signal(pid, SIGKILL);
+                    let _ = rustix::process::waitpid(
+                        Pid::from_raw(pid),
+                        rustix::process::WaitOptions::empty(),
+                    );
+                }
+            }
+        }
+        fn event(pid: i32, options: WaitIdOptions) -> WaitIdStatus {
+            let deadline = Instant::now() + Duration::from_secs(5);
+            loop {
+                if let Some(status) = waitid(
+                    WaitId::Pid(Pid::from_raw(pid).unwrap()),
+                    options | WaitIdOptions::NOHANG | WaitIdOptions::NOWAIT,
+                )
+                .unwrap()
+                {
+                    return status;
+                }
+                assert!(
+                    Instant::now() < deadline,
+                    "child {pid} did not reach {options:?}"
+                );
+                std::thread::sleep(Duration::from_millis(1));
+            }
+        }
+
         let dir = tmpdir("parallel");
         let log = dir.join("log");
+        let quoted_log = log.display().to_string().replace('\'', "'\\''");
         script(
             &dir,
             "svc",
-            &format!(
-                "echo start >> {log}; sleep 0.3; echo end >> {log}",
-                log = log.display()
-            ),
+            &format!("echo start >> '{quoted_log}'; kill -STOP $$; echo end >> '{quoted_log}'"),
         );
-        let d = dir.to_str().unwrap();
         let mut q = RunQueue::default();
-        for _ in 0..3 {
-            q.queue(d, "svc", "reload", 0);
+        for _ in 0..9 {
+            q.queue(dir.to_str().unwrap(), "svc", "reload", 0);
         }
-        assert_eq!(q.jobs.len(), 3);
-        drive(&mut q, 0, 50, 20_000);
-        let got = std::fs::read_to_string(&log).unwrap();
-        // All three started before any finished.
-        assert!(got.starts_with("start\nstart\nstart\n"), "{got:?}");
-        std::fs::remove_dir_all(&dir).ok();
+        q.pump(0);
+        let mut children = Children(q.jobs.iter().filter_map(|job| job.pid).collect());
+        assert_eq!(
+            children.0.len(),
+            8,
+            "the queue must fill exactly eight slots"
+        );
+        assert_eq!(q.jobs.iter().filter(|job| job.pid.is_none()).count(), 1);
+        for &pid in &children.0 {
+            assert!(event(pid, WaitIdOptions::STOPPED | WaitIdOptions::EXITED).stopped());
+        }
+        assert_eq!(std::fs::read_to_string(&log).unwrap(), "start\n".repeat(8));
+        for &pid in &children.0 {
+            assert!(proc::signal(pid, 18)); // SIGCONT after every start was observed.
+        }
+        while let Some(&pid) = children.0.last() {
+            assert!(event(pid, WaitIdOptions::EXITED).exited());
+            let status = proc::try_reap(pid);
+            if status.is_some() {
+                children.0.pop();
+            }
+            assert_eq!(status, Some(0));
+            assert!(q.reaped(pid));
+        }
+        q.pump(1);
+        let pid = q.jobs[0]
+            .pid
+            .expect("the ninth job starts after a slot is freed");
+        children.0.push(pid);
+        assert!(event(pid, WaitIdOptions::STOPPED | WaitIdOptions::EXITED).stopped());
+        assert!(proc::signal(pid, 18));
+        assert!(event(pid, WaitIdOptions::EXITED).exited());
+        let status = proc::try_reap(pid);
+        if status.is_some() {
+            children.0.pop();
+        }
+        assert_eq!(status, Some(0));
+        assert!(q.reaped(pid));
+        assert!(q.is_idle());
+        assert_eq!(
+            std::fs::read_to_string(&log).unwrap(),
+            format!("{}{}start\nend\n", "start\n".repeat(8), "end\n".repeat(8))
+        );
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]

@@ -1,4 +1,4 @@
-//! libc startup adapter. The ruleset/CLI library forbids unsafe code; keeping
+//! libc startup adapter. The CLI requires sole-thread ownership; keeping
 //! this ABI preserves the shell caller's SIGPIPE and the existing startup cost.
 #![cfg_attr(not(test), no_main)]
 #![deny(unsafe_op_in_unsafe_fn)]
@@ -6,7 +6,8 @@
 #[cfg(not(test))]
 #[no_mangle]
 /// # Safety
-/// libc supplies argc valid pointers to terminated argument strings.
+/// libc supplies argc valid pointers to terminated argument strings, on the
+/// sole startup thread before application threads exist.
 pub unsafe extern "C" fn main(argc: i32, argv: *const *const std::ffi::c_char) -> i32 {
     let args = (0..argc.max(0) as usize)
         // SAFETY: the libc main contract supplies live terminated strings.
@@ -16,5 +17,7 @@ pub unsafe extern "C" fn main(argc: i32, argv: *const *const std::ffi::c_char) -
                 .into_owned()
         })
         .collect();
-    owrt_fw4::run(args)
+    // SAFETY: libc calls this entry on its sole startup thread; argument
+    // conversion starts no threads and no other code accesses the environment.
+    unsafe { owrt_fw4::run(args) }
 }
