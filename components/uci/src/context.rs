@@ -52,6 +52,15 @@ pub struct Context<'a> {
     io_budget: Option<IoBudget<'a>>,
 }
 
+impl std::fmt::Debug for Context<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Context").field("packages", &self.root.len())
+            .field("flags", &self.flags).field("err", &self.err)
+            .field("pctx", &self.pctx).field("budgeted", &self.io_budget.is_some())
+            .finish_non_exhaustive()
+    }
+}
+
 impl Default for Context<'_> {
     fn default() -> Self {
         Self::new()

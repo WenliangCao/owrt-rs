@@ -41,7 +41,7 @@ impl Cmd {
 }
 
 /// struct uci_delta: `e.name` is the option (may be NULL).
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Delta {
     pub cmd: Cmd,
     pub section: String,
@@ -52,13 +52,28 @@ pub struct Delta {
 /// Owned immutable UCI value. Short values need no separate heap allocation;
 /// longer values retain their complete bytes in an exact-sized allocation.
 /// The inline size keeps this representation the size of Vec on 64-bit hosts.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub struct Bytes(StoredBytes);
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 enum StoredBytes {
     Inline { len: u8, data: [u8; 15] },
     Heap(Box<[u8]>),
+}
+
+impl std::fmt::Debug for Bytes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Bytes").field("len", &self.len()).finish_non_exhaustive()
+    }
+}
+
+impl std::fmt::Debug for Delta {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Delta").field("cmd", &self.cmd)
+            .field("section", &self.section).field("option", &self.option)
+            .field("value_len", &self.value.as_ref().map(Vec::len))
+            .finish_non_exhaustive()
+    }
 }
 
 impl Clone for Bytes {
@@ -153,6 +168,25 @@ mod storage_tests {
     fn inline_values_do_not_enlarge_each_value() {
         assert!(std::mem::size_of::<Bytes>() <= std::mem::size_of::<Vec<u8>>());
     }
+
+    #[test]
+    fn debug_omits_configuration_values_including_delta_and_lookup_data() {
+        use super::{Cmd, Delta, OptionValue, Ptr};
+        for secret in ["password", "long-wifi-password-never-log"] {
+            let bytes = secret.as_bytes().to_vec();
+            let values = [
+                format!("{:?}", Bytes::from(secret)),
+                format!("{:?}", OptionValue::List(vec![secret.into()])),
+                format!("{:?}", Delta { cmd: Cmd::Change, section: "radio0".into(),
+                    option: Some("key".into()), value: Some(bytes.clone()) }),
+                format!("{:?}", Ptr { value: Some(bytes.clone()), ..Ptr::default() }),
+            ];
+            for rendered in values {
+                assert!(!rendered.contains(secret), "{rendered}");
+                assert!(!rendered.contains(&format!("{bytes:?}")), "{rendered}");
+            }
+        }
+    }
 }
 
 /// struct uci_option: UCI_TYPE_STRING or UCI_TYPE_LIST. Values are bytes:
@@ -238,7 +272,7 @@ pub const LOOKUP_EXTENDED: u32 = 1 << 2;
 
 /// struct uci_ptr with indices into `Context::root` / package / section in
 /// place of the C pointers.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Default, PartialEq, Eq)]
 pub struct Ptr {
     pub target: Option<Target>,
     pub flags: u32,
@@ -249,6 +283,17 @@ pub struct Ptr {
     pub section: Option<String>,
     pub option: Option<String>,
     pub value: Option<Vec<u8>>,
+}
+
+impl std::fmt::Debug for Ptr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Ptr").field("target", &self.target).field("flags", &self.flags)
+            .field("p", &self.p).field("s", &self.s).field("o", &self.o)
+            .field("package", &self.package).field("section", &self.section)
+            .field("option", &self.option)
+            .field("value_len", &self.value.as_ref().map(Vec::len))
+            .finish_non_exhaustive()
+    }
 }
 
 impl Ptr {
