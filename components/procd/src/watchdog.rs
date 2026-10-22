@@ -13,6 +13,9 @@ const WDIOF_CARDRESET: u32 = 0x20;
 
 pub struct Wdt {
     fd: Option<OwnedFd>,
+    // Startup adopts the raw handover once. A non-PID1 supervisor keeps it
+    // untouched until the first explicit watchdog open from its ubus method.
+    inherited: Option<std::io::Result<OwnedFd>>,
     /// `wdt_drv_timeout`.
     timeout: i32,
     /// `wdt_frequency`.
@@ -26,6 +29,7 @@ impl Default for Wdt {
     fn default() -> Self {
         Wdt {
             fd: None,
+            inherited: None,
             timeout: 30,
             frequency: 5,
             magicclose: false,
@@ -35,6 +39,11 @@ impl Default for Wdt {
 }
 
 impl Wdt {
+    /// Keep an already owned startup handover for the first watchdog open.
+    pub fn with_inherited(inherited: Option<std::io::Result<OwnedFd>>) -> Self {
+        Self { inherited, ..Self::default() }
+    }
+
     fn raw_fd(&self) -> i32 {
         use std::os::fd::AsRawFd;
         self.fd.as_ref().map(|f| f.as_raw_fd()).unwrap_or(-1)
@@ -47,7 +56,7 @@ impl Wdt {
         }
         // Startup establishes ownership before handing a descriptor to this
         // safe API. Runtime reopens never adopt a number from the environment.
-        let fd = match inherited {
+        let fd = match inherited.or_else(|| self.inherited.take()) {
             Some(result) => result,
             None => rustix::fs::open(
                 c"/dev/watchdog",

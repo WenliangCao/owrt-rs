@@ -2508,6 +2508,13 @@ fn run() -> io::Result<()> {
     }
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
 
+    #[expect(unsafe_code, reason = "adopt the exec-transferred watchdog before allocating daemon resources")]
+    // SAFETY: startup has created no threads. WDTFD, when present, names the
+    // live descriptor transferred across exec with no Rust owner in this
+    // process. Consume it once; non-PID1 mode defers opening until its ubus call.
+    let inherited_watchdog = unsafe {
+        owrt_platform::procd::watchdog::take_inherited_watchdog(sys::atoi_u32)
+    };
     let pid1 = std::process::id() == 1;
     // procd.c main(): DBGLVL from the environment (then unset), `-d <level>`,
     // and ulog_open(): kmsg by default, stderr with `-S`; STATE_INIT moves
@@ -2526,7 +2533,7 @@ fn run() -> io::Result<()> {
     sys::install_panic_hook();
     let wakeup = owrt_platform::procd::signals::install_sigchld_wakeup()?;
     let base = Instant::now();
-    let mut wdt = watchdog::Wdt::default();
+    let mut wdt = watchdog::Wdt::with_inherited(inherited_watchdog);
     let mut hp: Option<hotplug::Hotplug> = None;
     let mut early_ubus: Option<(instance::Instance, i32)> = None;
     // Exits of children other than ubusd seen during the connect retry.
@@ -2542,12 +2549,7 @@ fn run() -> io::Result<()> {
         // keep-alive; hotplug("/etc/hotplug.json") and procd_coldplug() are
         // the remaining P3.2 pieces and their absence is logged, not hidden.
         log!(sys::LOG_INFO, "- early -");
-        #[expect(unsafe_code, reason = "adopt the preinit-owned watchdog at PID 1 startup")]
-        // SAFETY: PID 1 has not started any threads. WDTFD, when present, is
-        // the live descriptor transferred by preinit across exec, with no Rust
-        // owner in this process. Consume it once before normal supervision.
-        let inherited = unsafe { owrt_platform::procd::watchdog::take_inherited_watchdog(sys::atoi_u32) };
-        wdt.init(base.elapsed().as_millis() as i64, false, inherited);
+        wdt.init(base.elapsed().as_millis() as i64, false, None);
         if !wdt.is_open() {
             debug!(4, "Watchdog does not exist");
         }

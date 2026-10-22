@@ -66,5 +66,5 @@ fn main() {
         watchdog_tests::run();
     }
     assert_eq!(std::fs::read_dir("/proc/self/task").unwrap().count(), 1);
-    eprintln!("process ownership tests: 5 passed; threads=1");
+    eprintln!("process ownership tests: 6 passed; threads=1");
 }

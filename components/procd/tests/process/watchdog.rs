@@ -23,6 +23,7 @@ fn flags(watchdog: &Wdt) -> rustix::io::FdFlags {
 )]
 pub(super) unsafe fn run() {
     inherited_watchdog_exec_flags_and_final_close();
+    supervisor_handover_waits_for_the_first_watchdog_method();
 }
 
 fn inherited_watchdog_exec_flags_and_final_close() {
@@ -99,4 +100,30 @@ fn inherited_watchdog_exec_flags_and_final_close() {
         rustix::io::fcntl_getfd(&reused).is_ok(),
         "drop closed a reused fd"
     );
+}
+
+fn supervisor_handover_waits_for_the_first_watchdog_method() {
+    use std::os::fd::AsRawFd;
+    let (reader, writer) = rustix::pipe::pipe_with(
+        rustix::pipe::PipeFlags::CLOEXEC | rustix::pipe::PipeFlags::NONBLOCK,
+    )
+    .unwrap();
+    let raw = writer.as_raw_fd();
+    let mut watchdog = Wdt::with_inherited(Some(Ok(writer)));
+    assert!(!watchdog.is_open());
+    assert!(watchdog.stopped());
+    let mut byte = [0];
+    assert_eq!(
+        rustix::io::read(&reader, &mut byte),
+        Err(rustix::io::Errno::AGAIN)
+    );
+    watchdog.set_stopped(false, 0);
+    assert_eq!(watchdog.handover_fd(), Some(raw));
+    assert_eq!(rustix::io::read(&reader, &mut byte).unwrap(), 1);
+    assert_eq!(byte, *b"X");
+    watchdog.set_magicclose(true);
+    watchdog.set_stopped(true, 0);
+    assert_eq!(rustix::io::read(&reader, &mut byte).unwrap(), 1);
+    assert_eq!(byte, *b"V");
+    assert_eq!(rustix::io::read(&reader, &mut byte).unwrap(), 0);
 }
