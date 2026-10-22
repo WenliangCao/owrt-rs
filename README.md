@@ -6,6 +6,14 @@
 
 以下按时间倒序记录，日期统一使用 Europe/Berlin。链接指向当时的报告与发布记录。
 
+## 2026-10-22
+
+- 完成 OpenWrt 25.12.6 全组件源码审查，修复 rpcd 文件 ACL/会话目录和 httpd 解析/鉴权问题，
+  补齐 DHCP 脚本合同测试及 .6 FIT 输入校验。源码与隔离镜像测试通过；完整固件发行基线仍为
+  25.12.5，尚未发布或刷写 .6。[适配结果与资格边界](docs/reviews/OPENWRT_25126_UPDATE_20261022.md)
+- [微软 Rust 规范](docs/RUST_GUIDELINES.md)纳入长期开发、重构、审查和维护要求，按安全及测试
+  可靠性优先渐进落实，保留 OpenWrt 兼容合同。
+
 ## 2026-10-20
 
 - 发布并刷入 [v0.3.2：AN8855 启动与可靠性修复](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.2)（源码 `6c22fe18`）：禁用不存在的 MT7531，追加控制台 loglevel=4，

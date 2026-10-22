@@ -1,5 +1,11 @@
 # 集成固件的发布与维护
 
+2026-10-22 源码更新：[25.12.6 适配报告](reviews/OPENWRT_25126_UPDATE_20261022.md)
+记录了新 stock/ImageBuilder 输入、AN8855 FIT 校验和协议回归。当前完整固件发行资格仍是
+25.12.5；切换前须完成新 SDK 构建、正式 ELF 身份、新 native 配方及完整镜像/恢复验证。
+dnsmasq 构建与集成共同按版本或 `OWRT_NATIVE_SPEC` 选配方，缺失或版本不匹配时拒绝构建；
+单独 FIT 或主机测试通过不能替代整镜像资格。
+
 2026-10-20 更新：**v0.3.2 / `0.3.2-r1` / `native-eleven`** 已发布为
 [正式 Latest](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.3.2)，
 仅适用于原厂 bootloader、AN8855 硬件版本的 AX3000T。标签固定实际构建提交

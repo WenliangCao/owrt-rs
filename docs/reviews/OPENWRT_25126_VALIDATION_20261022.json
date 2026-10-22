@@ -1,0 +1,922 @@
+{
+  "date": "2026-10-22",
+  "scope": "Linux aarch64 and exact OpenWrt 25.12.6 isolated rootfs; no physical router",
+  "rust_toolchain": "1.98.1",
+  "cargo_wrapper": "mbx 1.26.0",
+  "host_tests": {
+    "status": "passed",
+    "components": [
+      {
+        "component": "platform",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/platform/Cargo.toml",
+          "--",
+          "--test-threads=1"
+        ],
+        "manifest_sha256": "1e97a04814631c14872b5fd637b1e66a663ef9e3aa4dd318039744081872ba83",
+        "returncode": 0,
+        "seconds": 0.916,
+        "passed": 10,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "382bbc7c256361f62eff577efb62538f57e704d5e91b971cac7a53e3f77d4a4c"
+      },
+      {
+        "component": "ubus",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/ubus/Cargo.toml"
+        ],
+        "manifest_sha256": "67cd30392be982d0cc8dde2c1cb4d759c4c853153da0c4b3433ce30aa80d14c9",
+        "returncode": 0,
+        "seconds": 2.872,
+        "passed": 73,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "6574140193e55cec1f9c812d43243e68633c945965849f715019fe36742b3bc0"
+      },
+      {
+        "component": "uci",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/uci/Cargo.toml"
+        ],
+        "manifest_sha256": "96e75a28c04d531f26db8a9474420cdf5d53bd36f0f5e3dfb7dff2c8758bb680",
+        "returncode": 0,
+        "seconds": 2.722,
+        "passed": 50,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "ae0def84967b8f226a644181a02a840dd6d89b270eb747b9e5d2e1c62240c284"
+      },
+      {
+        "component": "reload-config",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/reload-config/Cargo.toml"
+        ],
+        "manifest_sha256": "9e04db2a8dfc4feffb33d39147135a6761225c10b6840c882f88279eab4043d3",
+        "returncode": 0,
+        "seconds": 1.418,
+        "passed": 20,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "e2ed711ff4bc7c6bed1b3e39cbe340d7113513b756c1f16d7e74bd46c0e32da9"
+      },
+      {
+        "component": "logd",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/logd/Cargo.toml"
+        ],
+        "manifest_sha256": "f131850dea6cb62082e300bd24632c5010b2973bcf612175987af1aeace8124c",
+        "returncode": 0,
+        "seconds": 1.617,
+        "passed": 21,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "3d35aff1171f34ab220aca58df5d072b266095a290cc1b384696e7dde873acfd"
+      },
+      {
+        "component": "fw4",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/fw4/Cargo.toml"
+        ],
+        "manifest_sha256": "373cc6d3cae30e894aef95e20ccbfddb81345f349bdd9755c8dd65cf4accc2ee",
+        "returncode": 0,
+        "seconds": 4.078,
+        "passed": 19,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "7029be1f685cd545d248c1a314b9881619f7d6a7ecf0aa15098fb2bd40c82c65"
+      },
+      {
+        "component": "ubusd",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/ubusd/Cargo.toml"
+        ],
+        "manifest_sha256": "7ec9115bde37473043917a305f1d4cf4293143feb719f49f714eff87ed615322",
+        "returncode": 0,
+        "seconds": 2.071,
+        "passed": 58,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "8ca5e9b07ecbd287610ebea07986e65e7c600b8c5ce88d2ffaba5a3c72561863"
+      },
+      {
+        "component": "netifd",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/netifd/Cargo.toml"
+        ],
+        "manifest_sha256": "fcfffef6500ae3e4c9042d82c831a5c9ddcffcc363c91a3bd83a18f7de8beecc",
+        "returncode": 0,
+        "seconds": 4.324,
+        "passed": 177,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "fde65daf793101be40b760110fab5f0a77e2885de7d8ecb568ee5a21f76043e2"
+      },
+      {
+        "component": "procd",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/procd/Cargo.toml"
+        ],
+        "manifest_sha256": "3b1425b83ff8a65da5dcc2ad271c941dc1f816af99cb7f0bcecae2d2dda214cc",
+        "returncode": 0,
+        "seconds": 9.484,
+        "passed": 91,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "48bd854260ff40db8f2f4e180a9bf216a4c40d78f154ccb771f46fc2359ca639"
+      },
+      {
+        "component": "odhcpd",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/odhcpd/Cargo.toml"
+        ],
+        "manifest_sha256": "014207b3fdbf79aa98c9b73e2ee536227c71118e063988df19856a60deab1a1b",
+        "returncode": 0,
+        "seconds": 7.302,
+        "passed": 79,
+        "failed": 0,
+        "ignored": 2,
+        "warnings": 0,
+        "log_sha256": "d23fa25f3344eadb3b9d381866343af35b8b8e96776eacb01abdabd9aebbbc20"
+      },
+      {
+        "component": "dnsmasq/platform",
+        "command": [
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/dnsmasq/platform/Cargo.toml",
+          "--",
+          "--test-threads=1"
+        ],
+        "manifest_sha256": "b40dbab6ae825698f6fbe06d3cf839543c3ce8087f073ce088f9e0ed3698191d",
+        "returncode": 0,
+        "seconds": 6.105,
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "warnings": 0,
+        "log_sha256": "b3d73fb36c551ca43444f5bc86a237ff1a0aee8a4ce8eeb2b1ee116d66fd947f",
+        "initial_lock_used_libc": "0.2.191",
+        "final_lock_used_libc": "0.2.190",
+        "final_log": "dnsmasq-platform-locked-parent.log",
+        "final_log_sha256": "9e1cfd8f52622959f674e68b5dc671b55d9228f6f11122f2963d07541f9c9ae9",
+        "dependency_versions_match_parent_lock": true,
+        "final_passed": 4
+      },
+      {
+        "component": "dnsmasq",
+        "command": [
+          "sudo",
+          "-n",
+          "env",
+          "PATH=/home/ubuntu/.local/bin:/home/ubuntu/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+          "RUSTUP_TOOLCHAIN=1.98.1",
+          "MBX_DISPLAY=plain",
+          "RUSTFLAGS=-Dwarnings",
+          "RUSTDOCFLAGS=-Dwarnings",
+          "CARGO_INCREMENTAL=0",
+          "CARGO_HOME=/home/ubuntu/.cargo",
+          "RUSTUP_HOME=/home/ubuntu/.rustup",
+          "MBX_CACHE_DIR=/home/ubuntu/.cache/mbx",
+          "sh",
+          "/home/ubuntu/owrt-25126-review/repo/tools/dnsmasq/run_isolated.sh",
+          "mbx",
+          "test",
+          "--locked",
+          "--tests",
+          "--manifest-path",
+          "/home/ubuntu/owrt-25126-review/repo/components/dnsmasq/Cargo.toml",
+          "--",
+          "--test-threads=1"
+        ],
+        "manifest_sha256": "15bd4f3b0c580ed83c63f9221cc84b44fd6cc417c0fa66ac398033957b586973",
+        "returncode": 0,
+        "seconds": 41.601,
+        "passed": 971,
+        "failed": 0,
+        "ignored": 26,
+        "warnings": 0,
+        "log_sha256": "5fed946080d4f3040a1f4cbe6613d39af786e3f10c501d9b24713d955a3672cf"
+      }
+    ],
+    "scope": "Native aarch64 Linux unit/integration tests, no router or benchmark; rpcd/httpd validated separately.",
+    "dnsmasq_platform_lock": "Standalone test lock generated only in isolated checkout, then libc pinned to main dnsmasq lock; all eight name/version/source/checksum entries match the parent lock. Both initial and final logs retained.",
+    "totals": {
+      "passed": 1573,
+      "failed": 0,
+      "ignored": 28,
+      "warnings": 0
+    }
+  },
+  "rpcd": {
+    "unit_tests": {
+      "passed": 80,
+      "failed": 0
+    },
+    "clippy": "passed --all-targets with -Dwarnings",
+    "identities": {
+      "stock_rpcd": "860925534eab87157eeb447c8c962bfcef5f552d5379e4a3c83ab3c0376a11a5",
+      "candidate": "d543c3b9f704931018c893867e54182844bf3f01c8ae6addbb445194ab785a3e"
+    },
+    "stock_checks": {
+      "identity": {
+        "actual": "860925534eab87157eeb447c8c962bfcef5f552d5379e4a3c83ab3c0376a11a5",
+        "expected": "860925534eab87157eeb447c8c962bfcef5f552d5379e4a3c83ab3c0376a11a5",
+        "passed": true
+      },
+      "link_denied_read": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "link_denied_md5": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "link_denied_stat": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "link_write_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "directory_list_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "new_target_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "dangling_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "denied_targets_unchanged": {
+        "actual": [
+          "secret",
+          false,
+          false
+        ],
+        "expected": [
+          "secret",
+          false,
+          false
+        ],
+        "passed": true
+      },
+      "link_lstat": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "authorized_link_read": {
+        "actual": [
+          0,
+          "secret"
+        ],
+        "expected": [
+          0,
+          "secret"
+        ],
+        "passed": true
+      },
+      "authorized_stat_path": {
+        "actual": [
+          0,
+          "/tmp/private/secret"
+        ],
+        "expected": [
+          0,
+          "/tmp/private/secret"
+        ],
+        "passed": true
+      },
+      "authorized_new_target": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "authorized_new_contents": {
+        "actual": "new",
+        "expected": "new",
+        "passed": true
+      },
+      "unlink_final_link": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "unlink_keeps_target": {
+        "actual": "secret",
+        "expected": "secret",
+        "passed": true
+      },
+      "empty_base64_False": {
+        "actual": [
+          0,
+          ""
+        ],
+        "expected": [
+          0,
+          ""
+        ],
+        "passed": true
+      },
+      "empty_base64_True": {
+        "actual": [
+          0,
+          ""
+        ],
+        "expected": [
+          0,
+          ""
+        ],
+        "passed": true
+      },
+      "write_mode": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "umask_and_special_bits": {
+        "actual": 448,
+        "expected": 448,
+        "passed": true
+      },
+      "recursive_child_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "recursive_child_intact": {
+        "actual": "keep",
+        "expected": "keep",
+        "passed": true
+      },
+      "recursive_child_authorized": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "parent_link_remove": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "parent_link_target": {
+        "actual": false,
+        "expected": false,
+        "passed": true
+      },
+      "stage_config": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "delta_name_not_token": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "unknown_session_apply": {
+        "actual": 4,
+        "expected": 4,
+        "passed": true
+      },
+      "unknown_session_has_no_directory": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "frozen_name_not_token": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "session_restored": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "delta_preserved_on_thaw": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "destroy_session": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "destroy_removes_random_directory": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      }
+    },
+    "candidate_checks": {
+      "identity": {
+        "actual": "d543c3b9f704931018c893867e54182844bf3f01c8ae6addbb445194ab785a3e",
+        "expected": "d543c3b9f704931018c893867e54182844bf3f01c8ae6addbb445194ab785a3e",
+        "passed": true
+      },
+      "link_denied_read": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "link_denied_md5": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "link_denied_stat": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "link_write_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "directory_list_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "new_target_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "dangling_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "denied_targets_unchanged": {
+        "actual": [
+          "secret",
+          false,
+          false
+        ],
+        "expected": [
+          "secret",
+          false,
+          false
+        ],
+        "passed": true
+      },
+      "link_lstat": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "authorized_link_read": {
+        "actual": [
+          0,
+          "secret"
+        ],
+        "expected": [
+          0,
+          "secret"
+        ],
+        "passed": true
+      },
+      "authorized_stat_path": {
+        "actual": [
+          0,
+          "/tmp/private/secret"
+        ],
+        "expected": [
+          0,
+          "/tmp/private/secret"
+        ],
+        "passed": true
+      },
+      "authorized_new_target": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "authorized_new_contents": {
+        "actual": "new",
+        "expected": "new",
+        "passed": true
+      },
+      "unlink_final_link": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "unlink_keeps_target": {
+        "actual": "secret",
+        "expected": "secret",
+        "passed": true
+      },
+      "empty_base64_False": {
+        "actual": [
+          0,
+          ""
+        ],
+        "expected": [
+          0,
+          ""
+        ],
+        "passed": true
+      },
+      "empty_base64_True": {
+        "actual": [
+          0,
+          ""
+        ],
+        "expected": [
+          0,
+          ""
+        ],
+        "passed": true
+      },
+      "write_mode": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "umask_and_special_bits": {
+        "actual": 448,
+        "expected": 448,
+        "passed": true
+      },
+      "recursive_child_denied": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "recursive_child_intact": {
+        "actual": "keep",
+        "expected": "keep",
+        "passed": true
+      },
+      "recursive_child_authorized": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "parent_link_remove": {
+        "actual": 6,
+        "expected": 6,
+        "passed": true
+      },
+      "parent_link_target": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "stage_config": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "delta_name_not_token": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "unknown_session_apply": {
+        "actual": 4,
+        "expected": 4,
+        "passed": true
+      },
+      "unknown_session_has_no_directory": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "frozen_name_not_token": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "session_restored": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "delta_preserved_on_thaw": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "destroy_session": {
+        "actual": 0,
+        "expected": 0,
+        "passed": true
+      },
+      "destroy_removes_random_directory": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      }
+    },
+    "integration": {
+      "expected_cases": 15,
+      "passed_cases": 15,
+      "suite_exit_codes": {
+        "apply-owner": 0,
+        "snapshot-failure": 0,
+        "restore-failure": 0
+      },
+      "suites": {
+        "apply-owner": {
+          "passed": 2,
+          "cases": {
+            "candidate-other-0": {
+              "result_sha256": "78d034fa2a37677bea622398c4fde8e66e9e2fe5bf9ef8fdb26c2b68b48d80cd",
+              "driver_sha256": "b2c6df40ae54ba465313484f3268188eee54519978284af82b6002b61902493f",
+              "alive": true
+            },
+            "candidate-owner-0": {
+              "result_sha256": "9936b00ff518cbcbe6b00c302406d7688b942ef2def9824e1e668b04a8e78234",
+              "driver_sha256": "a89ef3dc33e0bc8ea7268bbe3df82e4342f1644ce3623f20ea53ae3027cddd5e",
+              "alive": true
+            }
+          }
+        },
+        "snapshot-failure": {
+          "passed": 3,
+          "cases": {
+            "candidate-full-delta-0": {
+              "result_sha256": "06beb6ec9255990e265e36519ad9f84d364a81daba5a5ed905ab101019973ab0",
+              "driver_sha256": "9b9cf1e975bdfe85cbed221b7cf781c2eb2838f6482f74e0efe4527388750f67",
+              "alive": true
+            },
+            "candidate-full-files-0": {
+              "result_sha256": "ff1e0a634bc6c2d672342536fab95ea79ffb7d33a4148ccb245a08ceefcd5e99",
+              "driver_sha256": "21b39ed5a45382e4579ad401db7310ac8d7c38f6fbf59cb0860050ebb6d580a1",
+              "alive": true
+            },
+            "candidate-healthy-0": {
+              "result_sha256": "5fb02bed09fe91a4b34ee24a344be493bb74297e17f4dcf189d8290fc0085b12",
+              "driver_sha256": "f5a96482ea77a8bbe84813c2ac44ef539dc2281ccf1c48d687ce8c288a25b602",
+              "alive": true
+            }
+          }
+        },
+        "restore-failure": {
+          "passed": 10,
+          "cases": {
+            "candidate-cancel-0": {
+              "result_sha256": "8eb0532e83990b42560b1453fef20e983de2a77fa13ec6af6bd00f030297da33",
+              "driver_sha256": "5c1243b1f5244252e1b6101b4240a832b8c0854501d7113c1da3b82c209cacf6",
+              "alive": true
+            },
+            "candidate-dangling-0": {
+              "result_sha256": "dab73e4c093c154e4ca677d709cc3d305ce118616025c06af645bb72cf26bb49",
+              "driver_sha256": "6f7e3de1a94cdbc36dab9ad22cd20b70e33b5da5236a27b08c707355afe3f84e",
+              "alive": true
+            },
+            "candidate-delta-0": {
+              "result_sha256": "a0ccb401395b3eacf71e4669ad1b750b0e3d92631fc5d37a300f21c0c00203f6",
+              "driver_sha256": "b6cb4f279ba556ef467600373d965f1edde1d30f64201bd58b0deabe779acb4e",
+              "alive": true
+            },
+            "candidate-delta-cancel-0": {
+              "result_sha256": "2b80eb8b8bca3a1327be93c3cd3c74e81d630382e2e51fa072d59d8bcdf1aff8",
+              "driver_sha256": "cd79f0991ee13a926212d505a0c5b53338e38cc478b6ca234b82e5d63cd09091",
+              "alive": true
+            },
+            "candidate-delta-confirm-0": {
+              "result_sha256": "bae85b2a0814100d49cb2e8ff149b13fedcd7e6c0dd6ffe5968806fbc6159cab",
+              "driver_sha256": "ba5af9981f12dea75071ec006a6d932055bef8a4bd82f7b70159607eda479f68",
+              "alive": true
+            },
+            "candidate-full-0": {
+              "result_sha256": "2bc4efdde9e9f79e9054fc8ac2e9cae76deb2edcd3fa645fdbc2f87720841a28",
+              "driver_sha256": "897b0d3b1e47f1430c3bbdf13d2d4b0ea096162f1e2211882d0d3fbec4d2a99c",
+              "alive": true
+            },
+            "candidate-healthy-0": {
+              "result_sha256": "520ff07b62a6173ae98e7e5f911b20cf0917dd0b4e819964eb35c0a348a71931",
+              "driver_sha256": "b81bdac4373e98e24d15983eea1390f072cfd7e211cb7ed73e940de98ca4a652",
+              "alive": true
+            },
+            "candidate-manual-0": {
+              "result_sha256": "143d0cb587b16bda3977a014b6a73011d64833d5f1ddc9c3ff3ac2738a2c68fa",
+              "driver_sha256": "2abfe042b0f6996c28b09c838e67073861957b3e513eabc8ed2e81843a543e64",
+              "alive": true
+            },
+            "candidate-ownership-0": {
+              "result_sha256": "7b7c16fde83a0fb16fad5291a338356cab046724157fd62ab82b1ec0082c981a",
+              "driver_sha256": "6637450fd90fe5a6b51a5a6363fcb72370a65f772f97623d729c7d06ac3a9931",
+              "alive": true
+            },
+            "candidate-timer-0": {
+              "result_sha256": "bb7f261c345cf50ddc393bf0d8e37157cee1969c3abeed6a37242653f5af2e89",
+              "driver_sha256": "e6708beb4c54312bcf0a6c52114a948144f63375aa2c72e5e8f6505d66c102a5",
+              "alive": true
+            }
+          }
+        }
+      },
+      "candidate_sha256": "d543c3b9f704931018c893867e54182844bf3f01c8ae6addbb445194ab785a3e"
+    }
+  },
+  "httpd_report": "docs/reviews/OPENWRT_25126_HTTPD_20261022.json",
+  "native_tool_tests": {
+    "passed": 61,
+    "failed": 0
+  },
+  "fit_report": "manifests/ax3000t-stock-openwrt-25.12.6/fit-validation.json",
+  "limitations": [
+    "musl diagnostic candidates linked with unchanged 25.12.5 SDK toolchain via isolated QEMU wrappers",
+    "not a canonical 25.12.6 SDK release build",
+    "full final-image qualification and hardware validation not performed"
+  ],
+  "tested_source_sha256": {
+    "components/httpd/src/bridge.rs": "1d8b601228e77df0db4abf608c042d644e655ed25b8e98a28d9c9e3890625f56",
+    "components/httpd/src/cgi.rs": "5c70b1ab8c6b0500cf5adc01c65c8d3e670a41f0e5fc0c30a892a657ccbe02d3",
+    "components/httpd/src/fast_tests.rs": "527133e1bea7f63bc9d25a52a23e4dcef196630a4d2923e754f92f313f20e241",
+    "components/httpd/src/files.rs": "849c49f4e4aff6b1d87768f2d4201b64dde543b1dafb2b19258348eb18bf8df2",
+    "components/httpd/src/http.rs": "c9e236508188a5dac27e68ff1269600bff50e3d4a3f4c418955af573b515288a",
+    "components/httpd/src/main.rs": "80ce4c49286d6cc0cb3454216357d57b60fdc418419a14715f82407807a3dd81",
+    "components/netifd/src/proto.rs": "d43b1fdf49e3e9f4f5e437095b1681fc0832965d22d45d5faa62ebef2efb6060",
+    "components/rpcd/src/delayed.rs": "d5da60a7f5c141baa822511a6da3f82ccfcc43c20ad79b9d6468f7252721cbec",
+    "components/rpcd/src/file.rs": "9d2deb314f50d9bb6e5ae03db16669c8f6394854bedc607d93324874ca2b51fd",
+    "components/rpcd/src/reply.rs": "0bfcf127240e62997e1118c74302ae6c82f268e1a331d7543b73cacaeaf6aa16",
+    "components/rpcd/src/rrdns.rs": "50c5e403d15bb11ed79ef273b8715612be2b9a7bac734703e257e8285e1fcc05",
+    "components/rpcd/src/session.rs": "a5a207e9a7bf8e82f5d3b4eb571c0eb56912a4f87f2374532aec0e8d15de8670",
+    "components/rpcd/src/uciobj.rs": "c5768966d5299ccdde33b00636e5728cbd4692fdc7ca27111b16d6ccb95170b1",
+    "components/rpcd/tests/fixtures/luci-system-flash-25.12.5.json": "7d0bb40acc28a21a62629489a582f71ee0805364a0c8d949aba2d16aed81fa75",
+    "packaging/openwrt/owrt-rpcd/Makefile": "9c3aff6e80bc68161778eaaf82fe8aea20f482752c761fa05191065c386a5b9e",
+    "packaging/openwrt/owrt-rpcd/files/owrt-rpcd-compat.json": "12c2d5dc439b43786bfb44455b7aebbb25c9bde76ed4f1a612e1e9ce0c03c514",
+    "tools/test_httpd_25126.py": "2483fb4d365ed5dbff1ae2397dd94e73b75c71ea612e1a86b5e26cc34e72c576",
+    "tools/test_native_image.py": "9993c536b372d2bbd1b319607317d3a67dc10eae3ab81a026e10948732477cce",
+    "tools/test_rpcd_25126.py": "155e35c3be0e111ff0a54b8af0d49a6b0daf36f317f3b84f718358ee8d51016c",
+    "tools/test_rpcd_apply_owner.py": "a0af21ef22bb60bc61322283345bccf8dd2d41d3770ba41de841af9357fe1530",
+    "tools/test_rpcd_restore_failure.py": "111d5b3c91a1b56505cc895d4ee58fabf823bdb7f2ab5b1668c236ebefe02a90",
+    "tools/test_rpcd_snapshot_failure.py": "7256e4af05ff150968ff8e67c4638d83d2b4b86b896eb81a02dd82cada6d3d60"
+  },
+  "ignored_test_followup": {
+    "previously_ignored": 28,
+    "passed": 24,
+    "failed": 0,
+    "skipped": 4,
+    "suites": {
+      "dnsmasq": {
+        "passed": 22,
+        "failed": 0,
+        "warnings": 0,
+        "log_sha256": "1e910db8922d9ac49a87ca2efc16e00a7e1538ba1f91f7088b4e7b0ab7d62c1f",
+        "tests": [
+          "config::dns::tests::dns_config_acceptance_matches_c",
+          "config::loader::tests::cli_include_acceptance_matches_c",
+          "config::records::tests::local_record_acceptance_matches_c",
+          "config::tests::scalar_config_acceptance_matches_c",
+          "dhcp::service::tests::device_binding_linux_sockets_retry_and_relay_gate",
+          "dhcp::service::tests::poll_once_is_nonblocking_and_stop_aware",
+          "dhcp::service::tests::receive_once_admits_loopback_pktinfo_and_preserves_addresses",
+          "dhcp::service::tests::receive_once_rejects_ipv6_for_dhcpv4",
+          "dhcp::service::tests::socket_listener_processes_local_ack_and_replies_to_peer",
+          "interfaces::ipv4_snapshot::tests::isolated_fresh_snapshot_and_primary_address_need_no_spare_descriptor",
+          "interfaces::linux::tests::isolated_loopback_snapshot_matches_kernel_configuration",
+          "listeners::tests::dns_socket_bound_ipv4_metadata_policy",
+          "net::tests::static_dns_ipv4_preserves_zero_port_and_receive_errors",
+          "net::tests::tcp_pktoptions_identifies_loopback_for_both_families",
+          "net::tests::udp_source_and_truncation",
+          "tftp_listener::tests::dedicated_tid_idle_tick_and_cleanup_on_ipv4_and_ipv6",
+          "tftp_listener::tests::integrated_dual_stack_shares_capacity_and_pending_mac_does_not_block",
+          "tftp_listener::tests::port_range_upper_bound_exhaustion_and_zero_start",
+          "tests::dns_listener_factories_preserve_bound_ipv4_policy_on_rebind",
+          "tftp_admission_tests::tftp_label_exception_resumes_the_original_rrq_without_another_packet",
+          "tftp_admission_tests::tftp_live_name_rejects_old_ipv6_name_after_the_shared_collector",
+          "tftp_admission_tests::tftp_static_ipv4_keeps_its_cached_owner_and_dedicated_keeps_its_live_name"
+        ]
+      },
+      "odhcpd": {
+        "passed": 2,
+        "failed": 0,
+        "warnings": 0,
+        "log_sha256": "631545b1e614efddefb4ba1a974973294e4d91746e3370e78ca3446631c79fb5",
+        "tests": [
+          "control::tests::private_bus_recovers_objects_requests_and_latest_full_queue_snapshot",
+          "netio::tests::private_namespace_socket_io"
+        ]
+      }
+    },
+    "deployment": false,
+    "cache_execution": "mbx runs as ubuntu; Cargo target runner enters root private namespace only to execute test binaries",
+    "c_configuration_differentials": [
+      "test config::dns::tests::dns_config_acceptance_matches_c ... DNS config C differential: 41 accepted, 16 rejected, 57 matched",
+      "test config::loader::tests::cli_include_acceptance_matches_c ... CLI/include C differential: 14 accepted, 9 rejected, 23 matched",
+      "test config::records::tests::local_record_acceptance_matches_c ... Local record config C differential: 25 accepted, 16 rejected, 41 matched",
+      "test config::tests::scalar_config_acceptance_matches_c ... scalar configuration C differential: 21 accepted, 15 rejected, 36 matched"
+    ],
+    "skipped_prerequisites": [
+      {
+        "test": "dns::cache::transfer_tests::exact_c_transfer_probe",
+        "missing": "DNSMASQ_CACHE_TRANSFER_CASE/NOW with matched instrumented C transfer probe and independent comparator; standalone driver output is not a comparison."
+      },
+      {
+        "test": "dns::daemon::cache_tests::exact_c_oracle_driver",
+        "missing": "DNSMASQ_CACHE_ORACLE_INPUT from cache_answer_diff.py and matching exact C probe comparison."
+      },
+      {
+        "test": "dns::daemon::lease_cache_tests::exact_c_lease_cache_driver",
+        "missing": "DNSMASQ_LEASE_CACHE_CONFIG/INPUT from lease_insert_diff.py and matching exact C probe comparison."
+      },
+      {
+        "test": "dns::daemon::stale_tests::exact_c_stale_driver",
+        "missing": "DNSMASQ_STALE_CONFIG/INPUT and matching instrumented exact C baseline comparison."
+      }
+    ],
+    "reference_sha256": {
+      "dnsmasq": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+    }
+  },
+  "totals": {
+    "rust_passed": 1744,
+    "rust_failed": 0,
+    "rust_not_run": 4,
+    "native_python_passed": 61,
+    "pgo_release_python_passed": 15,
+    "rpcd_rootfs_checks_per_side": 34,
+    "httpd_rootfs_cases_per_side": 45,
+    "rpcd_failure_scenarios": 15
+  },
+  "pgo_release_tool_tests": {
+    "passed": 15,
+    "failed": 0,
+    "scope": "version/spec selection and frozen PGO release guards"
+  }
+}
