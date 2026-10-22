@@ -5,12 +5,10 @@
 //! this build cannot honour is reported as an error, never ignored, and a
 //! protocol it cannot run leaves the interface down rather than half up.
 //!
-//! What is implemented: the config model, the device registry and its
-//! `network.device status`, the interface status projection, IPv6 prefix
-//! assignment, and `proto static` end to end. What is not: proto-shell
-//! (`dhcp`, `dhcpv6`, `ppp`, `pppoe`), the wireless orchestration, and the
-//! interface write methods beyond `up`/`down`/`reload`/`restart`. Those
-//! register with their real signatures and refuse.
+//! The owner loop coordinates device state, interface lifecycle, IPv6 prefix
+//! assignment, static configuration, retained protocol scripts and wireless
+//! handlers. See docs/contracts/netifd.md and netifd-proto-shell.md for the
+//! supported calls, event ordering and explicit compatibility boundaries.
 
 #![forbid(unsafe_code)]
 #![deny(unsafe_op_in_unsafe_fn)]
@@ -4806,9 +4804,8 @@ impl Netifd {
         b.msg_close(t);
     }
 
-    /// A link event only refreshes the registry; it does not reconfigure. That
-    /// is deliberate for this stage: the carrier-driven setup/teardown path is
-    /// not implemented, and pretending otherwise would half-configure.
+    /// Coalesce link events into a registry resync. The owner subsequently
+    /// reconciles carrier-dependent claims and interface/protocol lifecycle.
     fn drain_netlink(&mut self) {
         match self.events.recv_events() {
             // `cb_rtnl_event`: only link add/remove/change is a device event

@@ -390,8 +390,22 @@ pub fn encode_addr(index: u32, addr: &Address, add: bool) -> (u16, [u8; 8], Vec<
 }
 
 /// Build the route message exactly as `system_rt` does.
+///
+/// # Panics
+///
+/// Panics if the gateway or source has a different address family from the
+/// target. Configuration and protocol parsers enforce this model invariant.
 pub fn encode_route(index: u32, route: &Route, add: bool) -> (u16, [u8; 12], Vec<u8>) {
     let v4 = matches!(route.target, IpAddr::V4(_));
+    assert_eq!(
+        route.nexthop.is_ipv4(),
+        v4,
+        "route gateway and target must have the same address family"
+    );
+    assert!(
+        route.source.is_none_or(|source| source.is_ipv4() == v4),
+        "route source and target must have the same address family"
+    );
     let alen = if v4 { 4 } else { 16 };
     let have_gw = !is_unspecified(route.nexthop);
     let table = route.table;
@@ -909,7 +923,18 @@ impl IfIoctl {
     }
 
     /// A numeric field of the ifreq union, at `off` bytes into the struct.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`io::ErrorKind::InvalidInput`] if the field is outside the
+    /// 40-byte ifreq layout, or the error from the interface query.
     pub fn ioctl_u32(&self, ifname: &str, req: u64, off: usize) -> io::Result<u32> {
+        if off > 36 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "u32 field is outside the 40-byte ifreq layout",
+            ));
+        }
         let r = self.call(ifname, req)?;
         Ok(u32::from_le_bytes([
             r[off],
@@ -1011,6 +1036,15 @@ mod tests {
     use super::*;
     use crate::netlink::{attr, attr_u32, parse_attrs};
     use std::net::Ipv4Addr;
+
+    #[test]
+    fn interface_query_rejects_out_of_bounds_fields_before_the_ioctl() {
+        let query = IfIoctl::open().unwrap();
+        for offset in [37, 40, usize::MAX] {
+            let error = query.ioctl_u32("lo", 0, offset).unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::InvalidInput);
+        }
+    }
 
     #[test]
     fn offlink_null_routes_cover_subnets_but_not_host_addresses() {

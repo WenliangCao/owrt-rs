@@ -6,8 +6,8 @@
 //! discovery, the merged attribute schema built from it, and the projection
 //! of `/etc/config/wireless`.
 //!
-//! Bringing radios up is the handler script's job and needs real hardware, so
-//! that half is not reproduced -- see R45.
+//! Radio setup remains the handler script's job. The daemon drives those
+//! scripts and their notifications using the contracts encoded here.
 
 use std::path::{Path, PathBuf};
 
@@ -772,6 +772,13 @@ fn esc(s: &str) -> String {
             '\n' => o.push_str("\\n"),
             '\t' => o.push_str("\\t"),
             '\r' => o.push_str("\\r"),
+            '\x00'..='\x1f' => {
+                const HEX: &[u8; 16] = b"0123456789abcdef";
+                let byte = c as u8;
+                o.push_str("\\u00");
+                o.push(HEX[(byte >> 4) as usize] as char);
+                o.push(HEX[(byte & 0x0f) as usize] as char);
+            }
             _ => o.push(c),
         }
     }
@@ -1399,6 +1406,49 @@ pub fn device_data_record(radio: &str, fields: &[(String, String)]) -> String {
 #[cfg(test)]
 mod handler_tests {
     use super::*;
+
+    #[test]
+    fn handler_json_preserves_all_control_characters_as_escaped_json() {
+        let controls: String = (0..32).map(char::from).collect();
+        let handler = handler_from(
+            Path::new("/unused.sh"),
+            &json::parse(r#"{"name":"test","iface":[["ssid",3]]}"#).unwrap(),
+        )
+        .unwrap();
+        let radio = Radio {
+            name: "radio0".into(),
+            opts: vec![("type".into(), Val::Str("test".into()))],
+            vifs: vec![Vif {
+                section: "ap".into(),
+                opts: vec![("ssid".into(), Val::Str(controls.clone()))],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let text = handler_json(&radio, &[handler], "{}");
+        assert!(text.bytes().all(|byte| byte >= 0x20));
+        let parsed = json::parse(&text).unwrap();
+        assert_eq!(
+            parsed
+                .get("interfaces")
+                .unwrap()
+                .get("01")
+                .unwrap()
+                .get("config")
+                .unwrap()
+                .get("ssid")
+                .and_then(Json::as_str),
+            Some(controls.as_str())
+        );
+        assert_eq!(
+            esc("a\x01\x08\x0c\x1f中"),
+            "a\\u0001\\u0008\\u000c\\u001f中"
+        );
+        assert_eq!(
+            esc("plain \"quote\"\\\n\t\r"),
+            "plain \\\"quote\\\"\\\\\\n\\t\\r"
+        );
+    }
 
     fn setup_case() -> (Vec<Handler>, Vec<Radio>) {
         let hs = vec![handler_from(

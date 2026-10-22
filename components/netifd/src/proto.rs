@@ -113,7 +113,7 @@ fn object_end(s: &str) -> Option<usize> {
             b'"' => in_str = true,
             b'{' => depth += 1,
             b'}' => {
-                depth -= 1;
+                depth = depth.checked_sub(1)?;
                 if depth == 0 {
                     return Some(i + 1);
                 }
@@ -1015,6 +1015,13 @@ mod tests {
     fn an_empty_dump_is_an_error_not_an_empty_handler() {
         assert!(Handler::parse(Path::new("/x.sh"), "").is_err());
         assert!(Handler::parse(Path::new("/x.sh"), "{}").is_err());
+    }
+
+    #[test]
+    fn a_non_object_dump_with_a_closing_brace_is_rejected_without_panicking() {
+        for text in ["1}", "null}", "[]}", "{\"name\":\"valid\"} 1}"] {
+            assert!(parse_dump(Path::new("/x.sh"), text).is_err(), "{text}");
+        }
     }
 }
 
