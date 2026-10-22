@@ -578,6 +578,81 @@ mod tests {
         assert!(j.contains("\"no_task\":false"), "{j}");
     }
 
+    // The client-ID declarations from OpenWrt v25.12.6's dhcp.sh and
+    // odhcp6c/files/dhcpv6.sh. The retained scripts own mode selection; netifd
+    // must discover their schema and carry the UCI values without choosing a mode.
+    const CLIENT_ID_DUMPS: [(&str, &str); 2] = [
+        ("dhcp", r#"{"name":"dhcp","config":[["clientid",3],["sendclientid",3]]}"#),
+        ("dhcpv6", r#"{"name":"dhcpv6","config":[["clientid",3],["sendclientid:or(\"auto\",\"global\",\"hardware\")",3]]}"#),
+    ];
+
+    #[test]
+    fn openwrt_25_12_6_clientid_schema_is_advertised() {
+        for (protocol, dump) in CLIENT_ID_DUMPS {
+            let handler = Handler::parse(Path::new("/unused.sh"), dump).unwrap();
+            let mut b = BlobBuf::new();
+            handler.dump_info(&mut b);
+            let reply = owrt_ubus::convert::fields_to_json(b.payload()).unwrap();
+            let validation = reply.get(protocol).unwrap().get("validate").unwrap();
+            let expected = match protocol {
+                "dhcp" => "string",
+                _ => r#"or("auto","global","hardware")"#,
+            };
+            assert_eq!(validation.get("sendclientid").and_then(Json::as_str), Some(expected));
+            assert_eq!(validation.get("clientid").and_then(Json::as_str), Some("string"));
+        }
+    }
+
+    #[test]
+    fn openwrt_25_12_6_clientid_modes_reach_protocol_scripts() {
+        for (protocol, dump) in CLIENT_ID_DUMPS {
+            let script = PathBuf::from(format!("/lib/netifd/proto/{protocol}.sh"));
+            let handler = Handler::parse(&script, dump).unwrap();
+            for mode in [None, Some("auto"), Some("global"), Some("hardware"), Some("none")] {
+                if protocol == "dhcpv6" && mode == Some("none") {
+                    continue;
+                }
+                let mut text = format!(
+                    "config interface wan\n option proto '{protocol}'\n option device 'eth0'\n \
+                     option clientid '00:01:02:03'\n"
+                );
+                if let Some(mode) = mode {
+                    text.push_str(&format!(" option sendclientid '{mode}'\n"));
+                }
+                let mut ctx = owrt_uci::context::Context::new();
+                let idx = owrt_uci::parse::import(
+                    &mut ctx,
+                    &mut io::Cursor::new(text),
+                    Some("network"),
+                    None,
+                    true,
+                )
+                .unwrap()
+                .unwrap();
+                let config = crate::config::parse(&ctx.root[idx]);
+                assert!(config.warnings.is_empty(), "{:?}", config.warnings);
+                let iface = &config.interfaces[0];
+                let opts: Vec<_> =
+                    iface.raw.iter().map(|r| (r.name.clone(), r.values.clone())).collect();
+                let args = argv(
+                    &handler,
+                    "setup",
+                    &iface.name,
+                    &config_json(&handler, &opts),
+                    iface.device.as_deref(),
+                );
+                let request = owrt_ubus::json::parse(&args[4]).unwrap();
+                assert_eq!(
+                    request.get("sendclientid").and_then(Json::as_str),
+                    mode,
+                    "{protocol}: {mode:?}"
+                );
+                assert_eq!(request.get("clientid").and_then(Json::as_str), Some("00:01:02:03"));
+                assert_eq!(args[5], "eth0");
+            }
+        }
+    }
+
     #[test]
     fn setup_is_only_accepted_when_idle() {
         let h = dhcp();
