@@ -61,7 +61,10 @@ pub fn strip_opt(packet: &mut Vec<u8>) -> Result<FilterResult, WireError> {
                 let mut cursor = rr.fixed + 10;
                 for &part in name_descriptor(rr.rrtype) {
                     if part == 0 {
-                        match relocate_name(packet, cursor, &removed, &mut fixups) {
+                        // Only the encoded name belongs to this RDATA; its
+                        // compression target may still refer elsewhere. Do not
+                        // record fixups in a later RR that will be removed.
+                        match relocate_name(&packet[..rr.end], cursor, &removed, &mut fixups) {
                             Ok(next) => cursor = next,
                             Err(_) => return Ok(result),
                         }
@@ -172,7 +175,7 @@ pub fn filter_rrs(packet: &mut Vec<u8>, filter_rr: &[u16]) -> Result<FilterResul
             removed: 0,
         });
     }
-    for (start, _end, fixed, class, rrtype) in retained {
+    for (start, end, fixed, class, rrtype) in retained {
         if removed.iter().any(|range| range.start == start) {
             continue;
         }
@@ -186,7 +189,7 @@ pub fn filter_rrs(packet: &mut Vec<u8>, filter_rr: &[u16]) -> Result<FilterResul
             let mut cursor = fixed + 10;
             for &part in name_descriptor(rrtype) {
                 if part == 0 {
-                    cursor = match relocate_name(packet, cursor, &removed, &mut fixups) {
+                    cursor = match relocate_name(&packet[..end], cursor, &removed, &mut fixups) {
                         Ok(next) => next,
                         Err(_) => {
                             return Ok(FilterResult {
@@ -423,6 +426,42 @@ pub fn limit_udp_reply(packet: &[u8], limit: u16) -> Result<Vec<u8>, WireError> 
 mod tests {
     use super::*;
     use crate::dns::wire::{Name, PacketWriter};
+
+    #[test]
+    fn filters_preserve_packets_when_rdata_name_would_cross_into_a_removed_record() {
+        // Independent DNS bytes: one root question, an empty CNAME RDATA,
+        // then a compressed-owner RR. Reading the second owner's pointer as
+        // CNAME RDATA would produce a fixup beyond the compacted packet.
+        let prefix = [
+            0, 7, 0x81, 0x80, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0xc0, 12, 0, 5, 0, 1, 0, 0, 0,
+            60, 0, 0,
+        ];
+        let mut opt = prefix.to_vec();
+        opt.extend_from_slice(&[0xc0, 12, 0, 41, 4, 208, 0, 0, 0, 0, 0, 0]);
+        let original = opt.clone();
+        assert_eq!(
+            strip_opt(&mut opt).unwrap(),
+            FilterResult {
+                matched: 1,
+                removed: 0
+            }
+        );
+        assert_eq!(opt, original);
+
+        let mut txt = prefix.to_vec();
+        txt[7] = 2;
+        txt[11] = 0;
+        txt.extend_from_slice(&[0xc0, 12, 0, 16, 0, 1, 0, 0, 0, 60, 0, 2, 1, b'x']);
+        let original = txt.clone();
+        assert_eq!(
+            filter_rrs(&mut txt, &[16]).unwrap(),
+            FilterResult {
+                matched: 1,
+                removed: 0
+            }
+        );
+        assert_eq!(txt, original);
+    }
 
     fn packet() -> Vec<u8> {
         let name = Name::from_ascii("reply.test").unwrap();

@@ -12,13 +12,15 @@ use super::wire::{
 };
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
+/// A family-valid address prefix for reply filtering.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AddressPrefix {
-    pub address: IpAddr,
-    pub prefix: u8,
+    address: IpAddr,
+    prefix: u8,
 }
 
 impl AddressPrefix {
+    /// Return `None` when the prefix exceeds the address family's bit width.
     pub fn new(address: IpAddr, prefix: u8) -> Option<Self> {
         let valid = match address {
             IpAddr::V4(_) => prefix <= 32,
@@ -454,6 +456,22 @@ pub(super) fn is_allowed_address(address: IpAddr, allow_localhost: bool) -> bool
 mod tests {
     use super::*;
     use crate::dns::wire::{Header, Message, Name, PacketWriter, Section};
+
+    #[test]
+    fn address_prefix_enforces_family_width_before_filtering() {
+        for (address, other, width) in [
+            ("192.0.2.1", "192.0.2.2", 32),
+            ("2001:db8::1", "2001:db8::2", 128),
+        ] {
+            let address = address.parse().unwrap();
+            let exact = AddressPrefix::new(address, width).unwrap();
+            assert!(exact.contains(address));
+            assert!(!exact.contains(other.parse().unwrap()));
+            for invalid in width + 1..=u8::MAX {
+                assert!(AddressPrefix::new(address, invalid).is_none());
+            }
+        }
+    }
 
     #[test]
     fn zero_prefix_follows_the_image_for_each_address_family() {

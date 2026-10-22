@@ -4,7 +4,10 @@
 //! socket allocation remain in the caller. A socket token denotes a caller-owned
 //! socket reference; release notifications must be consumed to drop that reference.
 
-use super::wire::{decode_name, validate_name, Header, Name, WireError, HEADER_LEN};
+use super::wire::{
+    decode_name, decode_name_with_aliasing, validate_name_may_alias, Header, Name, WireError,
+    HEADER_LEN,
+};
 use std::collections::HashMap;
 use std::io;
 use std::net::{IpAddr, SocketAddr};
@@ -848,9 +851,9 @@ fn canonical_scope(scope: Scope) -> Scope {
 /// Flip the first bitmap.len()*32 ASCII letters, LSB first; other bytes and
 /// label lengths do not consume bits. Decode first to make failure atomic.
 pub fn flip_question_case(packet: &mut [u8], bitmap: &[u32]) -> Result<(), WireError> {
-    validate_name(packet, HEADER_LEN, 0)?;
+    let may_alias = validate_name_may_alias(packet, HEADER_LEN)?;
     let mut letter = 0;
-    visit_label_bytes(packet, |byte| {
+    visit_label_bytes(packet, may_alias, |byte| {
         if byte.is_ascii_alphabetic() {
             if bitmap
                 .get(letter / 32)
@@ -860,12 +863,11 @@ pub fn flip_question_case(packet: &mut [u8], bitmap: &[u32]) -> Result<(), WireE
             }
             letter += 1;
         }
-    });
-    Ok(())
+    })
 }
 
 fn restore_name_case(packet: &mut [u8], original: &Name, upstream: &Name) -> Result<(), WireError> {
-    let (current, _) = decode_name(packet, HEADER_LEN, 0)?;
+    let (current, _, may_alias) = decode_name_with_aliasing(packet, HEADER_LEN, 0)?;
     if !current.eq_ignore_ascii_case(original) || !upstream.eq_ignore_ascii_case(original) {
         return Err(WireError::InvalidName);
     }
@@ -873,7 +875,7 @@ fn restore_name_case(packet: &mut [u8], original: &Name, upstream: &Name) -> Res
     let upstream = upstream.as_wire();
     let mut offset = 1;
     let mut left = original[0] as usize;
-    visit_label_bytes(packet, |byte| {
+    visit_label_bytes(packet, may_alias, |byte| {
         if left == 0 {
             left = original[offset] as usize;
             offset += 1;
@@ -881,19 +883,25 @@ fn restore_name_case(packet: &mut [u8], original: &Name, upstream: &Name) -> Res
         *byte ^= original[offset] ^ upstream[offset];
         offset += 1;
         left -= 1;
-    });
-    Ok(())
+    })
 }
 
-/// Only called after bounded decode_name succeeded. A valid name's pointer
-/// chain terminates; label bytes cannot overlap pointer/length bytes on it.
-fn visit_label_bytes(packet: &mut [u8], mut action: impl FnMut(&mut u8)) {
+/// Forward-only name traversal cannot revisit modified bytes. A backward
+/// pointer may alias its own encoding, so stage those changes before writing.
+fn visit_label_bytes(
+    packet: &mut [u8],
+    may_alias: bool,
+    mut action: impl FnMut(&mut u8),
+) -> Result<(), WireError> {
+    if may_alias {
+        return visit_aliased_label_bytes(packet, action);
+    }
     let mut at = HEADER_LEN;
     loop {
         let length = packet[at];
         at += 1;
         match length {
-            0 => return,
+            0 => return Ok(()),
             1..=63 => {
                 for byte in &mut packet[at..at + length as usize] {
                     action(byte);
@@ -904,6 +912,68 @@ fn visit_label_bytes(packet: &mut [u8], mut action: impl FnMut(&mut u8)) {
             _ => unreachable!("decode_name validated label type"),
         }
     }
+}
+
+#[inline(never)]
+fn visit_aliased_label_bytes(
+    packet: &mut [u8],
+    mut action: impl FnMut(&mut u8),
+) -> Result<(), WireError> {
+    // Validation bounds expanded labels to 255 bytes and pointer hops to 255.
+    // Question traversal starts at byte 12; every later target is 14 bits, so
+    // every visited byte also fits u16. Keep the bounded scratch on the stack
+    // in this separate frame, including for valid backward-compressed names.
+    let mut changes = [(0u16, 0u8); super::wire::MAX_NAME_LEN];
+    let mut change_count = 0;
+    let mut pointer_offsets = [0u16; 255];
+    let mut pointer_count = 0;
+    let mut at = HEADER_LEN;
+    loop {
+        let length = packet[at];
+        at += 1;
+        match length {
+            0 => break,
+            1..=63 => {
+                for (index, &original) in
+                    packet.iter().enumerate().skip(at).take(usize::from(length))
+                {
+                    let offset = u16::try_from(index).expect("validated name position fits u16");
+                    if let Some((_, byte)) = changes[..change_count]
+                        .iter_mut()
+                        .find(|(old, _)| *old == offset)
+                    {
+                        action(byte);
+                    } else {
+                        let mut byte = original;
+                        action(&mut byte);
+                        if byte != original {
+                            changes[change_count] = (offset, byte);
+                            change_count += 1;
+                        }
+                    }
+                }
+                at += usize::from(length);
+            }
+            192..=255 => {
+                // Case changes cannot alter length bytes or a pointer's high
+                // byte. Its low byte may also be an ASCII label elsewhere.
+                pointer_offsets[pointer_count] =
+                    u16::try_from(at).expect("validated compression pointer position fits u16");
+                pointer_count += 1;
+                at = (usize::from(length & 63) << 8) | usize::from(packet[at]);
+            }
+            _ => unreachable!("name validation checked every encoded label"),
+        }
+    }
+    if changes[..change_count].iter().any(|(index, byte)| {
+        *byte != packet[usize::from(*index)] && pointer_offsets[..pointer_count].contains(index)
+    }) {
+        return Err(WireError::InvalidName);
+    }
+    for &(index, byte) in &changes[..change_count] {
+        packet[usize::from(index)] = byte;
+    }
+    Ok(())
 }
 
 #[cfg(test)]

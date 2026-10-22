@@ -1058,6 +1058,18 @@ impl<R: Random> UpstreamResolver<R> {
             }
         }
         self.socket_settings = settings;
+        // In-flight queries keep their descriptors when a caller shrinks the
+        // pool. Retired slots become private overflow sockets until their last
+        // owner releases them; they must not enter the new pool's rotation.
+        for owned in self.sockets.values_mut() {
+            if owned
+                .pool_slot
+                .is_some_and(|slot| slot >= settings.pool_slots)
+            {
+                owned.pooled = false;
+                owned.pool_slot = None;
+            }
+        }
         self.source_bindings = sources;
         self.server_sockets.retain(|id, token| {
             self.source_bindings.contains_key(id) && self.sockets.contains_key(token)
@@ -1935,6 +1947,69 @@ mod tests {
     }
 
     #[test]
+    fn shrinking_source_pool_preserves_in_flight_replies_and_uses_overflow_sockets() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(2)))
+            .unwrap();
+        let address = server.local_addr().unwrap();
+        let mut resolver = transport(
+            group(&[address], false),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        resolver.configure_source_sockets(
+            SocketSettings {
+                pool_slots: 1,
+                ..Default::default()
+            },
+            HashMap::new(),
+        );
+        let first = resolver
+            .start_udp(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Client("127.0.0.1:1".parse().unwrap()),
+            )
+            .unwrap();
+        let mut buffer = [0; 2048];
+        let (length, first_peer) = server.recv_from(&mut buffer).unwrap();
+        let first_reply = response(&buffer[..length], 0x8180, true);
+
+        resolver.configure_source_sockets(
+            SocketSettings {
+                pool_slots: 0,
+                ..Default::default()
+            },
+            HashMap::new(),
+        );
+        let second = resolver
+            .start_udp(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Client("127.0.0.1:2".parse().unwrap()),
+            )
+            .unwrap();
+        let (length, second_peer) = server.recv_from(&mut buffer).unwrap();
+        assert_ne!(first_peer, second_peer);
+        assert_eq!((resolver.pending_count(), resolver.socket_count()), (2, 2));
+        server
+            .send_to(&response(&buffer[..length], 0x8180, true), second_peer)
+            .unwrap();
+        let second_event = wait_for_event(&mut resolver, Duration::from_millis(10));
+        assert_eq!(second_event.id, second.id);
+        assert!(second_event.result.is_ok());
+        assert_eq!((resolver.pending_count(), resolver.socket_count()), (1, 1));
+        server.send_to(&first_reply, first_peer).unwrap();
+        let first_event = wait_for_event(&mut resolver, Duration::from_millis(10));
+        assert_eq!(first_event.id, first.id);
+        assert!(first_event.result.is_ok());
+        assert_eq!((resolver.pending_count(), resolver.socket_count()), (0, 0));
+    }
+
+    #[test]
     fn reused_server_keeps_fixed_socket_after_source_tuple_changes() {
         let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
         peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
@@ -2736,44 +2811,51 @@ mod tests {
     #[test]
     fn ignored_reply_stays_pending_until_a_later_upstream_reply() {
         let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(2)))
+            .unwrap();
         let address = server.local_addr().unwrap();
-        let thread = thread::spawn(move || {
-            let mut input = [0; 2048];
-            let (length, peer) = server.recv_from(&mut input).unwrap();
-            server
-                .send_to(&response(&input[..length], 0x8180, true), peer)
-                .unwrap();
-            thread::sleep(Duration::from_millis(60));
-            server
-                .send_to(&response(&input[..length], 0x8180, false), peer)
-                .unwrap();
-        });
         let mut transport = transport(
             group(&[address], false),
             Options::default(),
-            Duration::from_secs(1),
+            Duration::from_secs(2),
         );
         let submission = transport
             .start_udp(&query(), client(), GroupId(1), Scope::Shared)
             .unwrap();
+        let mut input = [0; 2048];
+        let (length, peer) = server.recv_from(&mut input).unwrap();
+        server
+            .send_to(&response(&input[..length], 0x8180, true), peer)
+            .unwrap();
+        let inspected = std::cell::Cell::new(false);
         let ignored = transport
-            .poll_with_filter(Duration::from_millis(20), |packet| {
+            .poll_with_filter(Duration::from_secs(1), |packet| {
+                inspected.set(true);
                 Message::parse(packet)
                     .ok()
                     .is_some_and(|message| message.records(Section::Answer).next().is_some())
             })
             .unwrap();
+        assert!(
+            inspected.get(),
+            "the first response must reach the rejection predicate"
+        );
         assert!(ignored.is_empty());
         assert_eq!(transport.pending_count(), 1);
+        // Release the valid response only after observing the rejection.
+        server
+            .send_to(&response(&input[..length], 0x8180, false), peer)
+            .unwrap();
         let events = transport
-            .poll_with_filter(Duration::from_millis(200), |_| false)
+            .poll_with_filter(Duration::from_secs(1), |_| false)
             .unwrap();
         assert_eq!(events.len(), 1);
         assert_eq!(events[0].id, submission.id);
-        assert!(events[0].result.is_ok());
+        let reply = events[0].result.as_ref().unwrap();
+        assert_eq!(Header::parse(&reply.packet).unwrap().answers, 0);
         assert_eq!(transport.pending_count(), 0);
         assert_eq!(transport.socket_count(), 0);
-        thread.join().unwrap();
     }
 
     #[test]
@@ -2852,52 +2934,46 @@ mod tests {
     fn all_servers_refused_waits_without_resending() {
         let first = UdpSocket::bind("127.0.0.1:0").unwrap();
         let second = UdpSocket::bind("127.0.0.1:0").unwrap();
-        let first_address = first.local_addr().unwrap();
-        let second_address = second.local_addr().unwrap();
-        let (tx, rx) = mpsc::channel();
-        let first_thread = thread::spawn(move || {
-            let mut input = [0; 2048];
-            let (length, peer) = first.recv_from(&mut input).unwrap();
-            tx.send(()).unwrap();
-            first
-                .send_to(&response(&input[..length], 0x8185, false), peer)
+        for server in [&first, &second] {
+            server
+                .set_read_timeout(Some(Duration::from_secs(2)))
                 .unwrap();
-            first
-                .set_read_timeout(Some(Duration::from_millis(250)))
-                .unwrap();
-            assert!(
-                first.recv_from(&mut input).is_err(),
-                "REFUSED caused a resend"
-            );
-        });
-        let second_thread = thread::spawn(move || {
-            let mut input = [0; 2048];
-            let (length, peer) = second.recv_from(&mut input).unwrap();
-            thread::sleep(Duration::from_millis(20));
-            second
-                .send_to(&response(&input[..length], 0x8180, true), peer)
-                .unwrap();
-            second
-                .set_read_timeout(Some(Duration::from_millis(250)))
-                .unwrap();
-            assert!(
-                second.recv_from(&mut input).is_err(),
-                "REFUSED caused a resend"
-            );
-        });
+        }
         let mut transport = transport(
-            group(&[first_address, second_address], true),
+            group(
+                &[first.local_addr().unwrap(), second.local_addr().unwrap()],
+                true,
+            ),
             Options::default(),
-            Duration::from_secs(1),
+            Duration::from_secs(2),
         );
         transport
             .start_udp(&query(), client(), GroupId(1), Scope::Shared)
             .unwrap();
-        rx.recv_timeout(Duration::from_millis(250)).unwrap();
+        let mut input = [0; 2048];
+        let (length, peer) = first.recv_from(&mut input).unwrap();
+        first
+            .send_to(&response(&input[..length], 0x8185, false), peer)
+            .unwrap();
+        assert!(transport.poll(Duration::from_secs(1)).unwrap().is_empty());
+        assert_eq!(
+            transport.pending_count(),
+            1,
+            "REFUSED must leave the other server pending"
+        );
+        let (length, peer) = second.recv_from(&mut input).unwrap();
+        second
+            .send_to(&response(&input[..length], 0x8180, true), peer)
+            .unwrap();
         let event = wait_for_event(&mut transport, Duration::from_millis(100));
         assert_eq!(event.result.unwrap().server, ServerId(2));
-        first_thread.join().unwrap();
-        second_thread.join().unwrap();
+        for server in [&first, &second] {
+            server.set_nonblocking(true).unwrap();
+            assert_eq!(
+                server.recv_from(&mut input).unwrap_err().kind(),
+                io::ErrorKind::WouldBlock
+            );
+        }
     }
 
     #[test]

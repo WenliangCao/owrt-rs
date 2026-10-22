@@ -345,6 +345,52 @@ fn writer_matches_independent_response() {
 }
 
 #[test]
+fn writer_rejects_relocated_owner_pointers_without_modifying_packet() {
+    let mut writer = PacketWriter::new(0x1234, 0x8180, 512).unwrap();
+    writer
+        .question(&Name::from_ascii("www.example").unwrap(), 1, 1)
+        .unwrap();
+    // This standalone name decodes successfully: the pointer targets the zero
+    // inside its binary label. After relocation it would target packet byte 1.
+    let owner = [1, 0, 0xc0, 1];
+    assert_eq!(decode_name(&owner, 0, 0).unwrap().0.as_wire(), &[1, 0, 0]);
+    assert_eq!(
+        writer.record_wire(Section::Answer, &owner, 1, 1, 60, &[192, 0, 2, 7]),
+        Err(WireError::LabelType)
+    );
+    assert_eq!(writer.position(), 29);
+    writer
+        .record_at(Section::Answer, 12, 1, 1, 60, &[192, 0, 2, 7])
+        .unwrap();
+    assert_eq!(writer.finish(), A_RESPONSE);
+}
+
+#[test]
+fn writer_uncompressed_owner_preserves_binary_labels_and_rejects_trailing_bytes() {
+    let mut writer = PacketWriter::new(0, 0x8000, 512).unwrap();
+    for invalid in [&[0, 1][..], &[2, b'a'][..], &[][..]] {
+        assert!(writer
+            .record_wire(Section::Answer, invalid, 1, 1, 0, &[])
+            .is_err());
+        assert_eq!(writer.position(), HEADER_LEN);
+    }
+    let owner = [3, 0xc0, 0, 255, 0];
+    writer
+        .record_wire(Section::Answer, &owner, 1, 1, 0, &[192, 0, 2, 7])
+        .unwrap();
+    let packet = writer.finish();
+    assert_eq!(&packet[HEADER_LEN..HEADER_LEN + owner.len()], &owner);
+    assert_eq!(
+        RecordRef::parse(&packet, HEADER_LEN)
+            .unwrap()
+            .name()
+            .unwrap()
+            .as_wire(),
+        &owner
+    );
+}
+
+#[test]
 fn writer_full_record_append_is_atomic_and_sticky() {
     let mut writer = PacketWriter::new(0x1234, 0x8180, A_RESPONSE.len() - 1).unwrap();
     writer

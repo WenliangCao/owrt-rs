@@ -69,6 +69,59 @@ fn submit(
 }
 
 #[test]
+fn case_changes_cannot_rewrite_compression_offsets_aliased_by_label_data() {
+    let mut packet = query("", 0x1234);
+    packet.resize(66, 0);
+    // The first label contains another pointer: its low byte is also 'A'.
+    // The encoded question then follows that pointer to the root at byte 65.
+    packet[12..22].copy_from_slice(&[3, 0xc0, b'A', b'B', 0xc0, 13, 0, 1, 0, 1]);
+    let upstream = Question::parse(&packet).unwrap().name;
+    assert_eq!(upstream.as_wire(), &[3, 0xc0, b'A', b'B', 0]);
+    let original = packet.clone();
+    assert_eq!(
+        flip_question_case(&mut packet, &[1]),
+        Err(WireError::InvalidName)
+    );
+    assert_eq!(packet, original, "a rejected case change must be atomic");
+
+    let recipient = Recipient {
+        client: client(1000),
+        original_id: 0x5678,
+        question_name: Name::from_dotted_bytes(&[0xc0, b'a', b'B']).unwrap(),
+    };
+    assert_eq!(
+        recipient.restore_question(&mut packet, &upstream),
+        Err(WireError::InvalidName)
+    );
+    assert_eq!(packet, original);
+
+    // Unchanged offset bytes remain compatible, even in this unusual layout.
+    flip_question_case(&mut packet, &[2]).unwrap();
+    assert_eq!(
+        Question::parse(&packet).unwrap().name.as_wire(),
+        &[3, 0xc0, b'A', b'b', 0]
+    );
+    assert_eq!(packet[14], 65);
+}
+
+#[test]
+fn case_changes_preserve_valid_backward_compression() {
+    let mut packet = query("", 0x0441);
+    packet.truncate(12);
+    packet.extend_from_slice(&[0xc0, 0, 0, 1, 0, 1]);
+    // This legal binary name ends in the zero answer count in the header.
+    let original = Question::parse(&packet).unwrap().name;
+    assert_eq!(original.as_wire(), &[4, b'A', 1, 0, 0, 1, 0, 0]);
+    flip_question_case(&mut packet, &[1]).unwrap();
+    assert_eq!(
+        Question::parse(&packet).unwrap().name.as_wire(),
+        &[4, b'a', 1, 0, 0, 1, 0, 0]
+    );
+    flip_question_case(&mut packet, &[1]).unwrap();
+    assert_eq!(Question::parse(&packet).unwrap().name, original);
+}
+
+#[test]
 fn refresh_and_ordinary_recipients_keep_independent_delivery_flags() {
     let mut table = ForwardTable::new(Options::default());
     let mut rng = Counter(0);

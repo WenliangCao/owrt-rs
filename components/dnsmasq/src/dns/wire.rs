@@ -164,15 +164,7 @@ impl Name {
     /// Narrow plain-question constructor: no pointers or trailing bytes.
     /// Validate first, then copy once into the existing bounded name scratch.
     pub(super) fn from_uncompressed_reusing(wire: &[u8], scratch: &mut Vec<u8>) -> Option<Self> {
-        if wire.len() > MAX_NAME_LEN { return None; }
-        let mut pos = 0;
-        loop {
-            match *wire.get(pos)? {
-                0 if pos + 1 == wire.len() => break,
-                1..=63 => pos += 1 + usize::from(wire[pos]),
-                _ => return None,
-            }
-        }
+        validate_uncompressed_name(wire).ok()?;
         scratch.clear();
         scratch.extend_from_slice(wire);
         Some(Self(std::mem::take(scratch)))
@@ -204,8 +196,36 @@ impl Name {
 /// `extra` bytes must remain after that cursor, not after the pointed-to name.
 pub fn decode_name(packet: &[u8], start: usize, extra: usize) -> Result<(Name, usize), WireError> {
     let mut wire = Vec::with_capacity(32);
-    let next = walk_name(packet, start, extra, |label| wire.extend_from_slice(label))?;
+    let next = walk_name(
+        packet,
+        start,
+        extra,
+        |label| wire.extend_from_slice(label),
+        |_, _| {},
+    )?;
     Ok((Name(wire), next))
+}
+
+/// Report pointers whose encoding could be affected by ASCII case changes.
+pub(super) fn decode_name_with_aliasing(
+    packet: &[u8],
+    start: usize,
+    extra: usize,
+) -> Result<(Name, usize, bool), WireError> {
+    let mut wire = Vec::with_capacity(32);
+    let mut backward = false;
+    let mut case_sensitive_offset = false;
+    let next = walk_name(
+        packet,
+        start,
+        extra,
+        |label| wire.extend_from_slice(label),
+        |at, target| {
+            backward |= target < at + 1;
+            case_sensitive_offset |= packet[at].is_ascii_alphabetic();
+        },
+    )?;
+    Ok((Name(wire), next, backward && case_sensitive_offset))
 }
 
 /// Reuse a normal UDP owner's name allocation. On failure the caller keeps
@@ -214,8 +234,16 @@ pub(super) fn decode_name_reusing(
     packet: &[u8], start: usize, extra: usize, scratch: &mut Vec<u8>,
 ) -> Result<(Name, usize), WireError> {
     scratch.clear();
-    if scratch.capacity() < 32 { scratch.reserve(32); }
-    let next = walk_name(packet, start, extra, |label| scratch.extend_from_slice(label))?;
+    if scratch.capacity() < 32 {
+        scratch.reserve(32);
+    }
+    let next = walk_name(
+        packet,
+        start,
+        extra,
+        |label| scratch.extend_from_slice(label),
+        |_, _| {},
+    )?;
     Ok((Name(std::mem::take(scratch)), next))
 }
 
@@ -224,7 +252,41 @@ pub(super) fn decode_name_reusing(
 /// label types. Writers use it when only the validity of an existing owner is
 /// needed; no temporary name allocation or label copy is required.
 pub(super) fn validate_name(packet: &[u8], start: usize, extra: usize) -> Result<usize, WireError> {
-    walk_name(packet, start, extra, |_| {})
+    walk_name(packet, start, extra, |_| {}, |_, _| {})
+}
+
+/// Validate a name and report whether case changes could affect pointer bytes.
+pub(super) fn validate_name_may_alias(packet: &[u8], start: usize) -> Result<bool, WireError> {
+    let mut backward = false;
+    let mut case_sensitive_offset = false;
+    walk_name(
+        packet,
+        start,
+        0,
+        |_| {},
+        |at, target| {
+            backward |= target < at + 1;
+            case_sensitive_offset |= packet[at].is_ascii_alphabetic();
+        },
+    )?;
+    Ok(backward && case_sensitive_offset)
+}
+
+/// Check a self-contained owner before copying it into a different packet.
+/// Compression offsets belong to their original packet and cannot be copied.
+fn validate_uncompressed_name(wire: &[u8]) -> Result<(), WireError> {
+    if wire.len() > MAX_NAME_LEN {
+        return Err(WireError::NameTooLong);
+    }
+    let mut pos = 0;
+    loop {
+        match *wire.get(pos).ok_or(WireError::Truncated)? {
+            0 if pos + 1 == wire.len() => return Ok(()),
+            0 => return Err(WireError::InvalidName),
+            length @ 1..=63 => pos += 1 + usize::from(length),
+            _ => return Err(WireError::LabelType),
+        }
+    }
 }
 
 fn walk_name(
@@ -232,6 +294,7 @@ fn walk_name(
     start: usize,
     extra: usize,
     mut label: impl FnMut(&[u8]),
+    mut pointer: impl FnMut(usize, usize),
 ) -> Result<usize, WireError> {
     let mut pos = start;
     let mut resume = None;
@@ -261,6 +324,7 @@ fn walk_name(
                 end(packet, pos, 1)?;
                 let target = (((length & 63) as usize) << 8) | packet[pos] as usize;
                 resume.get_or_insert(pos + 1);
+                pointer(pos, target);
                 hops += 1;
                 if hops > 255 {
                     return Err(WireError::PointerLoop);
@@ -485,7 +549,7 @@ pub enum Section {
     Additional,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Records<'a> {
     packet: &'a [u8],
     pos: usize,
@@ -564,6 +628,7 @@ impl<'a> EdnsRef<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct EdnsOptions<'a> {
     remaining: &'a [u8],
     failed: bool,
@@ -657,6 +722,7 @@ pub fn find_pseudoheader(packet: &[u8], detect_signed: bool) -> Result<EdnsScan<
 
 /// A response builder with atomic record append. Caller chooses section order.
 /// RDATA must be self-contained or use offsets into this very packet.
+#[derive(Debug)]
 pub struct PacketWriter {
     packet: Vec<u8>,
     limit: usize,
@@ -727,6 +793,10 @@ impl PacketWriter {
     /// needs an owner different from the question (for example a CNAME target
     /// address).  Keeping validation here preserves the same atomic append
     /// boundary as `record` without exposing `Name`'s internal representation.
+    ///
+    /// # Errors
+    /// Rejects malformed, compressed, overlong or trailing owner bytes. Record
+    /// size, section ordering and packet limits follow [`Self::record`].
     pub fn record_wire(
         &mut self,
         section: Section,
@@ -736,10 +806,7 @@ impl PacketWriter {
         ttl: u32,
         data: &[u8],
     ) -> Result<(), WireError> {
-        let end = validate_name(owner, 0, 0)?;
-        if end != owner.len() {
-            return Err(WireError::InvalidName);
-        }
+        validate_uncompressed_name(owner)?;
         self.append_record(section, owner, rrtype, class, ttl, data)
     }
 

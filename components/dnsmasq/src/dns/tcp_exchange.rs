@@ -9,7 +9,13 @@ use dnsmasq_platform::poll::{POLLIN, POLLOUT};
 use std::collections::HashMap;
 use std::io::{self, Read, Write};
 use std::os::fd::AsRawFd;
-use std::time::Instant;
+use std::time::{Duration, Instant};
+
+fn idle_deadline(now: Instant, timeout: Duration, deadline: Instant) -> Instant {
+    // An unrepresentable idle timeout cannot expire before the caller's
+    // finite query deadline. Keep that existing bound instead of panicking.
+    now.checked_add(timeout).unwrap_or(deadline)
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Phase {
@@ -102,7 +108,7 @@ impl Exchange {
                 self.reply.clear();
                 if server.connection.is_some() {
                     self.phase = Phase::Write;
-                    self.idle = now + options.write_timeout;
+                    self.idle = idle_deadline(now, options.write_timeout, self.deadline);
                     continue;
                 }
                 #[cfg(all(
@@ -126,12 +132,15 @@ impl Exchange {
                         } else {
                             Phase::Connect
                         };
-                        self.idle = now
-                            + if connected {
+                        self.idle = idle_deadline(
+                            now,
+                            if connected {
                                 options.write_timeout
                             } else {
                                 options.connect_timeout
-                            };
+                            },
+                            self.deadline,
+                        );
                         if connected {
                             group.last_connected = index;
                         }
@@ -162,7 +171,7 @@ impl Exchange {
                     Ok(true) => {
                         group.last_connected = index;
                         self.phase = Phase::Write;
-                        self.idle = now + options.write_timeout;
+                        self.idle = idle_deadline(now, options.write_timeout, self.deadline);
                     }
                     Ok(false) => return Ok(self.wait(group)),
                     Err(_) => {
@@ -198,17 +207,21 @@ impl Exchange {
                 }
                 Ok(count) => {
                     self.position += count;
-                    self.idle = Instant::now()
-                        + if self.phase == Phase::Write {
+                    self.idle = idle_deadline(
+                        Instant::now(),
+                        if self.phase == Phase::Write {
                             options.write_timeout
                         } else {
                             options.read_timeout
-                        };
+                        },
+                        self.deadline,
+                    );
                     match self.phase {
                         Phase::Write if self.position == self.frame.len() => {
                             self.phase = Phase::Prefix;
                             self.position = 0;
-                            self.idle = Instant::now() + options.read_timeout;
+                            self.idle =
+                                idle_deadline(Instant::now(), options.read_timeout, self.deadline);
                         }
                         Phase::Prefix if self.position == 2 => {
                             // Allocation is bounded by the u16 frame length;

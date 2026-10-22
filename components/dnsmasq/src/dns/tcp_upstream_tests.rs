@@ -125,6 +125,42 @@ fn successful_queries_share_connection_and_rcode_does_not_trigger_retry() {
 }
 
 #[test]
+fn unrepresentable_idle_timeouts_keep_the_finite_exchange_deadline() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let mut transport = transport(&[listener.local_addr().unwrap()]);
+    transport.options = TcpOptions {
+        connect_timeout: Duration::MAX,
+        write_timeout: Duration::MAX,
+        read_timeout: Duration::MAX,
+    };
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let progress = transport.start(GroupId(1), &query(7), deadline).unwrap();
+    let wait = waiting_for_reply(&mut transport, progress);
+    assert_eq!(wait.deadline, deadline);
+    let (mut server, _) = listener.accept().unwrap();
+    let request = read_query(&mut server);
+    let reply = response(&request, 0);
+    server
+        .write_all(&encode_tcp_frame(&reply).unwrap())
+        .unwrap();
+    let mut progress = transport.step().unwrap();
+    loop {
+        match progress {
+            TcpProgress::Pending(wait) => {
+                assert_eq!(wait.deadline, deadline);
+                progress = step_after_poll(&mut transport, wait).unwrap();
+            }
+            TcpProgress::Complete(packet) => {
+                assert_eq!(packet, reply);
+                break;
+            }
+        }
+    }
+    transport.clear();
+    assert_eq!(server.read(&mut [0; 1]).unwrap(), 0);
+}
+
+#[test]
 fn old_connection_eof_reconnects_once_and_fresh_eof_advances_server() {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let next = TcpListener::bind("127.0.0.1:0").unwrap();

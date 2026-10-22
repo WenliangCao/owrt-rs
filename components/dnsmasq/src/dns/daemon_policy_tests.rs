@@ -3,6 +3,32 @@ use super::*;
 use crate::config::lex_line;
 use std::net::UdpSocket;
 
+#[test]
+fn invalid_programmatic_address_prefixes_fail_before_starting_dns() {
+    for (address, prefix) in [("192.0.2.1", 33), ("2001:db8::1", 129)] {
+        let invalid = crate::config::dns::PrefixConfig {
+            address: address.parse().unwrap(),
+            prefix,
+        };
+        let mut config = DnsConfig::default();
+        config.bogus_addresses.push(invalid);
+        assert!(matches!(
+            address_policy(&config),
+            Err(DaemonError::Config(ConfigError(
+                "bad bogus-nxdomain prefix"
+            )))
+        ));
+        config.bogus_addresses.clear();
+        config.ignore_addresses.push(invalid);
+        assert!(matches!(
+            address_policy(&config),
+            Err(DaemonError::Config(ConfigError(
+                "bad ignore-address prefix"
+            )))
+        ));
+    }
+}
+
 fn configuration(upstream: &UdpSocket) -> DnsConfig {
     let mut config = DnsConfig::default();
     for line in [
