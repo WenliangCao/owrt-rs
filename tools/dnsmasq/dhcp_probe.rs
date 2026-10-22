@@ -9,6 +9,7 @@ fn hex(value: &str) -> Vec<u8> {
     if value == "-" {
         return Vec::new();
     }
+    assert!(value.len().is_multiple_of(2), "hex fixture has an unmatched nibble");
     value
         .as_bytes()
         .chunks_exact(2)

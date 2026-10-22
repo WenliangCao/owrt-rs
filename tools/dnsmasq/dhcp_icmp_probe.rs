@@ -65,6 +65,7 @@ fn main() {
                 let data: Vec<u8> = if words[4] == "-" {
                     Vec::new()
                 } else {
+                    assert!(words[4].len().is_multiple_of(2), "hex fixture has an unmatched nibble");
                     words[4]
                         .as_bytes()
                         .chunks_exact(2)

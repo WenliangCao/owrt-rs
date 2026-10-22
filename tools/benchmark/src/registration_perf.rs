@@ -32,6 +32,21 @@ unsafe extern "C" {
     fn poll(fds: *mut PollFd, count: usize, timeout: c_int) -> c_int;
 }
 
+/// Duplicate an inherited descriptor without claiming ownership of its number.
+fn inherited_file(fd: c_int) -> io::Result<File> {
+    // Linux fcntl F_DUPFD_CLOEXEC; the kernel validates fd and allocates a new
+    // descriptor atomically. Environment variables cannot prove ownership of
+    // an existing descriptor, even when F_GETFD says it is open.
+    const F_DUPFD_CLOEXEC: c_int = 1030;
+    // SAFETY: this fcntl command takes an integer lower bound, not a pointer.
+    let duplicated = unsafe { fcntl(fd, F_DUPFD_CLOEXEC, 3 as c_int) };
+    if duplicated < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: the successful fcntl returned a fresh descriptor owned only here.
+    Ok(unsafe { File::from_raw_fd(duplicated) })
+}
+
 fn clock_read(clock: c_int, resolution: bool) -> Result<u64> {
     let mut value = Timespec::default();
     // SAFETY: this diagnostic is Linux 64-bit; Timespec matches time_t/long.
@@ -111,23 +126,18 @@ impl Session {
         )?;
         let ctl: c_int = std::env::var("OWRT_PERF_CTL_FD")?.parse()?;
         let ack: c_int = std::env::var("OWRT_PERF_ACK_FD")?.parse()?;
-        // F_GETFD is 1 on the Linux ABI selected above. These descriptors are
-        // inherited specifically for this diagnostic and owned only here.
         require(ctl > 2 && ack > 2 && ctl != ack, "invalid perf descriptors")?;
-        require(
-            unsafe { fcntl(ctl, 1) } >= 0 && unsafe { fcntl(ack, 1) } >= 0,
-            "perf descriptor not open",
-        )?;
+        // Keep the inherited handles with their owner; own only our copies.
+        let ctl = inherited_file(ctl)?;
+        let ack = inherited_file(ack)?;
         super::affinity::pin(0)?;
         affinity(0, 0)?;
         affinity(subject, 1)?;
         let subject_clock = process_clock(subject)?;
         let client_clock = process_clock(std::process::id())?;
         Ok(Self {
-            // SAFETY: both distinct open descriptors were transferred by the
-            // runner; no other File in this process owns or accesses them.
-            ctl: unsafe { File::from_raw_fd(ctl) },
-            ack: unsafe { File::from_raw_fd(ack) },
+            ctl,
+            ack,
             subject,
             subject_clock,
             client_clock,
@@ -252,5 +262,30 @@ impl Session {
             ("final_empty", Json::Bool(true)),
             ("wire_reply_bytes_checked", Json::Bool(false)),
         ]));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::os::unix::net::UnixStream;
+
+    #[test]
+    fn inherited_handles_have_independent_descriptor_ownership() {
+        let (mut original, mut peer) = UnixStream::pair().unwrap();
+        let duplicate = inherited_file(original.as_raw_fd()).unwrap();
+        assert_ne!(duplicate.as_raw_fd(), original.as_raw_fd());
+        drop(duplicate);
+        original.write_all(b"a").unwrap();
+        let mut byte = [0];
+        peer.read_exact(&mut byte).unwrap();
+        assert_eq!(byte, *b"a");
+
+        let mut duplicate = inherited_file(original.as_raw_fd()).unwrap();
+        drop(original);
+        duplicate.write_all(b"b").unwrap();
+        peer.read_exact(&mut byte).unwrap();
+        assert_eq!(byte, *b"b");
+        assert!(inherited_file(-1).is_err());
     }
 }

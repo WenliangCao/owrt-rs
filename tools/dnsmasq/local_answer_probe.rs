@@ -9,15 +9,15 @@ use std::io::{self, BufRead};
 use std::path::Path;
 
 fn decode_hex(value: &str) -> Option<Vec<u8>> {
+    if !value.len().is_multiple_of(2) {
+        return None;
+    }
     let mut bytes = Vec::with_capacity(value.len() / 2);
     let mut chars = value.bytes();
     while let (Some(high), Some(low)) = (chars.next(), chars.next()) {
         let high = (high as char).to_digit(16)? as u8;
         let low = (low as char).to_digit(16)? as u8;
         bytes.push((high << 4) | low);
-    }
-    if chars.next().is_some() {
-        return None;
     }
     Some(bytes)
 }
@@ -102,4 +102,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::decode_hex;
+
+    #[test]
+    fn hex_input_is_consumed_completely_or_rejected() {
+        assert_eq!(decode_hex("00aF10"), Some(vec![0, 0xaf, 0x10]));
+        assert_eq!(decode_hex(""), Some(Vec::new()));
+        for malformed in ["0", "00f", "00g", "0g", "é", "00é"] {
+            assert_eq!(decode_hex(malformed), None, "{malformed:?}");
+        }
+    }
 }

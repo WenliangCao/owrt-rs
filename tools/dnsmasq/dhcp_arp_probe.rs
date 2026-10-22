@@ -13,6 +13,7 @@ fn hex(text: &str) -> Vec<u8> {
     if text == "-" {
         return Vec::new();
     }
+    assert!(text.len().is_multiple_of(2), "hex fixture has an unmatched nibble");
     text.as_bytes()
         .as_chunks::<2>()
         .0
@@ -99,6 +100,7 @@ fn main() {
                         },
                         removed: Vec::new(),
                         lost_names: Vec::new(),
+                        newly_allocated: false,
                     })
                 };
                 let result = runtime::process(

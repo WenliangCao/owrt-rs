@@ -3,6 +3,7 @@ use std::io::{self, BufRead};
 use std::net::{IpAddr, Ipv4Addr};
 
 fn unhex(value: &str) -> Vec<u8> {
+    assert!(value.len().is_multiple_of(2), "hex fixture has an unmatched nibble");
     value
         .as_bytes()
         .chunks_exact(2)

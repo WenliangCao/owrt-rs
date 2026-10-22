@@ -69,6 +69,7 @@ fn perf_capability() -> Json {
     let error = if fd < 0 {
         io::Error::last_os_error().raw_os_error().unwrap_or(-1)
     } else {
+        // SAFETY: successful perf_event_open returns a fresh owned descriptor.
         unsafe {
             drop(std::fs::File::from_raw_fd(fd as c_int));
         }
@@ -230,6 +231,7 @@ pub fn run(a: &[String]) -> Result<()> {
         }
     }
     for value in &mut probes {
+        // SAFETY: each probe is initialized, aligned and uniquely borrowed.
         unsafe {
             std::ptr::write_volatile(value, [0; 4]);
         }
@@ -286,7 +288,7 @@ pub fn run(a: &[String]) -> Result<()> {
                 s.cycle_end = s.cpu[2].wall_before;
             }
         }
-        _ => unreachable!(),
+        _ => unreachable!("phase mode was validated before measuring"),
     }
     let loop_after = stamp(caller_clock, daemon_clock)?;
     require(

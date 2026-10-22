@@ -127,7 +127,7 @@ fn notify(connection: &mut Connection, object: u32, payload: &[u8]) -> Result<()
 }
 
 fn scheduled(t0: u64, side: &str, round: u64) -> u64 {
-    let second = (side == "A") != (round % 2 == 0);
+    let second = (side == "A") != round.is_multiple_of(2);
     t0 + ROUND_NS * round + if second { OFFSET_NS } else { 0 }
 }
 

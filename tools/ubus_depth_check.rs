@@ -4,6 +4,9 @@ use std::io::{self, Write};
 
 fn run() -> Result<(), String> {
     let args: Vec<_> = std::env::args().collect();
+    if args.len() != 3 {
+        return Err("usage: ubus-depth-check tree|direct DEPTH".into());
+    }
     let depth: usize = args[2].parse().map_err(|_| "invalid depth")?;
     let mut blob = BlobBuf::new();
     let mut cookies = Vec::new();

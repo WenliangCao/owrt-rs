@@ -49,6 +49,7 @@ fn main() {
         let line = line.unwrap();
         let (now, encoded) = line.split_once(' ').unwrap();
         let now = now.parse().unwrap();
+        assert!(encoded.len().is_multiple_of(2), "hex fixture has an unmatched nibble");
         let mut bytes: Vec<_> = encoded
             .as_bytes()
             .chunks_exact(2)

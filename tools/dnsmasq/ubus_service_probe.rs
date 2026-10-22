@@ -22,6 +22,7 @@ fn main() {
     let args: Vec<_> = std::env::args().collect();
     if args[1] == "dns" {
         let mut buffer = owrt_ubus::BlobBuf::new();
+        assert!(args[2].len().is_multiple_of(2), "hex fixture has an unmatched nibble");
         let name: Vec<u8> = args[2]
             .as_bytes()
             .chunks_exact(2)
@@ -41,6 +42,7 @@ fn main() {
     }
     assert!(args[1] == "serve" || args[1] == "serve-hex");
     let object_name = if args[1] == "serve-hex" {
+        assert!(args[3].len().is_multiple_of(2), "hex fixture has an unmatched nibble");
         args[3].as_bytes().chunks_exact(2)
             .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
             .collect()
@@ -88,6 +90,7 @@ fn main() {
                 println!("dns-subscribers={}", connected.dns_has_subscribers());
             } else if command.starts_with("doctor ") || command.starts_with("doctor-cancel ") || command.starts_with("doctor-stage ") {
                 let parts: Vec<_> = command.split_whitespace().collect();
+                assert!(parts[1].len().is_multiple_of(2), "hex fixture has an unmatched nibble");
                 let name: Vec<_> = parts[1]
                     .as_bytes()
                     .chunks_exact(2)

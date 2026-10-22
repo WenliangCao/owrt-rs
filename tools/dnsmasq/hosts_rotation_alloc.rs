@@ -10,11 +10,15 @@ struct Meter;
 static LIVE: AtomicIsize = AtomicIsize::new(0);
 static ALLOCATED: AtomicUsize = AtomicUsize::new(0);
 static FAIL_LARGE: AtomicBool = AtomicBool::new(false);
+// SAFETY: successful operations forward System's pointer/layout contract;
+// injected failures return null without modifying or freeing the old block.
+// Accounting uses only atomics and cannot allocate or unwind.
 unsafe impl GlobalAlloc for Meter {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         if FAIL_LARGE.load(Relaxed) && layout.size() >= 512 {
             return std::ptr::null_mut();
         }
+        // SAFETY: forward the caller's valid allocation layout unchanged.
         let result = unsafe { System.alloc(layout) };
         if !result.is_null() {
             LIVE.fetch_add(layout.size() as isize, Relaxed);
@@ -24,12 +28,14 @@ unsafe impl GlobalAlloc for Meter {
     }
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
         LIVE.fetch_sub(layout.size() as isize, Relaxed);
+        // SAFETY: ptr is the live System allocation matching the caller's layout.
         unsafe { System.dealloc(ptr, layout) };
     }
     unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, size: usize) -> *mut u8 {
         if FAIL_LARGE.load(Relaxed) && size >= 512 {
             return std::ptr::null_mut();
         }
+        // SAFETY: forward the live allocation, matching layout and valid size.
         let result = unsafe { System.realloc(ptr, layout, size) };
         if !result.is_null() {
             LIVE.fetch_add(size as isize - layout.size() as isize, Relaxed);
