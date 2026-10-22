@@ -52,7 +52,7 @@ pub struct Bridge {
 
 impl Bridge {
     fn connect(&self) -> io::Result<Lease<'_>> {
-        let mut idle = self.idle.lock().unwrap_or_else(|e| e.into_inner());
+        let mut idle = self.idle.lock().expect("shared daemon state poisoned by a panic");
         while let Some(conn) = idle.pop() {
             if connected(&conn) { return Ok(Lease { conn: Some(conn), bridge: self }); }
         }
@@ -113,7 +113,7 @@ impl Drop for Lease<'_> {
         // and nothing on the bridge ever reads it; keeping such a connection
         // would retain one stale reply per timeout (R88 httpd H-06).
         if let Some(conn) = self.conn.take().filter(|c| !c.has_pending() && connected(c)) {
-            let mut idle = self.bridge.idle.lock().unwrap_or_else(|e| e.into_inner());
+            let mut idle = self.bridge.idle.lock().expect("shared daemon state poisoned by a panic");
             if idle.len() < 8 { idle.push(conn); }
         }
     }
@@ -274,7 +274,9 @@ fn do_call(
     }
     b.msg_string("ubus_rpc_session", sid);
     match conn.invoke_status(objid, function, b.payload(), bridge.timeout_ms) {
-        Err(e) if e.to_string().contains("timed out") => rpc_error(id, RpcError::Timeout),
+        Err(e) if e.kind() == io::ErrorKind::TimedOut
+            || owrt_ubus::conn::error_status(&e) == Some(owrt_ubus::status::TIMEOUT)
+            => rpc_error(id, RpcError::Timeout),
         Err(_) => rpc_error(id, RpcError::Internal),
         Ok(reply) => rpc_call_result(id, legacy, &reply),
     }
@@ -705,6 +707,13 @@ mod tests {
                 } else {
                     assert_eq!(header.ty, ty::INVOKE);
                     invokes += 1;
+                    if blob::iter(&body).find(|field| field.id == attr::METHOD)
+                        .and_then(|field| field.as_str()) == Some("timeout")
+                    {
+                        // Keep the transport open without answering; the
+                        // real connection deadline must produce the RPC code.
+                        continue;
+                    }
                 }
                 let mut status = BlobBuf::new();
                 status.put_u32(attr::STATUS, 0);
@@ -712,7 +721,7 @@ mod tests {
             }
             invokes
         });
-        let bridge = Bridge {
+        let mut bridge = Bridge {
             socket: Some(path.to_str().unwrap().into()), noauth: true, cors: false,
             timeout_ms: 1000, events_retry: 0, record_calls: true,
             idle: Mutex::new(Vec::new()), calls: Mutex::new(Vec::new()),
@@ -727,8 +736,11 @@ mod tests {
         let response = do_call(&bridge, Json::Int(10), DEFAULT_SID, "test", "method", &Json::Object(vec![]), false).into_bytes();
         assert_eq!(response, br#"{"jsonrpc":"2.0","id":10,"result":null}"#);
         assert_eq!(bridge.call_inventory(), "test method 1\n");
+        bridge.timeout_ms = 100;
+        let response = do_call(&bridge, Json::Int(11), DEFAULT_SID, "test", "timeout", &Json::Object(vec![]), false).into_bytes();
+        assert_eq!(response, br#"{"jsonrpc":"2.0","id":11,"error":{"code":-32003,"message":"ubus request timed out"}}"#);
         drop(bridge);
-        assert_eq!(worker.join().unwrap(), 1, "only the valid object may invoke ubus");
+        assert_eq!(worker.join().unwrap(), 2, "only the valid objects may invoke ubus");
     }
 
     #[test]

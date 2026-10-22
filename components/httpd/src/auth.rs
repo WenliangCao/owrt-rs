@@ -2,11 +2,16 @@
 
 use std::ffi::CString;
 
-#[derive(Debug)]
 pub struct Realm {
     pub path: String,
     user: String,
     password: String,
+}
+
+impl std::fmt::Debug for Realm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Realm").field("path", &self.path).finish_non_exhaustive()
+    }
 }
 
 impl Realm {
@@ -102,6 +107,18 @@ pub fn check(realms: &[Realm], path: &str, header: Option<&str>) -> Result<Optio
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn debug_omits_credentials() {
+        for password in ["plaintext-secret", "$1$salt$hash-secret"] {
+            let realm = Realm::new("/private".into(), "username-secret".into(), password.into()).unwrap();
+            for debug in [format!("{realm:?}"), format!("{realm:#?}")] {
+                assert!(debug.contains("/private"));
+                assert!(!debug.contains("username-secret"));
+                assert!(!debug.contains(password));
+            }
+        }
+    }
 
     #[test]
     fn configured_paths_require_credentials_and_do_not_accept_hashes_as_passwords() {

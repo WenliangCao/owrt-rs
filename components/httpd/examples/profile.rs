@@ -16,7 +16,7 @@ use std::cell::RefCell;
 use std::hint::black_box;
 use std::io::{self, BufReader, Cursor, Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::os::fd::{AsRawFd, FromRawFd, RawFd};
+use std::os::fd::{AsRawFd, RawFd};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -71,9 +71,7 @@ fn set_read_timeout(fd: RawFd, timeout: Duration) -> io::Result<()> {
     if COUNT.load(Relaxed) {
         TIMEOUTS.fetch_add(1, Relaxed);
     }
-    // SAFETY: main owns the live socket; this temporary borrow never closes it.
-    let socket = std::mem::ManuallyDrop::new(unsafe { TcpStream::from_raw_fd(fd) });
-    socket.set_read_timeout(Some(timeout))
+    owrt_platform::httpd::set_read_timeout(fd, timeout)
 }
 
 struct Discard;

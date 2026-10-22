@@ -241,12 +241,12 @@ struct ScriptPermit<'a>(&'a ScriptSlots);
 
 impl ScriptSlots {
     fn acquire(&self, fd: RawFd) -> io::Result<ScriptPermit<'_>> {
-        let mut count = self.count.lock().unwrap_or_else(|e| e.into_inner());
+        let mut count = self.count.lock().expect("shared daemon state poisoned by a panic");
         while *count >= self.limit {
             // A queued request owns a connection thread, but must release it
             // if the client leaves before a script slot becomes available.
             let (next, _) = self.ready.wait_timeout(count, Duration::from_millis(250))
-                .unwrap_or_else(|e| e.into_inner());
+                .expect("shared daemon state poisoned by a panic");
             count = next;
             const POLLRDHUP: i16 = 0x2000;
             let mut fds = [owrt_ubus::sys::PollFd { fd, events: POLLRDHUP, revents: 0 }];
@@ -262,7 +262,7 @@ impl ScriptSlots {
 
 impl Drop for ScriptPermit<'_> {
     fn drop(&mut self) {
-        *self.0.count.lock().unwrap_or_else(|e| e.into_inner()) -= 1;
+        *self.0.count.lock().expect("shared daemon state poisoned by a panic") -= 1;
         self.0.ready.notify_one();
     }
 }
@@ -428,7 +428,7 @@ impl Parking {
     }
 
     fn park(&self, parked: Parked) {
-        self.inbox.lock().unwrap_or_else(|e| e.into_inner()).push(parked);
+        self.inbox.lock().expect("shared daemon state poisoned by a panic").push(parked);
         self.wake();
     }
 }
@@ -481,7 +481,7 @@ impl Server {
         }
         // Never take an inbox or accept lock here: a listener can release a
         // slot while draining its inbox, and these writes cannot block.
-        self.listeners.lock().unwrap_or_else(|e| e.into_inner()).retain(|listener| {
+        self.listeners.lock().expect("shared daemon state poisoned by a panic").retain(|listener| {
             if let Some(listener) = listener.upgrade() {
                 listener.wake();
                 true
@@ -547,7 +547,7 @@ impl Server {
             // Idle connections hold no response window. Share a small bounded
             // set between active requests, retaining initialized storage for
             // file reads without allocating it per request or per idle client.
-            let buffer = self.output_buffers.lock().unwrap_or_else(|e| e.into_inner())
+            let buffer = self.output_buffers.lock().expect("shared daemon state poisoned by a panic")
                 .pop().unwrap_or_else(|| Vec::with_capacity(512));
             let mut out = http::Out::with_buffer(&client, conn.fd, OUT_WINDOW, network_timeout, buffer);
             if !conn.tls {
@@ -571,7 +571,7 @@ impl Server {
             }
             {
                 let buffer = out.into_buffer();
-                let mut buffers = self.output_buffers.lock().unwrap_or_else(|e| e.into_inner());
+                let mut buffers = self.output_buffers.lock().expect("shared daemon state poisoned by a panic");
                 if buffers.len() < 8 {
                     buffers.push(buffer);
                 }
@@ -808,7 +808,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
     let Ok(mut poller) = Poller::new() else { return };
     if poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false).is_err() { return; }
     let parking = Arc::new(Parking { inbox: Mutex::new(Vec::new()), wake: wake_w });
-    server.listeners.lock().unwrap_or_else(|e| e.into_inner()).push(Arc::downgrade(&parking));
+    server.listeners.lock().expect("shared daemon state poisoned by a panic").push(Arc::downgrade(&parking));
     // Parked connections by token; tokens are never reused within a listener.
     let mut parked: std::collections::HashMap<u64, Parked> = std::collections::HashMap::new();
     let mut next_token: u64 = 0;
@@ -819,7 +819,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
     let keepalive = Duration::from_secs(u64::from(server.config.http_keepalive).max(1));
     let write_budget = Duration::from_secs(server.config.network_timeout.max(1));
     loop {
-        for p in parking.inbox.lock().unwrap_or_else(|e| e.into_inner()).drain(..) {
+        for p in parking.inbox.lock().expect("shared daemon state poisoned by a panic").drain(..) {
             let token = next_token;
             next_token += 1;
             if poller.add(p.conn.fd, token, false).is_ok() {
@@ -941,7 +941,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
         }
         // All listeners share the cap. The lock covers nonblocking accept and
         // increment together, so HTTP and HTTPS cannot both claim the last slot.
-        let guard = server.accept_lock.lock().unwrap_or_else(|e| e.into_inner());
+        let guard = server.accept_lock.lock().expect("shared daemon state poisoned by a panic");
         if server.config.max_connections > 0
             && server.connections.load(Ordering::Relaxed) >= server.config.max_connections {
             continue;
@@ -1215,4 +1215,31 @@ mod connection_tests {
         server.release_connection();
         assert_eq!(server.connections.load(Ordering::Relaxed), 0);
     }
+
+    #[test]
+    fn serving_then_parking_reuses_the_worker_parser() {
+        use std::os::fd::AsRawFd;
+        let server = server(4);
+        let (parking, _wake_reader) = listener(&server);
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let mut peer = std::net::TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (transport, remote) = listener.accept().unwrap();
+        let conn = crate::Conn { local: transport.local_addr().unwrap(), remote, tls: false, fd: transport.as_raw_fd() };
+        let mut heads = http::HeadBuffer::default();
+        let request = b"GET /head-cache-missing HTTP/1.1\r\nHost: new\r\n\r\n";
+        peer.write_all(request).unwrap();
+        assert!(matches!(server.run_connection(crate::Transport::Plain(crate::http::Sock::new(transport)), conn, &parking, None, &mut heads), crate::Outcome::Parked));
+        heads.trim();
+        let parked = parking.inbox.lock().unwrap().pop().unwrap();
+        peer.write_all(request).unwrap();
+        assert!(matches!(server.run_connection(parked.transport, parked.conn, &parking, Some(parked.deadline), &mut heads), crate::Outcome::Parked));
+        heads.trim();
+        let parked = parking.inbox.lock().unwrap().pop().unwrap();
+        drop(parked);
+        let mut response = Vec::new();
+        peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        peer.read_to_end(&mut response).unwrap();
+        assert_eq!(response.windows(b"HTTP/1.1 404".len()).filter(|chunk| *chunk == b"HTTP/1.1 404").count(), 2);
+    }
+
 }

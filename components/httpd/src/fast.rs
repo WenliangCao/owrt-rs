@@ -1,20 +1,14 @@
 //! Inline service of parked plain-HTTP connections on their listener thread.
 //!
 //! A connection that went quiet for LINGER lives in its listener's readiness
-//! set. Before this module, every byte that arrived afterwards cost a worker
-//! handoff: epoll DEL, a thread wake (or spawn), a fresh 8 KiB reader, a
-//! 50 ms receive timeout, a park pipe write and an epoll ADD -- per request.
-//! C uhttpd serves the same request on the one loop that already owns the
-//! socket. This module does the same for the requests that dominate paced
-//! traffic: a complete small GET/HEAD head for a regular file, answered from
+//! set. A complete small GET/HEAD head for a regular file is answered from
 //! bounded per-listener scratch, with the socket never leaving the poll set.
 //!
-//! Ownership contract (see private/r93/http-worker-experiment/STATIC_FASTPATH.md):
+//! Ownership contract:
 //! nothing is consumed from the socket and nothing is sent until a complete
 //! response has been generated into memory. Every ineligible or uncertain
 //! request falls back to the existing thread path with the socket bytes
-//! untouched, so the fallback serves exactly what it would have served
-//! before this module existed. After the head is consumed, the only
+//! untouched. After the head is consumed, the only
 //! remaining outcomes are delivering the bytes or closing the connection;
 //! there is no re-parse and no second handler run.
 

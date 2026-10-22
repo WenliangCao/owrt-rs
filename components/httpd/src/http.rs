@@ -73,7 +73,6 @@ impl Version {
     }
 }
 
-#[derive(Debug)]
 pub struct Request {
     pub method: Method,
     pub version: Version,
@@ -88,6 +87,23 @@ pub struct Request {
     pub transfer_chunked: bool,
     pub connection_close: bool,
     pub expect_continue: bool,
+}
+
+impl std::fmt::Debug for Request {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Targets and arbitrary headers can contain credentials, cookies and
+        // query tokens. Keep diagnostics useful without logging their values.
+        f.debug_struct("Request")
+            .field("method", &self.method)
+            .field("version", &self.version)
+            .field("header_count", &self.headers.len())
+            .field("header_bytes", &self.header_bytes)
+            .field("content_length", &self.content_length)
+            .field("transfer_chunked", &self.transfer_chunked)
+            .field("connection_close", &self.connection_close)
+            .field("expect_continue", &self.expect_continue)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Request {
@@ -461,23 +477,25 @@ fn read_head_line<R: Read>(
     Ok(HeadLine::Line)
 }
 
-/// Rejectable header bytes -- control characters other than HTAB, and DEL --
-/// eight bytes per step. The R92 scan ran per byte and showed up as 12-18% of
-/// request-head parse time in the R93 local stage profile.
+/// Rejectable header bytes: control characters other than HTAB, and DEL.
+/// Byte lanes remain independent so HTAB cannot hide a neighbouring control.
 #[inline]
 fn has_forbidden_ctl(bytes: &[u8]) -> bool {
     const ONES: u64 = 0x0101_0101_0101_0101;
     const HIGH: u64 = 0x8080_8080_8080_8080;
+    const LOW: u64 = !HIGH;
     #[inline]
     fn zero_byte(x: u64) -> u64 {
-        x.wrapping_sub(ONES) & !x & HIGH
+        // Each lane adds at most 0x7f + 0x7f, with no carry into its neighbour.
+        // Unlike subtracting ONES, this identifies *only* the zero lanes.
+        !((x & LOW).wrapping_add(LOW) | x) & HIGH
     }
     let (chunks, remainder) = bytes.as_chunks::<8>();
     for chunk in chunks {
         let x = u64::from_le_bytes(*chunk);
-        // High bit set per byte with value < 0x20 (only valid for ASCII
-        // thresholds; 0x20 qualifies).
-        let ctl = x.wrapping_sub(ONES * 0x20) & !x & HIGH;
+        // Adding 0x60 sets the high bit exactly for low-seven-bit values
+        // >= 0x20; including x excludes non-ASCII bytes from the complement.
+        let ctl = !((x & LOW).wrapping_add(ONES * 0x60) | x) & HIGH;
         let tab = zero_byte(x ^ (ONES * u64::from(b'\t')));
         let del = zero_byte(x ^ (ONES * 0x7f));
         if (ctl & !tab) | del != 0 {
@@ -509,6 +527,55 @@ mod ctl_scan_tests {
         assert!(!has_forbidden_ctl(b"Host:\tlocalhost"));
         assert!(has_forbidden_ctl(b"Host: a\rb"));
         assert!(has_forbidden_ctl(&[0u8]));
+    }
+
+    #[test]
+    fn swar_scan_keeps_all_adjacent_byte_lanes_independent() {
+        for first in 0u8..=255 {
+            for second in 0u8..=255 {
+                let forbidden = |byte: u8| (byte < 0x20 && byte != b'\t') || byte == 0x7f;
+                for position in 0..16 {
+                    let mut bytes = [b'a'; 17];
+                    bytes[position] = first;
+                    bytes[position + 1] = second;
+                    assert_eq!(has_forbidden_ctl(&bytes), forbidden(first) || forbidden(second),
+                        "adjacent bytes {first:#x}, {second:#x} at {position}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn header_parser_accepts_tab_space_and_rejects_tab_backspace() {
+        use super::{read_request, ParseOutcome};
+        use std::io::BufReader;
+
+        for whitespace in [b"\t ".as_slice(), b"\t\x08"] {
+            let mut wire = b"GET / HTTP/1.1\r\nHost:".to_vec();
+            wire.extend_from_slice(whitespace);
+            wire.extend_from_slice(b"x\r\n\r\n");
+            let outcome = read_request(&mut BufReader::new(wire.as_slice()), true, None).unwrap();
+            if whitespace == b"\t " {
+                assert!(matches!(outcome, ParseOutcome::Request(ref request) if request.header("host") == Some("x")));
+            } else {
+                assert!(matches!(outcome, ParseOutcome::Bad { code: 400, .. }));
+            }
+        }
+    }
+
+    #[test]
+    fn request_debug_omits_targets_and_header_values() {
+        let wire = b"GET /?token=query-secret HTTP/1.1\r\nAuthorization: Basic auth-secret\r\nCookie: cookie-secret\r\nX-Token: custom-secret\r\n\r\n";
+        let super::ParseOutcome::Request(request) = super::read_request(
+            &mut std::io::BufReader::new(wire.as_slice()), true, None,
+        ).unwrap() else { panic!("valid request rejected") };
+        for debug in [format!("{request:?}"), format!("{request:#?}")] {
+            assert!(debug.contains("Request"));
+            assert!(debug.contains("Get"));
+            for secret in ["query-secret", "auth-secret", "cookie-secret", "custom-secret"] {
+                assert!(!debug.contains(secret));
+            }
+        }
     }
 }
 
@@ -1484,14 +1551,14 @@ impl std::fmt::Display for HttpDate {
     }
 }
 
-fn days_from_civil(y: i64, m: u32, d: u32) -> i64 {
-    let y = if m <= 2 { y - 1 } else { y };
+fn days_from_civil(y: i64, m: u32, d: u32) -> Option<i64> {
+    let y = if m <= 2 { y.checked_sub(1)? } else { y };
     let era = y.div_euclid(400);
     let yoe = y.rem_euclid(400);
     let mp = if m > 2 { m - 3 } else { m + 9 } as i64;
     let doy = (153 * mp + 2) / 5 + d as i64 - 1;
     let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    era * 146_097 + doe - 719_468
+    era.checked_mul(146_097)?.checked_add(doe)?.checked_sub(719_468)
 }
 
 /// Parse RFC 1123 / RFC 850 / asctime dates like uhttpd's strptime fallbacks.
@@ -1538,7 +1605,10 @@ pub fn parse_http_date(s: &str) -> Option<i64> {
     let hh: i64 = hh.parse().ok()?;
     let mm: i64 = mm.parse().ok()?;
     let ss: i64 = ss.parse().ok()?;
-    Some(days_from_civil(y, m, d) * 86_400 + hh * 3600 + mm * 60 + ss)
+    days_from_civil(y, m, d)?.checked_mul(86_400)?
+        .checked_add(hh.checked_mul(3600)?)?
+        .checked_add(mm.checked_mul(60)?)?
+        .checked_add(ss)
 }
 
 pub fn now_unix() -> i64 {
@@ -1587,6 +1657,19 @@ pub fn html_escape(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn overflowing_http_dates_are_rejected_without_panicking() {
+        for date in [
+            "Sun, 06 Nov 9223372036854775807 08:49:37 GMT",
+            "Sun, 06 Nov 1994 9223372036854775807:49:37 GMT",
+            "Sun, 06 Nov 1994 08:9223372036854775807:37 GMT",
+            "Sun, 06 Nov 1994 08:49:9223372036854775807 GMT",
+        ] {
+            assert_eq!(parse_http_date(date), None, "overflowing date: {date}");
+        }
+        assert_eq!(parse_http_date("Sun, 06 Nov 1994 08:49:37 GMT"), Some(784111777));
+    }
 
     fn head_with_size(size: usize) -> Vec<u8> {
         let mut head = b"GET / HTTP/1.1\r\n".to_vec();

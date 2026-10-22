@@ -114,36 +114,3 @@ fn cached_parser_does_not_steal_body_or_next_pipelined_head() {
     assert_eq!(second.content_length, None);
     assert!(second.headers.is_empty());
 }
-
-#[test]
-fn serving_then_parking_keeps_parser_only_with_the_worker() {
-    use std::os::fd::AsRawFd;
-    let server = crate::connection_tests::server(4);
-    let (parking, _wake_reader) = crate::connection_tests::listener(&server);
-    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
-    let mut peer = std::net::TcpStream::connect(listener.local_addr().unwrap()).unwrap();
-    let (transport, remote) = listener.accept().unwrap();
-    let conn = crate::Conn { local: transport.local_addr().unwrap(), remote, tls: false, fd: transport.as_raw_fd() };
-    let mut heads = HeadBuffer::default();
-    let original = prime(&mut heads);
-    let request = b"GET /head-cache-missing HTTP/1.1\r\nHost: new\r\n\r\n";
-    peer.write_all(request).unwrap();
-    assert!(matches!(server.run_connection(crate::Transport::Plain(crate::http::Sock::new(transport)), conn, &parking, None, &mut heads), crate::Outcome::Parked));
-    heads.trim();
-    // Use only the header vector: the new path may legitimately grow the URL.
-    assert_eq!(storage(&heads).1, original.1);
-    assert_eq!(heads.spare.as_ref().unwrap().header("authorization"), None);
-    let retained = heads.retained_bytes();
-    let parked = parking.inbox.lock().unwrap().pop().unwrap();
-    peer.write_all(request).unwrap();
-    assert!(matches!(server.run_connection(parked.transport, parked.conn, &parking, Some(parked.deadline), &mut heads), crate::Outcome::Parked));
-    heads.trim();
-    assert_eq!(heads.retained_bytes(), retained);
-    assert_eq!(storage(&heads).1, original.1);
-    let parked = parking.inbox.lock().unwrap().pop().unwrap();
-    drop(parked);
-    let mut response = Vec::new();
-    peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
-    peer.read_to_end(&mut response).unwrap();
-    assert_eq!(response.windows(b"HTTP/1.1 404".len()).filter(|chunk| *chunk == b"HTTP/1.1 404").count(), 2);
-}

@@ -164,6 +164,8 @@ def inside(args):
         for index, field in enumerate((b": x", b" X: x", b"X : x", b"X\t: x", b"X@Y: x", b"X(Y): x", b"X: a\rb", b"X: a\r")):
             observe(f"bad-field-{index}", request(fields=field + b"\r\n"), 400)
         observe("ows", request(fields=b"X: \tvalue\t \r\n"), 200)
+        observe("adjacent-tab-space", request(fields=b"Host:\t x\r\n"), 200)
+        observe("adjacent-tab-backspace", request(fields=b"Host:\t\x08x\r\n"), 400)
         for index, (path, auth, status) in enumerate((("/ubus", "", 401), ("/ubus/list", "", 401),
                 ("/ubus/subscribe/session", "", 401), ("/ubus/call/session", "Basic dXNlcjp3cm9uZw==", 401),
                 ("/ubus?x=1", "Bearer wrong", 401), ("/ubus", "Basic dXNlcjpzZWNyZXQ=", 200))):
