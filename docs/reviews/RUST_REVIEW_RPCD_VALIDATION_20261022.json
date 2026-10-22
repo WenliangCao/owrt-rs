@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "scope": "Final RPCD exact-image namespace correctness verification; no performance measurement and no physical-router changes",
+  "candidate_elf_sha256": "9f5adf518040402e0472db2dceb076e73e880cb268be42b0f428a003de85c023",
+  "reference_elf_sha256": "860925534eab87157eeb447c8c962bfcef5f552d5379e4a3c83ab3c0376a11a5",
+  "reference": "/home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs/sbin/rpcd",
+  "source_inputs": {
+    "files": 92,
+    "components": [
+      "rpcd",
+      "platform",
+      "ubus",
+      "uci"
+    ],
+    "selected_paths": ".rs, Cargo.toml and Cargo.lock recursively, excluding target/",
+    "local_remote_equal_before_build": true,
+    "manifest_sha256": "c766e9da80a09f2ffbefc94c4af9e839cb04c6fcb6529e7a9813adc3c59ca78f",
+    "remote_manifest": "/home/ubuntu/owrt-rust-review-20261022/final-rpcd-inputs.json",
+    "unchanged_across_runs": true
+  },
+  "artifact_unchanged_across_runs": true,
+  "build": {
+    "command": "mbx build --locked --release --target aarch64-unknown-linux-musl --manifest-path components/rpcd/Cargo.toml --bin rpcd-rs",
+    "host": "ssh oracle, ordinary user, musl-env.sh",
+    "log": "/home/ubuntu/owrt-rust-review-20261022/final-rpcd-musl-build.log",
+    "result": "passed",
+    "cache_summary": "8 hits, 1 miss, 1 not looked up, 1 bypassed"
+  },
+  "validation": [
+    {
+      "tool": "tools/test_rpcd_25126.py",
+      "checks": 68,
+      "original_passed": 34,
+      "candidate_passed": 34,
+      "record": {
+        "returncode": 0,
+        "elapsed_seconds": 0.734001636505127,
+        "output": "/home/ubuntu/owrt-rust-review-20261022/candidate/private/final-rpcd-review-20261022-05/test_rpcd_25126",
+        "log_sha256": "f0cac450573357d9776e5a9e204dc721b081746c220b413b07eaa036c60ee735"
+      }
+    },
+    {
+      "tool": "tools/test_rpcd_apply_owner.py",
+      "checks": 2,
+      "record": {
+        "returncode": 0,
+        "elapsed_seconds": 6.410698413848877,
+        "output": "/home/ubuntu/owrt-rust-review-20261022/candidate/private/final-rpcd-review-20261022-04/test_rpcd_apply_owner",
+        "log_sha256": "796eebd1861c32ae27790430a3172204808330f16d2d2303fe99b02c14978b72"
+      }
+    },
+    {
+      "tool": "tools/test_rpcd_snapshot_failure.py",
+      "checks": 3,
+      "record": {
+        "returncode": 0,
+        "elapsed_seconds": 10.449005603790283,
+        "output": "/home/ubuntu/owrt-rust-review-20261022/candidate/private/final-rpcd-review-20261022-04/test_rpcd_snapshot_failure",
+        "log_sha256": "693b8f7eacfe620e8cc48b3145454be7ddcd07df42554846cbc38fb203ef626c"
+      }
+    },
+    {
+      "tool": "tools/test_rpcd_restore_failure.py",
+      "checks": 10,
+      "faults": [
+        "healthy",
+        "manual",
+        "timer",
+        "delta",
+        "full",
+        "cancel",
+        "delta-cancel",
+        "delta-confirm",
+        "ownership",
+        "dangling"
+      ],
+      "record": {
+        "returncode": 0,
+        "elapsed_seconds": 38.361913442611694,
+        "output": "/home/ubuntu/owrt-rust-review-20261022/candidate/private/final-rpcd-review-20261022-04/test_rpcd_restore_failure",
+        "log_sha256": "826e8e9857f8ca43d4722bc5e7aec5c9b12c3bca91ac95d3984d4ee4447d6fb2"
+      }
+    }
+  ],
+  "receipts": [
+    {
+      "path": "private/final-rpcd-review-20261022-04/receipt.json",
+      "sha256": "26657907f89b93da9b7a5a64aeb08f00099813f71f73687bbd01d533c5f62082"
+    },
+    {
+      "path": "private/final-rpcd-review-20261022-05/receipt.json",
+      "sha256": "781bc0d71bad275b8e4ee6ef4833a536184b2618efa27017898416523bd66c91"
+    }
+  ],
+  "tool_sha256": "0a1c1a06bb0e4baf909f5ee99c01401a951e6ca6c99c599a3670d46c33ea88e5",
+  "initial_failure": {
+    "stage": "C reference file.write authorized_new_target; candidate was not started",
+    "observation": "Default one-second Bus deadline expired; close then timed out waiting two seconds for the reference process. Original logs preserved in private/final-rpcd-review-20261022-04.",
+    "assessment": "Host writeback during concurrent builds is a plausible cause because upstream file.write calls fsync/global sync; no failure-time I/O trace was captured, so this is not a proven root cause.",
+    "harness_change": "RPC client wait is now 10 seconds and per-side outer timeout 60 seconds. All 34 semantic expected outcomes are unchanged.",
+    "retest": "Both original and candidate passed, combined driver elapsed 0.734 seconds.",
+    "postfailure_observation": "private/final-rpcd-review-20261022-04/postfailure-host.txt is explicitly a later host-pressure snapshot, not failure-time evidence."
+  }
+}

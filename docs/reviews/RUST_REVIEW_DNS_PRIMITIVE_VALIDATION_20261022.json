@@ -1,0 +1,273 @@
+{
+  "schema": 1,
+  "scope": "Fresh exact-source C primitive comparisons; native reference objects reused, not stock-image service or performance evidence",
+  "result": "All four specialized drivers executed against independent C primitives. Cache, stale and transfer comparisons pass; lease retains four C differences with all 269 observations byte-identical to a2cc00d6.",
+  "rust_elf_sha256": "4253428fbc56a6be7b779776866a5b01270f74b7ae3021db009fea44b4b45610",
+  "rust_source_file_count": 210,
+  "source_manifest": "private/final-dns-primitives-20261022/rust-source-before.json",
+  "source_artifact_unchanged": true,
+  "c_inputs_unchanged": true,
+  "c_builds": {
+    "cache": {
+      "receipt": "c-build-receipt.json",
+      "receipt_sha256": "bceedb933d3392e2df907b25f1f54b940f3b611ae1a6b43a3aa03e5191a74875",
+      "binary_sha256": "2891df359622fb94d73245972f76d63a721afb2c5a934144e01e70cd7ca5f773",
+      "elf_machine": 183,
+      "native_reference_objects_reused": true,
+      "full_c_objects_rebuilt": false,
+      "image_daemon_qualification": false,
+      "scope": "fresh primitive driver compile/link against reused native reference objects; not image daemon 097a9e21"
+    },
+    "lease": {
+      "receipt": "c-build-receipt.json",
+      "receipt_sha256": "0e30b3cd7f67dd4a3f53fdc53d6e0f0ca35c121bf534e4fbb7a3de3bcbac49a9",
+      "binary_sha256": "c2d7071a7f0dbf6eb4e4cea46652a6f8192b9bdb079711f0a92bea487ed728b8",
+      "elf_machine": 183,
+      "native_reference_objects_reused": true,
+      "full_c_objects_rebuilt": false,
+      "image_daemon_qualification": false,
+      "scope": "fresh primitive driver compile/link against reused native reference objects; not image daemon 097a9e21"
+    },
+    "stale": {
+      "receipt": "c-build-receipt.json",
+      "receipt_sha256": "bfa704326c54b505d238a87074512b9bb05a9fcdcc4af161a8fa28c38eb466e7",
+      "binary_sha256": "fc96b16b92d0461f3ca195f664f0e8fcf3eba61ea6642927885f9ede789a4dc1",
+      "elf_machine": 183,
+      "native_reference_objects_reused": true,
+      "full_c_objects_rebuilt": false,
+      "image_daemon_qualification": false,
+      "scope": "fresh primitive driver compile/link against reused native reference objects; not image daemon 097a9e21"
+    }
+  },
+  "families": [
+    {
+      "family": "cache",
+      "cases": 205,
+      "commands": 205,
+      "passed": 205
+    },
+    {
+      "family": "lease",
+      "cases": 36,
+      "commands": 269,
+      "passed": 265
+    },
+    {
+      "family": "stale",
+      "cases": 5,
+      "commands": 1100,
+      "passed": 1100
+    },
+    {
+      "family": "cache-transfer",
+      "cases": 36,
+      "commands": 307,
+      "passed": 307,
+      "failed": 0
+    }
+  ],
+  "lease_c_differences": [
+    {
+      "family": "lease",
+      "case": "fqdn-short-republication-new-leaf",
+      "row": 9,
+      "c": {
+        "id": 10544,
+        "flags": 34176,
+        "questions": [
+          [
+            "alias",
+            5,
+            1
+          ]
+        ],
+        "sections": [
+          [
+            "answer",
+            [
+              [
+                "alias",
+                5,
+                1,
+                58,
+                [
+                  "example"
+                ]
+              ]
+            ]
+          ],
+          [
+            "authority",
+            []
+          ],
+          [
+            "additional",
+            []
+          ]
+        ]
+      },
+      "rust": null
+    },
+    {
+      "family": "lease",
+      "case": "fqdn-short-republication-new-leaf",
+      "row": 10,
+      "c": "N 1",
+      "rust": "N 0"
+    },
+    {
+      "family": "lease",
+      "case": "fqdn-short-republication-new-domain",
+      "row": 9,
+      "c": {
+        "id": 10544,
+        "flags": 34176,
+        "questions": [
+          [
+            "alias",
+            5,
+            1
+          ]
+        ],
+        "sections": [
+          [
+            "answer",
+            [
+              [
+                "alias",
+                5,
+                1,
+                58,
+                [
+                  "other"
+                ]
+              ]
+            ]
+          ],
+          [
+            "authority",
+            []
+          ],
+          [
+            "additional",
+            []
+          ]
+        ]
+      },
+      "rust": null
+    },
+    {
+      "family": "lease",
+      "case": "fqdn-short-republication-new-domain",
+      "row": 10,
+      "c": "N 1",
+      "rust": "N 0"
+    }
+  ],
+  "lease_regression_check": {
+    "baseline_commit": "a2cc00d6e77e04168383fafbf126427f7dc9a3c0",
+    "baseline_source_files_verified": 204,
+    "baseline_elf_sha256": "c89837e6526d2a37b812420bfa4073a56e61a10e58dbd8b8ad9a08c50934a953",
+    "cases": 36,
+    "commands": 269,
+    "candidate_vs_baseline_byte_equal": true,
+    "baseline_inputs_unchanged": true,
+    "interpretation": "All 269 raw Rust observations are byte-identical before and after this review. Four observations in new-leaf/new-domain FQDN-short republishing differ from C (C retains an alias to example/other and one cache record; both Rust versions return NONE/N0). Preserve and report this existing difference; do not classify the whole C lease comparison as passed."
+  },
+  "service_tests": {
+    "passed": 13,
+    "ignored_namespace_cases": 5,
+    "returncode": 0,
+    "note": "The five privileged cases belong to the separate final namespace gate, not this ordinary-user filter."
+  },
+  "not_run": [],
+  "raw_evidence_root": "/home/ubuntu/owrt-rust-review-20261022/candidate/private/final-dns-primitives-20261022",
+  "receipts": [
+    {
+      "path": "comparison-01/result.json",
+      "sha256": "242b7ed54e715fb41ca6e981707c036825b0f4275c243fb79bbff6329fcaa144"
+    },
+    {
+      "path": "baseline-lease-01/result.json",
+      "sha256": "f0bba9359bf82a0568cf85daf5cf0610cc8f084187c105bea4f16feecf847a96"
+    },
+    {
+      "path": "transfer-rust-comparison-02/result.json",
+      "sha256": "44cdcf288883c3922ed8ecedbeb141cf2faf0317cd9ec5a53a2df16fbe826129"
+    }
+  ],
+  "build_logs": [
+    "/home/ubuntu/owrt-rust-review-20261022/final-dns-primitives-lib.jsonl",
+    "/home/ubuntu/owrt-rust-review-20261022/final-dns-primitives-lib.stderr",
+    "/home/ubuntu/owrt-rust-review-20261022/baseline-dns-primitives-lib.jsonl",
+    "/home/ubuntu/owrt-rust-review-20261022/baseline-dns-primitives-lib.stderr"
+  ],
+  "source_binding_limit": "The 210-file input set was unchanged during these primitive runs. Afterwards, the independent fuzz crate changed its raw-record accessor and added its own lockfile; adjacent platform safety comments and test-module placement also changed. These do not alter the executed production statements, but this receipt is the stated snapshot, not a claim that every final file hash is identical.",
+  "cache_transfer": {
+    "result": {
+      "cases": 36,
+      "compared": 307,
+      "passed": 307,
+      "failed": 0
+    },
+    "rust_probe_sha256": "c8a3499cb94b56e2931a1eb608280dce0415829d58d3b4cdb7620de0408ccd6a",
+    "rust_probe": {
+      "source_root": "/home/ubuntu/owrt-rust-review-20261022/candidate/private/final-dns-primitives-20261022/transfer-rust-source",
+      "source_files": 195,
+      "build_receipt_sha256": "67ab6f4ac3193e501061b50ab76e955320d2aa2962b16c5e57a3d183a4745941",
+      "features": "",
+      "opt_level": "3",
+      "build_kind": "probe-tests"
+    },
+    "c_fresh_receipt": {
+      "mode": "fresh-c-primitive",
+      "primitive": "cache-transfer",
+      "receipt_sha256": "9ce411c55d5265c966f5836ba3d57a46b8ccd53df78a477da5fc73c6f5f74e14",
+      "identity_sha256": "b50b01d2820b06bb73ba51269a5ee1f45f58e634fd5fd4a9e4d6bba0f9fcef70",
+      "plan_sha256": "7502e674a279a3c784062a69fa30ce101644553ebdbf015bfbec704565632fff",
+      "result_sha256": "d3b161f0c8a80538a8d43ffcbff144f6f9b42660f5b883f8ad17ee904b65ebed",
+      "compiler_probes_sha256": "f9b6002f0b92681429f05add5f0521665d73a679cac17373ab26d6eda7e29329",
+      "image_daemon_qualification": false,
+      "scope": "fresh exact-source/compiler ABI/argv/corpus C primitive; not image daemon 097a9e21"
+    },
+    "c_artifacts": [
+      {
+        "bytes": 225800,
+        "class": 64,
+        "endianness": "little",
+        "machine": 183,
+        "path": "native-oracle",
+        "sha256": "52db609209633d6b762f991abcd1406206e428a50aa09d8bd71005d2fc4f43b1"
+      },
+      {
+        "bytes": 162176,
+        "class": 64,
+        "endianness": "little",
+        "machine": 183,
+        "path": "target-oracle",
+        "sha256": "a02c274acdd83fd14b4a2fd8e7b167a67859dfd677b9a2f782acf6866c48ab2c"
+      }
+    ],
+    "source_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+    "native_reference_objects_reused": false,
+    "full_native_target_object_rebuild": true,
+    "compiled_inputs": "All 42 matching patched C translation units: 41 newly compiled objects per runtime plus cache.c included by the unchanged driver. Two jobs maximum. No prior object reused. Exact source was reconstructed from the verified archive and 13 recipe/patch files, yielding 148 source hashes and the pinned identity.",
+    "c_execution": "36 cases x native/musl x three repeats = 216 real traces; each runtime produced 307 observations with no repeat or cross-runtime differences. Both ELF64 binaries were verified as AArch64.",
+    "calibration": {
+      "equal": 1,
+      "counter_mutation_detected": 1,
+      "short_count_rejected": 1
+    },
+    "tool": "tools/dnsmasq/cache_transfer_rust_diff.py --fresh-c-receipt (unchanged verifier)",
+    "raw_result": "transfer-rust-comparison-02/result.json",
+    "raw_result_sha256": "44cdcf288883c3922ed8ecedbeb141cf2faf0317cd9ec5a53a2df16fbe826129",
+    "fresh_c_receipt_sha256": "9ce411c55d5265c966f5836ba3d57a46b8ccd53df78a477da5fc73c6f5f74e14",
+    "bookkeeping_attempts": "Initial plan serialization sorted JSON keys and failed the frozen plan SHA before any corpus run; preserved plan-sorted-attempt.json and failure log. The canonical unchanged cases() ordering then matched the pinned plan. Initial comparer counted native object compile stdout files as traces; retained its failure and moved only these build logs into native-objects/logs, retained all object/trace bytes, and regenerated/validated the inventory receipt before the successful comparison.",
+    "receipt_metadata": "The shared freeze helper hardcodes native_reference_objects_reused=true; this run corrects that descriptive field to false and records full_native_target_object_rebuild=true. The unchanged validate_fresh verifier checked the actual complete input/compiler/ABI/build/corpus records.",
+    "final_candidate_binding": {
+      "files": 215,
+      "scope": "Complete dnsmasq/ubus source files plus separately recorded shared platform dependency inputs, excluding target output",
+      "all_content_equal_to_candidate_after_run": true
+    }
+  }
+}

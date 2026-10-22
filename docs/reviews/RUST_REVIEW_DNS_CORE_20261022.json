@@ -1,0 +1,1893 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "reviewer": "audit_dns_core",
+  "guideline_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "applicability": "docs/RUST_GUIDELINES.md",
+  "scope": "49 DNS files and 3 ubusd files; no delegated file is counted. Review status is not a blanket claim that every public API has all recommended documentation/traits. Preserve recorded compatibility/API/layout exceptions and report targeted remaining work explicitly.",
+  "files": [
+    {
+      "path": "components/dnsmasq/src/dns/cache.rs",
+      "sha256_before": "e046ee5d1cca1d5e6521a17fa9370a8bc3425185cb26c6e8c07475c3425e1a93",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including all private-invariant/differential tests. Preserve measured COW/layout, zero-allocation shortcuts, RRset/lease/NX ordering and frozen old-algorithm references. Query hints remain private synchronous operations; no unsafe dereferencing. Avoid broad rewrites or performance-motivated changes without target evidence."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "fa5f676f45118bcda13eca2619bee9adf1a00d8c16cde8e6b174c8d9819ec944",
+      "line_count": 1675,
+      "coverage_ranges": [
+        [
+          1,
+          1675
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed intrusive slot/LRU ownership, generation anti-ABA checks, COW blocks and name indexes, counted insert/abort/eviction order, reverse records and child-to-parent transfer. Preserve measured layout and independent local/cache lifetime semantics.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_engine.rs",
+      "sha256_before": "fdb37617b7ce704a035b71d3275fca074bc10ca5c6aa70ead3909d7ca075cfe6",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including all private-invariant/differential tests. Preserve measured COW/layout, zero-allocation shortcuts, RRset/lease/NX ordering and frozen old-algorithm references. Query hints remain private synchronous operations; no unsafe dereferencing. Avoid broad rewrites or performance-motivated changes without target evidence."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "6caad11ec775fa5db7b59401cc1ceaff41ff222e5f4ea285d0e50e1909ccfd9f",
+      "line_count": 3172,
+      "coverage_ranges": [
+        [
+          1,
+          3172
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed every positive/negative/CNAME/reverse and local-terminal branch, packet envelope, SOA extraction, partial commit side effects, zero-allocation plain reply and its general fallback. Retain explicit independent mutable owners; avoid a state-machine rewrite.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_name_index.rs",
+      "sha256_before": "ab3025c70ea991341fd6ce7cc8f2a0f3cd5b5d8b44235c856ae8699f75096d63",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including all private-invariant/differential tests. Preserve measured COW/layout, zero-allocation shortcuts, RRset/lease/NX ordering and frozen old-algorithm references. Query hints remain private synchronous operations; no unsafe dereferencing. Avoid broad rewrites or performance-motivated changes without target evidence."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "d35df651a11ceffac933336ef5927f85800ab21d27b45c490f85efacba181249",
+      "line_count": 175,
+      "coverage_ranges": [
+        [
+          1,
+          175
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed zero/one/many transitions, Arc detach and same-kind rotation. Slot positions originate from the owning cache; a missing member is an internal invariant failure, not network input.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_plain_udp_tests.rs",
+      "sha256_before": "f4978d23c524cc1814fbdcf99bbe82298a0433ceac4226edd5fd0423704e9176",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including all private-invariant/differential tests. Preserve measured COW/layout, zero-allocation shortcuts, RRset/lease/NX ordering and frozen old-algorithm references. Query hints remain private synchronous operations; no unsafe dereferencing. Avoid broad rewrites or performance-motivated changes without target evidence."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "b883281e9310f9c92ac97b3ea5448848932fd614c735ac95e04a99c208f142ce",
+      "line_count": 868,
+      "coverage_ranges": [
+        [
+          1,
+          868
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed every case matrix: malformed packet fallbacks remain byte/state preserving, independent general-path comparisons include TTL, eviction, counters, host/lease ownership and long binary names.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_reply.rs",
+      "sha256_before": "f77a58ce7ad27e43ff71ac59f3c2d2f156c19f1810b4250cb5553c087ce5e94d",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "f77a58ce7ad27e43ff71ac59f3c2d2f156c19f1810b4250cb5553c087ce5e94d",
+      "line_count": 135,
+      "coverage_ranges": [
+        [
+          1,
+          135
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed live generation checks and caller-owned selection, positive address-width checks, canonical CNAME validation and independent negative authority TTL. Retain explicit false/error distinctions.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_reply_tests.rs",
+      "sha256_before": "37f27bf522c6c05024b02d75f0816d9e3342d8795f4644ac6789c443b934d311",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "37f27bf522c6c05024b02d75f0816d9e3342d8795f4644ac6789c443b934d311",
+      "line_count": 179,
+      "coverage_ranges": [
+        [
+          1,
+          179
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed expected wire flags, remaining TTL, opaque generic bytes, expiry/stale boundary, malformed address and atomic full-writer assertions. Tests examine behavior, not constants alone.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_tests.rs",
+      "sha256_before": "e4007d21c4c9420a6928ae61d1a3dad33aa08f94ca7cf4300ffecd81c685c4ba",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including all private-invariant/differential tests. Preserve measured COW/layout, zero-allocation shortcuts, RRset/lease/NX ordering and frozen old-algorithm references. Query hints remain private synchronous operations; no unsafe dereferencing. Avoid broad rewrites or performance-motivated changes without target evidence."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "36ea80fcfd4d4655443c7a893e536031d5e379b01ab6c1751fc26bdf4b66a14b",
+      "line_count": 1831,
+      "coverage_ranges": [
+        [
+          1,
+          1831
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed full mutation and snapshot tests, slot graph ownership checks, actual eviction traces, generation identity and frozen forced-expiry reference. Structural size assertions protect an explicitly measured memory contract.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/cache_transfer_tests.rs",
+      "sha256_before": "79051d1ca2612695c596fddbac1ae65063373b03b514d9ef819832b1acae9d48",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Reviewed historical frozen-clock differential drivers and private invariants. Trusted harness inputs intentionally assert on malformed commands; preserve frozen comparison semantics and require dedicated exact-C prerequisites for ignored drivers."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "79051d1ca2612695c596fddbac1ae65063373b03b514d9ef819832b1acae9d48",
+      "line_count": 365,
+      "coverage_ranges": [
+        [
+          1,
+          365
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed owned transfer fixture, aborted/empty commit distinction and private ordered state checks. Exact-C driver is intentionally ignored without private corpus and matching C prerequisite; do not rewrite trusted frozen commands.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon.rs",
+      "sha256_before": "afd6a409a6d2c8f54a3c3dc3a97a0a4b9b319006d97f43700527a68493125fd6",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Programmatically supplied prefix configuration could bypass validated AddressPrefix creation; some API descriptions were stale/misattached."
+      ],
+      "changes": [
+        "Reject malformed prefix configuration through existing ConfigError before daemon publication; correct relevant module/cache/poll documentation.",
+        "Accept mutable slices in extractors that do not resize caller buffers; retain explicit protocol-state arguments under precise lint rationale."
+      ],
+      "validation": [
+        "invalid_programmatic_address_prefixes: 1 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "2c611e84063c0d9c6f9c6e7ca19b55885620d03e047d2627f578a0dddb983992",
+      "line_count": 3080,
+      "coverage_ranges": [
+        [
+          1,
+          3080
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed constructor/reload validation, single-owner local generations, source-socket publication, loop detection, UDP admission, cache ordering, per-recipient restoration, counters and TCP cache boundary. Fixed malformed programmatic prefixes; replaced stale docs and needless Vec API requirement.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon_cache_tests.rs",
+      "sha256_before": "9cff4386cd5189fef70e716defa36c3a0bf6f1b165450db6ecbe19f89c3bcb5d",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including all private-invariant/differential tests. Preserve measured COW/layout, zero-allocation shortcuts, RRset/lease/NX ordering and frozen old-algorithm references. Query hints remain private synchronous operations; no unsafe dereferencing. Avoid broad rewrites or performance-motivated changes without target evidence."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "894450ddf7b5f2159bd013a5e93f81ef26a72d4542d034e43e9516241019ab88",
+      "line_count": 1785,
+      "coverage_ranges": [
+        [
+          1,
+          1785
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed all frozen-clock CNAME, negative/SOA, local-precedence, truncation, lease and scratch-reuse cases. Kept independent protocol expectations and explicitly prerequisite-bound exact-C driver.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon_dump.rs",
+      "sha256_before": "07f442844a4a1669cea325250a2a2ebabe3870feed9b98563e973fbc72c4bbd1",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "08f19a944d4a640fb1e614d2ad3f55373e3279596b92a409629cc681edecb569",
+      "line_count": 343,
+      "coverage_ranges": [
+        [
+          1,
+          343
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed source attribution, safe text sanitization, wrapping C counters and per-server aggregation. Preserve existing OpenWrt log fields/order rather than change public diagnostic contracts.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon_lease_cache_tests.rs",
+      "sha256_before": "ef727982c1c997760067ddc41b2dc01e11aeea2f53a386c5aab3196ea9a58f1b",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Reviewed historical frozen-clock differential drivers and private invariants. Trusted harness inputs intentionally assert on malformed commands; preserve frozen comparison semantics and require dedicated exact-C prerequisites for ignored drivers."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "ef727982c1c997760067ddc41b2dc01e11aeea2f53a386c5aab3196ea9a58f1b",
+      "line_count": 168,
+      "coverage_ranges": [
+        [
+          1,
+          168
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed complete frozen-clock lease/cache differential driver and publication ordering. Inputs are private controlled corpus; panics report malformed harness data rather than production parse failures.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon_policy_tests.rs",
+      "sha256_before": "7d021ce94da3a70b02ca7bac46c312541ebe968e7e61e882a2f4cf11867d33bd",
+      "status": "changed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Programmatically constructed malformed configuration needed rejection coverage."
+      ],
+      "changes": [
+        "Test IPv4/IPv6 invalid bogus/ignore prefixes returning configuration errors."
+      ],
+      "validation": [
+        "invalid_programmatic_address_prefixes: 1 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "8b0f6daafc2976cdc9666de4f7fb01c091c95812a361179798b654c3f44d1c77",
+      "line_count": 307,
+      "coverage_ranges": [
+        [
+          1,
+          307
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed live local-generation checks, ACL-free protocol metadata retention, coalesced listener ownership and full-table refusal. Added explicit malformed IPv4/IPv6 prefix configuration rejection.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon_poll_tests.rs",
+      "sha256_before": "9aefd93498eeb7cbf0a4cf0e4e30d59148588f4e932a456501c9f2609c9b2337",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "de3e3c7dc34f2ced4265e0e1aac56bc249bff965a7fae0a0c57ad8fef53aa61f",
+      "line_count": 402,
+      "coverage_ranges": [
+        [
+          1,
+          402
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed actual socket completions, controlled terminal-error ordering, per-recipient failure isolation, doctor-before-cache counters and independent CD/NO_CACHE paths. Poll deadlines bound external activity.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon_route_resend_tests.rs",
+      "sha256_before": "8831adfe4ab84a904f5b68f04b76d6a1594ce457e4f1f692320e01e5795b945b",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "8cbdd7c0957cad2765927bfb9c2b7ff2380051dd428093472caeb2fdfe8a1bad",
+      "line_count": 203,
+      "coverage_ranges": [
+        [
+          1,
+          203
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed route-resend ownership and invalidation across local/cache/error/reload paths, including deferred in-place hit. Test closes/drops only fixture-owned sockets and checks retained transactions/counters.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon_stale_tests.rs",
+      "sha256_before": "c3c772459ea70b40ad2b7357b1dfa8cc0278d018128f5be16ffcdb34aff851d8",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Reviewed historical frozen-clock differential drivers and private invariants. Trusted harness inputs intentionally assert on malformed commands; preserve frozen comparison semantics and require dedicated exact-C prerequisites for ignored drivers."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "c3c772459ea70b40ad2b7357b1dfa8cc0278d018128f5be16ffcdb34aff851d8",
+      "line_count": 141,
+      "coverage_ranges": [
+        [
+          1,
+          141
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed complete exact-C frozen-clock stale driver. Preserve strict fixture options and trusted command assertions; its prerequisite-based ignore is recorded, not counted as ordinary test coverage.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/doctor.rs",
+      "sha256_before": "19a85b10556766b0881b853a51c08fefc12057c7e2c77648713288da8350b8b4",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "19a85b10556766b0881b853a51c08fefc12057c7e2c77648713288da8350b8b4",
+      "line_count": 270,
+      "coverage_ranges": [
+        [
+          1,
+          270
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed bounded A/AAAA rewrite ordering, class/RDLEN checks, same-family callback restriction and retained prefix effects. Existing independent malformed/bounded-input tests exercise resource and mutation boundaries.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/edns_policy.rs",
+      "sha256_before": "f6a2e24ed00c5a0aba731c2a9c535bdb70d077a9be7c78e496fb25a8d0aff739",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "dbc099b1b084cd021e097baec22ce5172466ac940179af448419fe3c1a7487ea",
+      "line_count": 627,
+      "coverage_ranges": [
+        [
+          1,
+          627
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed exact option replacement/strip loop bounds, signed queries, limit failure semantics, ECS masks/padding, source validation and metadata ordering. Kept intentional safe deviations from C overreads; used typed fixed-size chunks.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/files.rs",
+      "sha256_before": "119f3b3e5e8c7976bd7c5446143c7853faa7a8f44f59349a2f9b18b4d08d022a",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Runtime review adds feature-gated process-test support reexport; implementation and test evidence owned by audit_dns_runtime."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "a4a585c316c7b55495ceb76e72d3f6ea6088f2f95f15d1d663efc611bc77bbb1",
+      "line_count": 465,
+      "coverage_ranges": [
+        [
+          1,
+          465
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed resolver stamp selection, missing-file retry rules, parser separation, per-source server IDs and reuse ordering. No I/O is hidden in pure parsers; runtime process test reexport is separately owned by runtime audit.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/filewatch.rs",
+      "sha256_before": "1ca690d271192dfae2173548de4550522fa67c2352ed984e9be2a76c39416569",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "98086f5478cadb34ee5c5c2700da3602c3b8e8a08f64c1f5acbc8425fbc3d477",
+      "line_count": 544,
+      "coverage_ranges": [
+        [
+          1,
+          544
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed ownership of netlink/inotify descriptors, datagram size and sender checks, bounded batches, per-name filtering and symlink depth. Existing diagnostic strings and event coalescing preserve image behavior.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/forward.rs",
+      "sha256_before": "4a4237e1aefbd3f16238d1b1c7d2bbd792816364a27b96232218bafe8116dd19",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Case mutation could rewrite compression offset bytes aliased by earlier label data and cause out-of-bounds traversal."
+      ],
+      "changes": [
+        "Observe pointer risk during the existing validated name walk. Stage only backward traversals containing case-sensitive pointer offsets, in bounded stack storage. Reject offset changes atomically; no heap allocation added to case mutation."
+      ],
+      "validation": [
+        "dns::forward::tests: 14 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "1f2fd016833eea32b86cab251f7eed40fcbc5ac1d280f16ec46862b9fefff2ea",
+      "line_count": 982,
+      "coverage_ranges": [
+        [
+          1,
+          982
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed question/flags keys, group capacity and duplicate policy, anti-ABA IDs, source/ID/case authentication, retry ordering and case mutation. Fixed aliased compression offsets; protected path has bounded stack scratch and no additional heap allocations.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/forward_service.rs",
+      "sha256_before": "2115b3fb09f97f0c8bd2ff6c9359d082e54012e2b792406fe75a649b1770e810",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "e667be7556e1bbb5874a8f7470712701c30499df9cb9aefc9de0d5665a834dcf",
+      "line_count": 926,
+      "coverage_ranges": [
+        [
+          1,
+          926
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed metadata capture before EDNS decoration, retained group reconciliation, per-recipient copies, retry plans and source-dependent EDNS keys. Error propagation preserves the existing caller policy boundary.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/forward_tests.rs",
+      "sha256_before": "73f235a6e6357f0698c0c8ec25d1bfbcda0ea37f54b53381c775005761b027ee",
+      "status": "changed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Validated-name aliasing was absent from case-restoration coverage."
+      ],
+      "changes": [
+        "Add independent hostile name fixture covering atomic rejection and compatible unchanged offset bytes."
+      ],
+      "validation": [
+        "dns::forward::tests: 14 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "dd4b19e398619f052e8e186ef5a61fc08e976d62845a743cc50588eafed63df1",
+      "line_count": 621,
+      "coverage_ranges": [
+        [
+          1,
+          621
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed all fake-entropy deterministic submission/retry tests, capacity boundaries, peer/scope checks and compression fixtures. Added independent pointer-alias atomic-rejection and valid backward-pointer cases.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/hostsdir.rs",
+      "sha256_before": "a1e41c5ac7228a97af35a924e34f2b12e1ea9763bc4c18dea85f8728eaa419b6",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "a1e41c5ac7228a97af35a924e34f2b12e1ea9763bc4c18dea85f8728eaa419b6",
+      "line_count": 269,
+      "coverage_ranges": [
+        [
+          1,
+          269
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed stable source UID reservation, directory/watch error paths, readdir order and retained symlink behavior. Keep source IDs stable over delete/recreate and preserve loaded-file precedence.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/hostsdir_runtime.rs",
+      "sha256_before": "b14688f70a8fdc4a8ddca871caeb480772ece3daeb6856535fe0304a83f4ab8f",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "ff6bf269312e9d9778ecfe0c9abc5bfaa376d076949ce95989f6b7247797e519",
+      "line_count": 280,
+      "coverage_ranges": [
+        [
+          1,
+          280
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed bounded nonblocking reads, staged source ownership, partial EOF handling, fallible retention and line metadata. Existing tests cover duplicate/expanded names and read-chunk boundaries; no new abstraction warranted.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/interface_collect.rs",
+      "sha256_before": "c87d59eb3e8f8d0a3790fdfe0e7a07c8c5efabdcd8167e4ed59974ff231e3048",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "60e4ff0fd20cb9c481a672ff5621e82ed6a2185fb7ab616a94d19ded239c1738",
+      "line_count": 369,
+      "coverage_ranges": [
+        [
+          1,
+          369
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed netlink family/state/deadline transitions, message sender/length/sequence checks, independent record allocations and prefix composition. Keep exact-image IPv4 prefix-zero behavior implemented without undefined shifts.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/interface_records.rs",
+      "sha256_before": "04a6a18dfa5b503d9465d1ec4012451818f9c5f91bb59217f828a99fe7c58ea3",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "04a6a18dfa5b503d9465d1ec4012451818f9c5f91bb59217f828a99fe7c58ea3",
+      "line_count": 284,
+      "coverage_ranges": [
+        [
+          1,
+          284
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed immutable interface snapshots, family partitioning, state-bit handling, localized address filtering and ancestor/PTR precedence. Existing fixture checks preserve exact-image prototype and adjacency semantics.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/lease_names.rs",
+      "sha256_before": "3bcce1576451bf54c88750f2c9afc885d2069f5535625533b41f98cd83292ad3",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Use extend(pair) while preserving existing vector amortized capacity/allocation behavior."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "cc5dc2226f6b281a9b6ed399b68be808380a0a1f2124ee9a2635cec4904fb902",
+      "line_count": 902,
+      "coverage_ranges": [
+        [
+          1,
+          902
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed owned publication snapshots, lease expiry after clock rollback, first-PTR ownership, host/CNAME conflict ordering and cache blocker interaction. Preserved amortized collection growth while simplifying two-element insertion.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/local.rs",
+      "sha256_before": "56bac14f8b7febebde6679814dc2c4a75f3f96e1e7763a24c5dff377ecffef65",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including all private-invariant/differential tests. Preserve measured COW/layout, zero-allocation shortcuts, RRset/lease/NX ordering and frozen old-algorithm references. Query hints remain private synchronous operations; no unsafe dereferencing. Avoid broad rewrites or performance-motivated changes without target evidence."
+      ],
+      "changes": [
+        "Return the shared zero-size IngestionError instead of unit and use canonical conversion; remove redundant borrows; retain independently owned caller inputs under precise lint rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "01b6d2e50cd1b7a2018bb8552dce00944cc2d2253159908407e3ecae157c57d4",
+      "line_count": 3710,
+      "coverage_ranges": [
+        [
+          1,
+          3710
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed all configured/host/lease/interface/synthetic/raw record paths, CNAME cursor ordering, negative authority and optional additional responses, and all inline fixtures. Typed ingestion errors replace unit; retain layout and API grouping to avoid unrelated hot-path churn.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/local_negative_tests.rs",
+      "sha256_before": "a0ad32a1bc9d8f69ad98d7681ee6d1ddb1b2dd0eb179323a70ae450af81ab549",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including all private-invariant/differential tests. Preserve measured COW/layout, zero-allocation shortcuts, RRset/lease/NX ordering and frozen old-algorithm references. Query hints remain private synchronous operations; no unsafe dereferencing. Avoid broad rewrites or performance-motivated changes without target evidence."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "a0ad32a1bc9d8f69ad98d7681ee6d1ddb1b2dd0eb179323a70ae450af81ab549",
+      "line_count": 425,
+      "coverage_ranges": [
+        [
+          1,
+          425
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed independent negative-cache/SOA fixtures, DHCP coexistence, raw CNAME opacity and configured terminal boundaries. Existing tests explicitly separate root/cursor and qtype behaviors.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/loop_detect.rs",
+      "sha256_before": "25cb0883b4fdab3ae363880c98e7a6e30a0861de366b6d78d82957285dc40db4",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "25cb0883b4fdab3ae363880c98e7a6e30a0861de366b6d78d82957285dc40db4",
+      "line_count": 172,
+      "coverage_ranges": [
+        [
+          1,
+          172
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed per-server random UID lifecycle, stale-source resets, returned probe admission and disabled-server transitions. Random failures propagate and malformed header/type combinations cannot disable a server.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/mod.rs",
+      "sha256_before": "2fecc11545e5e14be739c6b893f06060ddfa178dc81a2d7287f28762a8923cc0",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "4efa873f4c656dbe60c95843b28e6754498d7b3c07178ddcf119a621054ead1a",
+      "line_count": 30,
+      "coverage_ranges": [
+        [
+          1,
+          30
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed every module declaration, visibility and target gate; keep current source-path/package structure under documented project adoption policy.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/process.rs",
+      "sha256_before": "ed2b5fee5d81caf2f0dfdcec854b61760b1c66eefaac41b0ebc7edf64537fbac",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "AddressPrefix public fields allowed construction that bypassed family width validation."
+      ],
+      "changes": [
+        "Make representation private and document the checked constructor; test IPv4/IPv6 boundary matches and invalid widths."
+      ],
+      "validation": [
+        "dns::process::tests: 17 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "a9271ad0a641b18a6422aab130b93b77f596c4e249fb499a1ab47876296b2912",
+      "line_count": 968,
+      "coverage_ranges": [
+        [
+          1,
+          968
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed packet-bound address extraction, rebind/bogus/ignore order, canonical prefix validation, malformed partial records and intentional image-specific safe arithmetic. Made AddressPrefix invariant unforgeable through public fields.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/query_policy.rs",
+      "sha256_before": "98f45166e678c2b09c2bb9c9d128947867ce1afb2b19ff85a775f1ac65b1e180",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "3e8f1bf6a56922279407f68eb214870412f17ad491e65e89279535b35cf76e74",
+      "line_count": 286,
+      "coverage_ranges": [
+        [
+          1,
+          286
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed private-reverse/domain-needed ordering, forwarding cursor and current cache/local name existence, TCP/UDP EDNS differences and logging. Preserve explicit contextual inputs instead of introducing a policy wrapper.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/reply.rs",
+      "sha256_before": "da3e159aa6ca781c6451ad0e42a65148577b6779098985775464e53e147bc898",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "A retained RR name scan could cross RDLEN into a removed RR and register a fixup past the compacted packet."
+      ],
+      "changes": [
+        "Bound encoded RDATA name scans by their record end; keep atomic unchanged-packet failure; add original-byte OPT/TXT deletion fixtures."
+      ],
+      "validation": [
+        "dns::reply::tests: 8 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "1cc6fe0a3652468cc6d51c097425c7c20552e027e4d54e71b5db4e4d3477cdb4",
+      "line_count": 635,
+      "coverage_ranges": [
+        [
+          1,
+          635
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed full envelope/filter/relocation logic and fixture tests. Fixed name-encoded-byte scan crossing RDLEN into removed records; compression targets outside the owning RR remain supported.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/routing.rs",
+      "sha256_before": "621535122d1571c31671c1a57c9658ca9b059ba88d3a73c59c55f9a9e8a816eb",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "621535122d1571c31671c1a57c9658ca9b059ba88d3a73c59c55f9a9e8a816eb",
+      "line_count": 984,
+      "coverage_ranges": [
+        [
+          1,
+          984
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed configured source tiers, identity reuse, wildcard/default/dotless and DS-parent ordering, endpoint resolution and snapshots. Group records stay concrete and existing exact behavior takes precedence over renaming/reorganization.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/service.rs",
+      "sha256_before": "473da0b55f510c3260cf6755350a27f49cc2e01c0b1efc196ec9c3c814f0baa6",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "c627fc0baa8f6cfa9aa75db38ca5c63a082068b7ca1a6b38815ea7c350d066ba",
+      "line_count": 1044,
+      "coverage_ranges": [
+        [
+          1,
+          1044
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed bounded TCP framing, zero/oversized prefixes, read/write ownership, cached buffer reuse and UDP/TCP local envelope differences. Existing partial-write and fragmentation tests preserve observable boundaries.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/source_sockets.rs",
+      "sha256_before": "2a4c34ecb9b84245c15fdad3685e790e5f8e0f3707fc50242b5dda30f651f912",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "5bb2608ab2692448014c971512856a732e6b679be3bbbb8e1d45359c4962b189",
+      "line_count": 346,
+      "coverage_ranges": [
+        [
+          1,
+          346
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed safe rustix descriptor creation, CLOEXEC/nonblocking flags, source-family/interface selection, random-port retry range and diagnostics. Invalid port ranges are rejected before entropy use.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/tcp_connect.rs",
+      "sha256_before": "9e93d3f285fa235e1e6e1b7cbfc4dd6d2092542e87e33f46507ec985af397567",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "9e93d3f285fa235e1e6e1b7cbfc4dd6d2092542e87e33f46507ec985af397567",
+      "line_count": 62,
+      "coverage_ranges": [
+        [
+          1,
+          62
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed owned descriptor conversion, platform CLOEXEC/nonblocking setup, source bind and EINPROGRESS/EINTR handling. Failures remain explicit NoReply, without descriptor leaks or implicit waits.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/tcp_exchange.rs",
+      "sha256_before": "1dae4d9a65f6e623de4d37856923566f6e4963289f6dff7a8024936faae46345",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Public nonzero TCP idle durations could overflow Instant and panic despite a finite caller deadline."
+      ],
+      "changes": [
+        "Use checked idle-deadline addition, falling back to the existing absolute deadline."
+      ],
+      "validation": [
+        "dns::tcp_upstream::tests: 9 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "63500525bb7d7c09833b02842ad0c48184a8fd92b09ec47b377a4c8b0e16a491",
+      "line_count": 285,
+      "coverage_ranges": [
+        [
+          1,
+          285
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed all nonblocking phases, partial frame reads/writes, fixed fairness budget, persistent reconnection and deadline/error cleanup. Fixed unrepresentable idle deadlines while retaining the caller absolute bound.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/tcp_service.rs",
+      "sha256_before": "0697ea70bf0abcea5586138994f10ed6e95267f4c60852b94eacb2c7c7ffa287",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [
+        "Apply actionable compiler/Clippy guidance without changing established ordering or allocation ownership; retain explicit multi-owner protocol arguments using narrowly scoped expect with rationale."
+      ],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "3d4512c30e2f35a156cf3b56f1140c227dce8fe709dde042cbd2a9ee6a7d107b",
+      "line_count": 1026,
+      "coverage_ranges": [
+        [
+          1,
+          1026
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed original TCP-query forwarding, local/cached cursor, CD/ECS/OPT and RCODE ordering, synchronous cache sink and reply-filter failure behavior. Keep short-lived callback ownership and no state borrows across I/O.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/tcp_upstream.rs",
+      "sha256_before": "c485f5c9d446572e476971e5e44d1c463fe678408538d605ffd4c2563fb7f997",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "c485f5c9d446572e476971e5e44d1c463fe678408538d605ffd4c2563fb7f997",
+      "line_count": 332,
+      "coverage_ranges": [
+        [
+          1,
+          332
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed group construction, accepted-session ownership, one-pending-exchange invariant, cancellation/clear, synchronous wrapper and reply matching. Empty groups return NoReply before modulo operations; no socket is shared across sessions.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/tcp_upstream_tests.rs",
+      "sha256_before": "fb0233f6a3d23ffb798bf620cb7888526c0b429c9e3fb928d456bb9d808aeb41",
+      "status": "changed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Extreme idle-duration transport behavior lacked direct coverage."
+      ],
+      "changes": [
+        "Exercise actual nonblocking TCP connect/write/read with Duration::MAX and finite absolute deadline."
+      ],
+      "validation": [
+        "dns::tcp_upstream::tests: 9 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "1608d29968328c4f6e3af738e65a1416243511fe86bdba8b7b8047b26e68deb7",
+      "line_count": 409,
+      "coverage_ranges": [
+        [
+          1,
+          409
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed real loopback connect/reuse/reconnect/cancel/fragment and deadline tests. Added Duration::MAX idle timeout regression with a finite absolute deadline and real exchange.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/udp_query.rs",
+      "sha256_before": "9edba0b699a678a68690717ec57ea6395c97d9b42da548f1b265354ed0b4c27c",
+      "status": "reviewed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "94b75bd399e864021fb13d26c358745f8d8303868fbe3ef2e876457a6eaa532d",
+      "line_count": 248,
+      "coverage_ranges": [
+        [
+          1,
+          248
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed malformed/opcode admission precedence, bounded question skipping, last OPT and TKEY handling, and table-full rejection. Existing binary/pointer/name-length cases retain upstream-compatible parsing.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/upstream.rs",
+      "sha256_before": "622b71eab89893910816294d1c4d111788d9656e8cd11e03eb6b6dee7eea1727",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Shrinking an active source socket pool to zero left old sockets eligible for modulo-zero pool selection; two reply-order tests relied on sleeps without proving admission ordering."
+      ],
+      "changes": [
+        "Retire out-of-range pool slots as owned overflow sockets, preserving in-flight responses; add real UDP regression; make rejection/REFUSED tests explicitly observe the first response before releasing the second."
+      ],
+      "validation": [
+        "dns::upstream::tests: 36 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "59492fae929c37b99e214e68a65cb74fdf2a49c2f006e243d7767ff3b6a784c6",
+      "line_count": 3506,
+      "coverage_ranges": [
+        [
+          1,
+          3506
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed complete socket ownership, pool rotation, reconfiguration, resend, fairness, timers, authenticated completion and error seams plus every inline test. Fixed shrinking-pool modulo-zero boundary and replaced two timing-based ordering tests with explicit first-response observation.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/upstream_owner_wake_tests.rs",
+      "sha256_before": "6e829e871556802b9364336e02f675c891754ccef3173a0ed3f68899e66ffd0b",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "3f5b40ed2e853fb9413834853aebf96bd8a169a1c9c7176dce931d93e2964770",
+      "line_count": 311,
+      "coverage_ranges": [
+        [
+          1,
+          311
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed real poll readiness and timer interest tests, terminal completion delivery, controlled stale-POLLERR seams and owned socket release. Avoid changing legitimate timeout tests into mocked scheduling behavior.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/upstream_route_resend_tests.rs",
+      "sha256_before": "22c82e8290873dfe753269cc5a6e14099babaddf0573873bfc316d32c55767d6",
+      "status": "reviewed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Full source reviewed, including inline tests: checked input lengths/ranges, transaction/descriptor ownership, recoverable failure paths, ordering, bounded progress and compatibility constraints. No additional behavior change warranted."
+      ],
+      "changes": [],
+      "validation": [
+        "Root full dnsmasq tests and protocol differential gates pending.",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "22c82e8290873dfe753269cc5a6e14099babaddf0573873bfc316d32c55767d6",
+      "line_count": 364,
+      "coverage_ranges": [
+        [
+          1,
+          364
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed exact saved wire/socket/destination assertions, no counter/log changes, newest-query identity, cancellation, server retirement and failed retry retention.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/wire.rs",
+      "sha256_before": "e416ca605f443d46ee7e50b7ab306658c77fb513ab41ff1084c870e0512055fc",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSOUND"
+      ],
+      "findings": [
+        "Standalone owner-name validation accepted relocatable compression offsets; wire helper visibility/diagnostics reviewed."
+      ],
+      "changes": [
+        "Use allocation-free uncompressed-owner validation and stage alias-sensitive mutation metadata in the existing name walk; derive Debug for wire writer/iterators."
+      ],
+      "validation": [
+        "dns::wire::tests: 26 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "517d5c2131d2aa340c1e7c81fe9ba5cfdd34597a3b9bc4fff5c5776525772002",
+      "line_count": 912,
+      "coverage_ranges": [
+        [
+          1,
+          912
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed all bounded name/header/RR/EDNS parsing and atomic writer append. Fixed standalone compressed owner relocation, added case-mutation risk observation without widening accepted parser input, and provided Debug on wire builders/iterators.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/wire_tests.rs",
+      "sha256_before": "814abd212693c4f3e845cd0ed065ec323139148f108abd9c39dd221db4047d20",
+      "status": "changed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL",
+        "M-INTEGRATION-TESTS"
+      ],
+      "findings": [
+        "Independent pointer-owner fixture demonstrates invalid relocation; binary labels/trailing-name boundaries lacked direct writer coverage."
+      ],
+      "changes": [
+        "Add two independent-byte regression tests."
+      ],
+      "validation": [
+        "dns::wire::tests: 26 passed",
+        "Final frozen-tree tests, Clippy and differential verification owned by root; development benchmark data in oracle dns-review-benchmark*.json."
+      ],
+      "sha256_after": "5400ac3aeb6f37c5b9564f8cd43fe0318bf18a323fe0ec895cb29c927869f743",
+      "line_count": 423,
+      "coverage_ranges": [
+        [
+          1,
+          423
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed original-byte DNS fixtures, prefix truncation, pointer hop/forward limits, binary names, record-specific RDATA bounds, OPT/signature rules and atomic writer limits. Added relocation-unsafe owner rejection and binary/trailing input cases.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/ubusd/src/server.rs",
+      "sha256_before": "757c39c89fc41c68738cc91f72705a70690f3b38aa4f6e25836c3c366a307c26",
+      "sha256_after": "a4e47918ecc0dbda64f9b4ae9ca1b69305a27a7e3ffd6bb69f3cfe62dd61a658",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MODULE-DOCS",
+        "M-PANIC-MESSAGE",
+        "M-PANIC-ON-BUG",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "findings": [
+        "Full source read, including all inline tests. Reviewed per-client fd ownership/receive framing, queue limits and backpressure, object/type/subscription indexes, ACL and event/monitor ordering."
+      ],
+      "changes": [
+        "Read method signatures through the immutable as_bytes accessor.",
+        "Remove redundant borrows and Option<&[u8]> as_deref calls."
+      ],
+      "validation": [
+        "Root runs final mbx all-target tests/Clippy after signal-handler safety contract synchronization.",
+        "Oracle mbx locked release aarch64-unknown-linux-musl build succeeded (ubusd-rs + wireprobe); mbx explain showed unsupported bin cache type, no cache misses recorded.",
+        "Exact OpenWrt 25.12.6 C differential: R83 37 transcript lines byte-identical; R92 ubusd_wire 17 + ubusd_acl_types 5 checks on each side (44/44 total); stock and candidate process identities verified."
+      ],
+      "line_count": 3255,
+      "coverage_ranges": [
+        [
+          1,
+          3255
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed every ubusd handler and inline fixture: canonical method checks precede Method construction, ACL/status/event/monitor ordering preserved, queues bounded. Updated immutable Method access and redundant borrows; exact-image differential passed.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    },
+    {
+      "path": "components/ubusd/src/client.rs",
+      "sha256_before": "93ee59958c60260d0adcf77034f676d924e3eeba4d5bb22d523473ffbd66bb7a",
+      "sha256_after": "c2f32ed7995c03eed327333865136a46adf7b23ffcef91bb754843a1a86e9991",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MODULE-DOCS",
+        "M-PANIC-MESSAGE",
+        "M-PANIC-ON-BUG",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "findings": [
+        "Full source read, including all inline tests. Reviewed per-client fd ownership/receive framing, queue limits and backpressure, object/type/subscription indexes, ACL and event/monitor ordering."
+      ],
+      "changes": [
+        "Remove a test that only repeats the defined header/prefix numeric constants; existing fragmented and complete-frame tests retain protocol coverage."
+      ],
+      "validation": [
+        "Root runs final mbx all-target tests/Clippy after signal-handler safety contract synchronization.",
+        "Oracle mbx locked release aarch64-unknown-linux-musl build succeeded (ubusd-rs + wireprobe); mbx explain showed unsupported bin cache type, no cache misses recorded.",
+        "Exact OpenWrt 25.12.6 C differential: R83 37 transcript lines byte-identical; R92 ubusd_wire 17 + ubusd_acl_types 5 checks on each side (44/44 total); stock and candidate process identities verified."
+      ],
+      "line_count": 1279,
+      "coverage_ranges": [
+        [
+          1,
+          1279
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed complete ubusd receive/queue state machine and all descriptor/fragment/backpressure tests. Trusted internal frame batch builders retain explicit preconditions. Removed a constants-only test while retaining full framing behavior coverage.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded. Final test-only modulo-to-is_multiple_of patch independently read after root update."
+    },
+    {
+      "path": "components/ubusd/src/obj.rs",
+      "sha256_before": "c23aa5a11a74efd3b91f61bfc0499165d2fbbe748c87407b83c2df62fda718d2",
+      "sha256_after": "decf0baf0867fe377554720e6a67505d6907b8fd0918e3220049ce2c4b038351",
+      "status": "changed",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MEM-REUSE",
+        "M-MODULE-DOCS",
+        "M-PANIC-MESSAGE",
+        "M-PANIC-ON-BUG",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "findings": [
+        "Full source read, including all inline tests. Reviewed per-client fd ownership/receive framing, queue limits and backpressure, object/type/subscription indexes, ACL and event/monitor ordering.",
+        "set_path could create a dangling path for a missing id or leave a stale old path on second binding. Method publicly mutable bytes allowed name() bounds to become invalid."
+      ],
+      "changes": [
+        "Reject absent/rebound objects before path-index mutation; test both indexes remain coherent. Encapsulate Method bytes, provide checked TryFrom<Vec<u8>> with zero-size InvalidMethodName and keep a diagnosed constructor for internal canonical producers; test binary names and malformed boundaries."
+      ],
+      "validation": [
+        "Root runs final mbx all-target tests/Clippy after signal-handler safety contract synchronization.",
+        "Oracle mbx locked release aarch64-unknown-linux-musl build succeeded (ubusd-rs + wireprobe); mbx explain showed unsupported bin cache type, no cache misses recorded.",
+        "Exact OpenWrt 25.12.6 C differential: R83 37 transcript lines byte-identical; R92 ubusd_wire 17 + ubusd_acl_types 5 checks on each side (44/44 total); stock and candidate process identities verified."
+      ],
+      "line_count": 407,
+      "coverage_ranges": [
+        [
+          1,
+          407
+        ]
+      ],
+      "full_read": true,
+      "reviewed_revision": "4b7646511eb84cb2d4b8f5d06c6f5d6912fe5792",
+      "conclusion": "Reviewed object/type/subscription graph, ordered shared paths and canonical method bytes. Guard missing/rebound object path mutation and Method name extent; retain existing refcount/list semantics with regression coverage.",
+      "coverage_basis": "Full source read in sequential chunks during implementation; changed code reviewed through complete patches and final reads. Final range includes formatting-only line expansion. Delegated files are excluded."
+    }
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

@@ -1,0 +1,1260 @@
+{
+  "source_tree_sha256": "2968f6dddd52600e56872fd455937cecaba66b920403884c3ecb5b7fdb418e36",
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "tools/rust_check.py",
+        "check",
+        "--output",
+        "/home/ubuntu/owrt-rust-review-20261022/final-gates-04"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 112.79805244598538,
+      "log": "/home/ubuntu/owrt-rust-review-20261022/final-gates-04/check-driver.log",
+      "log_sha256": "49e877a5a6b4a77bbce5b00e141c9a18ab97927b14c2a7b2c0437424f91a7565"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/rust_check.py",
+        "fmt-check",
+        "--output",
+        "/home/ubuntu/owrt-rust-review-20261022/final-gates-04"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 4.859825964085758,
+      "log": "/home/ubuntu/owrt-rust-review-20261022/final-gates-04/fmt-check-driver.log",
+      "log_sha256": "1a8a83e6d1d8c362b59c6e997e35b1d631a1dc64a9c986453d9222cf0a601ff0"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/rust_check.py",
+        "test",
+        "--output",
+        "/home/ubuntu/owrt-rust-review-20261022/final-gates-04"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 178.9964498928748,
+      "log": "/home/ubuntu/owrt-rust-review-20261022/final-gates-04/test-driver.log",
+      "log_sha256": "f10cb9f2e1a7f7fe22a52ad89a7290b84f745ac597a077cc5bb4ec16f3f15e8e"
+    }
+  ],
+  "inputs_unchanged_after": true,
+  "scope": "14 active component crates; default/all-features, all-targets, doctests, examples, strict Clippy; separate fuzz bins and 15-crate plus fuzz formatting",
+  "rust_toolchain": "1.98.1",
+  "build_host": "oracle Linux aarch64",
+  "cargo_frontend": "mbx 1.26.0",
+  "source_manifest": "RUST_REVIEW_INPUTS_20261022.json",
+  "logs": [
+    {
+      "path": "final-gates-04/check-driver.log",
+      "bytes": 6767,
+      "sha256": "49e877a5a6b4a77bbce5b00e141c9a18ab97927b14c2a7b2c0437424f91a7565",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-check-all-features.log",
+      "bytes": 519,
+      "sha256": "b380b1e2c788e53e31bc0ea0b250dbf7e05300972a1b37745d54967532edeff0",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-check-default.log",
+      "bytes": 764,
+      "sha256": "efb09efc01f9fda5a2a15afbc01de47516998e0381aa22c314185f0808fb1338",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-clippy-all-features.log",
+      "bytes": 365,
+      "sha256": "cb83c38edfe7bbf42bacb01516b247aca1c794e6ccdafb098fff7c1d952217df",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-clippy-default.log",
+      "bytes": 506,
+      "sha256": "e97960514f0cf496f915ea6aec859b59cdaadf4e597592c9d99d903d65fe3527",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-doc.log",
+      "bytes": 384,
+      "sha256": "13a47d2715f3b4f174c5ba5e7b4dbbef79af1e0dffecb3bf0e777762d5f88628",
+      "libtest_results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-platform-check-default.log",
+      "bytes": 372,
+      "sha256": "1c006a4c4fbb4238f0e90a44e251b6ffa71287f745fd5ad7a8d3284bd7cc4247",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-platform-clippy-default.log",
+      "bytes": 381,
+      "sha256": "9959dacdd73f88316d0fe0a9565ad72bce7c921fd87d9c970cd9b96363d7cdc2",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-platform-doc.log",
+      "bytes": 500,
+      "sha256": "8cd373422b36b8fec47ed846e382879148edc71b17f96f5569204f3b9c0ac224",
+      "libtest_results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-platform-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-platform-test-default.log",
+      "bytes": 1093,
+      "sha256": "721f7a35fbe25bfbfc9c82ec496d8bd2d019eb022d01cad38d87d40a8b81e28e",
+      "libtest_results": [
+        {
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-test-all-features.log",
+      "bytes": 97298,
+      "sha256": "0442c3e8cbdd0eb6e3362c4f767f155dd7a555c27bb274ad7b6a2c72715be585",
+      "libtest_results": [
+        {
+          "passed": 861,
+          "failed": 0,
+          "ignored": 22
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 85,
+          "failed": 0,
+          "ignored": 4
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 17,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-dnsmasq-test-default.log",
+      "bytes": 95762,
+      "sha256": "dddbe3d48bca7d56778e1ad8791d492dff99dbcc623a83124fe3b9f7660e5003",
+      "libtest_results": [
+        {
+          "passed": 861,
+          "failed": 0,
+          "ignored": 22
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 85,
+          "failed": 0,
+          "ignored": 4
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 17,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-fw4-check-default.log",
+      "bytes": 440,
+      "sha256": "767725f1a1961f0a7d1c5b2e423275149b5759d55fd4aff65f59d12361eb33d7",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-fw4-clippy-default.log",
+      "bytes": 356,
+      "sha256": "f486c0c68b46487bcd1801f4f6b8277508b8d9c81c914f045ca820a0fba17a29",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-fw4-doc.log",
+      "bytes": 390,
+      "sha256": "bfee804f637f9a893cae11182e1be8e344ef679c465c5139bae9b7010aee857d",
+      "libtest_results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-fw4-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-fw4-test-default.log",
+      "bytes": 2096,
+      "sha256": "22bd5b8a1567eb50b5acdcf5cdf56b3a11ef5112e71fd4cb31e38b37971bf0a9",
+      "libtest_results": [
+        {
+          "passed": 21,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-httpd-check-default.log",
+      "bytes": 338,
+      "sha256": "836987c509006d0345a042cc2743cecff3188a412d3ae05b7f0106d5f162abb6",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-httpd-clippy-default.log",
+      "bytes": 314,
+      "sha256": "99ea5313b2cab8b50dbc9dce5a2652a08aeea682b254e0a328ec84d8f0acf810",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-httpd-examples-default.log",
+      "bytes": 161,
+      "sha256": "f5fcbbd125435c11955de023492d99ecab7a54be9590bd37f4617af05609ed10",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-httpd-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-httpd-test-default.log",
+      "bytes": 10656,
+      "sha256": "a045e1eecc8f7113985ae7b2089ecd63a23a8068ca44c59f3f7884e981b8c7d9",
+      "libtest_results": [
+        {
+          "passed": 72,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 49,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-logd-check-default.log",
+      "bytes": 404,
+      "sha256": "acf01649b0d82677c453f619c16e70ce286bbf1e46343e2fee6f45e8cf76267d",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-logd-clippy-default.log",
+      "bytes": 322,
+      "sha256": "a78747f15fdf776f0090f85f595bbd09e40308138b427ef0b97e06571756cee4",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-logd-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-logd-test-default.log",
+      "bytes": 2327,
+      "sha256": "14ca2875209f631ef53139354560da892325fbdb55ae29f7ad12ab0f783ac096",
+      "libtest_results": [
+        {
+          "passed": 22,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-netifd-check-default.log",
+      "bytes": 330,
+      "sha256": "78cb605011c474f6bbf86ebbc49f8be0e71cadac92c7636f50fc161bf5d3d3f1",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-netifd-clippy-default.log",
+      "bytes": 341,
+      "sha256": "108fe44383dd6438ed116976caf80e0f6cde70b17c30d4f0936caabdb9300d61",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-netifd-examples-default.log",
+      "bytes": 155,
+      "sha256": "8062ecf1cf1bb15519435d363d9190290839e3d7b80854ba5fd746b6df4f2703",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-netifd-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-netifd-test-default.log",
+      "bytes": 24773,
+      "sha256": "ed6888d928d44fae4c1828586abd605df22691d8df821fa37d7115a0472fdfbe",
+      "libtest_results": [
+        {
+          "passed": 124,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 188,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-odhcpd-check-default.log",
+      "bytes": 830,
+      "sha256": "8375439796b8345a85973378e079caa685329a79a4ea629ea5e11a890ea2170b",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-odhcpd-clippy-default.log",
+      "bytes": 369,
+      "sha256": "498e81a703b0cfc1205de40455a5e569c5fbba3c73e8e8968fbfee7917b9e1e8",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-odhcpd-doc.log",
+      "bytes": 377,
+      "sha256": "fbab1d28f9cbe33bb891075a70b257590e26e0d7d71851f4245563e1a194bcae",
+      "libtest_results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-odhcpd-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-odhcpd-test-default.log",
+      "bytes": 7977,
+      "sha256": "4e23f761f44e363b78b6252d49e3400ccfdd9b1fd12942bb11ed2c5533f7db7a",
+      "libtest_results": [
+        {
+          "passed": 58,
+          "failed": 0,
+          "ignored": 2
+        },
+        {
+          "passed": 12,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-platform-check-default.log",
+      "bytes": 378,
+      "sha256": "47b3e1df72a31067b38ff6145c4f10ef3e8118864383d376c5254ad5f9be1218",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-platform-clippy-default.log",
+      "bytes": 321,
+      "sha256": "f445a864f587bc31732ceb952b52196c2a1ef81509d0520bd7918763696d6832",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-platform-doc.log",
+      "bytes": 469,
+      "sha256": "5a7fcf3f259b6c5cdfe9aa69f98ca8c3c3ee30a4c92178f4cd0d0469125bf381",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-platform-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-platform-test-default.log",
+      "bytes": 1029,
+      "sha256": "75ced08bb9d271bf7d0873e1790b5a6f4ee8e645492f677aa9acbb50de2abbe8",
+      "libtest_results": [
+        {
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-procd-check-all-features.log",
+      "bytes": 340,
+      "sha256": "3e10e7ba9c58d966e4e9b62333cd7db9e580ec4a14f8dde0ddd7b64ef30411de",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-procd-check-default.log",
+      "bytes": 310,
+      "sha256": "c40db461d7ec2ab2f5918626c17f1dce94247c3633e2b60c4fc93db41790b93e",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-procd-clippy-all-features.log",
+      "bytes": 329,
+      "sha256": "a1ed5b5e86883a39c79c1565ba42dd757b2189d599e7443864603705922bde74",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-procd-clippy-default.log",
+      "bytes": 309,
+      "sha256": "dcdafe6ba5ce014018b8e14d9e60768d0d9454d535dccc050173191c37a37022",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-procd-examples-all-features.log",
+      "bytes": 148,
+      "sha256": "0a2806e466eb59d348dfaedd82326f44254a340d6b4eba2c5c4d2c78221d6bf1",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-procd-examples-default.log",
+      "bytes": 131,
+      "sha256": "a3306fcac21e54c9ee5f7aa6387ff3ed1ed48536e5b5a1bd817043ae29ba7492",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-procd-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-procd-test-all-features.log",
+      "bytes": 10152,
+      "sha256": "d352b1b3239edb8cc083aa3cd0a4cd7a961a3d83edd1e243844b3bc385de1165",
+      "libtest_results": [
+        {
+          "passed": 91,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-procd-test-default.log",
+      "bytes": 9956,
+      "sha256": "7d8253b8b21c1687e77d9e36ff0b0e6820b6c687787778cbf6269bbe0ac3c167",
+      "libtest_results": [
+        {
+          "passed": 91,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-reload-config-check-default.log",
+      "bytes": 537,
+      "sha256": "702b5d62eba50bef6ef61e0a2ac284d9fe39eadcad4eebf0f2da57f89130e3bb",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-reload-config-clippy-default.log",
+      "bytes": 344,
+      "sha256": "03156836bae354b5d5fcf9c1cee10909ab697175d10023e7c4f260c03fa1ca15",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-reload-config-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-reload-config-test-default.log",
+      "bytes": 2231,
+      "sha256": "190465da57e7bee901650cdbbe7e0ffc277ee6dd8460fdf37a435d58be6e5a97",
+      "libtest_results": [
+        {
+          "passed": 21,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-rpcd-check-default.log",
+      "bytes": 362,
+      "sha256": "7f3f4c782da644a225927527756834df1243d74d9394aedd9257a56888b95f09",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-rpcd-clippy-default.log",
+      "bytes": 329,
+      "sha256": "f76e998ff8d40d41d24b6457f9d52f97f7d5060df9d6565007c0354151846f31",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-rpcd-examples-default.log",
+      "bytes": 155,
+      "sha256": "8062ecf1cf1bb15519435d363d9190290839e3d7b80854ba5fd746b6df4f2703",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-rpcd-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-rpcd-test-default.log",
+      "bytes": 9904,
+      "sha256": "f1570d870964e7631043b3f68122e0945b35470e9745ca474d97b31150a04f92",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 86,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-ubus-check-default.log",
+      "bytes": 434,
+      "sha256": "f6d2b0307a4fcd123d5443326161b6481a17c8bad110629884f2ef7c56e52976",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-ubus-clippy-default.log",
+      "bytes": 337,
+      "sha256": "754ae7603d14070ba0912c7763cddd987982e97c1acc1e62e72046ec399d236f",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-ubus-doc.log",
+      "bytes": 373,
+      "sha256": "e1af13b8b964b8747a6122f2ff88ef2e603e563f1805c8df72af26e27a02f56c",
+      "libtest_results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-ubus-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-ubus-test-default.log",
+      "bytes": 6622,
+      "sha256": "9d8a49e44133d6c27fbb2509e784feb0a971348845997c1fbe1ad954974db0e8",
+      "libtest_results": [
+        {
+          "passed": 75,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-ubusd-check-default.log",
+      "bytes": 329,
+      "sha256": "cc30c9223a2114a0312590cb6b61fdffeaa46303ee028ba950ccfb4fa593b1b4",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-ubusd-clippy-default.log",
+      "bytes": 336,
+      "sha256": "b27497bfef0dd53b26825a52e978854cc060e836a2baeeb65974e4cf3358a3b6",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-ubusd-examples-default.log",
+      "bytes": 159,
+      "sha256": "117fb97b70bb34444f234efbcc77121422e9e29a1b57a35b5246c261b72c14c6",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-ubusd-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-ubusd-test-default.log",
+      "bytes": 26890,
+      "sha256": "86eccb7acc13c2263fb7b030eb3405511f7ddcadf4fad949da08ef2ce6a75492",
+      "libtest_results": [
+        {
+          "passed": 60,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 15,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-uci-check-default.log",
+      "bytes": 462,
+      "sha256": "1b11df670acb13a39d2b20c6dfae001d32fe00bd5fc277f6f66a77c804d33691",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-uci-clippy-default.log",
+      "bytes": 345,
+      "sha256": "299f55c885be450c6f8a82030a906e8b020e324045421ea588cebd357d14b94c",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-uci-doc.log",
+      "bytes": 388,
+      "sha256": "7377568a3cc88050b93dea6e02fdcd07795ee85d5eebf2e55504825d7c8d532a",
+      "libtest_results": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/components-uci-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/components-uci-test-default.log",
+      "bytes": 6074,
+      "sha256": "b3766a51db6c8d2ad89e51ad57fddaddaf1916c5d8579a9033c39faae8e5216f",
+      "libtest_results": [
+        {
+          "passed": 23,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 17,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-fuzz-check.log",
+      "bytes": 1256,
+      "sha256": "ddb8e633b032c1dc7bb1797058f9bf60588959028761587b5d5b252b64947a80",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/dnsmasq-fuzz-fmt-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/dnsmasq-ignored-bin.log",
+      "bytes": 588,
+      "sha256": "8579f4f886e2d0bdc17a112ccb7cdded722e13c86f8f8fa021566e02e98b2bb5",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/dnsmasq-ignored-lib.log",
+      "bytes": 1779,
+      "sha256": "88ed45861b691febf8a954f070c36fadc705f20b3d3cac19ee5754976dbb8376",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-bin-0.log",
+      "bytes": 393,
+      "sha256": "02582264e98eea678a834eea6573b7157171e8362757f56c60830a4dd8ac0f54",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-bin-1.log",
+      "bytes": 417,
+      "sha256": "1c06f0ad092c1cda9996d851891928f1d1e47486943e954d20202a6dc47667e6",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-bin-2.log",
+      "bytes": 412,
+      "sha256": "dc314f41edc2204b9ceea83a037c3b0ef4b231a7504773a94841059b15644072",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-bin-3.log",
+      "bytes": 422,
+      "sha256": "18605d8262f03c1462b9b1beac9b9ae42288e94b2f0dd9a09d0ccaf4e338c185",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-13.log",
+      "bytes": 429,
+      "sha256": "28f75bbc29e34ce45d37b5c80fd7c620db515fb57320266dcc736d6cb95fe23b",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-14.log",
+      "bytes": 408,
+      "sha256": "593183d64d07205c301fdb5364da9bb2ff0dcc8695ece98f011f3d43d0d073cb",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-15.log",
+      "bytes": 382,
+      "sha256": "6f86242a1e6cc7dfd34c898ea07d79273a4355c4e1007ae31fa3aab4f60c6c81",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-16.log",
+      "bytes": 393,
+      "sha256": "c7d724546de7f1a7a4a231c6f7eb9b1c25ce0fd9c39d09480187e931489cd0b7",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-17.log",
+      "bytes": 391,
+      "sha256": "41a9e6554bf2b4722833a8cdbff4077de0afa7f091a8b5396219ca75cfcc02b8",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-18.log",
+      "bytes": 364,
+      "sha256": "4c997b266d60fd62d272ded08e053b8767a2aa3a6a98c65b4a8aa544dab97416",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-19.log",
+      "bytes": 401,
+      "sha256": "5a8c3d7090e6a2af536f1810b0948a3a394dfc50c9b64c76a00adde7ee500ca2",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-20.log",
+      "bytes": 417,
+      "sha256": "3eff5f2adb5df58bfa38764dc9404d1a10ff4b5f6c2aac7952e76d893cfd26f2",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-21.log",
+      "bytes": 397,
+      "sha256": "668b792661605fc4a3bbf31c8663c5a22ab6c68270f16c49467a3856daa54426",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-4.log",
+      "bytes": 398,
+      "sha256": "960894dd13921488479950b337c661751e40eee672d7427d7f8b568782aae5a0",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-5.log",
+      "bytes": 388,
+      "sha256": "fa8ab89930301c554180c2cd18f6993679a68f5769d744517fbeb38f74ec3c87",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-6.log",
+      "bytes": 409,
+      "sha256": "030d15e513787371a0174e55ae8a34e95079ecc50660e4fbb1914c6598a435c8",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-7.log",
+      "bytes": 385,
+      "sha256": "bf9c82842ba57c0b50a02fffdaaaf1f051052733cf2576dc8cfa3b7467fc738c",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/dnsmasq-namespace-lib-8.log",
+      "bytes": 404,
+      "sha256": "893f67a4b9a1e5b4ac19de2369198da5859d552ae971d426c0febd9497fa474a",
+      "libtest_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates-04/fmt-check-driver.log",
+      "bytes": 1864,
+      "sha256": "1a8a83e6d1d8c362b59c6e997e35b1d631a1dc64a9c986453d9222cf0a601ff0",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/test-driver.log",
+      "bytes": 14020,
+      "sha256": "f10cb9f2e1a7f7fe22a52ad89a7290b84f745ac597a077cc5bb4ec16f3f15e8e",
+      "libtest_results": []
+    },
+    {
+      "path": "final-gates-04/tools-benchmark-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_results": []
+    }
+  ],
+  "counting_note": "These are test invocations, not distinct test cases: all-feature runs and examples can import the same module; --ignored --list executes no test. Custom process-owner harnesses are checked by exit status and their logs.",
+  "ancillary_logs": [
+    {
+      "path": "final-tools.log",
+      "sha256": "fbb08eb43fc83fe348dbf819e43ef86a5518691f9035b3f5582beceaf88216eb",
+      "python_test_counts": []
+    },
+    {
+      "path": "final-tools-02.log",
+      "sha256": "30ef56261376d170caa883ccf7cdc77ac8d9a24fba6ed6142fda1b2d295968eb",
+      "python_test_counts": [
+        "6",
+        "19",
+        "3",
+        "4",
+        "5",
+        "22",
+        "9",
+        "25"
+      ]
+    }
+  ],
+  "earlier_attempts": [
+    {
+      "directory": "final-gates",
+      "result": "failed: PID1 fixture assumed visible parent process group; three ubusd Clippy diagnostics"
+    },
+    {
+      "directory": "final-gates-02",
+      "result": "tests passed; subsequent source changes required final rerun"
+    },
+    {
+      "directory": "final-gates-03",
+      "result": "tests passed; standalone DNS platform Clippy rejected missing adjacent SAFETY comment and test-module ordering"
+    }
+  ]
+}

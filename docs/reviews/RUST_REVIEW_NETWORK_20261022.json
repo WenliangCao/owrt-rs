@@ -1,0 +1,1422 @@
+{
+  "review_date": "2026-10-22",
+  "reviewer": "audit_network_services",
+  "method": "Source text read in contiguous segments of at most 150 lines without counting truncated output. Each source SHA is verified; changed documentation after a complete read records exact-byte line mapping and direct reread ranges.",
+  "guidelines_reading": {
+    "source_url": "https://microsoft.github.io/rust-guidelines/agents/all.txt",
+    "sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+    "line_count": 3529,
+    "coverage_ranges": [
+      [
+        80,
+        162
+      ],
+      [
+        247,
+        396
+      ],
+      [
+        397,
+        522
+      ],
+      [
+        527,
+        580
+      ],
+      [
+        644,
+        681
+      ],
+      [
+        699,
+        749
+      ],
+      [
+        1164,
+        1193
+      ],
+      [
+        1212,
+        1286
+      ],
+      [
+        1315,
+        1464
+      ],
+      [
+        1581,
+        1730
+      ],
+      [
+        1731,
+        1805
+      ],
+      [
+        1904,
+        2011
+      ],
+      [
+        2064,
+        2129
+      ],
+      [
+        2454,
+        2560
+      ],
+      [
+        2561,
+        2686
+      ],
+      [
+        2720,
+        2810
+      ],
+      [
+        2903,
+        3052
+      ],
+      [
+        3053,
+        3112
+      ],
+      [
+        3466,
+        3529
+      ]
+    ],
+    "full_read": false,
+    "note": "Subsystem applicable rules actually reread here; root separately reread complete official text."
+  },
+  "delegated_components": {
+    "netifd": "audit_dns_core / RUST_REVIEW_NETIFD_20261022.json",
+    "odhcpd": "audit_dns_runtime / RUST_REVIEW_ODHCPD.json"
+  },
+  "files": [
+    {
+      "path": "components/fw4/build.rs",
+      "sha256": "a17deb59027f7738283bb647df9a330e473e082f7c0b393729523982d88e9d5b",
+      "line_count": 16,
+      "coverage_ranges": [
+        [
+          1,
+          16
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-DOCUMENTED-MAGIC",
+        "M-OOBE"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Only musl/Linux adds the documented getauxval linker symbol; Cargo protocol println is expected; no target memory or runtime I/O behavior changes."
+    },
+    {
+      "path": "components/fw4/platform/entry.rs",
+      "sha256": "8dcc593992b4ea7322b22ef82fc4dc424c444590aedb04246e522cdf76a342a2",
+      "line_count": 23,
+      "coverage_ranges": [
+        [
+          1,
+          23
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-CANONICAL-DOCS",
+        "M-LINT-OVERRIDE-EXPECT"
+      ],
+      "conclusion": "confirmed issue fixed and reviewed",
+      "no_issue_reason": "Public CLI entry now requires sole-thread process ownership for environment mutation; libc startup adapter documents and proves contract. Unchanged rendering helpers remain safe; exact command exits and child environment semantics preserved."
+    },
+    {
+      "path": "components/fw4/src/emit.rs",
+      "sha256": "39660df6b5de959c78dc613eff55a84952f629229510d159cf8bca15eeb38bcc",
+      "line_count": 379,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          379
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-HOTPATH",
+        "M-AVOID-STATICS",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Stable output order and upstream quoting are explicit; set singleton indexing is guarded; filesystem failures produce existing warnings; immutable default static is constant data, not mutable global state; no measured hotpath refactor justified."
+    },
+    {
+      "path": "components/fw4/src/flowtable.rs",
+      "sha256": "b257e59956f449134be1b4866761bbc407250541dee6759ff36154f3f4207a28",
+      "line_count": 202,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          202
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Bounded request/response and fallback retain safe behavior; malformed nfgenmsg fix has independent raw-message tests; no unchecked reply slicing remains."
+    },
+    {
+      "path": "components/fw4/src/input.rs",
+      "sha256": "fd6188e1b42eed9ad64347e9bef96cdd288105a1fdf87890035c636b76eb545d",
+      "line_count": 478,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          478
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-PANIC-IS-STOP",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-AVOID-STATICS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Real and mock I/O remain explicit; subprocess status and SIGPIPE behavior preserved, fixed internal timeouts bound subprocess work, fallible input and state loading use Option/Result, admin-controlled include paths preserve upstream behavior."
+    },
+    {
+      "path": "components/fw4/src/ip.rs",
+      "sha256": "d89470c72475e132deef7f66b2f9e24e4b528c1c6f57a548f6d858edce8b3cf0",
+      "line_count": 364,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          364
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "ASCII gates protect byte slicing; fixed-size address guards protect formatting; signed MIN bounds now checked and covered with independent expected masks."
+    },
+    {
+      "path": "components/fw4/src/lib.rs",
+      "sha256": "caa9d86df5a7846e993330a9d1cf2087059a94124af7614941690445cac38fb5",
+      "line_count": 594,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          594
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-CANONICAL-DOCS",
+        "M-LINT-OVERRIDE-EXPECT"
+      ],
+      "conclusion": "confirmed issue fixed and reviewed",
+      "no_issue_reason": "Public CLI entry now requires sole-thread process ownership for environment mutation; libc startup adapter documents and proves contract. Unchanged rendering helpers remain safe; exact command exits and child environment semantics preserved."
+    },
+    {
+      "path": "components/fw4/src/parse.rs",
+      "sha256": "e6e959a8157c6d601aab76d5670b45361f0a8a40d4b4b36997994f02be51efe6",
+      "line_count": 1369,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          600
+        ],
+        [
+          601,
+          750
+        ],
+        [
+          751,
+          900
+        ],
+        [
+          901,
+          1050
+        ],
+        [
+          1051,
+          1200
+        ],
+        [
+          1201,
+          1350
+        ],
+        [
+          1351,
+          1369
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-STRONG-TYPES-GUARD",
+        "M-MEM-REUSE",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Options return Option/Result with upstream warnings; all byte slices are bounded at ASCII delimiters or guarded by ASCII checks, port/date/time limits are explicit, array indices follow cardinality checks, shared Rc configs prevent wholesale copies, fixtures assert independent protocol expectations. Keep ucode coercion semantics and private parser API rather than introducing wrappers."
+    },
+    {
+      "path": "components/fw4/src/reload.rs",
+      "sha256": "cab0a4024dab3ad8246435a8cb47f547b9206bb21755b7e850da9033c0a67ac2",
+      "line_count": 324,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          324
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-MOCKABLE-SYSCALLS",
+        "M-PANIC-IS-STOP",
+        "M-HOTPATH"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Cache is conservative and fails closed on missing/malformed input; netlink attributes bounded and transaction generation rechecked; recursion shortens the path each step; write failure only loses optimization under existing fw4 lock."
+    },
+    {
+      "path": "components/fw4/src/render.rs",
+      "sha256": "9f993878dffca7f77ee8a1218e5052649752deacde2b990a8e0fd653af34905d",
+      "line_count": 1405,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          600
+        ],
+        [
+          601,
+          750
+        ],
+        [
+          751,
+          900
+        ],
+        [
+          901,
+          1050
+        ],
+        [
+          1051,
+          1200
+        ],
+        [
+          1201,
+          1350
+        ],
+        [
+          1351,
+          1405
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-ON-BUG",
+        "M-PANIC-MESSAGE",
+        "M-HOTPATH",
+        "M-RUST-SHAPED",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Formatting writes target owned String and cannot fail; unwraps follow corresponding Some/filter conditions; recursion clears its log condition after one extra render, zone indices originate in validated private parser state, lower-device recursion follows kernel sysfs DAG. Direct netlink query falls back to nft on unsupported/malformed responses. Preserve exact output ordering and quoting; do not optimize clones without measurements."
+    },
+    {
+      "path": "components/fw4/src/sections.rs",
+      "sha256": "ae22d53144421570e930af53a5788b596dcf9a9419e48a85e74cb7ef4e288dc4",
+      "line_count": 3079,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          600
+        ],
+        [
+          601,
+          750
+        ],
+        [
+          751,
+          900
+        ],
+        [
+          901,
+          1050
+        ],
+        [
+          1051,
+          1200
+        ],
+        [
+          1201,
+          1350
+        ],
+        [
+          1351,
+          1500
+        ],
+        [
+          1501,
+          1650
+        ],
+        [
+          1651,
+          1800
+        ],
+        [
+          1801,
+          1950
+        ],
+        [
+          1951,
+          2100
+        ],
+        [
+          2101,
+          2250
+        ],
+        [
+          2251,
+          2400
+        ],
+        [
+          2401,
+          2550
+        ],
+        [
+          2551,
+          2700
+        ],
+        [
+          2701,
+          2850
+        ],
+        [
+          2851,
+          3000
+        ],
+        [
+          3001,
+          3079
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-MOCKABLE-SYSCALLS",
+        "M-LINT-OVERRIDE-EXPECT"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "All typed option parsers reject invalid required data before mutating state; zone IDs derive from enumerated stable zones and unwraps are guarded by parser results or lengths. Preserve ucode coercion, ordering and abort254 semantics rather than restructure rule expansion. Rc config ownership avoids section copies. Tests assert actual rejection/rendered output; their fixed tagged fixture directories rely on the required runner private TMPDIR for cross-process isolation. Legacy scoped argument/type-complexity allowances are adoption debt, not a reason for an API rewrite."
+    },
+    {
+      "path": "components/fw4/src/state.rs",
+      "sha256": "f576e2e98848be41fee9b62d456eb6a7e38c46acf9cf2793a8f423272e46afda",
+      "line_count": 392,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          392
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-STRONG-TYPES",
+        "M-SIMPLE-ABSTRACTIONS",
+        "M-PUBLIC-DEBUG"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Owned typed state has no unsafe or external side effects; nullable values preserve ucode contracts; collection order intentional; broad newtypes/builders would be an unrelated rewrite, so retained with parser validation."
+    },
+    {
+      "path": "components/fw4/src/statefile.rs",
+      "sha256": "ca07938ac812012ccb7e26c812a2413232e0b224c1951845b814205fda0a4cb5",
+      "line_count": 285,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          285
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-MODULE-DOCS",
+        "M-PANIC-IS-STOP"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Serializer explicitly preserves nullable fields/order and saved-state shape; parser handles absent/wrong-typed arrays via established defaults; indexes are not unchecked and no independent I/O or unsafe code exists."
+    },
+    {
+      "path": "components/fw4/src/uci.rs",
+      "sha256": "464367bba782c239f1b33c60661c97f40a4e8bea35fec706651ba37ea278c3d8",
+      "line_count": 192,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          192
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-MODULE-DOCS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Package ownership and source order explicit; config read/import failures follow established empty-config contract; mock parser has controlled fixture input; lossily decoded bytes documented."
+    },
+    {
+      "path": "components/fw4/src/val.rs",
+      "sha256": "d7b9a79cf06b3227847507a9af02a060b3df01ad8189b90e2ef33d98c3e9f1ee",
+      "line_count": 339,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          339
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Signed negation only follows positive digit parsing within i64 range; exponent operations derive from bounded f64 formatting; recursive JSON uses parser-bounded trees; byte-prefix guards protect UTF8 and compatibility coercions retained."
+    },
+    {
+      "path": "components/procd/examples/notifier.rs",
+      "sha256": "fc205f6850fc959a389acc75e401d9bda718e8c16ce29ef0f29b800433bf31f0",
+      "line_count": 49,
+      "coverage_ranges": [
+        [
+          1,
+          49
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-LOG-NOT-PRINT"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Example validates argv length, owns one ubus connection and returns I/O errors. Sleep windows intentionally stage independent namespace subscriber probe, whose outer harness verifies notification; no standalone unit test treats timing as proof."
+    },
+    {
+      "path": "components/procd/examples/profile.rs",
+      "sha256": "3018049d71ef0aa763f87d91c3a237500e66546a9fc4210ec05b2813218cbc96",
+      "line_count": 188,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          188
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-HOTPATH",
+        "M-MEM-REUSE",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Standalone profiling runner directly exercises production service projection and memory-info parsing, black-boxes outputs and reuses bounded buffers. Synthetic fixture scope is explicit, includes independent field-count checks and excludes libtest recompilation of daemon-private tests."
+    },
+    {
+      "path": "components/procd/examples/ptyhold.rs",
+      "sha256": "d015cbc94a7d1f8fd1199d980134dcf4cbe833c06f302fc8355114f4e99a1c5b",
+      "line_count": 67,
+      "coverage_ranges": [
+        [
+          1,
+          67
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-STRONG-TYPES",
+        "M-UNSAFE",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Standalone namespace fixture uses OwnedFd and nonblocking reads, bounded boot-marker polling and explicit terminal transcript. Fixed waits are documented physical-terminal staging under an externally bounded probe; no production path or unsafe ownership is introduced."
+    },
+    {
+      "path": "components/procd/examples/watchdog_status.rs",
+      "sha256": "e906cf94bab3b9b306cbbe2bb6f1db213ca4dfc1fe58a3fdd4e4b28115dba63b",
+      "line_count": 105,
+      "coverage_ranges": [
+        [
+          1,
+          105
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-MOCKABLE-SYSCALLS",
+        "M-PANIC-CONTINUATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Test-only executable injects ioctl results around actual watchdog module using owned socket pairs, verifying emitted ping and error/status sequence without a device. Mutex poison stops fixture, and process-local statics are not linked into daemon."
+    },
+    {
+      "path": "components/procd/src/dispatch.rs",
+      "sha256": "5914185e49205e8484f85a8dd21e592d60f0bd7122691d46d93456aa192626ba",
+      "line_count": 667,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          600
+        ],
+        [
+          601,
+          667
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-RUST-SHAPED",
+        "M-THROUGHPUT"
+      ],
+      "conclusion": "confirmed non-UTF8 environment panic fixed and reviewed",
+      "no_issue_reason": "Changed parent environment snapshot to vars_os and retained OsString keys/values through queued Command setup. Pure merge helper preserves parent-first and first-caller-value precedence, LD_/PATH filtering, and ASYNC=0 rejection even when the parent owns ASYNC. Independent non-UTF8 key/value fixtures inject data without mutating process environment. Registration/backoff, descriptor ownership, and scheduling logic remain unchanged."
+    },
+    {
+      "path": "components/procd/src/hotplug.rs",
+      "sha256": "12bd88b60aedfcdbdc7b057d60b35fe69ab1b0c94ca7c7ff4c31e7995822b153",
+      "line_count": 815,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          600
+        ],
+        [
+          601,
+          750
+        ],
+        [
+          751,
+          815
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-STRONG-TYPES",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-RUST-SHAPED"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Kernel event parsing checks UTF8 and delimiters; state machine owns socket/queue/child and removes indexed deadlines in reverse. Firmware fork requirement propagates through unsafe pump to sole-thread owner, while closed test source proves absence of firmware work. Exec arguments/env use Command without global mutation; temporary umask restoration and firmware status sequence retain C behavior. Fixtures verify actual button replay/cancellation and variable fallback."
+    },
+    {
+      "path": "components/procd/src/inittab.rs",
+      "sha256": "6fdd83018eee8fda866ce2e191923f563fee06dbc7f982830d0d88d60a8cde92",
+      "line_count": 238,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          238
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-DOCUMENTED-MAGIC"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Parser takes slices only after locating ASCII colon-delimited fields; invalid UTF8 boundary candidates fail before slicing. Arg limit, leftmost match, console fallback, and askfirst handling are explicit and independently tested. Filesystem errors retain upstream empty-action behavior."
+    },
+    {
+      "path": "components/procd/src/instance.rs",
+      "sha256": "c173f6570c08d213ee07ecb3349c1b9f49a3d1398bf36b1b45778cfb874d9098",
+      "line_count": 1466,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          600
+        ],
+        [
+          601,
+          750
+        ],
+        [
+          751,
+          900
+        ],
+        [
+          901,
+          1050
+        ],
+        [
+          1051,
+          1200
+        ],
+        [
+          1201,
+          1350
+        ],
+        [
+          1351,
+          1466
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-PUBLIC-DEBUG",
+        "M-CANONICAL-DOCS",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "confirmed test defects fixed and reviewed",
+      "no_issue_reason": "Replaced three tautological tests with actual blob parsing/dumping and injected ujail availability. Production performs its original metadata probe only when a non-traced jail is requested. Redacted Debug, opaque payload preservation, typed field policy and child runtime ownership remain intact. Corrected obsolete raw-field and missing-command documentation.",
+      "read_evidence": {
+        "snapshot_sha256": "fdca4995928045d890a8a3d5b212dc530ad8283f0a0ee8a69107cc3e71a4a4c3",
+        "snapshot_line_count": 1469,
+        "snapshot_read_ranges": [
+          [
+            1,
+            150
+          ],
+          [
+            151,
+            300
+          ],
+          [
+            301,
+            450
+          ],
+          [
+            451,
+            600
+          ],
+          [
+            571,
+            720
+          ],
+          [
+            721,
+            870
+          ],
+          [
+            871,
+            970
+          ],
+          [
+            971,
+            1120
+          ],
+          [
+            1121,
+            1270
+          ],
+          [
+            1271,
+            1420
+          ],
+          [
+            1421,
+            1469
+          ]
+        ],
+        "current_direct_reread_ranges": [
+          [
+            530,
+            609
+          ]
+        ],
+        "unchanged_line_mapping": [
+          {
+            "reviewed": [
+              1,
+              540
+            ],
+            "current": [
+              1,
+              540
+            ]
+          },
+          {
+            "reviewed": [
+              548,
+              581
+            ],
+            "current": [
+              541,
+              574
+            ]
+          },
+          {
+            "reviewed": [
+              582,
+              1469
+            ],
+            "current": [
+              579,
+              1466
+            ]
+          }
+        ],
+        "note": "Coverage ranges normalize the exact-byte unchanged mapping plus directly reread changed documentation; all current lines accounted for without rereading identical text."
+      }
+    },
+    {
+      "path": "components/procd/src/jsonscript.rs",
+      "sha256": "f1949e0141c0f7f636057a5a74d3c48f4dd5d1107ae9db81a50c5b8a65e5ad4d",
+      "line_count": 739,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          600
+        ],
+        [
+          601,
+          739
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-RUST-SHAPED"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Command and expression recursion share explicit 64-container budget even for raw blob inputs; field arrays are length/type checked before indices. Include cache and visited set prevent cycles, environment expansion uses borrowed typed values, and errors distinguish false from invalid expression. Raw deep fixtures exercise both paths and preserve unchanged normal grammar."
+    },
+    {
+      "path": "components/procd/src/main.rs",
+      "sha256": "2a0574c11753940b8ca0ad43841dd9801d42eed5c0c05c19f9c91cabe185aec0",
+      "line_count": 3725,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          600
+        ],
+        [
+          601,
+          750
+        ],
+        [
+          751,
+          900
+        ],
+        [
+          901,
+          1050
+        ],
+        [
+          1051,
+          1200
+        ],
+        [
+          1201,
+          1350
+        ],
+        [
+          1351,
+          1500
+        ],
+        [
+          1501,
+          1650
+        ],
+        [
+          1651,
+          1800
+        ],
+        [
+          1801,
+          1950
+        ],
+        [
+          1951,
+          2100
+        ],
+        [
+          2101,
+          2250
+        ],
+        [
+          2251,
+          2400
+        ],
+        [
+          2401,
+          2550
+        ],
+        [
+          2551,
+          2700
+        ],
+        [
+          2701,
+          2850
+        ],
+        [
+          2851,
+          3000
+        ],
+        [
+          3001,
+          3150
+        ],
+        [
+          3151,
+          3300
+        ],
+        [
+          3301,
+          3450
+        ],
+        [
+          3451,
+          3600
+        ],
+        [
+          3601,
+          3725
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-THROUGHPUT",
+        "M-MEM-REUSE",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "confirmed issue fixed and reviewed",
+      "no_issue_reason": "Reviewed complete supervisor/PID1 lifecycle and tests: borrowed config/runtime transfer preserves pipe and watchdog ownership, stable vlist plans avoid mutation invalidation, deferred requests retain owned FDs until completion/disconnect, and bounded bus drains/retry scheduling maintain watchdog/child deadlines. Unsafe spawning and sysupgrade calls are confined to private sole-thread owner paths; unit peer fixtures never enter instance/tty/firmware forks. Fixed sysupgrade contract caller and obsolete non-PID1 module description. Error exits/status and C event ordering retained."
+    },
+    {
+      "path": "components/procd/src/proc.rs",
+      "sha256": "9831c75233a8013d43b44484e2f81fd5d962fe120a803828084565798979dd9f",
+      "line_count": 513,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          513
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-STRONG-TYPES",
+        "M-THROUGHPUT",
+        "M-RUST-SHAPED"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Unsafe spawning entrypoints expose sole-thread/pre-exec conditions and forward owned captured setup; argv cardinality validated, pipe setup failure kills child, and normal Child drop leaves event-loop reaping ownership. Read budget and partial-line cap bound log work; any-child wait includes separate sessions. Signals and ujail positional flags preserve upstream behavior."
+    },
+    {
+      "path": "components/procd/src/rcs.rs",
+      "sha256": "9777b031264881b25fe9d565240c1c4227c2bc6d12102597eb9a8bee90f8090d",
+      "line_count": 522,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          375
+        ],
+        [
+          376,
+          522
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-STRONG-TYPES",
+        "M-THROUGHPUT"
+      ],
+      "conclusion": "confirmed issue fixed and reviewed",
+      "no_issue_reason": "Real queue retains independent widths, parameter-specific dedup, bounded log draining and owned child reaping. Reader setup now precedes spawn. Replaced flaky three-job sleep ordering with nine-job STOPPED barriers, explicit eight-running/one-queued assertion, 5-second observation deadlines and owned-child cleanup on panic. Exact startup/finish transcript proves queued ninth job behavior."
+    },
+    {
+      "path": "components/procd/src/service.rs",
+      "sha256": "95fa2c0d7f0e54f7d65089c99de7f24f81d22e08c96acb546034e0ca3b62f67b",
+      "line_count": 294,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          294
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PUBLIC-DEBUG",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-STRONG-TYPES"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "BTreeMap preserves C AVL order; vlist changes retain live-child ownership until reap, blob payload types and reverse validator order remain explicit. Debug omits opaque payloads with a regression fixture, and list tests check last-field precedence and deletion visibility."
+    },
+    {
+      "path": "components/procd/src/sys.rs",
+      "sha256": "bdc7a0f70c9b2df853e18cda9dc83ce1fa61bcb194fb23279616704522752f6d",
+      "line_count": 589,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          450
+        ],
+        [
+          451,
+          589
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-PANIC-CONTINUATION",
+        "M-AVOID-STATICS",
+        "M-DOCUMENTED-MAGIC"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Safe rustix/OwnedFd wrappers isolate libc mechanics, errno paths remain fallible, numeric atoi accumulation clamps before overflow, String slicing stops at ASCII NUL. Logger deliberately ignores output I/O failure to protect PID1; panic hook requests reboot/termination rather than recovery. Atomics are executable-global logger settings, not duplicated public library state. Standard descriptors are explicitly preserved when open fills slots0/1/2; fixture fd2 mutation runs under serialized isolated runner."
+    },
+    {
+      "path": "components/procd/src/sysobj.rs",
+      "sha256": "ac1fdf81074ffc14388522fab879476316e4fa6ca21ae75b381b0f57fe0cecb5",
+      "line_count": 384,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          384
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-MEM-REUSE",
+        "M-PANIC-IS-STOP",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-RUST-SHAPED"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Owned procfs descriptor and reusable buffer keep repeated info requests current; fallback reopens on error. Byte parser guards complete tokens and slice bounds, widens atoi before multiplying, and uses independent malformed fixtures. Kernel-derived statvfs/sysinfo arithmetic retains upstream word behavior; no network-controlled arithmetic reaches it. Host smoke tests intentionally check availability rather than compare changing counters."
+    },
+    {
+      "path": "components/procd/src/sysupgrade.rs",
+      "sha256": "1206760208e2a761961f5fe4e714be63d0ded9d032bb5128ebd33c650439e399",
+      "line_count": 218,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          218
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-CANONICAL-DOCS",
+        "M-PANIC-IS-STOP"
+      ],
+      "conclusion": "confirmed issue fixed and reviewed",
+      "no_issue_reason": "Fixed unsound safe exec handover: exported function now unsafe with sole-thread environment contract, and private daemon caller proves ownership. Option payload widths and ASCII names validated; command arguments remain separately encoded, std Child drops while supervisor retains reaping role, failure restores watchdog CLOEXEC. Fixed privileged validator script remains trusted and retains upstream first-JSON behavior."
+    },
+    {
+      "path": "components/procd/src/trigger.rs",
+      "sha256": "113defd24ce061e3c08b80d5b6babfa0d0d74d1a136b6579c72847363f36a351",
+      "line_count": 303,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          300
+        ],
+        [
+          301,
+          303
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PUBLIC-DEBUG",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-PANIC-IS-STOP"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Trigger/queue ownership and redacted diagnostics are explicit; malformed blob entries are skipped, scripts use bounded jsonscript engine, timers accept deterministic monotonic time, dedup and requeue preserve C behavior with independent scenarios. Pattern slicing follows an ASCII match boundary."
+    },
+    {
+      "path": "components/procd/src/ubus.rs",
+      "sha256": "18e99afb41c23eb4ca8c8d0009fd12c7c215da30553486c3e9449cb4c2f1fe39",
+      "line_count": 164,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          164
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-DOCUMENTED-MAGIC",
+        "M-RUST-SHAPED",
+        "M-STRONG-TYPES"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Read-only protocol signature tables document exact upstream field types/order and unsupported-method behavior; no mutable global state, allocation or unsafe logic to replace. Typed enum distinguishes service/system/container dispatch."
+    },
+    {
+      "path": "components/procd/src/watchdog.rs",
+      "sha256": "35dcddbea5bfaf42beb0c7fb98588b77cf8b19b7730892caf4f11ee687de716f",
+      "line_count": 242,
+      "coverage_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          242
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-STRONG-TYPES",
+        "M-RUST-SHAPED",
+        "M-DOCUMENTED-MAGIC"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Runtime API owns descriptors; startup handover is transferred once and deferred for non-PID1 callers, CLOEXEC toggles borrow the same owner, close drops exactly once and magic close remains explicit. Timer arithmetic combines monotonic process clock with widened i32 seconds, preserving C timeout/frequency behavior."
+    },
+    {
+      "path": "components/procd/tests/process/proc.rs",
+      "sha256": "f531bd8214444d917ee602f3e9f87c5c524130bb4681ef40ea88efef6812c86a",
+      "line_count": 142,
+      "coverage_ranges": [
+        [
+          1,
+          142
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-UNSAFE"
+      ],
+      "conclusion": "confirmed issue fixed and reviewed",
+      "no_issue_reason": "Fixed fixture assumption that PID1 always sees its inherited parent process group. Now checks actual child process group and session IDs both equal child PID. waitid(WNOWAIT) synchronizes before production reap; output assertions observe real child environment and SIGPIPE state; each child is reaped by owner."
+    },
+    {
+      "path": "components/procd/tests/process/watchdog.rs",
+      "sha256": "3415972bf93a228873f0fa60fd85e81a36110c0296890e98c7162d5ee5fd6265",
+      "line_count": 129,
+      "coverage_ranges": [
+        [
+          1,
+          129
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSOUND",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Real pipe verifies ping/magic close bytes, actual exec verifies CLOEXEC, fd reuse checks final close ownership, and delayed handover verifies non-PID1 semantics. Global environment mutation is reachable only through documented unsafe fixture entry under single-thread standalone owner."
+    },
+    {
+      "path": "components/procd/tests/process_owner.rs",
+      "sha256": "c606d541547e2c14610463f8a2d63db64e21f78561e01dd726eef007ea991f93",
+      "line_count": 70,
+      "coverage_ranges": [
+        [
+          1,
+          70
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-UNSAFE",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS"
+      ],
+      "conclusion": "reviewed; no additional change required",
+      "no_issue_reason": "Harness-free main starts no threads and checks real /proc thread count before and after unsafe fixture entry. Reuses production modules rather than copying behavior; six tests execute sequentially with explicit process/descriptor ownership. Scoped allow accounts for differently reachable imports in module reuse."
+    }
+  ],
+  "validation": [
+    "oracle mbx test fw4 --all-targets: 21 passed; final-gates/components-fw4-entry-test-all-targets.log",
+    "oracle mbx clippy fw4 --all-targets -Dwarnings passed; final-gates/components-fw4-entry-clippy.log",
+    "oracle mbx test procd --all-features --test process_owner with exact PID-namespace final runner: 6 passed; final-gates/components-procd-process-owner-pid1.log",
+    "oracle mbx test procd --bin procd-rs rcs::tests::the_rc_queue_runs_up_to_eight_at_once with exact PID-namespace final runner: 1 passed; final-gates/components-procd-rc-width.log",
+    "oracle mbx test procd --bin procd-rs instance::: 23 passed; final-gates/components-procd-instance-contracts.log",
+    "oracle mbx clippy procd --all-features --all-targets -Dwarnings passed; final-gates/components-procd-instance-contracts-clippy.log",
+    "Root integrates full final gates and refreshes differential artifact identities after shared platform/source changes.",
+    "oracle mbx test procd --bin procd-rs dispatch::tests:: with exact final PID namespace runner: 5 passed; final-gates/components-procd-dispatch-env.log",
+    "oracle mbx clippy procd --all-features --all-targets -Dwarnings passed after vars_os change; final-gates/components-procd-dispatch-env-clippy.log"
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

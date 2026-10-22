@@ -1,0 +1,657 @@
+{
+  "schema": 1,
+  "scope": "Three DHCP owner modules and twelve DNS owner/CLI/allocation test modules; supplementary independently recorded full source review",
+  "guideline_source": "https://microsoft.github.io/rust-guidelines/agents/all.txt",
+  "guideline_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "files": [
+    {
+      "path": "components/dnsmasq/src/dhcp/daemon.rs",
+      "line_count": 4462,
+      "sha256_before": "42f9e0e735355a6cec16c2288239f16a002266265c76c12d6560d42d538953a5",
+      "sha256_after": "42f9e0e735355a6cec16c2288239f16a002266265c76c12d6560d42d538953a5",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1080
+        ],
+        [
+          1081,
+          1260
+        ],
+        [
+          1261,
+          1440
+        ],
+        [
+          1441,
+          1620
+        ],
+        [
+          1621,
+          1800
+        ],
+        [
+          1801,
+          1980
+        ],
+        [
+          1981,
+          2160
+        ],
+        [
+          2161,
+          2340
+        ],
+        [
+          2341,
+          2520
+        ],
+        [
+          2521,
+          2700
+        ],
+        [
+          2701,
+          2880
+        ],
+        [
+          2881,
+          3060
+        ],
+        [
+          3061,
+          3240
+        ],
+        [
+          3241,
+          3420
+        ],
+        [
+          3421,
+          3600
+        ],
+        [
+          3601,
+          3780
+        ],
+        [
+          3781,
+          3960
+        ],
+        [
+          3961,
+          4140
+        ],
+        [
+          4141,
+          4320
+        ],
+        [
+          4321,
+          4462
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-PUBLIC-DISPLAY",
+        "M-HOTPATH",
+        "M-MEM-REUSE",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Checked startup error/source and exit-class mapping, initialization and forced DNS retry, atomic host/option generation ordering, lease/helper ownership, bounded retained callbacks, per-packet interface snapshots, PXE and lease-query dispatch, and tests. Existing source-bearing Restore error change retained; RefCell borrows remain within the single owner and callbacks do not reenter DHCP. No new production defect confirmed.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/files_runtime.rs",
+      "line_count": 878,
+      "sha256_before": "d7ca6b86f10b61b0f7312baee5bcb9e34dcb40bb717f328574a608ae54d7ce70",
+      "sha256_after": "d7ca6b86f10b61b0f7312baee5bcb9e34dcb40bb717f328574a608ae54d7ce70",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          878
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-PUBLIC-DISPLAY",
+        "M-HOTPATH",
+        "M-MEM-REUSE",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Checked generation state transitions and private unwrap invariants, bounded read/watch turns, static versus dynamic ordering, C-compatible read-error-as-EOF behavior, FIFO readiness and atomic publication. Real inode replacement, missing-directory recovery and FIFO tests retained; no new confirmed defect.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/service.rs",
+      "line_count": 1454,
+      "sha256_before": "4b3827ff61b5133e32be34833840a469531fd221c330a5abdb9901b94a9ce979",
+      "sha256_after": "5b5eaf42e172ad98115d7f96ca7158aa39361664ce974d729ff0a09c6153b0b3",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1080
+        ],
+        [
+          1081,
+          1260
+        ],
+        [
+          1261,
+          1431
+        ],
+        [
+          790,
+          865
+        ],
+        [
+          1420,
+          1454
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-PUBLIC-DISPLAY",
+        "M-HOTPATH",
+        "M-MEM-REUSE",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Checked bounded IPv4 admission, packet-buffer borrow lifetimes, DHCP/PXE metadata and relay routing, at-most-one deferred send, EINTR/EAGAIN handling and writable-interest removal. Prior two-second loopback readiness deadlines retained. Real sockets and injected sender failures provide independent observations; no new production defect confirmed. Added DispatchError Display/Error and nested ParseError source without changing admission or diagnostics callsites.",
+      "findings": [
+        "Public dispatch error lacked standard formatting and nested error composition; additive traits now expose its existing ParseError cause."
+      ],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording).",
+        "Final all-features libtest ran dhcp::service:: tests successfully; raw output private/final-dns-primitives-20261022/comparison-01/dhcp-service.stdout."
+      ],
+      "read_ranges_note": "Original source read in full; after 23 additive error-trait lines, exact diff and final lines 790-865/1420-1454 were reread. All other source bytes are unchanged."
+    },
+    {
+      "path": "components/dnsmasq/src/main_hosts_initial_hup_tests.rs",
+      "line_count": 162,
+      "sha256_before": "025cd64d2da0eb7466db195d7e031df4d2f362ff85569d2f44e25dc71c9368b3",
+      "sha256_after": "025cd64d2da0eb7466db195d7e031df4d2f362ff85569d2f44e25dc71c9368b3",
+      "read_ranges": [
+        [
+          1,
+          162
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked real FIFO replacement and HUP entry, startup DNS/DHCP/helper gates, queued request preservation and helper completion. The helper test is a sole-thread process-test-support entry and does not fork from libtest.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_hostsdir_init_tests.rs",
+      "line_count": 964,
+      "sha256_before": "70c424c14f7b28026c65590b0f2805fb15c5cb5efbffa72dd92e785f256c3a3f",
+      "sha256_after": "70c424c14f7b28026c65590b0f2805fb15c5cb5efbffa72dd92e785f256c3a3f",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          964
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked all startup, polling resolver, HUP, failed bulk publication and lease rename cases, retained Arc generations and real UDP replies. A pre-existing elapsed<50ms assertion can fail under host scheduling pauses; no production hook or timing-test rewrite introduced in this focused pass. The lower-bound FIFO checks use the actual 100ms fallback. Helper-start case is process-test-support only.",
+      "findings": [
+        "Existing 50ms elapsed upper bound remains scheduling-sensitive; deferred rather than adding production-only test instrumentation."
+      ],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_neighbor_tail_tests.rs",
+      "line_count": 255,
+      "sha256_before": "e874f2661dbae09b399f8e7260ad904401c878317d089fd70f5f09cac1307902",
+      "sha256_after": "e874f2661dbae09b399f8e7260ad904401c878317d089fd70f5f09cac1307902",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          255
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked kernel-neighbor dump readiness, continuation after tail publication, retained accept MAC, queued TCP/UDP/TFTP work and actual client replies. No synthetic readiness is accepted as received bytes; TFTP case explicitly requires namespace isolation.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_newaddress_tests.rs",
+      "line_count": 213,
+      "sha256_before": "301ba8b94638bef8dafbcf8082cc834c7809dee1c71332e4478daa43c49a9e8a",
+      "sha256_after": "301ba8b94638bef8dafbcf8082cc834c7809dee1c71332e4478daa43c49a9e8a",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          213
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked actual config finalization, lazy interface enumeration after NEWADDR, retained generation pointers, DAD retry scheduling and original UDP/TCP callers. Assertions use published records and wire replies, not duplicated implementation logic.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_route_resend_tests.rs",
+      "line_count": 419,
+      "sha256_before": "fa53ddee990b44d54f91e63c9d5a68a0147dbab2ae3380935dcfa4fb5390bdb4",
+      "sha256_after": "fa53ddee990b44d54f91e63c9d5a68a0147dbab2ae3380935dcfa4fb5390bdb4",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          419
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked real upstream resend bytes/peer and unchanged forwarding counters, batch WouldBlock retention, invalid/local/cache rejection, TCP mode differences and HUP invalidation. Negative receive checks are bounded and all sockets are local ephemeral fixtures.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_stale_refresh_log_tests.rs",
+      "line_count": 182,
+      "sha256_before": "d2406e1c6de8ad8ad87a75080bf1302234f06a44998983e92ba03fd54b23739c",
+      "sha256_after": "d2406e1c6de8ad8ad87a75080bf1302234f06a44998983e92ba03fd54b23739c",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          182
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked cache insertion with explicit expired clock, real stale reply TTL zero, immediate submission log and absence of duplicate client response after a late refresh. No sleep is used to establish stale ordering.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_tcp_import_local_tests.rs",
+      "line_count": 154,
+      "sha256_before": "a495c200b18eaf3cc75390fe306a2071814280e2745a6d491ff77c298d7220ef",
+      "sha256_after": "a495c200b18eaf3cc75390fe306a2071814280e2745a6d491ff77c298d7220ef",
+      "read_ranges": [
+        [
+          1,
+          154
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked shared parent publication versus retained child snapshots, current DHCP/static-host conflict policy, release handling and actual local wire TTL/address. Independent fixed expected values retained.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_tftp_admission_tests.rs",
+      "line_count": 172,
+      "sha256_before": "98b56635cf9bb82f9c987c9134dee629d2325d9fefe07c20aa0b21048bc64e73",
+      "sha256_after": "98b56635cf9bb82f9c987c9134dee629d2325d9fefe07c20aa0b21048bc64e73",
+      "read_ranges": [
+        [
+          1,
+          172
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked real RRQ, shared interface collector completion and original-datagram continuation, stale live-name denial, label exception and dedicated/static behavior. Interface mutations are namespace-gated and alias cleanup is scoped.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_udp_acl_tests.rs",
+      "line_count": 272,
+      "sha256_before": "e1997e08ff64561e6c54ba823653f72dca23a459717de4dc03092684f6d5e273",
+      "sha256_after": "e1997e08ff64561e6c54ba823653f72dca23a459717de4dc03092684f6d5e273",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          272
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked real UDP ingress independent of stale snapshots, literal destination and static-bind precedence, loopback inclusion/exclusion and interface-label retry. Namespace-only alias fixture proves original packet resumes and replies exactly once.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/main_udp_dispatch_tests.rs",
+      "line_count": 471,
+      "sha256_before": "025eddc9aeb5d4721a8d4bec2f11f934b38770f043947e90fae8414825318949",
+      "sha256_after": "025eddc9aeb5d4721a8d4bec2f11f934b38770f043947e90fae8414825318949",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          471
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL"
+      ],
+      "conclusion": "Checked fast/full owner wire and counter equivalence, bounded UDP budget, forwarded-query completion, buffered TCP fairness, real multi-fd readiness and deadline recheck. Signal-global test executes only in standalone process-test-support runner.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/startup/cli.rs",
+      "line_count": 282,
+      "sha256_before": "74cb7a008e65ae20be77658550efe8decf5acb0d7da2ce26a82f73315edc0c61",
+      "sha256_after": "74cb7a008e65ae20be77658550efe8decf5acb0d7da2ce26a82f73315edc0c61",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          282
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-MODULE-DOCS",
+        "M-RUST-SHAPED"
+      ],
+      "conclusion": "Checked all generated general/DHCP help strings, compile-time feature text and version implementation identity. This module is a fixed exact-image CLI contract; formatting its output or generalizing tables would change observable bytes without benefit.",
+      "findings": [],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/tests/hosts_allocations.rs",
+      "line_count": 1096,
+      "sha256_before": "96f8a2561d8f90d3b0a3f302c1508cdcd0f9305c9dbbf08c76c7115fbda18d92",
+      "sha256_after": "7408ce82c23b048f9e1250be642422e33287a2bde075a9eb3f8398f8e02818d3",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1080
+        ],
+        [
+          1081,
+          1087
+        ],
+        [
+          250,
+          390
+        ],
+        [
+          1081,
+          1096
+        ]
+      ],
+      "full_read": true,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-INTEGRATION-TESTS",
+        "M-TEST-UTIL",
+        "M-UNSAFE",
+        "M-UNSOUND"
+      ],
+      "conclusion": "Checked GlobalAlloc safety forwarding and thread-local injection isolation, all failure sweeps, atomic rollback/index/Arc ownership, finite/infinite retained-lease controls and recovery assertions. Added explicit successful-control completion assertions to three bounded sweeps so exhaustion cannot silently pass. No production allocator or ingestion behavior changed.",
+      "findings": [
+        "Three bounded fault sweeps could exhaust without asserting a successful control; explicit completion assertions now fail on that condition."
+      ],
+      "validation": [
+        "All 70 original contiguous source chunks read in full, each at most 180 lines, with no output truncation; hosts_allocations changed region and diff then re-read.",
+        "Parent owns final complete oracle mbx test/Clippy gates. Targeted hosts_allocations gate passed all 17 tests via ordinary-user mbx; log /home/ubuntu/owrt-rust-review-20261022/final-dns-hosts-controls.log. Cache misses diagnosed with mbx explain --last (changed rustix metadata/codegen flags and absent older dnsmasq_rs recording)."
+      ],
+      "read_ranges_note": "Original snapshot fully read in 180-line chunks; after inserting nine assertion/control lines, re-read final lines 250-390 and 1081-1096 plus the exact diff. Remaining source bytes are unchanged."
+    }
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

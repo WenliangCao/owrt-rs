@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "source_identity_file": "uci-fw4-final-identities.json",
+  "working_tree_sha256": "d9b529afd1610efedeb7bcebb5a30b76592b8994a4a4e45552810d197629d57e",
+  "input_count": 74,
+  "candidate_binaries": {
+    "uci": "6281a6565068bb95f6804ab919d417450883ff43b754cd05de4a0f86ce4d38fc",
+    "fw4": "ce3aff1d6dfa944b77e47ca2490d5f832d1a1ae8c7e08eaf3cd884f4baae5145"
+  },
+  "source_verified_after_validation": true,
+  "uci": {
+    "command": "sudo -n unshare --mount --fork env R92_UCI_RENAME_REJECT=1 bash tools/r83_uci_findings.sh /home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs /home/ubuntu/owrt-rust-review-20261022/uci-fw4-final-bins/uci-rs /home/ubuntu/owrt-rust-review-20261022/uci-differential-final",
+    "reference": "actual 25.12.6 rootfs /sbin/uci",
+    "files_compared": 554,
+    "stdout_status_files": 498,
+    "scratch_files": 56,
+    "result": "PASS",
+    "explicit_disposition": "R92 original raw non-UTF8 rename delta retained; candidate rejects without model/file mutation; exact expected outcomes individually checked before excluding them from ordinary tree diff.",
+    "log": "logs/uci-differential-final.log",
+    "raw": "uci-differential-final/"
+  },
+  "fw4": {
+    "command": "python3 tools/r09_fw4_check.py /home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/sources/components/firewall4 /home/ubuntu/owrt-rust-review-20261022/uci-fw4-final-bins/fw4-rs",
+    "reference": "upstream golden stdout/stderr/exit fixtures at b6e5157527d361f99ad52eaa6da273cb0f2dfd59 (unchanged in 25.12.6)",
+    "cases": 31,
+    "failures": 0,
+    "result": "PASS",
+    "log": "logs/fw4-differential-final.log",
+    "limit": "Golden fixture comparison, not a live kernel nftables or physical-router deployment test."
+  },
+  "build_logs": [
+    "logs/uci-musl-final.log",
+    "logs/fw4-musl-final.log"
+  ],
+  "cache_explanations": [
+    "logs/uci-musl-final-cache.log",
+    "logs/fw4-musl-final-cache.log"
+  ]
+}

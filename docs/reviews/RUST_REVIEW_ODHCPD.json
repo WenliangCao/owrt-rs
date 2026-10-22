@@ -1,0 +1,577 @@
+{
+  "schema": 1,
+  "scope": "All12 tracked odhcpd Rust files including10 production modules and2 integration test files",
+  "guideline_source": "https://microsoft.github.io/rust-guidelines/agents/all.txt",
+  "guideline_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "files": [
+    {
+      "path": "components/odhcpd/src/config.rs",
+      "line_count": 1055,
+      "sha256_before": "f1feaee6a1ed60e09f9aa7ba1e8fba3c837e507e13617b25aa8c22a57c0c9a66",
+      "sha256_after": "f1feaee6a1ed60e09f9aa7ba1e8fba3c837e507e13617b25aa8c22a57c0c9a66",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1055
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read all UCI/netifd conversion, pool/static-host validation and fixtures. Optional wrong-typed netifd fields are filtered; rejected patches are staged, duplicates rejected before runtime. Durations and prefix/IID/RA limits have explicit ranges; shared dnsmasq-only options retain ownership boundaries.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/control.rs",
+      "line_count": 1136,
+      "sha256_before": "90c3328ee2d6d9323410e4349593ed9437f7454008730910ec350221a5772842",
+      "sha256_after": "90c3328ee2d6d9323410e4349593ed9437f7454008730910ec350221a5772842",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1080
+        ],
+        [
+          1081,
+          1136
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read complete bounded worker/session/channel code and tests. One worker owns ubus connections, generation fences reject stale replies, pending network snapshot replaces only older pending data, notification queue/wake ordering and capacity flags prevent lost wakeups. Timeouts, stop checks and joins preserve owner responsiveness.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/dhcpv6.rs",
+      "line_count": 2108,
+      "sha256_before": "513115732b2faed0c2a5dd9557067e2f08b24795d9a90961b752eb4a0277652f",
+      "sha256_after": "513115732b2faed0c2a5dd9557067e2f08b24795d9a90961b752eb4a0277652f",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1080
+        ],
+        [
+          1081,
+          1260
+        ],
+        [
+          1261,
+          1440
+        ],
+        [
+          1441,
+          1620
+        ],
+        [
+          1621,
+          1800
+        ],
+        [
+          1801,
+          1980
+        ],
+        [
+          1981,
+          2108
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read all option/IA parsing, allocation, route ACK tracking, lease transitions, reply serialization and 20+ behavior tests. IA lengths are prevalidated before changes; 4096 leases and 512-byte IA response budget bound retained state. Configured DNS option/UDP sizes are guarded; explicit kind controls withdrawal encoding. No unsafe memory access.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/kernel.rs",
+      "line_count": 379,
+      "sha256_before": "c8ee40bb8ceca1c94d59ea5ebc7268b62ea2a1d58badabe9611f2bf4eb0bbf57",
+      "sha256_after": "c8ee40bb8ceca1c94d59ea5ebc7268b62ea2a1d58badabe9611f2bf4eb0bbf57",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          379
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read all netlink snapshot/event/route parsing and tests. Header and attribute lengths gate access, IPv6 prefix lengths validated, missing/overflow events trigger resync, successful PD route operations require ACK and deletion handles only defined absent-resource errors idempotently.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/leases.rs",
+      "line_count": 591,
+      "sha256_before": "95cdead41cef7c9684fac18f744afb08431c4e0d5d0bdbb7138972863f34f401",
+      "sha256_after": "95cdead41cef7c9684fac18f744afb08431c4e0d5d0bdbb7138972863f34f401",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          591
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read full lease views, state/host exports and subprocess lifecycle. Hostnames are validated/escaped before line output; mapping changes trigger one coalesced child, retries/deadlines use injected Clock, process-group cleanup retains direct-child ownership and bounds reaping. Current daemon owns state writes serially.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/lib.rs",
+      "line_count": 12,
+      "sha256_before": "a3dd58d12af9dd8d0388e4883b2d56f1a9722f36d91fe11060911a5a5c36e121",
+      "sha256_after": "a3dd58d12af9dd8d0388e4883b2d56f1a9722f36d91fe11060911a5a5c36e121",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          12
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read full module boundary; unsafe-op and documented unsafe blocks remain denied. Protocol, kernel, socket, persistence and ubus worker responsibilities are separately exposed without an async-runtime/dependency rewrite.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/main.rs",
+      "line_count": 1577,
+      "sha256_before": "d0d37db281d85c8811191c894414298cf2aa1b5b71f3b7b249fa0713370d3e1d",
+      "sha256_after": "d0d37db281d85c8811191c894414298cf2aa1b5b71f3b7b249fa0713370d3e1d",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1080
+        ],
+        [
+          1081,
+          1260
+        ],
+        [
+          1261,
+          1440
+        ],
+        [
+          1441,
+          1577
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read all process setup, signal handlers, reload/service reconciliation, packet/timer loop, bus request ordering, shutdown and unit fixtures. Packet batches are bounded; signal handlers use only atomics/write and preserve errno; invalid reload retains active services; pending config and kernel retry ordering preserve publication.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/model.rs",
+      "line_count": 127,
+      "sha256_before": "84d8833c38f704461f9e1f18227a8ba8a3aecc333caf5dd5fef8f7ffbb2df878",
+      "sha256_after": "84d8833c38f704461f9e1f18227a8ba8a3aecc333caf5dd5fef8f7ffbb2df878",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          127
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read all IPv6/clock/kernel data types. Prefix constructor checks 0..128 before shifts and masks addresses; lifetime conversion saturates; kernel Address::prefix relies on documented parsed-kernel invariant. Public raw model fields are internal compatibility data, not a new arbitrary-input schema.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/netio.rs",
+      "line_count": 605,
+      "sha256_before": "7d15f0aa5080d953f081741de07f91f279cae30ac5ec1b1beadab70037c32ac4",
+      "sha256_after": "7d15f0aa5080d953f081741de07f91f279cae30ac5ec1b1beadab70037c32ac4",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          605
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read every hand-written Linux64 FFI layout, compile-time ABI assertion, socket setup, pktinfo/hoplimit codec and socket test. Descriptor adoption happens once; buffers are separate initialized storage; truncation/interface/scope and returned lengths reject malformed packets; setters remain private typed call patterns.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/src/router.rs",
+      "line_count": 1196,
+      "sha256_before": "de6bcfee441d6638c791d7bc5622368c23c8e013d70fbfc9ebbb3be63cabe146",
+      "sha256_after": "de6bcfee441d6638c791d7bc5622368c23c8e013d70fbfc9ebbb3be63cabe146",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1080
+        ],
+        [
+          1081,
+          1196
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read complete RA/PIO construction, timing, persistence, RS validation and fixtures. Candidate PIO history commits only after successful send; malformed persisted data leaves prior state intact; RDNSS caps count at127, DNSSL option length checked, source/prefix lifetimes and deterministic clock/random tests preserve wire and timer contracts.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/tests/dns_option_bounds.rs",
+      "line_count": 84,
+      "sha256_before": "3744c9259e6cde414628e2a8459420a5c93d5f4d8d28ba9e9220b19535eaadf9",
+      "sha256_after": "3744c9259e6cde414628e2a8459420a5c93d5f4d8d28ba9e9220b19535eaadf9",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          84
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read complete public integration regression. Configured DNS sizes straddle valid u16 option and IPv6 UDP payload boundaries; tests parse encoded TLVs independently and ensure oversized inputs never produce wrapped or oversized replies or lease events.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    },
+    {
+      "path": "components/odhcpd/tests/trigger_lifecycle.rs",
+      "line_count": 372,
+      "sha256_before": "d800616226b24c9d6f66aa02a23aec2e0950b427e7851364e2cc1d703ec10709",
+      "sha256_after": "d800616226b24c9d6f66aa02a23aec2e0950b427e7851364e2cc1d703ec10709",
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          372
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "status": "reviewed-no-additional-change",
+      "findings": [],
+      "conclusion": "Read complete public lifecycle fixtures and cleanup. Start/release files synchronize actual callbacks; explicit Clock tests coalescing, spawn/exit retry, 35s timeout, reload disable/path change, descendant process group termination and sibling child noninterference. Cleanup uses owned StateFiles rather than reusing observed PIDs.",
+      "validation": [
+        "Supplementary reread of all58 file chunks, each at most180 lines. One aggregate output truncated inside control.rs541..720; that entire chunk and final1081..1136 tail were explicitly re-read in a separate untruncated output before marking complete.",
+        "No source changes by this supplementary reviewer. Existing DNS option boundary/withdrawal/lifecycle fixes remain intact. Root owns final frozen oracle mbx test/Clippy gates; earlier odhcpd private ubusd/IPv6 namespace tests are separately evidenced by audit_network_services."
+      ]
+    }
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

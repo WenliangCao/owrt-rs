@@ -1,0 +1,659 @@
+{
+  "reviewer": "primary",
+  "status": "source-reading-complete; final tests pending",
+  "files": [
+    {
+      "path": "components/ubus/src/blob.rs",
+      "line_count": 636,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          636
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "c57472349f5f9acd04ea556956c4411fa5daf0aa041375602df625a7b83a36cc",
+      "sha256": "caaac032a0c67cc18a288fdda21b2b05c6a2fed5584ac572027c8e2d354f6e61",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Blob padding, offset arithmetic, typed widths, builder cookies and sensitive buffers; offset overflow now returns None; redacted new Debug."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/conn.rs",
+      "line_count": 3372,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          3372
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "3136c69604b7ddb75a3bb156845898e0086ae521ab3953fa0191992cd8a4bc70",
+      "sha256": "f259a0a00dd1387b5edc200b84f28d220158dc2dcfd4f2f280c5ba9dfb23e4a8",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Framing, deadlines, descriptor ownership, pending notification limits, reply/status ordering and request recycling; tests additionally reviewed by frontend agent."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/connect.rs",
+      "line_count": 360,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          360
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "e13b204a2dd56628e58bad432635e41624843af0c834c77bdb13b8fe03724fa5",
+      "sha256": "11f84f840e2c1944d215796c87d1a70626838b033caf2ad39a9b9f6e3fab4d0b",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "AF_UNIX EAGAIN backlog, absolute HELLO deadline, cancellation, rejected paths and connection teardown; timed real-transport tests retained."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/convert.rs",
+      "line_count": 308,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          308
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "786f490a3156ae5b9b9a0072b02eb7c575be83c3c8976a2040183612eeebde2b",
+      "sha256": "074488af98c4046a665a3a4acd7443fd7286e3e122a8a0b5131a0925d35248ff",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Container-depth checks, atomic append failure, signed numeric conversion and raw-byte preservation; depth test uses independent 64-container oracle."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/digest.rs",
+      "line_count": 219,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          219
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "fc640eaa282c84933da377e5fe695b6ad3fe39d5d0486477068b71122d4ec5c5",
+      "sha256": "58130610b32fdeeb06101665984a976bd940a378158d52cee995f5e70cca849d",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "RFC1321 compression/padding, reader error propagation and vectors; mechanical iterator lints fixed without changing operations."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/json.rs",
+      "line_count": 666,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          666
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "a5fcb9cd3e0e63eff4ad2457b83a8aacd0e064099f3921505afd8d962a111d98",
+      "sha256": "35f05157da1ae8849a2aa9f7ca662f1d5b0619bbcfb9d7003f5ed3b84169b177",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Bounded parse depth, duplicate keys, C numeric/string leniencies, byte serialization and SWAR any-bit fallback; existing independent scalar/vector tests."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/lib.rs",
+      "line_count": 25,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          25
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "e1b6ef2eee22bdee1e587a39b27249ec41ec8c7d5ac289444947f9952efa265c",
+      "sha256": "c9c7cab80f58eb4bb737f243223e7318f42dab699a59ca7895c2b666008b7c60",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Public API paths and owned reexports documented inline; historical aliases retained for current callers."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/msg.rs",
+      "line_count": 146,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          146
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+      "sha256": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Fixed header encoding, malformed attr filtering and protocol status constants; wire values retained."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/readiness.rs",
+      "line_count": 296,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          296
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "1e164afe8d22d9c8d00858d30e40845be8ad4fd82a218124abe49828e6515243",
+      "sha256": "ae5e87940bf3d865da87b88bd8ff163e4925a3eddf607b4c4e20bdc518d5c569",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Level epoll interests, fallback slot/token alignment and read/write/EOF tests; descriptor policy remains owner-side."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubus/src/sys.rs",
+      "line_count": 424,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          424
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "5def603999a82708cd7aff448c331d7d0682e33042e10b53d24fd75392c5899c",
+      "sha256": "5c9ad140bd20802a928edcb53aaf0fc7cac6b35bd9cf8018cf060ab6977fea80",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Bounded sends/reads, EINTR/cancellation, partial-frame timeout classification and FD capture; unsafe signal API is reexported without hiding contract."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/bench.rs",
+      "line_count": 181,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          181
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "a8c7a6b5d49cceb594a3f81d4d2a0f15b1a062ba61ebd1044db7c5ef15882d95",
+      "sha256": "5a48b38dc300d13e12187f3a7e1a6a63fdda02bdbb99584a0f953c13ea0763a0",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "The same Connection client drives C and Rust lookup/invoke fixtures; 3-second request budgets and preallocated latency samples are outside daemon hot paths. Percentiles handle zero samples. Notify measures send completion, not remote acknowledgement, so its numbers must retain that interpretation."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/connection_memory.rs",
+      "line_count": 71,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          71
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "6fbb1531b11e86844a80500c0817f3968f8cb2e5c633459d44677b86a8a94f68",
+      "sha256": "5142980b0ca99b45f0d8f3c14aaa79f4596b4bbcb50c3cf0152613ea3ecd7946",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "Socket pairs and Client owners remain live through each inline/boxed comparison; fixture counts never exceed the fixed 128-peer storage. Clearing retains only table allocation and dropping clients/peers must restore requested-heap baseline. Does not infer RSS or CPU from allocator counters."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/event_memory.rs",
+      "line_count": 198,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          198
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "ee6b043c330116c4f148b2bcd99d50766fa0280764ed663e82fd0373b9110b53",
+      "sha256": "b1e8e6c73650cbee1f22582c23f4cf09d91a801588f5b82ca19398ec0da7ccfe",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "Actual event register/send dispatch validates STATUS and each listener frame, sequence and object ID; 32KiB payload forces queued writes while 16-byte payload does not. Nonblocking drains have a 2-second deadline and preallocated output bounds; all socket and registry owners are dropped before retained-heap assertion."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/fuzz.rs",
+      "line_count": 306,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          306
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "600ef79150f31d9218a76b91db13bf9f91d4b2fc994eb1a12d10eda520cf62ba",
+      "sha256": "b9c495dd2105853a54aef624c3f4f4e6170cfdd207050d078047956317ab536b",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "Malformed and fragmented wire inputs exercise actual daemon frame handling; complete HELLO/STATUS frames are now read with exact lengths before the next exchange. Independent fragmented-reader regression prevents one short read from being counted as a valid response; fixed corpus and socket timeouts bound this diagnostic."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/heap_support/mod.rs",
+      "line_count": 76,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          76
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "01d0572e7e26b603b30e63fa76e09451bab80229eb1ebb8a72ed2abda7b267d2",
+      "sha256": "274fa01f894976705b7a88c6bd2d28d39b7eb833f287ed4a1ab3e44379dd43e2",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "GlobalAlloc forwards each original pointer/Layout to System unchanged; null allocation/reallocation never updates counters, and failed realloc retains the original accounting. Atomics do not allocate or dereference user memory; relaxed counters are diagnostic requested bytes rather than a process footprint estimate."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/method_memory.rs",
+      "line_count": 117,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          117
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "ad3a0bf928de8a33240d226986a330a5040d3b5805ab4f8e2c1d583f999f8eda",
+      "sha256": "04d7f7f91984e055f6a2cc34b4f26e8202e0bb5ac60277d0da80365192951ecb",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "Actual ADD_OBJECT accepts synthetic signatures and produces independently checked DATA/STATUS frames, with bounded frame buffers and a 2-second read timeout. Registry path/type counts, method lengths and refcounts are verified before all owners must return heap to baseline."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/profile.rs",
+      "line_count": 309,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          309
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "819e4832c159d54af1665f1bb8c75880a976c5eec6886bf3bbd88b97e4da293d",
+      "sha256": "7337e373fdef41a40d6cf267c61ac04d2f573a2ba962a302cf707261f951f8fe",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "Receive, dispatch, send and backpressure stages use owned socket-pair fixtures and validate output byte counts/frames before reporting timings. Backpressure progress has bounded deadlines and verifies parked command processing; instrumented allocation counts are not substituted for uninstrumented performance measurements."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/registration_memory.rs",
+      "line_count": 117,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          117
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "95fbbd96c0b1d2c4c5e1cd7b304e440942b9dd38acc9e79f29fa8c018a43ced2",
+      "sha256": "6c0f160ba5cf4b0ebaa1bc63194e9ba3db01936497ff386a369d05ea37e54e19",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "Named root credentials are owned by real Client instances during ADD_OBJECT dispatch. Counters reset before construction, each bounded DATA/STATUS frame is consumed, and type/refcount/signature accounting plus post-drop heap equality prevent a partial registration from looking like an improvement."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/registry_memory.rs",
+      "line_count": 114,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          114
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "b8e3471a7bdcc974268f59b1d92a700938776dad47c7f74a5f9fea0751b9fa3b",
+      "sha256": "291ea436ca041f6717411e2c424209c9cad5388fd81c50cb71dbe58e0d55e4c3",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "Registry fixtures exercise object/path indexes and shared empty types with fixed path lengths >=8. A cloned path remains valid after object and registry destruction, lookup removal is asserted, then dropping the last path owner returns requested heap to baseline; allocator forwarding is sound."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/examples/wireprobe.rs",
+      "line_count": 1084,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          1084
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "83fe77ae88e2fb5c27a8b5d8388f3282f068305a3ad6782698704318be6f33da",
+      "sha256": "9a90242062c3d0a390fead18e09643223f235bb3268031a0af01af67d7371010",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION",
+        "M-TEST-UTIL",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-UNSAFE"
+      ],
+      "conclusion": [
+        "Exact wire assertions cover registration, type lifetime, malformed frame recovery, caller/owner routing and FD transfer ownership. Borrowed descriptions replace a deliberate leak; fd_count now inspects each directory result before counting so iterator count optimization cannot skip an error check."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/src/acl.rs",
+      "line_count": 524,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          524
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "4da8ba56df2fc1d87eccd27b3612d2a860f3fc0b1c00570bc0dd9a9d95e0007f",
+      "sha256": "db0f5fe786585718246a889c9db803aa735abe2f75b700cda4bd1522bcdb6db6",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Root/pathless policy, credential lookup fallback, trusted-file checks, sorted prefix matching and group tests checked against retained contract."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/src/main.rs",
+      "line_count": 371,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          371
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "3eab69e29fd8ffea210ba25bafd97be66c0ba59af0032e25ddd78518e4058f3f",
+      "sha256": "c4cac9e1235a14eac644d3d3851879b777d3a7af90ae827193053a18055a9a9d",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Signal handlers, readiness loop, reconnect/resource backoff and per-client ownership; signal install now narrow explicit unsafe with fixed-handler proof."
+      ],
+      "changes": [
+        "Focused implementation/diagnostic change; see final source diff."
+      ],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    },
+    {
+      "path": "components/ubusd/src/sys.rs",
+      "line_count": 164,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          164
+        ]
+      ],
+      "read_basis": "Complete cumulative source reads in this task, supplementary untruncated missing-range reads, full changed-hunk review, then rustfmt-only line mapping. Shared long test ranges independently reread by frontend reviewer.",
+      "sha256_before": "a23a3777bcd220f86bca246bd2719d15e16217e1c5972977f80a42d23cb91f30",
+      "sha256": "36e7adb0ec5872ce73afed89fc45894136ee742e6b1539115d2663b8b0b03187",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-PANIC-IS-STOP",
+        "M-RUST-SHAPED",
+        "M-MEM-REUSE",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": [
+        "Owned socket calls, daemon startup umask scope, peer credentials and random non-cryptographic registry IDs; C-string path handling retained."
+      ],
+      "changes": [],
+      "verification": "Frozen-tree gate results recorded separately; reading completion is not a test-pass claim."
+    }
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

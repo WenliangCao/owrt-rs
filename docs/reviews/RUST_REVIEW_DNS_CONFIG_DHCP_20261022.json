@@ -1,0 +1,1510 @@
+{
+  "review_date": "2026-10-22",
+  "reviewer": "audit_network_services",
+  "method": "Consolidated earlier 50-file findings without upgrading absent range evidence to full coverage. New strict reread pending.",
+  "files": [
+    {
+      "path": "components/dnsmasq/src/config/dhcp.rs",
+      "sha256_before": "6c55ccb39c1c4d956917d841cdfa6e720b89144db24948107d8b4a1bcd89355e",
+      "lines": 1146,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "validated DHCP grammar, explicit unsupported cases, quoted separator handling, startup domain wrapper and host/tag selection ordering; retain public model layout."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "6c55ccb39c1c4d956917d841cdfa6e720b89144db24948107d8b4a1bcd89355e",
+      "sha256": "6c55ccb39c1c4d956917d841cdfa6e720b89144db24948107d8b4a1bcd89355e",
+      "line_count": 1146,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "validated DHCP grammar, explicit unsupported cases, quoted separator handling, startup domain wrapper and host/tag selection ordering; retain public model layout."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_host_files.rs",
+      "sha256_before": "7603302083330887e798b7e2d577804fac6310802b9d1139370ec52840525e57",
+      "lines": 394,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "incremental directory expansion, provenance/order, recoverable syntax errors versus unsupported selectors; generation replacement only on ready reload."
+      ],
+      "changes": [
+        "Use &Path at the borrowed append_child path boundary; no allocation/ownership/order change."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "a49303e13f88d321d3dc5716b5751247d8edad16e35637d1f00eec2fabd11b46",
+      "sha256": "a49303e13f88d321d3dc5716b5751247d8edad16e35637d1f00eec2fabd11b46",
+      "line_count": 394,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "incremental directory expansion, provenance/order, recoverable syntax errors versus unsupported selectors; generation replacement only on ready reload."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_network.rs",
+      "sha256_before": "3754e4d2951e632d097a68e77ebfaef9fa9f581b9c6adb5da3c72ede31b5d0cb",
+      "lines": 318,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "interface resolution is injected, reply-delay priority and source-interface identity preserved; wrapping numeric behavior explicitly follows the image."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "3754e4d2951e632d097a68e77ebfaef9fa9f581b9c6adb5da3c72ede31b5d0cb",
+      "sha256": "3754e4d2951e632d097a68e77ebfaef9fa9f581b9c6adb5da3c72ede31b5d0cb",
+      "line_count": 318,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "interface resolution is injected, reply-delay priority and source-interface identity preserved; wrapping numeric behavior explicitly follows the image."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_options.rs",
+      "sha256_before": "3db989f55496d2ae1272145d4c509aba1179a138db9eb7003347168cb6af6c45",
+      "lines": 953,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "size-limited option encoders, private matcher invariants, tag priority and raw/address/time widths; compressed domain tail traversal remains bounded by encoded storage."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "3db989f55496d2ae1272145d4c509aba1179a138db9eb7003347168cb6af6c45",
+      "sha256": "3db989f55496d2ae1272145d4c509aba1179a138db9eb7003347168cb6af6c45",
+      "line_count": 953,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "size-limited option encoders, private matcher invariants, tag priority and raw/address/time widths; compressed domain tail traversal remains bounded by encoded storage."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_pxe.rs",
+      "sha256_before": "c1cfa6d0d45269b53723fedffcecdc1e9883e4d15d29ccf49f93dcfbedbde67b",
+      "lines": 263,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "PXE menu/vendor/prompt length guards, declaration order and auto type IDs; errors avoid upstream undefined NULL/length behavior."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "c1cfa6d0d45269b53723fedffcecdc1e9883e4d15d29ccf49f93dcfbedbde67b",
+      "sha256": "c1cfa6d0d45269b53723fedffcecdc1e9883e4d15d29ccf49f93dcfbedbde67b",
+      "line_count": 263,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "PXE menu/vendor/prompt length guards, declaration order and auto type IDs; errors avoid upstream undefined NULL/length behavior."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_relay.rs",
+      "sha256_before": "38891c5d050a72acc9d5e8f5b982d6703e11ac26eb3c81a767f27890fdd34368",
+      "lines": 186,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "split relay parsing, address guard before unwrap, checked u16 ports and explicit wrap at client port65536."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "38891c5d050a72acc9d5e8f5b982d6703e11ac26eb3c81a767f27890fdd34368",
+      "sha256": "38891c5d050a72acc9d5e8f5b982d6703e11ac26eb3c81a767f27890fdd34368",
+      "line_count": 186,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "split relay parsing, address guard before unwrap, checked u16 ports and explicit wrap at client port65536."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns.rs",
+      "sha256_before": "14b89061c3acd0270cf4fd4d3ce3e84d8fd33f3d32d7df5252125d808b7a688f",
+      "lines": 1364,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "hostname/source/family and reverse-prefix parsing, public address-domain selection; reject invalid manually constructed IPv6 prefixes through existing Result API and validate_ready."
+      ],
+      "changes": [
+        "hostname/source/family and reverse-prefix parsing, public address-domain selection; reject invalid manually constructed IPv6 prefixes through existing Result API and validate_ready."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "19e7787ddd45474d81479da9c0aadd83518f89bf5620590470d9b4cdef8e6b18",
+      "sha256": "8553d97f3b1af15f2998e8c9027db24e457f8e5746a0bc771539520da30d23a7",
+      "line_count": 1407,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "hostname/source/family and reverse-prefix parsing, public address-domain selection; reject invalid manually constructed IPv6 prefixes through existing Result API and validate_ready."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_endpoints.rs",
+      "sha256_before": "dc40fa57fb5d70d78284d64a771b3ffd739154afdb691a9667ef4bf5ee308eeb",
+      "lines": 168,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "injected resolver/scope seams, partial accepted results and exact address/domain ordering; empty resolver vector handled without invalid slices."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "dc40fa57fb5d70d78284d64a771b3ffd739154afdb691a9667ef4bf5ee308eeb",
+      "sha256": "dc40fa57fb5d70d78284d64a771b3ffd739154afdb691a9667ef4bf5ee308eeb",
+      "line_count": 168,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "injected resolver/scope seams, partial accepted results and exact address/domain ordering; empty resolver vector handled without invalid slices."
+    },
+    {
+      "path": "components/dnsmasq/src/config/domains.rs",
+      "sha256_before": "b2ac6d23cc25276dfbdbffde188bd2290ca64b68dcf16d09e55d19c4db4a8a9b",
+      "lines": 220,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "byte-oriented interface labels, explicit observed shift semantics and partial-read handling; no unrelated mask rewrite."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "b2ac6d23cc25276dfbdbffde188bd2290ca64b68dcf16d09e55d19c4db4a8a9b",
+      "sha256": "b2ac6d23cc25276dfbdbffde188bd2290ca64b68dcf16d09e55d19c4db4a8a9b",
+      "line_count": 220,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "byte-oriented interface labels, explicit observed shift semantics and partial-read handling; no unrelated mask rewrite."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dump.rs",
+      "sha256_before": "dc6cd827fd0d3a958f4b9e6655a68edd3ebca3c7eadcb6b608384fcef8eed081",
+      "lines": 128,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "strtol-compatible sign/radix/saturation and low-bit narrowing are explicit; config only, startup owns files."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "dc6cd827fd0d3a958f4b9e6655a68edd3ebca3c7eadcb6b608384fcef8eed081",
+      "sha256": "dc6cd827fd0d3a958f4b9e6655a68edd3ebca3c7eadcb6b608384fcef8eed081",
+      "line_count": 128,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "strtol-compatible sign/radix/saturation and low-bit narrowing are explicit; config only, startup owns files."
+    },
+    {
+      "path": "components/dnsmasq/src/config/edns.rs",
+      "sha256_before": "4f35260bf48cf361da35dfb197b68d611560106a39c0acd8988cd52f94e3cf14",
+      "lines": 236,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "typed subnet/Umbrella parsing with ASCII/hex guards; constant-size chunks use as_chunks without changing values."
+      ],
+      "changes": [
+        "typed subnet/Umbrella parsing with ASCII/hex guards; constant-size chunks use as_chunks without changing values."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "5e9708c5f6d3f7bfb371be2200388e9133bec5f65858d4bf5ea58eef24f5bda3",
+      "sha256": "5e9708c5f6d3f7bfb371be2200388e9133bec5f65858d4bf5ea58eef24f5bda3",
+      "line_count": 236,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "typed subnet/Umbrella parsing with ASCII/hex guards; constant-size chunks use as_chunks without changing values."
+    },
+    {
+      "path": "components/dnsmasq/src/config/ethers.rs",
+      "sha256_before": "a723c202cba6eceaa9d33ec9fdb3a004615bd3bae4a3c7b6127d44762837928f",
+      "lines": 562,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "host provenance vectors remain private, staged nonblocking reload commit and bounded per-step read; hardware parser bounds hex output to6."
+      ],
+      "changes": [
+        "Replace bool::then filter_map with explicit filter/map; retain exact provenance and host order."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "2b1358f7218a1e224aea4665a33dae84a6ef87deec776c9c71bd624bcdb40eeb",
+      "sha256": "2b1358f7218a1e224aea4665a33dae84a6ef87deec776c9c71bd624bcdb40eeb",
+      "line_count": 561,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "host provenance vectors remain private, staged nonblocking reload commit and bounded per-step read; hardware parser bounds hex output to6."
+    },
+    {
+      "path": "components/dnsmasq/src/config/interface_records.rs",
+      "sha256_before": "a983ea953d7bf22490f50acc5a8e362d6f93c9f63ecbaf5b6b2759e293a71bd9",
+      "lines": 141,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "required arity checked before unwrap, range/interface field boundaries and typed address families; C byte/case behavior retained."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "a983ea953d7bf22490f50acc5a8e362d6f93c9f63ecbaf5b6b2759e293a71bd9",
+      "sha256": "a983ea953d7bf22490f50acc5a8e362d6f93c9f63ecbaf5b6b2759e293a71bd9",
+      "line_count": 141,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "required arity checked before unwrap, range/interface field boundaries and typed address families; C byte/case behavior retained."
+    },
+    {
+      "path": "components/dnsmasq/src/config/loader.rs",
+      "sha256_before": "817bfefbb3ca901052c3631d7ae6d58f9894e90c2458492c0510dd21674ee4ea",
+      "lines": 899,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "owned include paths, dev/inode recursion ownership, byte-preserving CLI options and explicit fatal script-error contract; preserve ignored SIGPIPE and error locations."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "817bfefbb3ca901052c3631d7ae6d58f9894e90c2458492c0510dd21674ee4ea",
+      "sha256": "817bfefbb3ca901052c3631d7ae6d58f9894e90c2458492c0510dd21674ee4ea",
+      "line_count": 899,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "owned include paths, dev/inode recursion ownership, byte-preserving CLI options and explicit fatal script-error contract; preserve ignored SIGPIPE and error locations."
+    },
+    {
+      "path": "components/dnsmasq/src/config/logging.rs",
+      "sha256_before": "6503db9d5925761df96b956dab6672bcdb39bf232f11c986970468bb26ff981d",
+      "lines": 204,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "independent query flags, explicit signed musl wrapping and bounded async queue; destination byte paths retained."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "6503db9d5925761df96b956dab6672bcdb39bf232f11c986970468bb26ff981d",
+      "sha256": "6503db9d5925761df96b956dab6672bcdb39bf232f11c986970468bb26ff981d",
+      "line_count": 204,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "independent query flags, explicit signed musl wrapping and bounded async queue; destination byte paths retained."
+    },
+    {
+      "path": "components/dnsmasq/src/config/mod.rs",
+      "sha256_before": "1b3f751e0074e1f22c4cdfb713c0b028c75f571e39af0eaf44de1b10d8ce54c0",
+      "lines": 505,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "private EncodedArg owns quoting invariants; linear byte lexer avoids UTF8 boundaries; required/optional arity and occurrence origin checked centrally."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "1b3f751e0074e1f22c4cdfb713c0b028c75f571e39af0eaf44de1b10d8ce54c0",
+      "sha256": "e045896af8fa3e690c1fa37ee4d05ffd7b427fc1e21b06bfcf498f4aa4bef1b5",
+      "line_count": 505,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "private EncodedArg owns quoting invariants; linear byte lexer avoids UTF8 boundaries; required/optional arity and occurrence origin checked centrally."
+    },
+    {
+      "path": "components/dnsmasq/src/config/options.rs",
+      "sha256_before": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+      "lines": 202,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "generated option/alias/repetition metadata retained; sorted-table invariants and exact C differential belong to existing tests."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+      "sha256": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+      "line_count": 202,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "generated option/alias/repetition metadata retained; sorted-table invariants and exact C differential belong to existing tests."
+    },
+    {
+      "path": "components/dnsmasq/src/config/records.rs",
+      "sha256_before": "638dc9cfab40a17ef3f9f518aa0257d7bf7d995b0ddad8078e525891a5ad0795",
+      "lines": 752,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "local-record widths and safe C narrowing, validated names, private raw-type index, iterative CNAME cycle walk avoids recursive stack growth."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "638dc9cfab40a17ef3f9f518aa0257d7bf7d995b0ddad8078e525891a5ad0795",
+      "sha256": "7d1fdd3db3f31645301c033d1f2f1ee311fe00a99d059633964cd54c8a19b141",
+      "line_count": 764,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "local-record widths and safe C narrowing, validated names, private raw-type index, iterative CNAME cycle walk avoids recursive stack growth."
+    },
+    {
+      "path": "components/dnsmasq/src/config/rrtypes.rs",
+      "sha256_before": "7bb3070d1100a1f42b3933837ef099d7476f7ad548fdf15d744561e273cb3c1d",
+      "lines": 126,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "matching upstream static RR name/code table with case-insensitive parsing and explicit observed integer narrowing."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "7bb3070d1100a1f42b3933837ef099d7476f7ad548fdf15d744561e273cb3c1d",
+      "sha256": "4beb7498145eac6aec139185574c171275b74a74149182956b08323d2f7f6cdd",
+      "line_count": 128,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "matching upstream static RR name/code table with case-insensitive parsing and explicit observed integer narrowing."
+    },
+    {
+      "path": "components/dnsmasq/src/config/scalar.rs",
+      "sha256_before": "6b2aa5f389f6558893b12e8bf3717c10d3ea28b71ce33cac06978ddccb4dc60a",
+      "lines": 345,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "arity, checked/wrapping numeric domains and delayed runtime finalization are explicit; keep parser acceptance versus runtime range gates distinct."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "6b2aa5f389f6558893b12e8bf3717c10d3ea28b71ce33cac06978ddccb4dc60a",
+      "sha256": "6b2aa5f389f6558893b12e8bf3717c10d3ea28b71ce33cac06978ddccb4dc60a",
+      "line_count": 345,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "arity, checked/wrapping numeric domains and delayed runtime finalization are explicit; keep parser acceptance versus runtime range gates distinct."
+    },
+    {
+      "path": "components/dnsmasq/src/config/script_arp.rs",
+      "sha256_before": "ac01a84b32de86dd7136d7c08612d6419bb484a140beb573d740b7c19ad08c30",
+      "lines": 20,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "small no-argument boolean API rejects extraneous parameter; no syscall boundary."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "ac01a84b32de86dd7136d7c08612d6419bb484a140beb573d740b7c19ad08c30",
+      "sha256": "ac01a84b32de86dd7136d7c08612d6419bb484a140beb573d740b7c19ad08c30",
+      "line_count": 20,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "small no-argument boolean API rejects extraneous parameter; no syscall boundary."
+    },
+    {
+      "path": "components/dnsmasq/src/config/state_probe.rs",
+      "sha256_before": "50eb02410e62b96bd0d5ba193a6fbe1165a09d1e767fdc3e1993efe57390d832",
+      "lines": 150,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "diagnostic source driver is not daemon-linked; byte-preserving parser-state output and surfaced fatal errors."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "50eb02410e62b96bd0d5ba193a6fbe1165a09d1e767fdc3e1993efe57390d832",
+      "sha256": "50eb02410e62b96bd0d5ba193a6fbe1165a09d1e767fdc3e1993efe57390d832",
+      "line_count": 150,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "diagnostic source driver is not daemon-linked; byte-preserving parser-state output and surfaced fatal errors."
+    },
+    {
+      "path": "components/dnsmasq/src/config/synth_domain.rs",
+      "sha256_before": "e9711d525323832ccdf1ebf4d6a24b7818a555e459d20f044675cf0e23a27d3f",
+      "lines": 361,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "IPv4 wrapping is deliberate image behavior; IPv6 dangerous sizes refused, forward/reverse wire targets bounded by canonical DNS encoder."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "e9711d525323832ccdf1ebf4d6a24b7818a555e459d20f044675cf0e23a27d3f",
+      "sha256": "4aa266efac8f74d413f7110fa952acab680cc993ed01704beea0190c2bb328e0",
+      "line_count": 376,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "IPv4 wrapping is deliberate image behavior; IPv6 dangerous sizes refused, forward/reverse wire targets bounded by canonical DNS encoder."
+    },
+    {
+      "path": "components/dnsmasq/src/config/tftp.rs",
+      "sha256_before": "1552ca002df7aa3c313c79e863e01f9deb3540f5b8fb1816d714dc63b0de078a",
+      "lines": 515,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "typed scalar gates, path identity/error source, privilege-dependent root I/O boundary and descriptor budget; no dependency/platform generalization."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "1552ca002df7aa3c313c79e863e01f9deb3540f5b8fb1816d714dc63b0de078a",
+      "sha256": "1552ca002df7aa3c313c79e863e01f9deb3540f5b8fb1816d714dc63b0de078a",
+      "line_count": 515,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "typed scalar gates, path identity/error source, privilege-dependent root I/O boundary and descriptor budget; no dependency/platform generalization."
+    },
+    {
+      "path": "components/dnsmasq/src/config/ubus.rs",
+      "sha256_before": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+      "lines": 40,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "explicit disabled/null/name states; reject activation of accepted-null parser state rather than reproduce upstream NULL dereference."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib config::: 116 passed,0 failed,4 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-config-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+      "sha256": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+      "line_count": 40,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "explicit disabled/null/name states; reject activation of accepted-null parser state rather than reproduce upstream NULL dereference."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/lease.rs",
+      "sha256_before": "c94ccb609189ea813d7ded8a67ed4cba024c2929263a8d3a98e244739391efdc",
+      "lines": 1610,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION",
+        "M-PUBLIC-DISPLAY",
+        "M-ERRORS-CANONICAL-STRUCTS"
+      ],
+      "findings": [
+        "LeaseId/private indexes preserve duplicate-address order and one expiry per lease; identity/capacity checks, explicit wrapping counters/time, owned script deletions; public errors lacked Display/Error."
+      ],
+      "changes": [
+        "Add Display and std::error::Error for existing LeaseError/RestoreError; RestoreError.source preserves the underlying lease error; no enum/layout/Debug change."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "55694c0b17fa576f3f0779bcde98b475a62eae6643205e9a88c50c1654ebcb58",
+      "sha256": "2b4cd3877605fc4cd4ff7f6d725ed9f4cd2bde970be71c669fa5e23d8d754c71",
+      "line_count": 1676,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "LeaseId/private indexes preserve duplicate-address order and one expiry per lease; identity/capacity checks, explicit wrapping counters/time, owned script deletions; public errors lacked Display/Error."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/lease_file.rs",
+      "sha256_before": "d55bcfd324b33baa9c3b3afbee3ab17c9e5ffb78cdfc8deeec9a34ab22d94452",
+      "lines": 498,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Bounded scanf token widths, initialized work buffer hex alias compatibility, streaming warnings/capacity errors, no path execution; unwraps follow immutable existence/ASCII guards."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "d55bcfd324b33baa9c3b3afbee3ab17c9e5ffb78cdfc8deeec9a34ab22d94452",
+      "sha256": "d55bcfd324b33baa9c3b3afbee3ab17c9e5ffb78cdfc8deeec9a34ab22d94452",
+      "line_count": 498,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Bounded scanf token widths, initialized work buffer hex alias compatibility, streaming warnings/capacity errors, no path execution; unwraps follow immutable existence/ASCII guards."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/lease_query.rs",
+      "sha256_before": "49b61937ada15eb123bc60976962c4ea5572d83b5b38359fedd147abdb7b46b4",
+      "lines": 726,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "IPv4 ACL rejects invalid prefix widths, input class/context bounds, output buffer/hardware/TLV checks and packet-option overload limits."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "49b61937ada15eb123bc60976962c4ea5572d83b5b38359fedd147abdb7b46b4",
+      "sha256": "49b61937ada15eb123bc60976962c4ea5572d83b5b38359fedd147abdb7b46b4",
+      "line_count": 726,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "IPv4 ACL rejects invalid prefix widths, input class/context bounds, output buffer/hardware/TLV checks and packet-option overload limits."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/logging.rs",
+      "sha256_before": "8a31edc1ce63d9afa04884f8a48eb0d5ba8aa72c34d67d18bb4113ff1082894c",
+      "lines": 393,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Byte-preserving packet notice contract, printable filtering, field-length-bounded FQDN and option traversal; default trait scopes remain minimal."
+      ],
+      "changes": [
+        "Use as_chunks::<4>().0.iter() for fixed IPv4 option chunks; preserve ignored incomplete suffix behavior."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "5dc6797bf475612d5f1129a803c8ffbc0328f783e803785d6ac891c7dd4784f1",
+      "sha256": "ca43bca5a60eb6fae9610190f14dec290537bdad9346dd902c014236ef16d290",
+      "line_count": 395,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Byte-preserving packet notice contract, printable filtering, field-length-bounded FQDN and option traversal; default trait scopes remain minimal."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/persistence.rs",
+      "sha256_before": "84d2f7795b3dd8a5f15efc1cd06966635bf84d42b17a115099913be495af6809",
+      "lines": 465,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Explicit mockable LeaseIo, flush/fsync error ordering and dirty-state retention; held-inode contract, force DNS retry persistence and Error/source chaining."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "84d2f7795b3dd8a5f15efc1cd06966635bf84d42b17a115099913be495af6809",
+      "sha256": "1b4d0a0e4a2766af1645fa84015aec15f56a77d01f4d3755d4939fdce55ff33a",
+      "line_count": 480,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Explicit mockable LeaseIo, flush/fsync error ordering and dirty-state retention; held-inode contract, force DNS retry persistence and Error/source chaining."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/pxe.rs",
+      "sha256_before": "64a8985add2f0821c04a7aea5b36cf355441d73bdf5a978c28311fa801926ca8",
+      "lines": 701,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION",
+        "M-PUBLIC-DISPLAY",
+        "M-ERRORS-CANONICAL-STRUCTS"
+      ],
+      "findings": [
+        "Packet option minimums prove fixed slices, typed PXE state decisions and generated menu limits; missing Error/Display on MenuTooLarge."
+      ],
+      "changes": [
+        "Add Display and std::error::Error for MenuTooLarge without changing PXE fallback."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "d53ea0708f676942876a25f4e4d64ec33056b73c63caf1f239233a5632a487d8",
+      "sha256": "d53ea0708f676942876a25f4e4d64ec33056b73c63caf1f239233a5632a487d8",
+      "line_count": 710,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Packet option minimums prove fixed slices, typed PXE state decisions and generated menu limits; missing Error/Display on MenuTooLarge."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/relay.rs",
+      "sha256_before": "ef2390bd92ae6fdbe1b21c2a6572af5d684698664e2c7ca3e9a1ebdeebcaa20a",
+      "lines": 758,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Private reusable datagram scratch, input length/hop guards, bounded option82 parsing, interface ownership and restored giaddr; side effects remain in caller/kernel boundary."
+      ],
+      "changes": [
+        "Use then_some for a cheap borrowed interface Option, preserving forwarding behavior."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "c47c2a50b5a1f6c9012ead77392e1e32106c6a1c2374284391e0b1df08854fba",
+      "sha256": "c47c2a50b5a1f6c9012ead77392e1e32106c6a1c2374284391e0b1df08854fba",
+      "line_count": 758,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Private reusable datagram scratch, input length/hop guards, bounded option82 parsing, interface ownership and restored giaddr; side effects remain in caller/kernel boundary."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/reply.rs",
+      "sha256_before": "8ec058f44ce63a2b8fa3817fa3bce54163f11471e0ef7a5f72e5ae5b16725562",
+      "lines": 1461,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Validate buffer/TLV/boot values before mutation, request-bounded agent-ID reservation, checked option fits and typed error variants; no normal serialization algorithm change."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "8ec058f44ce63a2b8fa3817fa3bce54163f11471e0ef7a5f72e5ae5b16725562",
+      "sha256": "8ec058f44ce63a2b8fa3817fa3bce54163f11471e0ef7a5f72e5ae5b16725562",
+      "line_count": 1461,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Validate buffer/TLV/boot values before mutation, request-bounded agent-ID reservation, checked option fits and typed error variants; no normal serialization algorithm change."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/runtime.rs",
+      "sha256_before": "11c6189a85fecca80efc7a9caa23df06f0f9955bbe0ec2804b92e9c5452756c3",
+      "lines": 3322,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Injected entropy/send/state/host seams, commit retained across send errors, bounded wire serializers and ARP field lengths; preserve exact retry and PXE/vendor option policy."
+      ],
+      "changes": [],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "11c6189a85fecca80efc7a9caa23df06f0f9955bbe0ec2804b92e9c5452756c3",
+      "sha256": "24f29d760c2026301ad5b2e8183f03cbfbb281b434647fe7a8e2c4c08c0a5fb5",
+      "line_count": 3347,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Injected entropy/send/state/host seams, commit retained across send errors, bounded wire serializers and ARP field lengths; preserve exact retry and PXE/vendor option policy."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/state.rs",
+      "sha256_before": "da5ded923bef0616e23701cb54391bc5f3aa690679721b7daa4360e11d4461d2",
+      "lines": 1320,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION",
+        "M-LINT-OVERRIDE-EXPECT",
+        "M-SIMPLE-ABSTRACTIONS"
+      ],
+      "findings": [
+        "Caller-borrowed transaction lifetime, exact counter/status/write sites, client-identity authorization and ordered pruning; no socket or unsafe operations."
+      ],
+      "changes": [
+        "Replace one unnecessary as_deref_mut; document two precise Clippy argument-count expectations to retain existing audited transaction signatures."
+      ],
+      "validation": [
+        "oracle candidate/components/dnsmasq: mbx test --locked --lib dhcp::: 224 passed,0 failed,5 ignored; /home/ubuntu/owrt-rust-review-20261022/dns-dhcp-tests.log. Ignored tests require exact-C/privileged fixtures; root consolidates them with full Clippy/differential."
+      ],
+      "sha256_after": "101bce084de4d730bc5a8a2054abd1d868ccfe8eba74138a7b764dbcc0b7e065",
+      "sha256": "b0b9547c6bff050d3c21c64ce789d25ea5f97ea786349312b44dbe8b664fbf2b",
+      "line_count": 1331,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Caller-borrowed transaction lifetime, exact counter/status/write sites, client-identity authorization and ordered pruning; no socket or unsafe operations."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/daemon.rs",
+      "sha256_before": "9eebbc313fa7e080af188101f02aac0aef347335fceca8b11b957f60f8d0736e",
+      "lines": 4314,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Complete packet owner reviewed: startup/restore error classes, bounded file and interface generation ownership, retained helper callbacks/backpressure, lease/DNS commit before send, PXE/leasequery metadata and context/tag policy; preserve fixed runtime ordering. Restore cause now exposed through Error::source without changing diagnostics."
+      ],
+      "changes": [
+        "Complete packet owner reviewed: startup/restore error classes, bounded file and interface generation ownership, retained helper callbacks/backpressure, lease/DNS commit before send, PXE/leasequery metadata and context/tag policy; preserve fixed runtime ordering. Restore cause now exposed through Error::source without changing diagnostics."
+      ],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "90157e265b084a950e7a1680ac31a2c739f60950c87789a8004339e7fe4b8251",
+      "sha256": "42f9e0e735355a6cec16c2288239f16a002266265c76c12d6560d42d538953a5",
+      "line_count": 4462,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Complete packet owner reviewed: startup/restore error classes, bounded file and interface generation ownership, retained helper callbacks/backpressure, lease/DNS commit before send, PXE/leasequery metadata and context/tag policy; preserve fixed runtime ordering. Restore cause now exposed through Error::source without changing diagnostics."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/files_runtime.rs",
+      "sha256_before": "068e08eebe8ef1702526e543f01670c777d8c2057226f22e51d85650353280c5",
+      "lines": 844,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Complete generation/read/watch state and all tests reviewed: static/dynamic order, pending FIFO fairness, no early publication, restart after completed bank, exact inode/watch behavior. Retain prior agent Copy correction."
+      ],
+      "changes": [
+        "Complete generation/read/watch state and all tests reviewed: static/dynamic order, pending FIFO fairness, no early publication, restart after completed bank, exact inode/watch behavior. Retain prior agent Copy correction."
+      ],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "7ee5520fcb9d191a4dd38f7741c40c37d238f195f21825c0dbd57be86186e716",
+      "sha256": "d7ca6b86f10b61b0f7312baee5bcb9e34dcb40bb717f328574a608ae54d7ce70",
+      "line_count": 878,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Complete generation/read/watch state and all tests reviewed: static/dynamic order, pending FIFO fairness, no early publication, restart after completed bank, exact inode/watch behavior. Retain prior agent Copy correction."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/service.rs",
+      "sha256_before": "5e4016eb58025e62a04652ee0bb47c15cd1aa7db52aa947bd225870f808e380f",
+      "lines": 1374,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Complete listener/admission reviewed: bounded datagrams, owner-borrowed receive storage, at-most-one deferred send, poll wake interests, source/destination/interface validation and relay/PXE selection. Three privileged loopback tests now bound readiness waits to two seconds instead of hanging on regression."
+      ],
+      "changes": [
+        "Complete listener/admission reviewed: bounded datagrams, owner-borrowed receive storage, at-most-one deferred send, poll wake interests, source/destination/interface validation and relay/PXE selection. Three privileged loopback tests now bound readiness waits to two seconds instead of hanging on regression."
+      ],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "38aa2af4a13b0a91f50c6dc2e14cc3621d58397e6b30fe038c46fd2917bfefff",
+      "sha256": "4b3827ff61b5133e32be34833840a469531fd221c330a5abdb9901b94a9ce979",
+      "line_count": 1431,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Complete listener/admission reviewed: bounded datagrams, owner-borrowed receive storage, at-most-one deferred send, poll wake interests, source/destination/interface validation and relay/PXE selection. Three privileged loopback tests now bound readiness waits to two seconds instead of hanging on regression."
+    },
+    {
+      "path": "components/dnsmasq/src/main_hosts_initial_hup_tests.rs",
+      "sha256_before": "74a29407a2dc2c6d228be7326ef1fb9d8c8c84f5e493e125e385b7e2ad09221c",
+      "lines": 116,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Real FIFO/cancelled-first-reader and queued DNS/DHCP/helper state assertions; helper-start case already moved to standalone process owner feature gate."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "246f03ea18ef68d7a7a807d5b48ba0084005386270bd27de1b3e3d9c9e2eae11",
+      "sha256": "025cd64d2da0eb7466db195d7e031df4d2f362ff85569d2f44e25dc71c9368b3",
+      "line_count": 162,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Real FIFO/cancelled-first-reader and queued DNS/DHCP/helper state assertions; helper-start case already moved to standalone process owner feature gate."
+    },
+    {
+      "path": "components/dnsmasq/src/main_hostsdir_init_tests.rs",
+      "sha256_before": "d9802ec0e9a22ae6d336636166d7e7c58a6a78cc82c0b56a507c6544c0fefa46",
+      "lines": 585,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "All publication/HUP/failure/retained-lease fixtures read; private file paths and independent socket observations; helper-start test feature-gated for real sole-thread runner."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "dacb4a7072c971a4a6a7b5b78b910d36abf142b453b387811051c099f5820c6c",
+      "sha256": "70c424c14f7b28026c65590b0f2805fb15c5cb5efbffa72dd92e785f256c3a3f",
+      "line_count": 964,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "All publication/HUP/failure/retained-lease fixtures read; private file paths and independent socket observations; helper-start test feature-gated for real sole-thread runner."
+    },
+    {
+      "path": "components/dnsmasq/src/main_neighbor_tail_tests.rs",
+      "sha256_before": "05f9dfc28eaa293ca5514997329cc57a3084b6bae85116ebec62aa9f318f18a5",
+      "lines": 158,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Real kernel neighbor dump readiness and TCP/UDP/TFTP resume assertions; no synthetic poll witness treated as data; isolated network gate retained."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "05f9dfc28eaa293ca5514997329cc57a3084b6bae85116ebec62aa9f318f18a5",
+      "sha256": "e874f2661dbae09b399f8e7260ad904401c878317d089fd70f5f09cac1307902",
+      "line_count": 255,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Real kernel neighbor dump readiness and TCP/UDP/TFTP resume assertions; no synthetic poll witness treated as data; isolated network gate retained."
+    },
+    {
+      "path": "components/dnsmasq/src/main_newaddress_tests.rs",
+      "sha256_before": "744455a88c43d3d4bd300f1e3c4115247b5da6531d80ca2804d47fd1892e80ef",
+      "lines": 141,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Real lazy interface enumeration, generation pointer retention and caller wake contracts; no changes required."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "744455a88c43d3d4bd300f1e3c4115247b5da6531d80ca2804d47fd1892e80ef",
+      "sha256": "301ba8b94638bef8dafbcf8082cc834c7809dee1c71332e4478daa43c49a9e8a",
+      "line_count": 213,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Real lazy interface enumeration, generation pointer retention and caller wake contracts; no changes required."
+    },
+    {
+      "path": "components/dnsmasq/src/main_route_resend_tests.rs",
+      "sha256_before": "4cd6d3c4c39f8f676e47c0ba1cff558a75af95e5b6a4dbffd31e16753c483293",
+      "lines": 368,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Real UDP upstream requests/counters and original-packet route resend; bounded receive waits and distinct TCP/HUP invalidation fixtures."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "4cd6d3c4c39f8f676e47c0ba1cff558a75af95e5b6a4dbffd31e16753c483293",
+      "sha256": "fa53ddee990b44d54f91e63c9d5a68a0147dbab2ae3380935dcfa4fb5390bdb4",
+      "line_count": 419,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Real UDP upstream requests/counters and original-packet route resend; bounded receive waits and distinct TCP/HUP invalidation fixtures."
+    },
+    {
+      "path": "components/dnsmasq/src/main_stale_refresh_log_tests.rs",
+      "sha256_before": "375d96a42c4512da8e6d73bf9eba4638b8377b97ecdc9071d206509ae11d9b8d",
+      "lines": 110,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Expired clock injection avoids timing sleeps; independently observed wire TTL, immediate logging and absence of duplicate refresh answers."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "375d96a42c4512da8e6d73bf9eba4638b8377b97ecdc9071d206509ae11d9b8d",
+      "sha256": "d2406e1c6de8ad8ad87a75080bf1302234f06a44998983e92ba03fd54b23739c",
+      "line_count": 182,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Expired clock injection avoids timing sleeps; independently observed wire TTL, immediate logging and absence of duplicate refresh answers."
+    },
+    {
+      "path": "components/dnsmasq/src/main_tcp_import_local_tests.rs",
+      "sha256_before": "8511314064504634367b57a4b353270f384fec0aa5423c8b620063f413c97e3d",
+      "lines": 100,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Parent/child ownership and current DHCP/static-source publication compared through independent wire/address outcomes."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "8511314064504634367b57a4b353270f384fec0aa5423c8b620063f413c97e3d",
+      "sha256": "a495c200b18eaf3cc75390fe306a2071814280e2745a6d491ff77c298d7220ef",
+      "line_count": 154,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Parent/child ownership and current DHCP/static-source publication compared through independent wire/address outcomes."
+    },
+    {
+      "path": "components/dnsmasq/src/main_tftp_admission_tests.rs",
+      "sha256_before": "9e637ed167957c32ac72a39877cc11970222125e20c1ab7623747929a4b34fa0",
+      "lines": 121,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Isolated live interface-name/label admission through shared collector; RAII alias removal and bounded UDP reads; no second RRQ required."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "9e637ed167957c32ac72a39877cc11970222125e20c1ab7623747929a4b34fa0",
+      "sha256": "98b56635cf9bb82f9c987c9134dee629d2325d9fefe07c20aa0b21048bc64e73",
+      "line_count": 172,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Isolated live interface-name/label admission through shared collector; RAII alias removal and bounded UDP reads; no second RRQ required."
+    },
+    {
+      "path": "components/dnsmasq/src/main_udp_acl_tests.rs",
+      "sha256_before": "0b0a2ad4450e520285d430e3a9156c7dc3bae0b690c11fc6bd0a9a95c24cb0a9",
+      "lines": 168,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Live ingress versus old generation, strict ACL/literal precedence and isolated alias cleanup; malformed indices exercised without modifying physical state."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "0b0a2ad4450e520285d430e3a9156c7dc3bae0b690c11fc6bd0a9a95c24cb0a9",
+      "sha256": "e1997e08ff64561e6c54ba823653f72dca23a459717de4dc03092684f6d5e273",
+      "line_count": 272,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Live ingress versus old generation, strict ACL/literal precedence and isolated alias cleanup; malformed indices exercised without modifying physical state."
+    },
+    {
+      "path": "components/dnsmasq/src/main_udp_dispatch_tests.rs",
+      "sha256_before": "478fd676c56fe427a27ec53c62b4bb98d098ca7a04efccfb9df50f905c61e0b7",
+      "lines": 314,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Complete fast/full owner behavior fixtures read; one case mutated four process-global signal flags and could poison parallel tests. Move that case to feature-gated standalone owner runner coordinated with runtime agent."
+      ],
+      "changes": [
+        "Complete fast/full owner behavior fixtures read; one case mutated four process-global signal flags and could poison parallel tests. Move that case to feature-gated standalone owner runner coordinated with runtime agent."
+      ],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "ceec9dac2322065f83b8c475dee017b7e78dee60863f82af5fa81308dbda3d6e",
+      "sha256": "025eddc9aeb5d4721a8d4bec2f11f934b38770f043947e90fae8414825318949",
+      "line_count": 471,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Complete fast/full owner behavior fixtures read; one case mutated four process-global signal flags and could poison parallel tests. Move that case to feature-gated standalone owner runner coordinated with runtime agent."
+    },
+    {
+      "path": "components/dnsmasq/src/startup/cli.rs",
+      "sha256_before": "74cb7a008e65ae20be77658550efe8decf5acb0d7da2ce26a82f73315edc0c61",
+      "lines": 282,
+      "status": "reviewed-retained",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION"
+      ],
+      "findings": [
+        "Exact image CLI help/version static contract and transparent implementation identity; no runtime unsafe/input work or edits."
+      ],
+      "changes": [],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "74cb7a008e65ae20be77658550efe8decf5acb0d7da2ce26a82f73315edc0c61",
+      "sha256": "74cb7a008e65ae20be77658550efe8decf5acb0d7da2ce26a82f73315edc0c61",
+      "line_count": 282,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Exact image CLI help/version static contract and transparent implementation identity; no runtime unsafe/input work or edits."
+    },
+    {
+      "path": "components/dnsmasq/tests/hosts_allocations.rs",
+      "sha256_before": "72df4db566233eaa9f3cafd97e72ca66a20f4719010b28be60c3430dbe68227e",
+      "lines": 884,
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-RUST-SHAPED",
+        "M-PANIC-IS-STOP",
+        "M-MOCKABLE-SYSCALLS",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-TEST-UTIL",
+        "M-STATIC-VERIFICATION",
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-UNSAFE-IMPLIES-UB"
+      ],
+      "findings": [
+        "Complete allocation injector and failure-atomicity matrix read. Thread-local fault counters isolate concurrent tests; System layout/pointer delegation is explicit with unsafe-op/documentation lints and per-operation safety comments. Retain typed ingestion errors from runtime owner."
+      ],
+      "changes": [
+        "Complete allocation injector and failure-atomicity matrix read. Thread-local fault counters isolate concurrent tests; System layout/pointer delegation is explicit with unsafe-op/documentation lints and per-operation safety comments. Retain typed ingestion errors from runtime owner."
+      ],
+      "validation": [
+        "Root final all-feature/all-target tests and namespace-only integration gate; dedicated hosts allocation and DHCP reruns in dns-hosts-alloc-final.log/dns-dhcp-tests-final.log."
+      ],
+      "sha256_after": "78b6e89b78fd9c6f59d7b6121d9630d7fec2a0e676fe3fb4dd2a1c555de58eb1",
+      "sha256": "96f8a2561d8f90d3b0a3f302c1508cdcd0f9305c9dbbf08c76c7115fbda18d92",
+      "line_count": 1087,
+      "full_read": false,
+      "coverage_ranges": [],
+      "conclusion": "earlier findings and fixes retained; strict full-read coverage not established",
+      "coverage_note": "Earlier review ledger did not preserve exact untruncated read ranges. No full-read claim is inferred from the summary. Current SHA and line count bind inventory only; formatting/subsequent fixes may differ from earlier sha256_after.",
+      "no_issue_reason": "Complete allocation injector and failure-atomicity matrix read. Thread-local fault counters isolate concurrent tests; System layout/pointer delegation is explicit with unsafe-op/documentation lints and per-operation safety comments. Retain typed ingestion errors from runtime owner."
+    }
+  ],
+  "status": "superseded: historical provisional findings only; excluded from final coverage",
+  "superseded_by": [
+    "RUST_REVIEW_DNS_CONFIG_20261022.json",
+    "RUST_REVIEW_DNS_DHCP_20261022.json",
+    "RUST_REVIEW_DNS_OWNER_20261022.json"
+  ]
+}

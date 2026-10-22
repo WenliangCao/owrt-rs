@@ -1,0 +1,126 @@
+{
+  "parent_records_unchanged": 11,
+  "added": [
+    {
+      "name": "arbitrary",
+      "version": "1.5.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "3bc62ac97cc33321f50863d514c3bc38a453947a8f9e781137e47c7401020aed"
+    },
+    {
+      "name": "cc",
+      "version": "1.9.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "877bf67ac8e52449eb2f9e98a344ea163beb70dd1f9eebe3cc5357dcfeaee4df",
+      "dependencies": [
+        "find-msvc-tools",
+        "jobserver",
+        "libc",
+        "shlex"
+      ]
+    },
+    {
+      "name": "cfg-if",
+      "version": "1.0.5",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+    },
+    {
+      "name": "dnsmasq-fuzz",
+      "version": "0.0.0",
+      "dependencies": [
+        "dnsmasq-rs",
+        "libfuzzer-sys"
+      ]
+    },
+    {
+      "name": "find-msvc-tools",
+      "version": "0.1.15",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "1c66915cc5391097de7a2b0b972e8505aa33c0df401fd3a6811dbdb32881ba48"
+    },
+    {
+      "name": "getrandom",
+      "version": "0.4.3",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099",
+      "dependencies": [
+        "cfg-if",
+        "libc",
+        "r-efi"
+      ]
+    },
+    {
+      "name": "jobserver",
+      "version": "0.1.35",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "1c00acbd29eabad4a2392fa0e921c874934dbbf4194312ad20f04a0ed67a3cb3",
+      "dependencies": [
+        "getrandom",
+        "libc"
+      ]
+    },
+    {
+      "name": "libfuzzer-sys",
+      "version": "0.4.13",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "a9fd2f41a1cba099f79a0b6b6c35656cf7c03351a7bae8ff0f28f25270f929d2",
+      "dependencies": [
+        "arbitrary",
+        "cc"
+      ]
+    },
+    {
+      "name": "r-efi",
+      "version": "6.0.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
+    },
+    {
+      "name": "shlex",
+      "version": "2.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
+    }
+  ],
+  "targets": [
+    "dns_wire",
+    "dhcp_packet",
+    "config_line",
+    "dns_local_answer",
+    "tftp_packet"
+  ],
+  "check_locked_passed": true,
+  "note": "Compile check only; no fuzz execution or sanitizer coverage claim.",
+  "commands": [
+    "ssh oracle: mbx check --bins (initial check found E0616 in dns_local_answer.rs)",
+    "ssh oracle: mbx check --bins --locked (all five targets passed after raw_records accessor fix)",
+    "ssh oracle: mbx explain --last (component directory)"
+  ],
+  "scope": "All five standalone fuzz binaries compile; no sanitizer execution, coverage or fuzz campaign claim.",
+  "fix": "dns_local_answer uses RecordConfig::raw_records() instead of accessing the now-private raw field; inputs and assertions unchanged.",
+  "lock_recommendation": "Commit the independent fuzz Cargo.lock so current fuzz tool dependencies are reproducible; all 11 parent DNS package records, including checksums/dependency lists, remain identical.",
+  "rustsec": {
+    "database_revision": "640bf5a9f06e66d8721e8772766531fe77c8630d",
+    "matching_advisories": [
+      {
+        "id": "RUSTSEC-2024-0006",
+        "package": "shlex",
+        "version": "2.0.1",
+        "patched": ">= 1.3.0",
+        "disposition": "patched version"
+      }
+    ],
+    "note": "Manual comparison against the same official database snapshot; cargo-audit not run. No other package-name matches in the standalone fuzz lock."
+  },
+  "inputs": {
+    "components/dnsmasq/fuzz/Cargo.toml": "db488a9edd27655ad3f93a11e70476debbaf9545f27676f07293087a5f3ee7c9",
+    "components/dnsmasq/fuzz/Cargo.lock": "86651289e21782910b69a8eb24bb0f204f231c6e5ef931898524c3aabda5b0c1",
+    "components/dnsmasq/Cargo.lock": "c5bb4f819c193dce1c4537df6b6966756d19b292e92b839d3d77f1650f3cb3c7",
+    "components/dnsmasq/fuzz/fuzz_targets/config_line.rs": "28cc1df6f9a614364773772a9ce4f18ea6d2004ae2ae8219364f23116dd05aaf",
+    "components/dnsmasq/fuzz/fuzz_targets/dhcp_packet.rs": "e5a69ff7db71fa2d569344da6a470ad8519cc308910ec72d8cd5ef5b8f1c235e",
+    "components/dnsmasq/fuzz/fuzz_targets/dns_local_answer.rs": "6561a6cbf941441f5b167e07c397b6c56c04b47b409ff3dfa7225647b1ed9077",
+    "components/dnsmasq/fuzz/fuzz_targets/dns_wire.rs": "f9f32da9a17b01f964b7782bf0802de9f11eded82e55cd7e808b0fe6e94d261d",
+    "components/dnsmasq/fuzz/fuzz_targets/tftp_packet.rs": "1ad412411a7cf7151ff2f582c5983878eacae376bdfe68eb8d70bb9f4953c056"
+  }
+}

@@ -1,0 +1,274 @@
+[
+  {
+    "side": "original",
+    "case": "netifd_restart",
+    "exit": 0,
+    "passed": true,
+    "checks": {
+      "identity": {
+        "actual": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+        "expected": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+        "passed": true
+      },
+      "delayed_reexec": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "same_pid_and_argv": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "fresh_objects": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "serving": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      }
+    },
+    "observations": {
+      "reregister_seconds": 1.0077799940481782
+    }
+  },
+  {
+    "side": "original",
+    "case": "procd_bundle",
+    "exit": 0,
+    "passed": true,
+    "checks": {
+      "identity": {
+        "actual": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+        "expected": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+        "passed": true
+      },
+      "bundle_only_spawn": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "bundle_only_argv": {
+        "actual": [
+          "-t",
+          "5",
+          "-n",
+          "r92",
+          "-J",
+          "/tmp/bundle-r92",
+          "--"
+        ],
+        "expected": [
+          "-t",
+          "5",
+          "-n",
+          "r92",
+          "-J",
+          "/tmp/bundle-r92",
+          "--"
+        ],
+        "passed": true
+      },
+      "bundle_only_running": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "bundle_ignored_spawn": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "bundle_ignored_argv": {
+        "actual": [
+          "-t",
+          "5",
+          "-n",
+          "r92",
+          "-J",
+          "/tmp/bundle-r92",
+          "--"
+        ],
+        "expected": [
+          "-t",
+          "5",
+          "-n",
+          "r92",
+          "-J",
+          "/tmp/bundle-r92",
+          "--"
+        ],
+        "passed": true
+      },
+      "bundle_ignored_running": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "serving": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      }
+    },
+    "observations": {
+      "argv_only": [
+        "-t",
+        "5",
+        "-n",
+        "r92",
+        "-J",
+        "/tmp/bundle-r92",
+        "--"
+      ],
+      "argv_ignored": [
+        "-t",
+        "5",
+        "-n",
+        "r92",
+        "-J",
+        "/tmp/bundle-r92",
+        "--"
+      ]
+    }
+  },
+  {
+    "side": "candidate",
+    "case": "netifd_restart",
+    "exit": 0,
+    "passed": true,
+    "checks": {
+      "identity": {
+        "actual": "c11b967df65dfa198da0eee329ba1bab6c7628789887cdc2c267ea8059082d26",
+        "expected": "c11b967df65dfa198da0eee329ba1bab6c7628789887cdc2c267ea8059082d26",
+        "passed": true
+      },
+      "delayed_reexec": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "same_pid_and_argv": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "fresh_objects": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "serving": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      }
+    },
+    "observations": {
+      "reregister_seconds": 1.0093359276652336
+    }
+  },
+  {
+    "side": "candidate",
+    "case": "procd_bundle",
+    "exit": 0,
+    "passed": true,
+    "checks": {
+      "identity": {
+        "actual": "cf438d13019e1bc0625cd0b44b1888f65ddc1289bc988e1badc01f46797bf237",
+        "expected": "cf438d13019e1bc0625cd0b44b1888f65ddc1289bc988e1badc01f46797bf237",
+        "passed": true
+      },
+      "bundle_only_spawn": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "bundle_only_argv": {
+        "actual": [
+          "-t",
+          "5",
+          "-n",
+          "r92",
+          "-J",
+          "/tmp/bundle-r92",
+          "--"
+        ],
+        "expected": [
+          "-t",
+          "5",
+          "-n",
+          "r92",
+          "-J",
+          "/tmp/bundle-r92",
+          "--"
+        ],
+        "passed": true
+      },
+      "bundle_only_running": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "bundle_ignored_spawn": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "bundle_ignored_argv": {
+        "actual": [
+          "-t",
+          "5",
+          "-n",
+          "r92",
+          "-J",
+          "/tmp/bundle-r92",
+          "--"
+        ],
+        "expected": [
+          "-t",
+          "5",
+          "-n",
+          "r92",
+          "-J",
+          "/tmp/bundle-r92",
+          "--"
+        ],
+        "passed": true
+      },
+      "bundle_ignored_running": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      },
+      "serving": {
+        "actual": true,
+        "expected": true,
+        "passed": true
+      }
+    },
+    "observations": {
+      "argv_only": [
+        "-t",
+        "5",
+        "-n",
+        "r92",
+        "-J",
+        "/tmp/bundle-r92",
+        "--"
+      ],
+      "argv_ignored": [
+        "-t",
+        "5",
+        "-n",
+        "r92",
+        "-J",
+        "/tmp/bundle-r92",
+        "--"
+      ]
+    }
+  }
+]

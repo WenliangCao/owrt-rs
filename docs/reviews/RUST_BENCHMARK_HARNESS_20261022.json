@@ -1,0 +1,52 @@
+{
+  "scope": "Remaining check-benchmark recipe executed verbatim through make using a derived temporary Makefile, omitting only previously passed rust_check.py test/check --benchmark as requested by root.",
+  "host": "ssh oracle",
+  "release_build": "python3 tools/rust_check.py build --benchmark (mbx build --locked --target aarch64-unknown-linux-gnu --release): passed",
+  "python_tests": [
+    {
+      "file": "tools/benchmark/test_fw4_cli.py",
+      "passed": 4
+    },
+    {
+      "file": "tools/benchmark/test_http_client.py",
+      "passed": 8
+    },
+    {
+      "file": "tools/benchmark/test_analyze.py",
+      "passed": 12
+    },
+    {
+      "file": "tools/benchmark/test_httpd_analysis.py",
+      "passed": 4
+    },
+    {
+      "file": "tools/benchmark/test_netifd_analysis.py",
+      "passed": 6
+    },
+    {
+      "file": "tools/benchmark/test_netifd_gate.py",
+      "passed": 4
+    },
+    {
+      "file": "tools/benchmark/test_r92_analysis.py",
+      "passed": 5
+    },
+    {
+      "file": "tools/benchmark/test_reload_exec.py",
+      "passed": 6
+    },
+    {
+      "file": "tools/benchmark/test_stack_analysis.py",
+      "passed": 8
+    }
+  ],
+  "python_total": 57,
+  "c_syntax_checks": [
+    "tools/benchmark/stack_config_cycle.c",
+    "tools/benchmark/ns_exec.c",
+    "tools/benchmark/socket_constants.c"
+  ],
+  "c_flags": "-Wall -Wextra -Werror -fsyntax-only; stack_config_cycle also -std=c11",
+  "all_passed": true,
+  "log": "oracle:/home/ubuntu/owrt-rust-review-20261022/frontend-final-benchmark-harness.log"
+}

@@ -1,0 +1,2917 @@
+{
+  "schema": 1,
+  "scope": "68 originally assigned existing Rust files, one transferred DNS file runtime, five new process test files; 50 delegated original files excluded",
+  "guideline_source": "https://microsoft.github.io/rust-guidelines/agents/all.txt",
+  "guideline_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "files": [
+    {
+      "path": "components/dnsmasq/fuzz/fuzz_targets/config_line.rs",
+      "sha256_before": "28cc1df6f9a614364773772a9ce4f18ea6d2004ae2ae8219364f23116dd05aaf",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "28cc1df6f9a614364773772a9ce4f18ea6d2004ae2ae8219364f23116dd05aaf",
+      "line_count": 19,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          19
+        ]
+      ],
+      "review_conclusion": "Lexes arbitrary bytes, validates directives and exercises DHCP/DNS in-memory apply and fixed-hostname finalization only; deliberately avoids loaders, platform hostname discovery, filesystem and network state.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/fuzz/fuzz_targets/dhcp_packet.rs",
+      "sha256_before": "e5a69ff7db71fa2d569344da6a470ad8519cc308910ec72d8cd5ef5b8f1c235e",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "e5a69ff7db71fa2d569344da6a470ad8519cc308910ec72d8cd5ef5b8f1c235e",
+      "line_count": 15,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          15
+        ]
+      ],
+      "review_conclusion": "Constructs Packet only after its fixed-header validation, then exercises message type, transaction ID, client ID/name, requested address and bounded response capacity on borrowed fuzz bytes.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/fuzz/fuzz_targets/dns_local_answer.rs",
+      "sha256_before": "a1383657ef690f6279277ea7f13bf9676ddc40dc138eb35cc2cb454fb9e031de",
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Fuzz target still accessed the private raw record field after the reviewed API change."
+      ],
+      "changes": [
+        "Use Records::raw_records() public borrowed accessor; fuzz input, RR set, output assertions and bounds unchanged."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation.",
+        "Full 111-line final source reread after accessor fix; frontend oracle mbx check --bins --locked compiled all five fuzz targets. This is compilation evidence, not a new fuzz campaign."
+      ],
+      "sha256_after": "6561a6cbf941441f5b167e07c397b6c56c04b47b409ff3dfa7225647b1ed9077",
+      "line_count": 111,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          111
+        ]
+      ],
+      "review_conclusion": "Caps fuzz input at 16384 bytes, config at 128 lines and selected names at 16; exercises nine RR types at 64/512/1232-byte reply limits and independently reparses every returned DNS message.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/fuzz/fuzz_targets/dns_wire.rs",
+      "sha256_before": "f9f32da9a17b01f964b7782bf0802de9f11eded82e55cd7e808b0fe6e94d261d",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "f9f32da9a17b01f964b7782bf0802de9f11eded82e55cd7e808b0fe6e94d261d",
+      "line_count": 9,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          9
+        ]
+      ],
+      "review_conclusion": "Feeds arbitrary wire bytes independently to full Message parsing and EDNS pseudoheader discovery; both errors are expected fuzz outcomes and no packet data is indexed by this harness.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/fuzz/fuzz_targets/tftp_packet.rs",
+      "sha256_before": "1ad412411a7cf7151ff2f582c5983878eacae376bdfe68eb8d70bb9f4953c056",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "1ad412411a7cf7151ff2f582c5983878eacae376bdfe68eb8d70bb9f4953c056",
+      "line_count": 31,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          31
+        ]
+      ],
+      "review_conclusion": "Caps input at 8192 bytes, tests three MTU/IPv6/blocksize policies, limits transfer steps to 128 and independently asserts option ACK and netascii output bounds without filesystem/socket access.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/datagram.rs",
+      "sha256_before": "252f7eff61b655236ef1d688dd8892c6f2897f5e8fef41e1a273c9a2f83dd594",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public ABI storage and receive result lacked Debug."
+      ],
+      "changes": [
+        "Derive Debug without changing layout."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "092b673743cb96fddd27a0cf80be8245fc559c2a42e327b1a22ae505d3b91099",
+      "line_count": 103,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          103
+        ]
+      ],
+      "review_conclusion": "recvmsg/sendmsg borrow live owned descriptors and disjoint bounded buffers; pointer widths, control lengths and result flags match the supported LP64 ABI.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/interfaces.rs",
+      "sha256_before": "27f36efab54250e9d73c68c12b90bb8674806268c220f1279133a800a5637702",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public borrowed interface row lacked Debug."
+      ],
+      "changes": [
+        "Derive Debug without changing lifetime or ABI."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "5eefb4f1a1c86f078af3ed2e5764226ee312777594f999fe46d6cd829c9c37a3",
+      "line_count": 245,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          245
+        ]
+      ],
+      "review_conclusion": "getifaddrs list has one RAII owner; callback borrows cannot escape; sockaddr decoding is family-gated and ioctl requests have fixed checked layouts.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/lib.rs",
+      "sha256_before": "01a285c391cca74d411030f9f36d3e69764f2d3f812779ce431604fbd2fd7010",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Platform crate docs incorrectly described all public operations as safe."
+      ],
+      "changes": [
+        "Document explicit fork process safety contracts."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "aa6cd3db9a0a15e8db47a50c4dc8f86a33b43794c190186c639eacf1a08d43e5",
+      "line_count": 107,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          107
+        ]
+      ],
+      "review_conclusion": "Private msghdr ABI and feature gates were checked; layout assertions are independent SDK ABI checks, not tautological business tests.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/libc_format.rs",
+      "sha256_before": "cd20917676c27c86786370ff3608c87b650f2aa20ed37e49e663d2a934b51b97",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "cd20917676c27c86786370ff3608c87b650f2aa20ed37e49e663d2a934b51b97",
+      "line_count": 132,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          132
+        ]
+      ],
+      "review_conclusion": "FFI text/address operations use fixed initialized buffers and terminated names; pre_exec contains only scalar async-signal-safe SIGPIPE setup.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/limits.rs",
+      "sha256_before": "a5b33fc9cb63efc49ae96d76cb9a9eb702acfe47d5c88b90d628e0381bbbf774",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "a5b33fc9cb63efc49ae96d76cb9a9eb702acfe47d5c88b90d628e0381bbbf774",
+      "line_count": 17,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          17
+        ]
+      ],
+      "review_conclusion": "Scalar sysconf boundary preserves negative failure and infinity semantics without constructing pointers or owned descriptors.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/poll.rs",
+      "sha256_before": "c102c4935916986e48629cde858643f9bc3e11beb123955dc35b7c8a72dd7041",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "c102c4935916986e48629cde858643f9bc3e11beb123955dc35b7c8a72dd7041",
+      "line_count": 80,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          80
+        ]
+      ],
+      "review_conclusion": "Raw numeric readiness snapshots intentionally allow closed/negative FDs without fabricating BorrowedFd; bounded slice layout and EINTR policy are explicit.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/process.rs",
+      "sha256_before": "2b5e5d8add043a8204afce8a0a0783d18758d7e5385913013b09d47f186c990f",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Safe daemonization relied on process and callback preconditions that its signature did not expose.",
+        "Dropping a caught arbitrary panic payload could panic and unwind the terminating fork branch."
+      ],
+      "changes": [
+        "Expose unsafe background_startup with explicit process/resource contract.",
+        "Use exit_status to intentionally forget panicking payloads before _exit.",
+        "Document inherited signal-handler and panic-hook restrictions; hooks run before catch_unwind."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Final source reread in <=180-line chunks after adjacent unsafe-comment and test-module-placement Clippy fixes; statements/assertions unchanged. Root final04 gate verifies these standalone platform paths."
+      ],
+      "sha256_after": "e98fe8b1e2a0e8bae06bbd5766de5d9b77ab3777c0b0c3c63c6e54b9e6613bca",
+      "line_count": 246,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          246
+        ]
+      ],
+      "review_conclusion": "Reentrant NSS lookups initialize private C records and copy returned names before storage drops; each unsafe initialization/string conversion now has its own adjacent safety explanation. Credential calls retain process-wide libc semantics and close_file consumes the descriptor once. Background startup exposes the explicit single-thread/private-mapping/handler/atfork safety contract and terminating parent branches use _exit.",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results.",
+      "full_read_snapshot_before_final_lint": {
+        "sha256": "e98fe8b1e2a0e8bae06bbd5766de5d9b77ab3777c0b0c3c63c6e54b9e6613bca",
+        "line_count": 246,
+        "read_ranges": [
+          [
+            1,
+            180
+          ],
+          [
+            181,
+            246
+          ]
+        ]
+      },
+      "final_patch_review": {
+        "reviewers": [
+          "audit_dns_core",
+          "root"
+        ],
+        "method": "Complete untruncated final diff reviewed against the previously fully read source.",
+        "changes": "Place distinct SAFETY comments immediately before assume_init/from_ptr; move the unchanged cfg(test) module after close_other_fds. No executable production statement or test body changes.",
+        "validation": "Final oracle gate 04 covers standalone platform tests and Clippy as well as DNS default/all-feature tests."
+      }
+    },
+    {
+      "path": "components/dnsmasq/platform/src/process_fork.rs",
+      "sha256_before": "107cde58bd704b0869ae8003880364ddbd53311c305c6a0746fab0fb7e8154a9",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Safe generic fork accepted descriptor/lock-containing snapshots despite close_range and post-fork invariants.",
+        "SignalSet occupied only 64 bytes on 32-bit Linux while libc sigset_t requires 128."
+      ],
+      "changes": [
+        "Explicit unsafe helper/lookup/fork contract and pointer/ownership reasoning.",
+        "Native word count derives from 128-byte libc layout.",
+        "Regression rejects dropping caught panic payload and verifies target ABI layout.",
+        "Document inherited signal-handler and panic-hook restrictions; hooks run before catch_unwind."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Final source reread in <=180-line chunks after adjacent unsafe-comment and test-module-placement Clippy fixes; statements/assertions unchanged. Root final04 gate verifies these standalone platform paths."
+      ],
+      "sha256_after": "4a2143f2cf10bb7a8a2a1f84844f4947864bcaa8105d0715f98edcaf6e5dcec2",
+      "line_count": 311,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          311
+        ]
+      ],
+      "review_conclusion": "Worker fork blocks the fixed daemon signals using the 128-byte libc sigset layout, transfers disjoint owned pipe ends and closes abandoned descriptors before child entry. Only parent resumes its ownership graph; child panic payload is forgotten before _exit to avoid destructor unwinding. Tests for ABI storage and panicking Drop remain unchanged and moved after production items for standalone platform Clippy.",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results.",
+      "full_read_snapshot_before_final_lint": {
+        "sha256": "4a2143f2cf10bb7a8a2a1f84844f4947864bcaa8105d0715f98edcaf6e5dcec2",
+        "line_count": 311,
+        "read_ranges": [
+          [
+            1,
+            180
+          ],
+          [
+            181,
+            311
+          ]
+        ]
+      },
+      "final_patch_review": {
+        "reviewers": [
+          "audit_dns_core",
+          "root"
+        ],
+        "method": "Complete untruncated final diff reviewed against the previously fully read source.",
+        "changes": "Place distinct SAFETY comments immediately before assume_init/from_ptr; move the unchanged cfg(test) module after close_other_fds. No executable production statement or test body changes.",
+        "validation": "Final oracle gate 04 covers standalone platform tests and Clippy as well as DNS default/all-feature tests."
+      }
+    },
+    {
+      "path": "components/dnsmasq/platform/src/resolver.rs",
+      "sha256_before": "8f07c6534396a3a0efdb5ff49fc843bc41774b521979150c9b75a45c8a0c9324",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "8f07c6534396a3a0efdb5ff49fc843bc41774b521979150c9b75a45c8a0c9324",
+      "line_count": 108,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          108
+        ]
+      ],
+      "review_conclusion": "getaddrinfo results have a RAII list guard; owned address copies preserve ordering/duplicates, with family and sockaddr length checks.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/signals.rs",
+      "sha256_before": "7b2e16d3301012a773bba34ab3c1f481bc790d433841369e31f0f2ff0e8aed20",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "7b2e16d3301012a773bba34ab3c1f481bc790d433841369e31f0f2ff0e8aed20",
+      "line_count": 152,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          152
+        ]
+      ],
+      "review_conclusion": "Fixed handlers use lock-free atomics and async-signal-safe write/_exit; errno is restored and no raw descriptor is converted into an owned or borrowed FD.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/socket_options.rs",
+      "sha256_before": "8d8a60ea8ca9d3a5aaa2b5b168c2c1759d5bca5fae2ce490085b4a612ae45240",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "8d8a60ea8ca9d3a5aaa2b5b168c2c1759d5bca5fae2ce490085b4a612ae45240",
+      "line_count": 123,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          123
+        ]
+      ],
+      "review_conclusion": "Private option selection uses bounded initialized storage, borrowed owned descriptors and checked returned lengths.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/startup_relro.rs",
+      "sha256_before": "e5c0e1055e249e1962d14e5ff88e2c981eafd24fc96b7814cc5ac9268b972004",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "e5c0e1055e249e1962d14e5ff88e2c981eafd24fc96b7814cc5ac9268b972004",
+      "line_count": 104,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          104
+        ]
+      ],
+      "review_conclusion": "Synchronous callback checks program-header prefix, integer overflow and RELRO page alignment before mprotect; no mutable pointer escapes.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/bin/dhcp_event_order_probe.rs",
+      "sha256_before": "4d26c4837353910a0cf9b4b49ec9cfa4c17a16e7e7f78bb21ecffd0bc3320e4a",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "4d26c4837353910a0cf9b4b49ec9cfa4c17a16e7e7f78bb21ecffd0bc3320e4a",
+      "line_count": 7,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          7
+        ]
+      ],
+      "review_conclusion": "Linux64-only include of tools/dnsmasq/dhcp_event_order_probe.rs; unsupported-target main fails explicitly. This entry names the isolated-namespace source-order observer and is distinct from installed daemon main.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/bin/dhcp_events_probe.rs",
+      "sha256_before": "9fb950f0cda0c885c9bb28334e17bb0ab350d93dccef14d24e9067f41b83374a",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "9fb950f0cda0c885c9bb28334e17bb0ab350d93dccef14d24e9067f41b83374a",
+      "line_count": 7,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          7
+        ]
+      ],
+      "review_conclusion": "Linux64-only include of tools/dnsmasq/dhcp_events_probe.rs; unsupported targets panic explicitly. Header identifies the offline producer observer and required run_isolated.sh boundary.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/bin/dhcp_message_metrics_probe.rs",
+      "sha256_before": "1f343f2362da7f11d72d88ed1ac966c9c83f399ce7550b3eab0f1ccf4bc1f969",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "1f343f2362da7f11d72d88ed1ac966c9c83f399ce7550b3eab0f1ccf4bc1f969",
+      "line_count": 2,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          2
+        ]
+      ],
+      "review_conclusion": "Includes only tools/dnsmasq/dhcp_message_metrics_probe.rs as an explicit test-only Cargo target; packaging builds the installed dnsmasq-rs binary by name, so this wrapper introduces no daemon startup path.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/bin/dhcp_reply_probe.rs",
+      "sha256_before": "98dcc9408815f2ab627574dd7c9f273ab6e035b6c46288705f18fadff0133f2c",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "98dcc9408815f2ab627574dd7c9f273ab6e035b6c46288705f18fadff0133f2c",
+      "line_count": 98,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          98
+        ]
+      ],
+      "review_conclusion": "Offline stdin fixture decoder builds a fixed BOOTP request header and controlled Offer/Ack/Nak/Inform outcome, borrows encoded options and prints reply length/omissions/overload plus wire bytes. Fixed corpus expects valid paired hex; malformed probe input may panic and is not a daemon input API.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/bin/lease_names_probe.rs",
+      "sha256_before": "f9390b3fe82b2084e895db9e1ba5593b1e405f57a42666242d483a34324e0283",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "f9390b3fe82b2084e895db9e1ba5593b1e405f57a42666242d483a34324e0283",
+      "line_count": 2,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          2
+        ]
+      ],
+      "review_conclusion": "Test-only include of tools/dnsmasq/lease_names_probe.rs keeps the lease-name differential entry separate from the installed daemon; included implementation is independently reviewed in the tools ledger.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/bin/local_answer_probe.rs",
+      "sha256_before": "d19c50dfa413727847313673ec2531479060b654ee884af58a3d38e736b947b4",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "d19c50dfa413727847313673ec2531479060b654ee884af58a3d38e736b947b4",
+      "line_count": 3,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          3
+        ]
+      ],
+      "review_conclusion": "Includes tools/dnsmasq/local_answer_probe.rs as a separate test target; wrapper has no extra parser or execution path and documents that the local-answer oracle must not become the installed daemon entry.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/bin/udp_query_probe.rs",
+      "sha256_before": "1cd1bbe1a215baa09c9219c601cfc07c9dcfd2dd86c52a60d4a97b224b00697b",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "1cd1bbe1a215baa09c9219c601cfc07c9dcfd2dd86c52a60d4a97b224b00697b",
+      "line_count": 2,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          2
+        ]
+      ],
+      "review_conclusion": "Includes tools/dnsmasq/udp_query_probe.rs only as the named test Cargo target; wrapper performs no additional network actions or state conversion and is excluded from daemon installation.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/config/auth.rs",
+      "sha256_before": "54109ec33076d81b5238677a9c010d16ca9469fea3dbe95ad0eec40afb64b095",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "8405ff39ffb305cdedbd08f1ae463be56d3321e5c9a106ea4e764a27fb90bfcb",
+      "line_count": 97,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          97
+        ]
+      ],
+      "review_conclusion": "Auth-disabled compatibility options preserve interface selection and exact syntax distinctions; owned configuration validates suffix family values.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_device.rs",
+      "sha256_before": "573d0dd2d5c23b487329c715c110fee7d5203d56bdf58cffc3ae8378158230fe",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "573d0dd2d5c23b487329c715c110fee7d5203d56bdf58cffc3ae8378158230fe",
+      "line_count": 116,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          116
+        ]
+      ],
+      "review_conclusion": "Device selection is a pure borrowed operation; absent/null/wildcard declarations and multiple interface candidates follow explicit independent fixtures.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_host.rs",
+      "sha256_before": "e5ba5431a13affbb48e682e3440b1035437982b4883560b674a0252194a79536",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "e5ba5431a13affbb48e682e3440b1035437982b4883560b674a0252194a79536",
+      "line_count": 263,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          263
+        ]
+      ],
+      "review_conclusion": "Hardware parser checks ASCII hex and maximum 16-byte MAC length; byte arithmetic and wildcard shifts are bounded on parsed paths; public hand-built invalid records remain programmer misuse.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_tags.rs",
+      "sha256_before": "af148ae32c55863b563e7ddc2afcfb77fc94104653407e5a99e685f2f45b866b",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "7fb2ecec21a58b15e4fa1d879cf8b74b2ce8d41b67510824660c16225499c3a4",
+      "line_count": 392,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          392
+        ]
+      ],
+      "review_conclusion": "Tag/class matching preserves ordered generation, negation and counted user classes; packet offsets are bounded and parser-created wildcard records fit 16 bits.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_lookup.rs",
+      "sha256_before": "6315998cb695163304802258f3dca5bf9309a5d8c9eb81e9f0f4ed53d2692150",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public safe start hid fork process requirements.",
+        "2 resolver process tests ran under threaded harness."
+      ],
+      "changes": [
+        "Expose unsafe start with owned-rule snapshot proof.",
+        "Retain pure codec test in libtest; move 2 process tests to standalone runner.",
+        "Document inherited signal-handler and panic-hook restrictions; hooks run before catch_unwind."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "8eef55f89619115788087294c52167b8f78ec80482edd0176174785c095b7df7",
+      "line_count": 270,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          270
+        ]
+      ],
+      "review_conclusion": "Read complete source and callsites around the modified boundary; the listed safety/error/test corrections preserve existing protocol, ownership and deployment behavior.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/allocation.rs",
+      "sha256_before": "705360c84b87531c52859608d45220689cd5fb9d7463c7a5ee8042d9baa6225a",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "705360c84b87531c52859608d45220689cd5fb9d7463c7a5ee8042d9baa6225a",
+      "line_count": 304,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          304
+        ]
+      ],
+      "review_conclusion": "SDBM wrapping is intentional; invalid/full-u32 pools reject division by zero; conflict/error results preserve lease and epoch boundaries.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/context.rs",
+      "sha256_before": "0c47e67c969750e3a886b40f3728e2537e4263209dce5f9915b1399dd979cea7",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "0c47e67c969750e3a886b40f3728e2537e4263209dce5f9915b1399dd979cea7",
+      "line_count": 514,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          514
+        ]
+      ],
+      "review_conclusion": "Context completion preserves alias order and source-index mapping; slice-length assertion catches a programmer invariant and no kernel state is modified.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/filewatch.rs",
+      "sha256_before": "b08f2794ec12e7cc922b7d92108e133cb554025a4b3d8aa2c3303c1796b43917",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Copy enum was needlessly cloned."
+      ],
+      "changes": [
+        "Copy DynamicFileKind directly."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "e88efb2d48597c59609fcfa8019a88cbcf00ec70e25b63784a1709d03f37d42a",
+      "line_count": 252,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          252
+        ]
+      ],
+      "review_conclusion": "inotify events validate header/TLV/name lengths and prevent path separators; bounded owner steps preserve persistent watch and publication ordering.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/interface_admission.rs",
+      "sha256_before": "3f993ae940a388c51ba1604f9e4e87f485fca3571dfa8b95fceb135397a59a0c",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "3f993ae940a388c51ba1604f9e4e87f485fca3571dfa8b95fceb135397a59a0c",
+      "line_count": 245,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          245
+        ]
+      ],
+      "review_conclusion": "Pure primary/secondary admission retains explicit-address override, loopback and exclusion contracts; immutable input snapshots avoid shared mutation.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/message_counters.rs",
+      "sha256_before": "e8a0beab47e9a42d028d17802a68cb45081c98a90710f526da7c2250fea8af01",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "e8a0beab47e9a42d028d17802a68cb45081c98a90710f526da7c2250fea8af01",
+      "line_count": 42,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          42
+        ]
+      ],
+      "review_conclusion": "Counters are explicitly fixed-width and producer-owned; as_array preserves the independent existing probe order.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/mod.rs",
+      "sha256_before": "bb3afc35be2d6e00e858a878ab895fc49d127a76c65c1028586356a740ee25e4",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public docs contained implementation-history wording."
+      ],
+      "changes": [
+        "Describe present socket boundary without historical adverb."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "f356460e5f194ce789d27e6ebbaee2852a06f7fe299609b6117347478e1c600b",
+      "line_count": 41,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          41
+        ]
+      ],
+      "review_conclusion": "Module and target gates match DHCPv4 ownership; public service/runtime separation keeps interface, persistence and owner contracts explicit.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/packet.rs",
+      "sha256_before": "1bc6b2e1fc2b5983d735489c6ced6adee86a9b4507480ab9fce96abca870d58c",
+      "status": "reviewed-fixed",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public packet/vendor errors lacked standard formatting and Error composition."
+      ],
+      "changes": [
+        "Added nonallocating Display and Error implementations to both existing enums; variants and parsing/serialization behavior unchanged."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "d759abf3a1f0591af75c270ff37c91f3a998fceb58b2b3694b467cf08a180b3f",
+      "line_count": 860,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          860
+        ]
+      ],
+      "review_conclusion": "Borrowed Packet validates fixed header, hardware length/type and conditional DHCP cookie before access; TLV overload scanning and BOOTP serializers preserve C boundary/omission rules and validate malformed options before mutation. Added Display/Error for VendorError and ParseError only, with unchanged variants, parser state and wire output.",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/probe.rs",
+      "sha256_before": "f4bf28dc9f2c72541ba8e41c6147a19b71eecbb74cd18df717ef4a88dd7d5fe3",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "f4bf28dc9f2c72541ba8e41c6147a19b71eecbb74cd18df717ef4a88dd7d5fe3",
+      "line_count": 604,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          604
+        ]
+      ],
+      "review_conclusion": "Fixed six-entry cache is bounded; injected ping/stop/wait dependencies exercise network failures, entropy errors, cancellation and inclusive wall-clock limits.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/reply_delay.rs",
+      "sha256_before": "85d53a4540b9301ccf663b9dda9fadedfc2175dda1b3e547cd81c7160442175a",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "85d53a4540b9301ccf663b9dda9fadedfc2175dda1b3e547cd81c7160442175a",
+      "line_count": 73,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          73
+        ]
+      ],
+      "review_conclusion": "Caller-provided clock/poll make timing observable; explicit C wrapping and saturation preserve delay and idle-budget semantics.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/request.rs",
+      "sha256_before": "c414cc72cdc60955de2ced43ee54fae515d9e5afbdf8303fecaf5256bc37651f",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "c414cc72cdc60955de2ced43ee54fae515d9e5afbdf8303fecaf5256bc37651f",
+      "line_count": 191,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          191
+        ]
+      ],
+      "review_conclusion": "Request classification is pure and separates selecting/init-reboot/renewal decisions from lease commit; packet options have validated minimum widths.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dump.rs",
+      "sha256_before": "8343bea2ca070ddade1c29a58fc3da52f33a7366cb39c693228a3656721c5fc3",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "8343bea2ca070ddade1c29a58fc3da52f33a7366cb39c693228a3656721c5fc3",
+      "line_count": 412,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          412
+        ]
+      ],
+      "review_conclusion": "PCAP queue and write budgets are bounded for normal datagrams; partial writes retain offsets, errors drop only affected records and tests validate independent wire fields.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/helper.rs",
+      "sha256_before": "c86445004da0795e41687394a4254b7138a35be9aef9aced863feaa6bb645721",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Process fixture and helper lease constructor needed a test-only external runner entry."
+      ],
+      "changes": [
+        "Feature-gate test fixture reuse and unsafe run_process_tests reexport; ordinary production API unchanged."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "f32f9ffa3a5a6f5cace74d767cf6ad6d7d72ae60b5fcbb9d1b02733d4b1cc4ff",
+      "line_count": 649,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          649
+        ]
+      ],
+      "review_conclusion": "Typed helper frames cannot select executables or environment keys; hostname/client identifiers and argument NUL checks preserve fixed-command contracts.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/helper/packet.rs",
+      "sha256_before": "50d10ea430daaa10a0fc865c892bb898f13fa4614d90b8eddcfbda752724f02f",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "sha256_after": "50d10ea430daaa10a0fc865c892bb898f13fa4614d90b8eddcfbda752724f02f",
+      "line_count": 126,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          126
+        ]
+      ],
+      "review_conclusion": "CPE enterprise TLVs require the five-byte enterprise/length header before indexing; bounded suboptions populate helper fields in C order. Duplicate request tags retain the oldest instance, and counted versus raw-NUL user-class fallback has independent malformed-length assertions. No change required.",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/helper/process.rs",
+      "sha256_before": "3c4fc9f262a0ef9f9e85e2fdf10a49538abe655caa894dca5c0983d617ab587b",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public safe helper starts hid fork process requirements.",
+        "lease-init Command reset SIGPIPE unlike C popen inherited SIG_IGN.",
+        "Fork cases previously ran in threaded libtest."
+      ],
+      "changes": [
+        "Expose unsafe start/start_with_init/start_initializer and internal start_inner with # Safety.",
+        "Restore SIGPIPE ignore in the fixed producer pre_exec hook.",
+        "Move 11 existing fork cases to opt-in standalone runner and add SIGPIPE producer regression.",
+        "Document inherited signal-handler and panic-hook restrictions; hooks run before catch_unwind."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "b66e0089dc5e2810502a9fd6ba8f83d06a4c18d66469ec4e4db86d06093ddc35",
+      "line_count": 851,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          851
+        ]
+      ],
+      "review_conclusion": "Read complete source and callsites around the modified boundary; the listed safety/error/test corrections preserve existing protocol, ownership and deployment behavior.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/helper/wire.rs",
+      "sha256_before": "be985aeed10c230b61cbcb00cd8e320626abe4164cb8762511835f227990adba",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "be985aeed10c230b61cbcb00cd8e320626abe4164cb8762511835f227990adba",
+      "line_count": 417,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          417
+        ]
+      ],
+      "review_conclusion": "Every decoded length is checked before allocation; frame/semantic limits and truncated/mutated corpus preserve ownership and reject malformed IPC.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/hosts.rs",
+      "sha256_before": "b416fe7bdb8ff17e8cf38a5ef080f34f350a41da63c6433390911d6256ecda91",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Three public fallible ingestion APIs returned unit errors.",
+        "Reverse insertion did duplicate hashmap key lookups."
+      ],
+      "changes": [
+        "Zero-sized IngestionError implements Debug/Display/Error and From<TryReserveError>; preserve partial-generation refusal and allocation costs.",
+        "Use Entry at the already-reserved reverse index insertion."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "c1bb07c1dae8af38126a7eeb19ae150bbba86dd86de3cd96745bf581a9298483",
+      "line_count": 2660,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          2660
+        ]
+      ],
+      "review_conclusion": "Copy-on-write record/order snapshots, bounded token parsing and fallible staged replacement were followed through all mutation paths; independent fixtures and allocation-failure tests cover publication and PTR ordering.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/interfaces.rs",
+      "sha256_before": "68119ead054169c20de50fdce975fb5269c35eb6ff5de4c1afbad3b74b485f1e",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "68119ead054169c20de50fdce975fb5269c35eb6ff5de4c1afbad3b74b485f1e",
+      "line_count": 196,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          196
+        ]
+      ],
+      "review_conclusion": "Read-only interface snapshot retains aliases and local/broadcast distinction; name/ioctl access uses retained owned sockets and family checks.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/interfaces_broadcast.rs",
+      "sha256_before": "1277b1f39d16cfc0944e56773b17b256a9fb45c826e71ab002603eb1947390f7",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "1277b1f39d16cfc0944e56773b17b256a9fb45c826e71ab002603eb1947390f7",
+      "line_count": 197,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          197
+        ]
+      ],
+      "review_conclusion": "Netlink messages validate lengths/sequences and status; explicit IFA_LOCAL/IFA_BROADCAST policy retains point-to-point behavior.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/interfaces_ipv4.rs",
+      "sha256_before": "5c3955c87cf0a99ffeb548f5906ebbf41df30c026c6a92140faf6199f6a6332b",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Repeated same-type usize cast obscured validated receive length."
+      ],
+      "changes": [
+        "Remove no-op cast."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "2394bae15853ef4ed07ed498d4c455067c864b1bd26d31db2140e6c18fe03a6e",
+      "line_count": 752,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          752
+        ]
+      ],
+      "review_conclusion": "Three-action owner budget, kernel-peer gate, sequence/recipient checks and error reset prevent incomplete address snapshots from publication.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/lib.rs",
+      "sha256_before": "fc993c71ab674dbcef997172fa47838d4ec1b334442ad02e2d9df5650ce9ed39",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Global forbid hid necessary unsafe fork-call contracts behind safe public adapters.",
+        "Module documentation described historical implementation status."
+      ],
+      "changes": [
+        "Use deny(unsafe_code), unsafe_op_in_unsafe_fn and undocumented_unsafe_blocks with narrow audited expects.",
+        "Document current subsystem and platform ownership."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "3941d3b3a7898f268fe1d13404bae6efb95841028b7a87cfad477a4ea9bc3d63",
+      "line_count": 45,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          45
+        ]
+      ],
+      "review_conclusion": "Read complete source and callsites around the modified boundary; the listed safety/error/test corrections preserve existing protocol, ownership and deployment behavior.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/listeners.rs",
+      "sha256_before": "94697c48470e7c255c0c4c6bab3082407f93213663e05c52a983f63d0b6043a7",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "3141925b6a52918da4ee317e67a7e96d828e4e9de81a078ab0a67f09728c9990",
+      "line_count": 928,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          928
+        ]
+      ],
+      "review_conclusion": "UDP/TCP admission retains scope, loopback, alias and explicit-address semantics; socket factories use owned descriptors and preserve optional-family failure boundaries.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/logging.rs",
+      "sha256_before": "6fd1822ead3cbc7457269aa1d07703f9e19e71b0c7ef91403a8e952ca3ec8fa8",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "FIFO recovery test used wall-clock sleep despite access to the retry deadline.",
+        "Production helpers appeared after test module."
+      ],
+      "changes": [
+        "Set the private retry deadline directly after opening the reader.",
+        "Place production helpers before tests."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "dec42d7993cfed82fd5540a8d74c6eefbab5bfe9699238a8ea8e8faf261291cd",
+      "line_count": 1017,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          1017
+        ]
+      ],
+      "review_conclusion": "Nonblocking queues, per-record offsets and shared accepted destinations retain error/reconnect and PID behavior; test retry clock was made deterministic without production changes.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/logging/address.rs",
+      "sha256_before": "c340104a6c274b15a4398337f42c2a602b04bb91876870858757a9ffd5d19150",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "c340104a6c274b15a4398337f42c2a602b04bb91876870858757a9ffd5d19150",
+      "line_count": 2,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          2
+        ]
+      ],
+      "review_conclusion": "Single reexport forwards the existing libc-compatible address formatter; no new ownership or formatting behavior.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/logging/query.rs",
+      "sha256_before": "d9bead27c20edd4e25b535b4b7aba8c50ec616355facb4cdbf411c3c7159239f",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "66382d8eb7bf51dc76384e3617f7520c937db05478aa7365d1a264711cf91b2a",
+      "line_count": 599,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          599
+        ]
+      ],
+      "review_conclusion": "Producer origins remain explicit; packet parsing validates headers, counted TXT lengths are bounded, and signed IDs use deliberate wrapping with independent output fixtures.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/logging/startup.rs",
+      "sha256_before": "bac5619389108bf806a9335a2c8f72178adde1f7fd26647e932c167f1ecb03f1",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "bac5619389108bf806a9335a2c8f72178adde1f7fd26647e932c167f1ecb03f1",
+      "line_count": 269,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          269
+        ]
+      ],
+      "review_conclusion": "Startup rendering preserves raw Unix bytes, C spaces/key spelling and report caps; no control-plane side effects occur.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "sha256_before": "5e99d4c23fb71be7d30d970af90c6eb903395053a4cc514bd76e75684763720a",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Binary and library fork prerequisites were not visible in signatures/call sites.",
+        "Three signal-mutating tests could race threaded test readers (one external module).",
+        "UDP budget test asserted only constants and added no behavior evidence.",
+        "Old module docs incorrectly described missing DHCP/TFTP and listener threads."
+      ],
+      "changes": [
+        "Audited narrow unsafe blocks under deny, with concrete single-thread/ownership proofs.",
+        "Propagate typed hosts error; use inspect_err for diagnostic-only observation and remove needless returns.",
+        "Dedicated process_owner runner retains 4 fork owner cases plus 3 signal-global cases; preserve real UDP fairness tests.",
+        "Document current single-owner behavior."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "a1e9725d4204869f65041a901eb02583494ecc788e38982b1adc91e6154ee678",
+      "line_count": 10468,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          10468
+        ]
+      ],
+      "review_conclusion": "Entire startup/event-loop/test source reviewed: one process thread owns all engines, RefCell guards end before callbacks/forks, timer/readiness and per-turn budgets remain explicit; changes are narrow safety/type/test corrections.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/metrics.rs",
+      "sha256_before": "e1fe02c7c9ad31d39cb31434f0936b6f0ac0c6085c1f185ac1bdeeb5f9cc0172",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public Metrics lacked Debug."
+      ],
+      "changes": [
+        "Derive Debug without changing counter width or public key spelling."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "c4770247b2bd1ab345b289aa5e845e67e47b9134043e0417dd9c4829a7645032",
+      "line_count": 134,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          134
+        ]
+      ],
+      "review_conclusion": "u32 wrapping/reset rules and public ubus spelling are preserved; Debug adds no runtime storage.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/neighbors.rs",
+      "sha256_before": "aea9a1e9f362150fa0fd24dfabdef9b38b058e3297ab0b6f2e6b46625fdda019",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Repeated same-type usize casts obscured validated receive length."
+      ],
+      "changes": [
+        "Remove no-op casts."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "98424f41f979b23a9dc4ec9ca88cd97b99c7fbbc30b9b47cab913145081672a8",
+      "line_count": 883,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          883
+        ]
+      ],
+      "review_conclusion": "Kernel-peer and bounded message parsing protect snapshots; waiters/negative cache are capped, failed dumps do not refresh stale positives, and test clocks are explicit.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/net.rs",
+      "sha256_before": "2bafa86710d790ee05b3986d6f2264fd16648f314e8ed3575f1f82358f42a79f",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public descriptor owners/data wrapper lacked Debug."
+      ],
+      "changes": [
+        "Derive Debug for DatagramSocket, IcmpSocket and ArpEntry without runtime/ABI changes."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "922a829826e3288d0800dbb900fb9fb958a32314586da4d1d03769ac4a91fd73",
+      "line_count": 801,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          801
+        ]
+      ],
+      "review_conclusion": "Safe Rust encodes exact sockaddr/cmsg bytes; datagram truncation/source-family/port checks precede protocol parsing and all descriptors remain RAII-owned.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/sorting.rs",
+      "sha256_before": "4d7ee2eb9cceb659495f46bf2dbb4221a438ce7fa8b82d2eafeb923b353a1ee6",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "4d7ee2eb9cceb659495f46bf2dbb4221a438ce7fa8b82d2eafeb923b353a1ee6",
+      "line_count": 129,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          129
+        ]
+      ],
+      "review_conclusion": "Stable index permutation preserves drop ownership; comparator panic leaves original records untouched; bounded-comparison and permutation tests cover the abstraction.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/startup.rs",
+      "sha256_before": "03a27ab445692cebb481f40b35649091c6fbd3c2b60fd50e6b0e60c1b40c278e",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "03a27ab445692cebb481f40b35649091c6fbd3c2b60fd50e6b0e60c1b40c278e",
+      "line_count": 435,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          435
+        ]
+      ],
+      "review_conclusion": "UID/GID/PID setup uses typed system calls and preserves upstream error/status order; unlink-exclusive-create avoids following stale PID symlinks.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/startup/daemonize.rs",
+      "sha256_before": "c01824f98a3fd3cff2cd3a0724178592c91960b776690d07b49af1e3066c5dc1",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public safe begin hid process-wide daemonization requirements."
+      ],
+      "changes": [
+        "Expose unsafe begin and # Safety; preserve fixed startup callbacks and code/status behavior.",
+        "Move production failure helper before tests.",
+        "Document inherited signal-handler and panic-hook restrictions; hooks run before catch_unwind."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "a99f5cbb090352dbe8848f7e08c0b0c2d2ae932d34c7bb8278bc798d2b300d43",
+      "line_count": 304,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          304
+        ]
+      ],
+      "review_conclusion": "Read complete source and callsites around the modified boundary; the listed safety/error/test corrections preserve existing protocol, ownership and deployment behavior.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/startup/lease_init.rs",
+      "sha256_before": "f72a6ffb5cc6b436a9a59859027f775343a19a1a2bf867fef700fa6dfa47cb36",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public safe initialize could fork while called from arbitrary threads."
+      ],
+      "changes": [
+        "Propagate unsafe caller requirements to the helper startup boundary."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "c8363afb2758ccffb08b77506df6f6f92b707cc63cbb2b837ef8b59cc96ff017",
+      "line_count": 165,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          165
+        ]
+      ],
+      "review_conclusion": "Read complete source and callsites around the modified boundary; the listed safety/error/test corrections preserve existing protocol, ownership and deployment behavior.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/tftp.rs",
+      "sha256_before": "ca0be916eaa907addd20f17084cbe349d6f4163e6bf669967cbbf11b0c14f28c",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public RequestError lacked Display and std::error::Error."
+      ],
+      "changes": [
+        "Implement stable error text/trait without changing enum layout or protocol encoding."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "7d3290c8961809de9bec6ffb9475ab24aa03e20ea49518ca89d5b699f87bcf93",
+      "line_count": 591,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          591
+        ]
+      ],
+      "review_conclusion": "Request numeric wrapping follows image musl; negotiated sizes are bounded; netascii and ACK state retain deterministic offsets, windows, carry and timeout behavior.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/tftp_listener.rs",
+      "sha256_before": "38e3b0c24bc0bde5743e9b8affe062f99bbd26cdce140206c74ec10a3d993d0c",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "0507ca00afb90190c9119bb4eee3a442646b29932a780974467475ccbad6a4c8",
+      "line_count": 1114,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          1114
+        ]
+      ],
+      "review_conclusion": "One transfer capacity spans listeners/completions; peer TID checks, bounded MAC waiters, retained route/socket ownership and partial errors were checked through completion.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/tftp_policy.rs",
+      "sha256_before": "1e46c34cfe454fd85579b3ce5ce413a8ed4dbd9c91b0899e583d64f4c77f4ca2",
+      "status": "reviewed-no-change",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "2128e7f4b5a5ebcfbbc7a3484cfe3b35e8ddf163586f3c31f309eeb1d1abd8e3",
+      "line_count": 285,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          285
+        ]
+      ],
+      "review_conclusion": "Pure interface admission retains static-bound versus wildcard semantics; roots/MTU selection use explicit per-request policy without changing active transfers.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/tftp_runtime.rs",
+      "sha256_before": "6a68a3d392e7ed8fd2a5a37773c424cd38acb5fee06d075076f01bd507eb86de",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public RuntimeError lacked Display/Error cause chain; docs described listener as eventual."
+      ],
+      "changes": [
+        "Add Display and Error source forwarding without changing variant representation or existing Debug/wire text.",
+        "Describe existing UDP caller."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "1e3926dd10d856057b6c04bee2f9d20f5a03693519a380174fe92d08152914ca",
+      "line_count": 1852,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          1852
+        ]
+      ],
+      "review_conclusion": "Active transfers own live file slots until prune; reads require exact requested length, malformed requests map to protocol errors, capacity/timeout/final-ACK cases have independent fixtures.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/tftp_service.rs",
+      "sha256_before": "31457c8ad1d65c6591cb05b8d5af0b53c879a9a3ae0e1f2b95048616d3f6f7a9",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public PathError lacked Display and std::error::Error."
+      ],
+      "changes": [
+        "Implement error text/trait without changing path admission or protocol encoding."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "d42e5df856996f79c47c510603ba6564359e34c86a284b04f0dd84dbdf1bc104",
+      "line_count": 337,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          337
+        ]
+      ],
+      "review_conclusion": "Unix-byte paths enforce bounded concatenation and every parent component while preserving documented symlink behavior; permission and TID admission are explicit pure operations.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/ubus_service.rs",
+      "sha256_before": "88e4fb537f324a93254db190e2adca0a04ff1994a1299f972e87b78083133fd5",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public DnsResult lacked Debug; quiet logging test mirrored the implementation Boolean expression."
+      ],
+      "changes": [
+        "Derive Debug; enumerate independent expected quiet/verbose/error cases."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "sha256_after": "b325ca4263bc15359a143dbd71d9e3e3336fd0eedcce2a11dd08cbe8b9361df7",
+      "line_count": 513,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          513
+        ]
+      ],
+      "review_conclusion": "Connection-local object IDs are discarded on transport error; notification deadlines are bounded; first typed blob field and raw-name/NUL contracts are preserved.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/files_runtime.rs",
+      "sha256_before": "9eb6411a8fd6607162d9405abb8752a22ca8888d3f515ec1ed0e54da551ec23c",
+      "sha256_after": "ff5dfda330e1d84741af4283d57c837d2a25d00f6fba9103c32ec2eed908973a",
+      "status": "reviewed-modified",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [
+        "Public step methods could fork host-name workers without exposing process preconditions."
+      ],
+      "changes": [
+        "Expose unsafe step/step_with_watch_readiness with conditional process contract; isolated hostname-worker fixture; numeric-only fixtures retain explicit proof."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests."
+      ],
+      "line_count": 1179,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          1179
+        ]
+      ],
+      "review_conclusion": "Read complete production and test source: staged file generations preserve inotify/trigger/line order; unsafe worker startup contract reaches the process owner and hostname test moved outside threaded libtest.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/helper/process_tests.rs",
+      "sha256_before": null,
+      "sha256_after": "d434a60b2edc9362a35669b205b6fc5e91eec6d61d7a433ef27e8242ab8f49a0",
+      "status": "reviewed-new",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [
+        "Single-process test support compiled only with process-test-support; dedicated harness=false main verifies real single-threaded entry."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "line_count": 384,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          384
+        ]
+      ],
+      "review_conclusion": "Twelve actual helper process cases cover streamed init, lease-capacity rejection, inherited ignored SIGPIPE, serialized callbacks, output clipping/empty lines, non-CLOEXEC descriptor closure, parent pipe shutdown, missing users/scripts, malformed IPC and child death/reaping. Five-second owner deadlines and release files bound process lifetime; unsafe starts require the sole-thread runner.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_lookup_process_tests.rs",
+      "sha256_before": null,
+      "sha256_after": "d9c5a06ed9d4ba74917e5a778a9b7998cbac6e7e5e544f8fcd14d5f49eafa858",
+      "status": "reviewed-new",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [
+        "Single-process test support compiled only with process-test-support; dedicated harness=false main verifies real single-threaded entry."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "line_count": 71,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          71
+        ]
+      ],
+      "review_conclusion": "Two real resolver-child cases compare resolved rule preservation with explicit cancellation/reap and transfer 512 rules through one read interest; each step admits at most 4096 bytes and completion has a five-second deadline.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/files_process_tests.rs",
+      "sha256_before": null,
+      "sha256_after": "abb1866ffccaf739d6ef4faa23cc3514fc47e16baa134110699a4ea2b9e22ef3",
+      "status": "reviewed-new",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [
+        "Single-process test support compiled only with process-test-support; dedicated harness=false main verifies real single-threaded entry."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "line_count": 65,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          65
+        ]
+      ],
+      "review_conclusion": "Real servers-file reload invokes the unsafe hostname worker only from the sole-thread runner; a bad scoped IPv6 row must preserve successful line identities [1,2,4,5] and reverse-origin metadata, with a two-second completion deadline.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/tests/process_forks.rs",
+      "sha256_before": null,
+      "sha256_after": "8b51ca1770ceb72f803a02a0b248efb82acf01fe034eb6a94d929b85e089bf17",
+      "status": "reviewed-new",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [
+        "Single-process test support compiled only with process-test-support; dedicated harness=false main verifies real single-threaded entry."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "line_count": 11,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          11
+        ]
+      ],
+      "review_conclusion": "Standalone main asserts /proc/self/task contains exactly one thread before unsafe helper, resolver and DNS-file process suites; no libtest worker exists and the callsite states no shared mappings, held locks or atfork hooks.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    },
+    {
+      "path": "components/dnsmasq/tests/process_owner.rs",
+      "sha256_before": null,
+      "sha256_after": "b77e820207c2784b926422a9d193c7780898bd2cd024003fac47877bbd26bb34",
+      "status": "reviewed-new",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-PUBLIC-DEBUG",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-HOTPATH"
+      ],
+      "findings": [],
+      "changes": [
+        "Single-process test support compiled only with process-test-support; dedicated harness=false main verifies real single-threaded entry."
+      ],
+      "validation": [
+        "Source read in full, including tests/fuzz or included probe shell.",
+        "oracle: mbx clippy --locked --all-features --all-targets -- -D warnings passed before final signal-test migration.",
+        "oracle: mbx test --locked --all-features --all-targets --target aarch64-unknown-linux-gnu with tools/rust_check.py run-test, --test-threads=1: 963 ordinary tests + 19 standalone tests passed before final signal-test migration.",
+        "18 ignored namespace-only cases passed through per-case private namespaces; 4 exact-C config and 4 specialized oracle drivers require separate validation.",
+        "Final repository gate will revalidate formatted/frozen source and the 3 newly isolated signal tests.",
+        "Supplementary reread on 2026-10-22 in chunks of at most 180 lines confirmed this file-specific input/ownership/assertion contract; no truncation."
+      ],
+      "line_count": 14,
+      "full_read": true,
+      "read_ranges": [
+        [
+          1,
+          14
+        ]
+      ],
+      "review_conclusion": "Standalone main includes the real daemon module but invokes only daemon::run_process_tests; ordinary #[test] entrypoints are absent, so fork/helper and process-global signal fixtures are isolated from threaded libtest. Local allow is scoped to unused included fixtures with a documented reason.",
+      "source_freeze": "4b764651",
+      "validation_note": "Per-file inspection complete before root rustfmt freeze. Final frozen repository gate and requested exact-C differentials are recorded separately; earlier passing tests are not presented as post-freeze results."
+    }
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

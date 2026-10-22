@@ -120,3 +120,21 @@ Reviews record the changed behavior, relevant rule IDs or justified deviations,
 exact validation commands/results and untested target-specific paths. Do not
 claim full-project compliance from a partial review. Commit small, meaningful
 units without mixing broad formatting or naming churn into behavior changes.
+
+For a whole-project review, enumerate every tracked `.rs` file, including
+examples, tests, fuzz targets and standalone tools. Store the ledger under
+`docs/reviews/`: current line count and SHA-256, actual full-reading status,
+applicable rule IDs, and a file-specific conclusion or retention reason.
+Record the original full-read snapshot and subsequent reviewed patches when
+the source changes; a search hit or an automatic inventory is not a full read.
+Read the complete official guideline text in untruncated segments and retain
+its identity and reading ranges. Keep reading coverage distinct from test,
+differential, performance and deployment qualification.
+
+The [2026-10-22 inventory](reviews/RUST_REVIEW_INVENTORY_20261022.json) indexes
+the detailed ledgers and their source identities. On Linux, `make test`,
+`make check-rust`, `make fmt-check` and `make check-benchmark` use the shared
+`mbx` cache. Default/all-feature targets, doctests and normal examples are
+checked; process-owner tests run in private namespaces. Exact-C fixtures and
+hardware-dependent cases need their separately recorded inputs and results;
+an ignored test is never counted as executed merely because its binary built.

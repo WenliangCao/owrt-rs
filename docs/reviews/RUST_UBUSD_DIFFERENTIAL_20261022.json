@@ -1,0 +1,107 @@
+{
+  "inputs": {
+    "files": {
+      "components/platform/Cargo.lock": "7fc9b3dd192aeefb55ec14eee5133fadaec2ba1c167ff5992f16520fdff8de7b",
+      "components/platform/Cargo.toml": "1e97a04814631c14872b5fd637b1e66a663ef9e3aa4dd318039744081872ba83",
+      "components/platform/src/directory.rs": "fb6c8196be8d4dee76e9803802073d41bc26fbb065a60fdd0a16370e7fadc910",
+      "components/platform/src/httpd.rs": "52014d9b012da124359e488c390a81563821c56c75dbf444ce57da4c860fb757",
+      "components/platform/src/identity.rs": "e02fa07087aa261004e2e6bd04e12eb7d8a836cf9e03e57a9fdf263884a06cc5",
+      "components/platform/src/ipc.rs": "823b2fe77e179369d5cfb49d278807d13ecf490c7d6e13e7881658ff39fa433d",
+      "components/platform/src/lib.rs": "07e9722d690c29d1847ca4b1eabfc7e7a5907301adaa97f0b4fb9fe930f2fd52",
+      "components/platform/src/netifd/signals.rs": "7e6e68f3570a246320d11fb6c98d9ecdaa7378811a122606230e2e422a46fbf8",
+      "components/platform/src/netifd.rs": "7898450e2811609814c6030f49f89e759067715305065ceeeaef32eed7638760",
+      "components/platform/src/procd/compatibility.rs": "c577219bda9112bd8d7c36eaa11b03bffb1d62576b9459d461c458784271140e",
+      "components/platform/src/procd/process.rs": "3a9609713a47df7de81b9001bfe61eff88327d7761340594ec11edc729d6310b",
+      "components/platform/src/procd/signals.rs": "922cd1a45986722be825666e05ef426cde8c098002bdd4670145c036cc17762c",
+      "components/platform/src/procd/watchdog.rs": "91ff71afd5de548c62e4ec945563c17d46e8c36a4470e68a17cbd7c034341517",
+      "components/platform/src/procd.rs": "b7309412d3c1a1c2b6964017976820f44567dfa200459e872df1cd1a46c657fa",
+      "components/platform/src/readiness.rs": "91b9ff4bdd0a506041de41083e13d2551a8ddbb670a88e022d7a2c0583bb2304",
+      "components/platform/src/rpcd/readiness.rs": "583ce5d931392d6c9d3dcd810b4687bf6cd2a37264cd6493393a166b9b7fa928",
+      "components/platform/src/rpcd.rs": "c5716cab3acf538ed3b2ef35388c01d7bfc26cda39524924e66e79cb992addac",
+      "components/platform/src/text.rs": "6c94ce661309fbfcbe2d608d83218c0a53bac809ff8816eee20347b4cc89197d",
+      "components/platform/src/ubusd.rs": "236b8b7a7e82777330c1776e2e3c28c2da198c56bd3871389b2442c8f5ccbf46",
+      "components/platform/src/unix.rs": "d431ebe1fd7bcf1a467bd30c420e14a9f4fa1cd98e45c516d1d4d75cb1fc6526",
+      "components/ubus/Cargo.lock": "7f619ebc3fd35d8f561e6d85086703919aaa35dfaa091593a12338e405573796",
+      "components/ubus/Cargo.toml": "67cd30392be982d0cc8dde2c1cb4d759c4c853153da0c4b3433ce30aa80d14c9",
+      "components/ubus/src/blob.rs": "caaac032a0c67cc18a288fdda21b2b05c6a2fed5584ac572027c8e2d354f6e61",
+      "components/ubus/src/conn.rs": "f259a0a00dd1387b5edc200b84f28d220158dc2dcfd4f2f280c5ba9dfb23e4a8",
+      "components/ubus/src/connect.rs": "11f84f840e2c1944d215796c87d1a70626838b033caf2ad39a9b9f6e3fab4d0b",
+      "components/ubus/src/convert.rs": "074488af98c4046a665a3a4acd7443fd7286e3e122a8a0b5131a0925d35248ff",
+      "components/ubus/src/digest.rs": "58130610b32fdeeb06101665984a976bd940a378158d52cee995f5e70cca849d",
+      "components/ubus/src/json.rs": "35f05157da1ae8849a2aa9f7ca662f1d5b0619bbcfb9d7003f5ed3b84169b177",
+      "components/ubus/src/lib.rs": "c9c7cab80f58eb4bb737f243223e7318f42dab699a59ca7895c2b666008b7c60",
+      "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+      "components/ubus/src/readiness.rs": "ae5e87940bf3d865da87b88bd8ff163e4925a3eddf607b4c4e20bdc518d5c569",
+      "components/ubus/src/sys.rs": "5c9ad140bd20802a928edcb53aaf0fc7cac6b35bd9cf8018cf060ab6977fea80",
+      "components/ubusd/Cargo.lock": "7b0d15a2b92eccda58827655d4c3e2775a26856aee726b90ebc014a98b6f1391",
+      "components/ubusd/Cargo.toml": "7ec9115bde37473043917a305f1d4cf4293143feb719f49f714eff87ed615322",
+      "components/ubusd/examples/bench.rs": "5a48b38dc300d13e12187f3a7e1a6a63fdda02bdbb99584a0f953c13ea0763a0",
+      "components/ubusd/examples/connection_memory.rs": "5142980b0ca99b45f0d8f3c14aaa79f4596b4bbcb50c3cf0152613ea3ecd7946",
+      "components/ubusd/examples/event_memory.rs": "b1e8e6c73650cbee1f22582c23f4cf09d91a801588f5b82ca19398ec0da7ccfe",
+      "components/ubusd/examples/fuzz.rs": "b9c495dd2105853a54aef624c3f4f4e6170cfdd207050d078047956317ab536b",
+      "components/ubusd/examples/heap_support/mod.rs": "274fa01f894976705b7a88c6bd2d28d39b7eb833f287ed4a1ab3e44379dd43e2",
+      "components/ubusd/examples/method_memory.rs": "04d7f7f91984e055f6a2cc34b4f26e8202e0bb5ac60277d0da80365192951ecb",
+      "components/ubusd/examples/profile.rs": "7337e373fdef41a40d6cf267c61ac04d2f573a2ba962a302cf707261f951f8fe",
+      "components/ubusd/examples/registration_memory.rs": "6c0f160ba5cf4b0ebaa1bc63194e9ba3db01936497ff386a369d05ea37e54e19",
+      "components/ubusd/examples/registry_memory.rs": "291ea436ca041f6717411e2c424209c9cad5388fd81c50cb71dbe58e0d55e4c3",
+      "components/ubusd/examples/wireprobe.rs": "9a90242062c3d0a390fead18e09643223f235bb3268031a0af01af67d7371010",
+      "components/ubusd/src/acl.rs": "db0f5fe786585718246a889c9db803aa735abe2f75b700cda4bd1522bcdb6db6",
+      "components/ubusd/src/client.rs": "c2f32ed7995c03eed327333865136a46adf7b23ffcef91bb754843a1a86e9991",
+      "components/ubusd/src/main.rs": "c4cac9e1235a14eac644d3d3851879b777d3a7af90ae827193053a18055a9a9d",
+      "components/ubusd/src/obj.rs": "decf0baf0867fe377554720e6a67505d6907b8fd0918e3220049ce2c4b038351",
+      "components/ubusd/src/server.rs": "a4e47918ecc0dbda64f9b4ae9ca1b69305a27a7e3ffd6bb69f3cfe62dd61a658",
+      "components/ubusd/src/sys.rs": "36e7adb0ec5872ce73afed89fc45894136ee742e6b1539115d2663b8b0b03187",
+      "tools/r83_ubusd_acl.sh": "47ad8fea559302292067952317d7daa27f72a4fd89fc06a792d58a65edd3fe16",
+      "tools/r83_ubusd_inner.sh": "36eeef772d87d512a5046a8cd5800eac874f6fd4313c31c219b9f9e6093cb93d",
+      "tools/r92_compat_probe.py": "ec22c65920436d9bee471aa84e790edde32bf0a1fed16286072ff88b00118532",
+      "tools/r92_recovery_probe.py": "b9b05c21571e11c007903e77879e024becb6bd151ad8a1e057fb26751871e20c"
+    },
+    "prediction": "Final R83 transcripts remain byte-identical; R92 all pre-existing expected checks pass including malformed short TARGET divergence. Build/test fixture changes must not change daemon wire behavior.",
+    "scope": "Private Oracle namespaces only; exact 25.12.6 rootfs; no physical router actions."
+  },
+  "source_before_after_identical": true,
+  "image_release": "25.12.6 r33311-981c978eff",
+  "image_sha256": "286dbbaf16588c22daeaf6dbc8ca02573a1c30fbeb8592e3ba58b865c8726043",
+  "binaries": {
+    "/home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs/sbin/ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "/home/ubuntu/owrt-rust-review-20261022/candidate/components/ubusd/target/aarch64-unknown-linux-musl/release/ubusd-rs": "7d3bbc0c4696a700223c1f64298ed950ed1d74d611ba8a41b1c9f61541080ae3",
+    "/home/ubuntu/owrt-rust-review-20261022/candidate/components/ubusd/target/aarch64-unknown-linux-musl/release/examples/wireprobe": "bc67f7abdc87c569f17e7666deea0e74dcc3d52d8a3aba58ddd5506c304e080e",
+    "/home/ubuntu/owrt-rust-review-20261022/ubusd-helpers/asuser": "0473640168da940acbdafa33f50e0eabfbad1cf1e5512f84e78779cf525f6024"
+  },
+  "r83": {
+    "passed": true,
+    "directory": "/home/ubuntu/owrt-rust-review-20261022/ubusd-r83-final03",
+    "nonempty_lines": 37,
+    "transcript_sha256": "d59558243931d5cc4a4114e328455a6853aa51444cbf36e775b7de865349ee36",
+    "log_sha256": "40f995c04d6db6add39e2495c43466262d6cfdee141f457c53bd50f294391a3b"
+  },
+  "r92": {
+    "passed": true,
+    "directory": "/home/ubuntu/owrt-rust-review-20261022/ubusd-r92-final03",
+    "checks": 44,
+    "rows": [
+      {
+        "side": "original",
+        "case": "ubusd_wire",
+        "checks": 17
+      },
+      {
+        "side": "original",
+        "case": "ubusd_acl_types",
+        "checks": 5
+      },
+      {
+        "side": "candidate",
+        "case": "ubusd_wire",
+        "checks": 17
+      },
+      {
+        "side": "candidate",
+        "case": "ubusd_acl_types",
+        "checks": 5
+      }
+    ],
+    "results_sha256": "aaa4f9f27cf503fe42d5561d34d9f8e7e5d2fba1a6af74486dfd7693cecbd31c",
+    "expected_exception": "Short TARGET retains existing explicit expectation: exact C status4, Rust status2."
+  }
+}

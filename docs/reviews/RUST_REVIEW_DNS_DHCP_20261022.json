@@ -1,0 +1,268 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "reviewer": "audit_dns_core",
+  "guideline_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "applicability": "docs/RUST_GUIDELINES.md",
+  "scope": "Complete independent sequential reads of ten DHCP files; old generic ledger was not used as evidence of full source coverage. Additive error-trait and provider-contract follow-ups complete; protocol algorithms and Debug diagnostics unchanged.",
+  "files": [
+    {
+      "path": "components/dnsmasq/src/dhcp/lease.rs",
+      "sha256": "2b4cd3877605fc4cd4ff7f6d725ed9f4cd2bde970be71c669fa5e23d8d754c71",
+      "line_count": 1676,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          1676
+        ]
+      ],
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Read complete identity/expiry/address indexes, duplicate restoration, hostname collision/script queue, counters/serialization and tests. Private LeaseId sequence checked before mutation; renewal removes old expiry index; partial restore and C wrapped-time quirks explicit. Hex encoding chunks max64 into192-byte scratch. Existing error traits preserve source chain.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/lease_file.rs",
+      "sha256": "d55bcfd324b33baa9c3b3afbee3ab17c9e5ffb78cdfc8deeec9a34ab22d94452",
+      "line_count": 498,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          498
+        ]
+      ],
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Complete streaming scanf-width tokenizer, bounded mutable hex work buffer, warning transport and restore records read. Token limit invariant bounds subtraction; appended NUL and forward cursor bound hex reads; wildcard alias bytes and wrapped atol behavior intentional. Warning streaming avoids unbounded invalid-row accumulation.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/lease_query.rs",
+      "sha256": "3f326dbfde5aff61aab012014f9a35f9efe8689f185e771d0f4453fa082e203d",
+      "line_count": 750,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          750
+        ]
+      ],
+      "rules": [
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-HOTPATH",
+        "M-MOCKABLE-SYSCALLS",
+        "M-PANIC-IS-STOP",
+        "M-PUBLIC-DISPLAY",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Reviewed ACL prefix validation, query lookup/timers, full option writer and tests. Public ACL rejects widths above32, writer validates buffer/hardware/custom TLV size; checked fits retain END/overload margins. Added canonical Display/Error to existing ReplyError without changing variants, wire output or Debug diagnostics.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included. Additive error implementation and test patches read completely after formatting.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/logging.rs",
+      "sha256": "ca43bca5a60eb6fae9610190f14dec290537bdad9346dd902c014236ef16d290",
+      "line_count": 395,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          395
+        ]
+      ],
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Reviewed byte-preserving notices and all option rendering. Counted FQDN labels are bounded by remaining field, IPv4 chunks exclude trailing partial data, numeric fold deliberately wraps as C. Packet/header and TLV guards precede indexing; retain exact spaces and quiet/error behavior.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/persistence.rs",
+      "sha256": "1b4d0a0e4a2766af1645fa84015aec15f56a77d01f4d3755d4939fdce55ff33a",
+      "line_count": 480,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          480
+        ]
+      ],
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Full held-inode append/rewind/truncate/flush/fsync sequence and DNS publication protocol read. Failure reports keep committed leases and dirty state; forced DNS reconciliation remains pending until publisher succeeds. Error source chains and readonly semantics are explicit; injected LeaseIo boundary permits fault tests.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/pxe.rs",
+      "sha256": "d53ea0708f676942876a25f4e4d64ec33056b73c63caf1f239233a5632a487d8",
+      "line_count": 710,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          710
+        ]
+      ],
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Read all PXE decisions, boot target selection, generated suboptions and exact menu bounds/tests. Packet minimum-length access proves slices; menu saturating addition rejects overlong entries before u8 casts; filename truncation and UEFI listener phase match recorded C contract. Existing MenuTooLarge now has Display/Error.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/relay.rs",
+      "sha256": "c47c2a50b5a1f6c9012ead77392e1e32106c6a1c2374284391e0b1df08854fba",
+      "line_count": 758,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          758
+        ]
+      ],
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Read opaque forwarding, split option82, reply stripping, Linux interface admission/send and tests. Fixed datagram bounds and hop checks protect indexing; split append is capped548 within reusable65507 scratch. Reply field lengths guard remote-id/ARP access. Packet mutations retain C rule-order behavior and restore normalized giaddr.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/reply.rs",
+      "sha256": "94409e0b39b121340b0fffb5cb84100cdcc1298629b48ccd63e33f144165feb2",
+      "line_count": 1491,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          1491
+        ]
+      ],
+      "rules": [
+        "M-CANONICAL-DOCS",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-HOTPATH",
+        "M-PANIC-IS-STOP",
+        "M-PUBLIC-DISPLAY",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Read every reply branch, timer/fuzz policy, bounded TLV writer and tests. Caller option lengths validate before output mutation; Packet::echo_agent_id ensures incoming END plus reserved TLV remains below advertised capacity, proving writer subtraction/tail bounds. Fixed fields are nonempty and Refusal messages bounded. Added Display/Error and preserved BOOTP VendorError as source; no serializer code changed.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included. Additive error implementation and test patches read completely after formatting.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/runtime.rs",
+      "sha256": "8f0a06e7901f8cc96fff48e583841bc28f5ffd09737b0ef3aa54493c20b5c50b",
+      "line_count": 3433,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          3433
+        ]
+      ],
+      "rules": [
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-HOTPATH",
+        "M-MOCKABLE-SYSCALLS",
+        "M-PANIC-IS-STOP",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Read all provider/state adapters, dispatch/commit ordering, ordinary/PXE/leasequery serialization, selected/vendor/FQDN options, destination/ARP, entropy/send retries and fault tests. Production encoders and typed packet bounds protect slice accesses; public callback contract now specifies valid complete serialized length before restore/route/send. Errors retain outcomes after commit. Added RuntimeError/RuntimeFailure Display/Error and nested source chains; a focused regression verifies errno and BOOTP causes remain available without affecting committed state.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included. Additive error implementation and test patches read completely after formatting.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    },
+    {
+      "path": "components/dnsmasq/src/dhcp/state.rs",
+      "sha256": "b0b9547c6bff050d3c21c64ce789d25ea5f97ea786349312b44dbe8b664fbf2b",
+      "line_count": 1331,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          1331
+        ]
+      ],
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-STRONG-TYPES-GUARD",
+        "M-CANONICAL-DOCS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Read all REQUEST/DISCOVER/BOOTP/DECLINE/RELEASE/INFORM paths and independent alias tests. Lifetimes borrow synchronous owners; context slices derive from bounded indices; client identity authorizes deletion, successful commits persist before response. Explicit wrapping counters and C fallback-server order retained, no unsafe/network calls.",
+      "coverage_basis": "Complete source read in sequential chunks no larger than 150 lines, with no truncated read output; tests included.",
+      "validation": [
+        "Oracle mbx test --locked --lib dhcp::: 225 passed, 0 failed, 5 ignored (exact-C/privileged fixtures); /home/ubuntu/owrt-rust-review-20261022/dhcp-error-traits-tests.log. Root owns full frozen-tree checks and exact-image differentials."
+      ]
+    }
+  ],
+  "additional_patch_reviews": [
+    {
+      "path": "components/dnsmasq/src/dhcp/packet.rs",
+      "scope": "Only VendorError/ParseError definitions and complete additive Display/Error patch read by this reviewer; not counted as an additional full-read file.",
+      "sha256": "d759abf3a1f0591af75c270ff37c91f3a998fceb58b2b3694b467cf08a180b3f",
+      "rules": [
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-PUBLIC-DISPLAY"
+      ],
+      "change": "Add Display/Error for VendorError and ParseError so wrapper errors retain typed sources; no parser/encoder branch changes."
+    }
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

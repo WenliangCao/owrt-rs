@@ -1,0 +1,101 @@
+{
+  "completed_at_utc": "2026-10-22T21:21:58.615215+00:00",
+  "host": "ssh oracle",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "scope": "Each crate declares two independent optional features. These four checks fill all individual-feature combinations beyond the previously tested default and all-features combinations. Check only; no Rust tests repeated.",
+  "checks": [
+    {
+      "manifest": "components/dnsmasq/Cargo.toml",
+      "feature": "m6b-diagnostics",
+      "command": [
+        "mbx",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--no-default-features",
+        "--features",
+        "m6b-diagnostics",
+        "--all-targets"
+      ],
+      "passed": true,
+      "log": "oracle:/home/ubuntu/owrt-rust-review-20261022/frontend-feature-dns-m6b-diagnostics.log",
+      "log_sha256": "a74fbf47fde4f034515293957436fe34da88c782d2b4aef27ceac1667c5e716a"
+    },
+    {
+      "manifest": "components/dnsmasq/Cargo.toml",
+      "feature": "process-test-support",
+      "command": [
+        "mbx",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--no-default-features",
+        "--features",
+        "process-test-support",
+        "--all-targets"
+      ],
+      "passed": true,
+      "log": "oracle:/home/ubuntu/owrt-rust-review-20261022/frontend-feature-dns-process-test-support.log",
+      "log_sha256": "0d49c91e2c58afd971fc55071d856c85b264bdec8b49d18329f43fac88ab4b24"
+    },
+    {
+      "manifest": "tools/benchmark/Cargo.toml",
+      "feature": "registration-perf",
+      "command": [
+        "mbx",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "tools/benchmark/Cargo.toml",
+        "--no-default-features",
+        "--features",
+        "registration-perf",
+        "--all-targets"
+      ],
+      "passed": true,
+      "log": "oracle:/home/ubuntu/owrt-rust-review-20261022/frontend-feature-benchmark-registration-perf.log",
+      "log_sha256": "3a0d41405d705ab9cc13b4ee7af7c927d377bd503eafb9da995d319040c24c2c"
+    },
+    {
+      "manifest": "tools/benchmark/Cargo.toml",
+      "feature": "registration-phase",
+      "command": [
+        "mbx",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "tools/benchmark/Cargo.toml",
+        "--no-default-features",
+        "--features",
+        "registration-phase",
+        "--all-targets"
+      ],
+      "passed": true,
+      "log": "oracle:/home/ubuntu/owrt-rust-review-20261022/frontend-feature-benchmark-registration-phase.log",
+      "log_sha256": "1414ac7d11196a07725420ff13952e44c65f006f493479157bbcfdc2911d36a4"
+    }
+  ],
+  "python_gate": {
+    "command": [
+      "python3",
+      "tools/test_rust_check.py"
+    ],
+    "passed": 8,
+    "failed": 0,
+    "PYTHONPYCACHEPREFIX": "/home/ubuntu/owrt-rust-review-20261022/frontend-gate-pycache",
+    "log": "oracle:/home/ubuntu/owrt-rust-review-20261022/frontend-final04-rust-gate-python.log",
+    "log_sha256": "94a24b4d0b9eb92de49b7ba8def8f83424cd119ad1a733e6167d6f277da53709"
+  },
+  "input_sha256": {
+    "components/dnsmasq/Cargo.toml": "a67c58db4687a91ecda98ad722c2e132eec2fbe8c7492ea05739c40b075ba108",
+    "components/dnsmasq/Cargo.lock": "c5bb4f819c193dce1c4537df6b6966756d19b292e92b839d3d77f1650f3cb3c7",
+    "tools/benchmark/Cargo.toml": "759fd9939e5fcdb273735058a3908662c30d8b224bf83ac159c8cbd82d03e357",
+    "tools/benchmark/Cargo.lock": "4310c6c30bc696748d4b5daa16a42a2e188d4eac241fcabbab61d5d3405cc33d",
+    "tools/rust_check.py": "f9dfe4da20a499176d66abf3ccdf17e61623d4562a0fd4763a5b5e6aedf61208",
+    "tools/test_rust_check.py": "1586b083b9bf45ebcd764743e36b308cbec8e4eb14f910f7f32938ab3627c426"
+  },
+  "source_changes": false,
+  "all_passed": true
+}

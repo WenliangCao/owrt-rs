@@ -1,0 +1,1343 @@
+{
+  "schema": 1,
+  "scope": "All 18 shared platform and 20 UCI Rust files, including build/entry and integration tests",
+  "guideline_source": "https://microsoft.github.io/rust-guidelines/agents/all.txt",
+  "guideline_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "files": [
+    {
+      "path": "components/platform/src/directory.rs",
+      "line_count": 59,
+      "sha256_before": "fb6c8196be8d4dee76e9803802073d41bc26fbb065a60fdd0a16370e7fadc910",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          59
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "fb6c8196be8d4dee76e9803802073d41bc26fbb065a60fdd0a16370e7fadc910",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Validated Linux64 dirent offsets and opendir/closedir RAII; readdir names are borrowed only during each callback without forming a reference to an oversized trailing array.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/httpd.rs",
+      "line_count": 73,
+      "sha256_before": "52014d9b012da124359e488c390a81563821c56c75dbf444ce57da4c860fb757",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          73
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "52014d9b012da124359e488c390a81563821c56c75dbf444ce57da4c860fb757",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Checked FIONBIO, socket timeout and TCP_FASTOPEN buffer sizes; raw numeric snapshots do not fabricate ownership, sub-microsecond positive timeouts round up and zero rejects.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/identity.rs",
+      "line_count": 223,
+      "sha256_before": "e02fa07087aa261004e2e6bd04e12eb7d8a836cf9e03e57a9fdf263884a06cc5",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          223
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "e02fa07087aa261004e2e6bd04e12eb7d8a836cf9e03e57a9fdf263884a06cc5",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "NSS _r calls use owned expandable buffers, copy scalar/string results before dropping storage, and guard null result/name pointers; libc process-wide UID/GID behavior remains explicit.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/ipc.rs",
+      "line_count": 175,
+      "sha256_before": "823b2fe77e179369d5cfb49d278807d13ecf490c7d6e13e7881658ff39fa433d",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          175
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "823b2fe77e179369d5cfb49d278807d13ecf490c7d6e13e7881658ff39fa433d",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed one-FD ancillary send/receive capacities, IoSlice ABI and OwnedFd adoption. Linux discards truncated extra rights; regression verifies the second pipe receives EOF rather than leaking its descriptor.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/lib.rs",
+      "line_count": 45,
+      "sha256_before": "07e9722d690c29d1847ca4b1eabfc7e7a5907301adaa97f0b4fb9fe930f2fd52",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          45
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "07e9722d690c29d1847ca4b1eabfc7e7a5907301adaa97f0b4fb9fe930f2fd52",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "ABI modules reject unsupported target OS/architectures and retain unsafe-op and documented-block gates; no platform business state was introduced.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/netifd.rs",
+      "line_count": 202,
+      "sha256_before": "7898450e2811609814c6030f49f89e759067715305065ceeeaef32eed7638760",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          202
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "7898450e2811609814c6030f49f89e759067715305065ceeeaef32eed7638760",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Interface ioctl whitelist excludes pointer-bearing commands; ethtool command-specific lengths are checked, including independent kernel feature-count query for GSTRINGS; fixed syslog format prevents format injection.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/netifd/signals.rs",
+      "line_count": 86,
+      "sha256_before": "7e6e68f3570a246320d11fb6c98d9ecdaa7378811a122606230e2e422a46fbf8",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          86
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "7e6e68f3570a246320d11fb6c98d9ecdaa7378811a122606230e2e422a46fbf8",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Fixed handlers preserve errno around nonblocking pipe writes and use atomics only; leaked writer is explicitly process-lifetime ownership.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/procd.rs",
+      "line_count": 6,
+      "sha256_before": "b7309412d3c1a1c2b6964017976820f44567dfa200459e872df1cd1a46c657fa",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          6
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "b7309412d3c1a1c2b6964017976820f44567dfa200459e872df1cd1a46c657fa",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Module wiring keeps credential/process/signal/watchdog ABI concerns in the platform crate; no runtime behavior in this file.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/procd/compatibility.rs",
+      "line_count": 140,
+      "sha256_before": "c577219bda9112bd8d7c36eaa11b03bffb1d62576b9459d461c458784271140e",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          140
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "c577219bda9112bd8d7c36eaa11b03bffb1d62576b9459d461c458784271140e",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Regex storage is aligned and oversized for supported ABIs, compilation success owns one regfree; reentrant tm storage and terminated syslog/interface input lifetimes were checked.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/procd/process.rs",
+      "line_count": 225,
+      "sha256_before": "2b9417ff9c8fb9b474d39f483342c06556b66e85f38634e1f24e01f45c38dd49",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          225
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "3a9609713a47df7de81b9001bfe61eff88327d7761340594ec11edc729d6310b",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Checked owned pre_exec setup/callback safety contracts and bounded cgroup path/PID formatting. Supplementary review found safe halt child used process::exit; root replaced it with _exit to avoid inherited exit hooks.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": [
+        "Resolved by root: safe halt_forever fork child used std::process::exit and could run inherited atexit hooks; changed to _exit."
+      ]
+    },
+    {
+      "path": "components/platform/src/procd/signals.rs",
+      "line_count": 168,
+      "sha256_before": "922cd1a45986722be825666e05ef426cde8c098002bdd4670145c036cc17762c",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          168
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "922cd1a45986722be825666e05ef426cde8c098002bdd4670145c036cc17762c",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Signal handlers only atomically record actions and perform async-safe wake/reboot calls; errno preserved, writer intentionally process-lived. Regression hook exposes only synchronous borrowed descriptor access.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/procd/watchdog.rs",
+      "line_count": 58,
+      "sha256_before": "91ff71afd5de548c62e4ec945563c17d46e8c36a4470e68a17cbd7c034341517",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          58
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "91ff71afd5de548c62e4ec945563c17d46e8c36a4470e68a17cbd7c034341517",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Inherited WDTFD adoption is explicitly unsafe because F_GETFD cannot prove sole ownership; fixed ioctl buffer sizes align with watchdog ABI and kernel failures remain Result.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/readiness.rs",
+      "line_count": 51,
+      "sha256_before": "91b9ff4bdd0a506041de41083e13d2551a8ddbb670a88e022d7a2c0583bb2304",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          51
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "91b9ff4bdd0a506041de41083e13d2551a8ddbb670a88e022d7a2c0583bb2304",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "epoll owns its control FD while target slots remain numeric; event pointer is null only for DEL and typed ABI assertions distinguish x86_64 packed versus AArch64 layout.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/rpcd.rs",
+      "line_count": 286,
+      "sha256_before": "c5716cab3acf538ed3b2ef35388c01d7bfc26cda39524924e66e79cb992addac",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          286
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "c5716cab3acf538ed3b2ef35388c01d7bfc26cda39524924e66e79cb992addac",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Fixed delayed child operations avoid arbitrary Rust callbacks; fnmatch/crypt and tm/socket/ioctl wrappers validate strings, buffer sizes and FD-set bounds; raw snapshots remain syscall-validated.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/rpcd/readiness.rs",
+      "line_count": 152,
+      "sha256_before": "583ce5d931392d6c9d3dcd810b4687bf6cd2a37264cd6493393a166b9b7fa928",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          152
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "583ce5d931392d6c9d3dcd810b4687bf6cd2a37264cd6493393a166b9b7fa928",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Registration falls back to poll when numeric source slots cannot be registered; epoll output count is bounded by its two-entry capacity, tokens are bounds-checked and EINTR remains observable.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/text.rs",
+      "line_count": 21,
+      "sha256_before": "6c94ce661309fbfcbe2d608d83218c0a53bac809ff8816eee20347b4cc89197d",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          21
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "6c94ce661309fbfcbe2d608d83218c0a53bac809ff8816eee20347b4cc89197d",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Mutex serializes libc crypt static storage and poison is a programming-failure stop; C strings live during comparison and borrowed output cannot escape the callback.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/ubusd.rs",
+      "line_count": 56,
+      "sha256_before": "236b8b7a7e82777330c1776e2e3c28c2da198c56bd3871389b2442c8f5ccbf46",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          56
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "236b8b7a7e82777330c1776e2e3c28c2da198c56bd3871389b2442c8f5ccbf46",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "SO_PEERCRED uses integer PID storage so kernel pid=0 is valid; output length checked, wake preserves errno and never fabricates descriptor ownership.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/platform/src/unix.rs",
+      "line_count": 179,
+      "sha256_before": "d431ebe1fd7bcf1a467bd30c420e14a9f4fa1cd98e45c516d1d4d75cb1fc6526",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          179
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "d431ebe1fd7bcf1a467bd30c420e14a9f4fa1cd98e45c516d1d4d75cb1fc6526",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Read/write/poll wrappers bound buffers and preserve numeric invalid-FD semantics. Arbitrary handler installation is explicitly unsafe with asynchronous reentrancy/lifetime requirements; dispositions are opaque.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/build.rs",
+      "line_count": 16,
+      "sha256_before": "a17deb59027f7738283bb647df9a330e473e082f7c0b393729523982d88e9d5b",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          16
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "a17deb59027f7738283bb647df9a330e473e082f7c0b393729523982d88e9d5b",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Build-script output only controls the required static-musl getauxval linker symbol; environment/OS gating leaves other targets unchanged and no Rust compilation was run locally.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/platform/entry.rs",
+      "line_count": 21,
+      "sha256_before": "5e992fc80aa27d4d57219101fbde51bbc3dc269550be8412bff1796d098f238a",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          21
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "5e992fc80aa27d4d57219101fbde51bbc3dc269550be8412bff1796d098f238a",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "libc main entry has an explicit unsafe argv contract; argv is copied into owned bytes before safe CLI execution and preserves inherited SIGPIPE by skipping Rust runtime startup.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/cli.rs",
+      "line_count": 707,
+      "sha256_before": "df80ce8e4a397c051f07f764bd2b7e69bfc66e28db813fc109db73ff4f565a0e",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          707
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "df80ce8e4a397c051f07f764bd2b7e69bfc66e28db813fc109db73ff4f565a0e",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Read all command dispatch, import/batch/getopt and reporting paths. Byte values remain owned; expected libuci exit codes, batch parser carry and intentional stdout-error behavior are preserved.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/context.rs",
+      "line_count": 196,
+      "sha256_before": "306c19972b50701efca1252d822a6a7933f73747c03ab5a1f93f583cc2dc374d",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          196
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "754f149ad0ac13c3ddd99d5526d9ab9bdbdbc2de9ed3eef555ad3f7e6089a57f",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Context Debug avoids configuration payloads; cancellation/lock budget checks are explicit. Supplementary review found unrepresentable Instant addition; root changed it to an immediately expired budget with regression.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": [
+        "Resolved by root: set_io_budget(Duration::MAX) panicked in Instant addition; checked deadline now expires immediately."
+      ]
+    },
+    {
+      "path": "components/uci/src/delta.rs",
+      "line_count": 424,
+      "sha256_before": "f8bdba947488a34005da1bcaf97c4ae8d1d939b576845cffe891b08dd5269c6c",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          424
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "f8bdba947488a34005da1bcaf97c4ae8d1d939b576845cffe891b08dd5269c6c",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Delta commands validate tuple structure and replay in configured path order; file locks have owned lifetimes. prepare_commit retains the draft lock and avoids clearing it before configuration install; conversion saturation matches C ulong narrowing.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/error.rs",
+      "line_count": 47,
+      "sha256_before": "6663d39e9316e5edb283fb1be8f2c47db96328730ea6ca993b74bc6d86a68cec",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          47
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "6663d39e9316e5edb283fb1be8f2c47db96328730ea6ca993b74bc6d86a68cec",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Canonical libuci numeric codes and strings remain stable; opt-in timeout/cancellation extensions implement Display/Error without backtrace allocation or protocol changes.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/export.rs",
+      "line_count": 98,
+      "sha256_before": "d54089ee2b648564b184b1ff95b0d2e70848f107aa06f4675fa04df4355a6c5f",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          98
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "d54089ee2b648564b184b1ff95b0d2e70848f107aa06f4675fa04df4355a6c5f",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Owned values are rendered byte-for-byte with quote escaping; stream operations return actual I/O failures and capacity estimates do not change output.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/file.rs",
+      "line_count": 492,
+      "sha256_before": "6c85ab09855597cf6da44edf283d355fdcf292372624f2dd11773b19e1f21876",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          492
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "6c85ab09855597cf6da44edf283d355fdcf292372624f2dd11773b19e1f21876",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Read loop continues through short reads/EINTR and never publishes failed partial buffers; cancellation removes partial packages. Commit staging, metadata, rename/backup and failed draft truncation preserve the previous config or explicit uncertain status.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/lib.rs",
+      "line_count": 31,
+      "sha256_before": "b993f0f78a2402682690e0d9fed839af8d4bffc590244de5064035bd7c1ab7f1",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          31
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "b993f0f78a2402682690e0d9fed839af8d4bffc590244de5064035bd7c1ab7f1",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Safe UCI business modules retain forbid(unsafe_code), documented reexports and existing libuci-compatible module paths; layout/workspace redesign remains outside this compatibility change.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/model.rs",
+      "line_count": 337,
+      "sha256_before": "4cddb9ae187052ce871715a14f802b0b1efdc5ccdaed4125617c8032eea57123",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          337
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "4cddb9ae187052ce871715a14f802b0b1efdc5ccdaed4125617c8032eea57123",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Private inline/boxed Bytes representation validates length on conversion and owns every payload; Debug redacts values in bytes/deltas/lookup objects, with short/long secret regressions.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/ops.rs",
+      "line_count": 858,
+      "sha256_before": "0d4ab316f7b9543546634fb831e7137a67b71952272b1d6b8f530a4689d91540",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          858
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "0d4ab316f7b9543546634fb831e7137a67b71952272b1d6b8f530a4689d91540",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Validated parsing versus resolved index usage through all mutations. Integer parsing explicitly preserves C saturation/narrowing; negative list indices do not overflow; non-UTF8 rename rejects before model/delta mutation.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/parse.rs",
+      "line_count": 1140,
+      "sha256_before": "f29b4bf1dfef10fa19eb6fc0f2fa926623d8b78587af5b5fb69c3a4cc16ebb17",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          720
+        ],
+        [
+          721,
+          900
+        ],
+        [
+          901,
+          1080
+        ],
+        [
+          1081,
+          1140
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "a6fd1785ae0134104f10426a5557d68a62436b4c615784f0670c25451881f443",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Read all production/parser tests, then re-read final Unicode diagnostic change and regression. Literal fast paths, C fgets/NUL chunks, quote continuation and strict/merge rollback preserve existing contracts; perror now truncates custom Unicode reasons at a character boundary.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": [
+        "Resolved by root after this supplementary review: long custom Unicode ParseInfo.reason could panic during truncate(126); floor_char_boundary preserves UTF-8 and public perror regression exercises this input."
+      ]
+    },
+    {
+      "path": "components/uci/src/read_cache.rs",
+      "line_count": 349,
+      "sha256_before": "36f062e3e69d52fd5b28e033d3f0e9cf63de060a19136165469b57aa7073d37d",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          349
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "36f062e3e69d52fd5b28e033d3f0e9cf63de060a19136165469b57aa7073d37d",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Cache rereads complete locked bytes; matches flags/name/bytes, replays current deltas and overwrites all recycled model fields. Capacity bounds and failed/non-strict parses prevent stale or cross-session reuse.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/show.rs",
+      "line_count": 200,
+      "sha256_before": "561ab180320aca87a00d3fc94e75644965695e6489ecdc2131997179fcdf3ae6",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          200
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "561ab180320aca87a00d3fc94e75644965695e6489ecdc2131997179fcdf3ae6",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Rendering preserves list delimiter/quote and anonymous-section numbering; failed tuple lookup leaves output untouched. Writer errors retain the documented original CLI behavior.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/src/sys.rs",
+      "line_count": 74,
+      "sha256_before": "0f3f2420f37bc46385509f808f3224214963da22d04969058099b0778d01be13",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          74
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "0f3f2420f37bc46385509f808f3224214963da22d04969058099b0778d01be13",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Typed flock conversion validates flags, ENOSYS retains compatibility and temporary creation uses O_EXCL/mode0600 with bounded collision retries; no unsafe pointer boundary.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/tests/commit_failure.rs",
+      "line_count": 45,
+      "sha256_before": "73824c4ea045f4c99f8a2877698ecaf37139780a61b630d79d55707483d1e886",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          45
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "73824c4ea045f4c99f8a2877698ecaf37139780a61b630d79d55707483d1e886",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Filesystem fault is structural (missing staging directory), works as root, verifies previous bytes and draft retained and retry applies list delta exactly once.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/tests/config_listing.rs",
+      "line_count": 93,
+      "sha256_before": "65210080ba1f40101658c0313dfdaa5cba3640a881c349729a3fcec201774e9d",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          93
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "65210080ba1f40101658c0313dfdaa5cba3640a881c349729a3fcec201774e9d",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Unique PID/counter fixtures and RAII cleanup exercise real symlinks, invalid raw names, glob no-match distinction and readdir refill/long-name boundaries.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/tests/io_budget.rs",
+      "line_count": 168,
+      "sha256_before": "f88724d2a2a6d1e8b00d2c27490143f7d42ff39902dc1f51178fce07c297c604",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          168
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "9a5309608e3226040841c86353b9e6639f8490ffe4be382741aa69f389539739",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Independent lock holders force timeout/cancellation and recovery; cached loads still obey current locks. New Duration::MAX regression verifies immediate TimedOut rather than panic or unbounded wait.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/tests/libuci_fidelity.rs",
+      "line_count": 419,
+      "sha256_before": "2802d3dd4ed7f8561862bd32369469d483e04fe53b02811ec377d028e9d7eaba",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          419
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "2802d3dd4ed7f8561862bd32369469d483e04fe53b02811ec377d028e9d7eaba",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Expected behavior comes from matched C libuci observations, covers integer truncation, NUL/fgets boundaries, raw bytes, anonymous retype and explicit unsupported non-UTF8 rename refusal.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    },
+    {
+      "path": "components/uci/tests/read_cache_files.rs",
+      "line_count": 247,
+      "sha256_before": "e30971086066db62c78caa7b6b3d31797a2bad1ee92789b307a0a8edb3095837",
+      "status": "reviewed",
+      "read_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          247
+        ]
+      ],
+      "full_read": true,
+      "sha256_after": "e30971086066db62c78caa7b6b3d31797a2bad1ee92789b307a0a8edb3095837",
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-PANIC-ON-BUG",
+        "M-PUBLIC-DEBUG",
+        "M-PUBLIC-DISPLAY",
+        "M-STRONG-TYPES-GUARD",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Cached and uncached public APIs are compared across same-size rewrites, preserved timestamps, atomic rename, symlink/override changes and isolated session/state deltas, including recycled arbitrary edits.",
+      "validation": [
+        "Supplementary source review read all 66 original chunks in outputs of at most 180 lines per chunk, with no truncated output; changed context/io_budget/process sections re-read afterwards.",
+        "Root owns final ordinary-user oracle mbx tests/Clippy and source/artifact verification; this source review does not substitute for those execution gates."
+      ],
+      "findings": []
+    }
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

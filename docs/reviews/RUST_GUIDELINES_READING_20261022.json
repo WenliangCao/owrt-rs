@@ -1,0 +1,88 @@
+{
+  "source": "https://microsoft.github.io/rust-guidelines/agents/all.txt",
+  "sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "line_count": 3529,
+  "full_read": true,
+  "read_method": "Primary agent read every line in separate, untruncated tool outputs; each segment at most 200 lines.",
+  "read_ranges": [
+    [
+      1,
+      200
+    ],
+    [
+      201,
+      400
+    ],
+    [
+      401,
+      600
+    ],
+    [
+      601,
+      800
+    ],
+    [
+      801,
+      1000
+    ],
+    [
+      1001,
+      1200
+    ],
+    [
+      1201,
+      1400
+    ],
+    [
+      1401,
+      1600
+    ],
+    [
+      1601,
+      1800
+    ],
+    [
+      1801,
+      2000
+    ],
+    [
+      2001,
+      2200
+    ],
+    [
+      2201,
+      2400
+    ],
+    [
+      2401,
+      2600
+    ],
+    [
+      2601,
+      2800
+    ],
+    [
+      2801,
+      3000
+    ],
+    [
+      3001,
+      3200
+    ],
+    [
+      3201,
+      3400
+    ],
+    [
+      3401,
+      3529
+    ]
+  ],
+  "review_date": "2026-10-22",
+  "application": "docs/RUST_GUIDELINES.md",
+  "notes": [
+    "Rust safety has no compatibility exception.",
+    "Other recommendations are evaluated per interface, caller, deployment ABI and measured cost; see per-file review ledger for applied fixes or concrete retention reasons.",
+    "Corrected ledger generator stride to match the 18 actual sequential 200-line reads; the previous overlapping ranges were a metadata error."
+  ]
+}

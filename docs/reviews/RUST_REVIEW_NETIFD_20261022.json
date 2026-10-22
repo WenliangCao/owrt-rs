@@ -1,0 +1,574 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "reviewer": "audit_dns_core",
+  "guideline_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "applicability": "docs/RUST_GUIDELINES.md",
+  "scope": "All 22 netifd Rust files, complete read. Existing kernel/wire and model compatibility rules retained; not a claim of wholesale conformance to every optional API trait/documentation recommendation.",
+  "files": [
+    {
+      "path": "components/netifd/examples/devstatus.rs",
+      "sha256": "7089121a9b14a0cf2759c187bd030df3a4529e23efd4fe7e0ac4fe91cbdb87c8",
+      "line_count": 96,
+      "coverage_ranges": [
+        [
+          1,
+          96
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Diagnostic probe derives kernel settings independently and explicitly imports only bookkeeping from C fixture; trusted CLI assertions remain outside daemon paths.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/examples/ifstatus.rs",
+      "sha256": "28ddcf424b9c4d6ca54f8d42d3b42360780a0dfe64b10af5b55a6f634dab3b5e",
+      "line_count": 223,
+      "coverage_ranges": [
+        [
+          1,
+          223
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Static configuration projection independently derives IP/routes/prefixes; only documented dynamic state comes from C reference. Trusted corpus errors stop the diagnostic.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/examples/profile.rs",
+      "sha256": "ed4d0d3878a21c824f9f7b4f3196f672ca640c13daabf86e1dd1cc0cdf261511",
+      "line_count": 271,
+      "coverage_ranges": [
+        [
+          1,
+          271
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Diagnostic profiler accepts trusted fixture files and preserves component-specific field order; errors abort the diagnostic, not daemon requests.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/examples/sysprobe.rs",
+      "sha256": "42e25862318859b38e32aa8e6f4e826fbfba8a8c38069d64ee1fe693df6ca92a",
+      "line_count": 169,
+      "coverage_ranges": [
+        [
+          1,
+          169
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Explicit test-only live-kernel operations preserve error exits; no operation executed during read review. Arguments feed bounded fixed arrays or existing validated kernel API.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/clock.rs",
+      "sha256": "05fbbe703850b23ee26b49e8072062c2233f9ef209398a8abf6d7d8300e9f9c9",
+      "line_count": 35,
+      "coverage_ranges": [
+        [
+          1,
+          35
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Monotonic kernel clock matches netifd deadlines; arithmetic bounded by kernel uptime; existing sleep test measures elapsed duration, not inter-thread ordering.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/config.rs",
+      "sha256": "e6128bcb0dd5537d0a26bfa2efddb852f6b8836e27de033e3453d7462b13759d",
+      "line_count": 949,
+      "coverage_ranges": [
+        [
+          1,
+          949
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Static address and route prefixes validate family bounds before shifts; warnings retain usable sections. Protocol extras/raw options use credential-redacted Debug while original values remain intact. String load error is an existing daemon boundary, not a new public error redesign.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/device.rs",
+      "sha256": "000d2d379e0d55f43013d23f249ec891f9993d6321c04b930522014b1b83a859",
+      "line_count": 946,
+      "coverage_ranges": [
+        [
+          1,
+          946
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Sysctl paths reject NUL before open; flag union, field omissions, sorted device insertion and bridge/status order preserve C wire behavior. Generated numeric flags remain contract data.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/ethtool.rs",
+      "sha256": "4facaf2cb7bdf9f8fcdd582c6132485ff04b4c6a56d12e525c916be1a92684ab",
+      "line_count": 546,
+      "coverage_ranges": [
+        [
+          1,
+          546
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Handshake validates signed word count before allocation and offset use; fixed sysfs reads and feature word bounds preserve kernel ABI and zero-data defaults.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/ethtool_modes.rs",
+      "sha256": "7ba8b559cd295a74ddd4443597ac454585426bf70719f9022facfc49a9b37f11",
+      "line_count": 86,
+      "coverage_ranges": [
+        [
+          1,
+          86
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Generated target ethtool mode bits/names reviewed in full; preserve upstream order and negative absent-bit sentinels.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/interface.rs",
+      "sha256": "d7bc99ab4406f51b67486a706ba3d931f87427b715db325308b2f76a9170769c",
+      "line_count": 977,
+      "coverage_ranges": [
+        [
+          1,
+          977
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Reviewed all status projections, deadline wrapping/clamping, route ordering and prefix ownership. Stack IP formatting is bounded to 48 bytes. Existing route comparator heap copies are a possible future measured optimization; no behavior-preserving correctness change required.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/ip.rs",
+      "sha256": "40ebe991a3a1478ccf4d34ce280a86377497b3c15b9ffe81f265c40706b82e0c",
+      "line_count": 533,
+      "coverage_ranges": [
+        [
+          1,
+          533
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Prefix parent, exclusion and request ranges constrain shifts and sizes before assignment; first-fit order and hint behavior are retained.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/lib.rs",
+      "sha256": "6bce55c31b793ffa991a912d94dc1395400fead11d5e4a472fefedd5766157e6",
+      "line_count": 18,
+      "coverage_ranges": [
+        [
+          1,
+          18
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Public module map and forbid(unsafe_code) keep kernel operations in the existing platform boundary.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/logging.rs",
+      "sha256": "2fa949b1eced7c18026f7355c15fd94d9e5b0d35f7394014a0ac42f3494581e6",
+      "line_count": 95,
+      "coverage_ranges": [
+        [
+          1,
+          95
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Atomics publish process logging configuration; message conversion adds its terminating NUL before CStr validation; stdout/syslog contract and errno failures preserved.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/main.rs",
+      "sha256": "c4f10f81bd173b4e317f34ff6f82bab41066710da50afdc8bdd726e86d869af6",
+      "line_count": 6362,
+      "coverage_ranges": [
+        [
+          1,
+          6362
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-PANIC-ON-BUG",
+        "M-CANONICAL-DOCS",
+        "M-MODULE-DOCS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Reviewed; stale documentation corrected by root",
+      "no_issue_reason": "Read complete daemon lifecycle and tests. Root corrected module summary and netlink resync docs; complete documentation-only patch read afterwards. Same-family route parser guarantees and index ownership retained; no broad state-machine rewrite justified.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/netdev_types.rs",
+      "sha256": "085718f655d0e31aaa46030145c94105e718b2aab4977a816cb817bbf7ef8650",
+      "line_count": 66,
+      "coverage_ranges": [
+        [
+          1,
+          66
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Generated ARPHRD table reviewed in full; order and fallback are behavioral data, so do not hand-edit.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/netlink.rs",
+      "sha256": "f985c14603176178a2e419d6654299150f5e6ae337964fb8195ac114a0f5e8e4",
+      "line_count": 611,
+      "coverage_ranges": [
+        [
+          1,
+          611
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Kernel frame bounds, error status decoding and interrupted dump drain were reviewed; short/positive/MIN statuses fail explicitly. Trusted request builders retain documented kernel layouts.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/process.rs",
+      "sha256": "9f9e916a8a009137e18c9cfaf2f3342df432732ec40c5f37b8f2d5efedbb0fda",
+      "line_count": 497,
+      "coverage_ranges": [
+        [
+          1,
+          497
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Child process ownership, output-drain limits and retirement reaping reviewed; poisoned bookkeeping stops explicitly. SIGSTOP handshake replaces scheduler-dependent ordering. Existing best-effort nonblocking setup retained for compatibility.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/proto.rs",
+      "sha256": "cd52fd3ed66be47d2e7a1800b6dbb11e5d684ef3ef11877d05cc8b7a7ef1ab62",
+      "line_count": 1634,
+      "coverage_ranges": [
+        [
+          1,
+          1634
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-PANIC-ON-BUG",
+        "M-CANONICAL-DOCS",
+        "M-MODULE-DOCS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Reviewed and fixed",
+      "no_issue_reason": "Full handler discovery/config projection, script state machine and notify parsers read. Reproduced parse_dump(1}) arithmetic underflow on Oracle before replacing unchecked subtraction with checked_sub; malformed scalar/array suffixes now return Err. Same-family route parsing confirmed. All 49 proto tests pass.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/rt.rs",
+      "sha256": "e1e7c04ee8d86ad749233b55c0e4498b15e230a3aba38ece4a45d67379b9dd75",
+      "line_count": 151,
+      "coverage_ranges": [
+        [
+          1,
+          151
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-UNSAFE",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Checked numeric accumulation preserves C sign/base/narrowing and local routing-name-file fallbacks; parser slicing stays in range after optional sign.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/sys.rs",
+      "sha256": "585373b2a7bb2fe90858147075b3858101ebc99e463cc7de6b8d627be85fcdfa",
+      "line_count": 1298,
+      "coverage_ranges": [
+        [
+          1,
+          1298
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-PANIC-ON-BUG",
+        "M-CANONICAL-DOCS",
+        "M-MODULE-DOCS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Reviewed and fixed",
+      "no_issue_reason": "All fixed kernel layouts, nested attrs, address/route encodings, bridge timers, clear-state filters and syscall wrappers read. Public ioctl_u32 now rejects out-of-range offsets before syscall; route family invariant is explicit and diagnosed before slicing. 20 sys tests pass on Oracle.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/ubus.rs",
+      "sha256": "b854a910a24ea50a4f394d7b2abfb913a107602a56294ea039e06bc5dcbd880d",
+      "line_count": 455,
+      "coverage_ranges": [
+        [
+          1,
+          455
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-ERRORS-CANONICAL-STRUCTS",
+        "M-STATIC-VERIFICATION",
+        "M-DOCUMENTED-MAGIC",
+        "M-MODULE-DOCS",
+        "M-HOTPATH"
+      ],
+      "conclusion": "Reviewed; no additional change required",
+      "no_issue_reason": "Object method policies match upstream interface; strict wireless device parsing checks type/name/NUL and preserves last valid duplicate. Object and signature order remain unchanged.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    },
+    {
+      "path": "components/netifd/src/wireless.rs",
+      "sha256": "7625eac2940f5acd37937e5c8edd3994879c1a91280f7c15d0571d15aadf7e42",
+      "line_count": 1564,
+      "coverage_ranges": [
+        [
+          1,
+          1564
+        ]
+      ],
+      "full_read": true,
+      "rules": [
+        "M-PANIC-IS-STOP",
+        "M-PANIC-ON-BUG",
+        "M-CANONICAL-DOCS",
+        "M-MODULE-DOCS",
+        "M-HOTPATH",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Reviewed and fixed",
+      "no_issue_reason": "Complete schema merge, UCI projection, redacted Debug, caching, wire projection and handler JSON reviewed. Fixed missing JSON control-character escaping that could reach daemon expect during setup; all 32 controls round-trip and ordinary escaping retains exact bytes. Existing wire/cache tests remain unchanged.",
+      "coverage_basis": "Complete sequential source read in chunks of at most 150 lines; subsequent own changes reviewed in full patches. No unread range is inferred from search output.",
+      "validation": [
+        "Oracle mbx test --locked --all-targets: library 124 and daemon 188 passed; examples empty. mbx clippy --locked --all-targets -- -D warnings passed. Differential rerun owned by root."
+      ]
+    }
+  ],
+  "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+}

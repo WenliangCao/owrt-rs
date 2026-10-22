@@ -1,0 +1,1000 @@
+[
+  {
+    "path": "components/dnsmasq/src/config/dhcp.rs",
+    "line_count": 1146,
+    "sha256_reviewed": "6c55ccb39c1c4d956917d841cdfa6e720b89144db24948107d8b4a1bcd89355e",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        540
+      ],
+      [
+        541,
+        720
+      ],
+      [
+        721,
+        900
+      ],
+      [
+        901,
+        1080
+      ],
+      [
+        1081,
+        1146
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Range and boot parsing validate lengths before insertion; tag/context selection order, numeric low-bit compatibility and NameDomains construction invariants are explicit. Full tests and caller-facing config types read; no new defect confirmed.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/dhcp_host_files.rs",
+    "line_count": 463,
+    "sha256_reviewed": "6c8c0fff79d258daaededa0ec949a54b57a487e1434ae26e9f59238e3b3bdfa0",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        463
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION",
+      "M-ERRORS-CANONICAL-STRUCTS",
+      "M-PUBLIC-DISPLAY"
+    ],
+    "conclusion": "fixed_and_reviewed",
+    "no_issue_reason": "Directory expansion visits one item per turn, preserves byte order and retained path identities; unsupported rows remain distinct from skippable syntax errors and file reads keep documented C partial-line behavior.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion; additive trait implementations and regression hunks reviewed after the full-source snapshot",
+    "changes": [
+      "Implement Display/Error for HostFileError and its kind, retaining path/line identity and typed io/config source chain; regression checks typed sources."
+    ],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "full_read_snapshot": {
+      "sha256_reviewed": "a49303e13f88d321d3dc5716b5751247d8edad16e35637d1f00eec2fabd11b46",
+      "line_count": 394,
+      "coverage_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          394
+        ]
+      ]
+    },
+    "post_full_read_diff_reviewed": true,
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/dhcp_network.rs",
+    "line_count": 318,
+    "sha256_reviewed": "3754e4d2951e632d097a68e77ebfaef9fa9f581b9c6adb5da3c72ede31b5d0cb",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        318
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Startup interface resolution is injected where needed; tagged delay, merged bridge order, relay override and original ingress identity are preserved. No global environment mutation or unsafe application boundary.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/dhcp_options.rs",
+    "line_count": 953,
+    "sha256_reviewed": "3db989f55496d2ae1272145d4c509aba1179a138db9eb7003347168cb6af6c45",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        540
+      ],
+      [
+        541,
+        720
+      ],
+      [
+        721,
+        900
+      ],
+      [
+        901,
+        953
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Option lengths/widths and enterprise payload extents are checked; tag precedence, duplicate warnings, C hex wildcard quirks and compressed-domain output were traced against literal wire fixtures.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/dhcp_pxe.rs",
+    "line_count": 263,
+    "sha256_reviewed": "c1cfa6d0d45269b53723fedffcecdc1e9883e4d15d29ccf49f93dcfbedbde67b",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        263
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Prompt/vendor/menu validation prevents unsafe empty or overlength C paths; service order and automatic IDs preserve declared wrapping behavior, with literal byte-conversion tests.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/dhcp_relay.rs",
+    "line_count": 186,
+    "sha256_reviewed": "38891c5d050a72acc9d5e8f5b982d6703e11ac26eb3c81a767f27890fdd34368",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        186
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Relay fields preserve address-family/port fallback semantics; split mode requires an exact interface or address, and adjacent default client port wraps explicitly at 65535.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/dns.rs",
+    "line_count": 1407,
+    "sha256_reviewed": "8553d97f3b1af15f2998e8c9027db24e457f8e5746a0bc771539520da30d23a7",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        540
+      ],
+      [
+        541,
+        720
+      ],
+      [
+        721,
+        900
+      ],
+      [
+        901,
+        1080
+      ],
+      [
+        1081,
+        1260
+      ],
+      [
+        1261,
+        1407
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Endpoint/domain parsing, declaration order, cross-option finalization and public IPv6 prefix validation are explicit; NameDomains cannot reach a selector error after construction. Exact-C test corpus remains separate from parser unit tests.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/dns_endpoints.rs",
+    "line_count": 196,
+    "sha256_reviewed": "4eb046cbfd1465eddd1676d173960896fff8a886f602bbbda9e5c0930fd81902",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        196
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION",
+      "M-PUBLIC-DEBUG"
+    ],
+    "conclusion": "fixed_and_reviewed",
+    "no_issue_reason": "Resolver/scoping stays at startup or isolated child; injected resolver tests cover address/domain ordering, source-family filtering and preservation of partial results. Rust ownership avoids the repeated-free reference defect.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion; additive trait implementations and regression hunks reviewed after the full-source snapshot",
+    "changes": [
+      "Implement count-only Debug for the public state type; configuration values remain omitted."
+    ],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "full_read_snapshot": {
+      "sha256_reviewed": "dc40fa57fb5d70d78284d64a771b3ffd739154afdb691a9667ef4bf5ee308eeb",
+      "line_count": 168,
+      "coverage_ranges": [
+        [
+          1,
+          168
+        ]
+      ]
+    },
+    "post_full_read_diff_reviewed": true,
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/domains.rs",
+    "line_count": 220,
+    "sha256_reviewed": "b2ac6d23cc25276dfbdbffde188bd2290ca64b68dcf16d09e55d19c4db4a8a9b",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        220
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Interface snapshot matches fixed label bytes and image-specific prefix arithmetic; resolver search stops after the first valid assignment and tests a real BufRead error with partial final input.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/dump.rs",
+    "line_count": 128,
+    "sha256_reviewed": "dc6cd827fd0d3a958f4b9e6655a68edd3ebca3c7eadcb6b608384fcef8eed081",
+    "coverage_ranges": [
+      [
+        1,
+        128
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Base-zero signed parsing bounds arithmetic with saturation/wrapping and retains encoded input behavior; path state is owned and file opening stays with the startup owner.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/edns.rs",
+    "line_count": 236,
+    "sha256_reviewed": "5e9708c5f6d3f7bfb371be2200388e9133bec5f65858d4bf5ea58eef24f5bda3",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        236
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Independent flags accumulate intentionally; mask narrowing is explicit, device ID width is validated before hex indexing, and parser owns no neighbor I/O.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/ethers.rs",
+    "line_count": 583,
+    "sha256_reviewed": "522908bfe7d9c1c48bb1813db00c62ec6136d0e5acae1507d5d15d6f010e519e",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        540
+      ],
+      [
+        541,
+        583
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION",
+      "M-PUBLIC-DEBUG"
+    ],
+    "conclusion": "fixed_and_reviewed",
+    "no_issue_reason": "Parallel host/origin vectors stay synchronized through bank installation and reload; draft readers publish only on completion and preserve prior generation/DECLINE mappings. Partial read and merge cases have concrete fixtures.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion; additive trait implementations and regression hunks reviewed after the full-source snapshot",
+    "changes": [
+      "Implement count-only Debug for the public state type; configuration values remain omitted."
+    ],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "full_read_snapshot": {
+      "sha256_reviewed": "2b1358f7218a1e224aea4665a33dae84a6ef87deec776c9c71bd624bcdb40eeb",
+      "line_count": 561,
+      "coverage_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          540
+        ],
+        [
+          541,
+          561
+        ]
+      ]
+    },
+    "post_full_read_diff_reviewed": true,
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/interface_records.rs",
+    "line_count": 141,
+    "sha256_reviewed": "a983ea953d7bf22490f50acc5a8e362d6f93c9f63ecbaf5b6b2759e293a71bd9",
+    "coverage_ranges": [
+      [
+        1,
+        141
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Split fields remain nonempty collections, optional indices are checked, family/prototype conflicts reject before publication, and raw case/root-name behavior is preserved.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/loader.rs",
+    "line_count": 899,
+    "sha256_reviewed": "817bfefbb3ca901052c3631d7ae6d58f9894e90c2458492c0510dd21674ee4ea",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        540
+      ],
+      [
+        541,
+        720
+      ],
+      [
+        721,
+        899
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "CLI parsing uses OsString bytes, includes deduplicate dev/inode before recursion, directories sort bytewise, and startup script ownership/error paths follow documented fatal C behavior. Error display is stable and normal script completion reaps children.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/logging.rs",
+    "line_count": 204,
+    "sha256_reviewed": "6503db9d5925761df96b956dab6672bcdb39bf232f11c986970468bb26ff981d",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        204
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Facility/file selection remains independent; queue arithmetic explicitly preserves signed image bits, query logging modes accumulate and unknown modes retain ordinary logging.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/mod.rs",
+    "line_count": 513,
+    "sha256_reviewed": "9325772941cadd9b50f07a728ab6fb138ca40f261e38d840e91b3c572c8e98d8",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        513
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION",
+      "M-PUBLIC-DEBUG"
+    ],
+    "conclusion": "fixed_and_reviewed",
+    "no_issue_reason": "EncodedArg hides quoted delimiters until semantic consumption; lexer bounds all byte walks and linearizes quote processing. Arity and repetition are distinct from capability implementation; aliases share one origin slot.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion; additive trait implementations and regression hunks reviewed after the full-source snapshot",
+    "changes": [
+      "Implement count-only Debug for the public state type; configuration values remain omitted."
+    ],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "full_read_snapshot": {
+      "sha256_reviewed": "e045896af8fa3e690c1fa37ee4d05ffd7b427fc1e21b06bfcf498f4aa4bef1b5",
+      "line_count": 505,
+      "coverage_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          505
+        ]
+      ]
+    },
+    "post_full_read_diff_reviewed": true,
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/options.rs",
+    "line_count": 202,
+    "sha256_reviewed": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+    "coverage_ranges": [
+      [
+        1,
+        90
+      ],
+      [
+        91,
+        180
+      ],
+      [
+        181,
+        202
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "All 195 generated OptionSpec rows read in 90-line chunks: sorted names, shared aliases, argument/repetition classes and exact-image feature flags retained; rustfmt skip protects generator output.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/records.rs",
+    "line_count": 764,
+    "sha256_reviewed": "7d1fdd3db3f31645301c033d1f2f1ee311fe00a99d059633964cd54c8a19b141",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        540
+      ],
+      [
+        541,
+        720
+      ],
+      [
+        721,
+        764
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Raw record/type index writes stay together; MX/SRV order gets an index only after successful parsing, CNAME loop walk is iterative, and record-width narrowing keeps defined backing-buffer behavior.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/rrtypes.rs",
+    "line_count": 128,
+    "sha256_reviewed": "4beb7498145eac6aec139185574c171275b74a74149182956b08323d2f7f6cdd",
+    "coverage_ranges": [
+      [
+        1,
+        128
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Entire RR name/code table and decimal wrapping parser read; names retain upstream spelling/case-insensitive lookup, empty numeric input maps to zero explicitly.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/scalar.rs",
+    "line_count": 345,
+    "sha256_reviewed": "6b2aa5f389f6558893b12e8bf3717c10d3ea28b71ce33cac06978ddccb4dc60a",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        345
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Parser bounds and deliberate image wrapping differ per option; runtime EDNS/port-budget finalization is kept after --test handling, and unsupported options return false for the owner to reject.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/script_arp.rs",
+    "line_count": 20,
+    "sha256_reviewed": "ac01a84b32de86dd7136d7c08612d6419bb484a140beb573d740b7c19ad08c30",
+    "coverage_ranges": [
+      [
+        1,
+        20
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Small no-argument flag rejects supplied values before enabling; no runtime/network side effect is hidden in parsing.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/state_probe.rs",
+    "line_count": 150,
+    "sha256_reviewed": "50eb02410e62b96bd0d5ba193a6fbe1165a09d1e767fdc3e1993efe57390d832",
+    "coverage_ranges": [
+      [
+        1,
+        150
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "historical_probe_retained",
+    "no_issue_reason": "Historical parser-state driver only prints its explicit scalar/record contract; not linked into library/daemon and not silently promoted to a current test target. Its full source was read and preserved.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/synth_domain.rs",
+    "line_count": 376,
+    "sha256_reviewed": "4aa266efac8f74d413f7110fa952acab680cc993ed01704beea0190c2bb328e0",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        376
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Synthetic range parser rejects unsafe negative IPv6 prefix reads while preserving measured IPv4 wrapping; derived PTR targets must pass the wire-name encoder and indexed arithmetic wraps explicitly.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/tftp.rs",
+    "line_count": 515,
+    "sha256_reviewed": "1552ca002df7aa3c313c79e863e01f9deb3540f5b8fb1816d714dc63b0de078a",
+    "coverage_ranges": [
+      [
+        1,
+        180
+      ],
+      [
+        181,
+        360
+      ],
+      [
+        361,
+        515
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "TFTP parser preserves newest-first root records and earliest matching interface-root winner; transfer budget uses wide signed arithmetic, root errors expose their I/O source, and validation runs after privilege drop.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  },
+  {
+    "path": "components/dnsmasq/src/config/ubus.rs",
+    "line_count": 40,
+    "sha256_reviewed": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+    "coverage_ranges": [
+      [
+        1,
+        40
+      ]
+    ],
+    "full_read": true,
+    "rules": [
+      "M-RUST-SHAPED",
+      "M-PANIC-IS-STOP",
+      "M-STRONG-TYPES-GUARD",
+      "M-MOCKABLE-SYSCALLS",
+      "M-HOTPATH",
+      "M-STATIC-VERIFICATION"
+    ],
+    "conclusion": "reviewed_retained",
+    "no_issue_reason": "Parsed Disabled/Enabled/empty-name states remain distinct; empty enable-ubus is rejected before activation instead of defaulting or reproducing C NULL dereference.",
+    "review_method": "complete untruncated <=180-line source chunks (90 for long generated options rows); SHA checked after completion",
+    "changes": [],
+    "validation": [
+      "Final remote mbx test --locked --lib config:: -- --test-threads=1: 119 passed, 4 ignored, 760 filtered; Clippy --locked --all-targets --all-features -- -D warnings passed.",
+      "Ignored exact-C cases are not counted as passed here; root consolidates separate reference gates."
+    ],
+    "final_validation": "Final repository validation: RUST_REVIEW_VALIDATION_20261022.json and RUST_REVIEW_20261022.md. Earlier per-file test notes are historical stages, not the final gate result; full reading does not imply execution of every historical standalone research tool."
+  }
+]
