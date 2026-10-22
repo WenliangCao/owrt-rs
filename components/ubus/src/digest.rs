@@ -78,7 +78,7 @@ impl Md5 {
         let block = self.block;
         self.compress(&block);
         let mut out = [0; 16];
-        for (slot, word) in out.chunks_exact_mut(4).zip(self.state) {
+        for (slot, word) in out.as_chunks_mut::<4>().0.iter_mut().zip(self.state) {
             slot.copy_from_slice(&word.to_le_bytes());
         }
         out
@@ -100,7 +100,7 @@ impl Md5 {
             ])
         });
         let (mut a, mut b, mut c, mut d) = (a0, b0, c0, d0);
-        for i in 0..64 {
+        for (i, shift) in S.into_iter().enumerate() {
             let (f, g) = match i / 16 {
                 0 => ((b & c) | (!b & d), i),
                 1 => ((d & b) | (!d & c), (5 * i + 1) % 16),
@@ -111,7 +111,7 @@ impl Md5 {
             d = c;
             c = b;
             let sum = a.wrapping_add(f).wrapping_add(self.k[i]).wrapping_add(m[g]);
-            b = b.wrapping_add(sum.rotate_left(S[i]));
+            b = b.wrapping_add(sum.rotate_left(shift));
             a = tmp;
         }
         a0 = a0.wrapping_add(a);

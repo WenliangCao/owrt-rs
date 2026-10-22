@@ -252,7 +252,9 @@ mod tests {
                 let single = field_to_json(&field);
                 let mut direct = b"prefix".to_vec();
                 let result = append_fields_json(payload, &mut direct);
-                if depth <= MAX_CONTAINER_DEPTH {
+                // Independent protocol boundary: changing the implementation
+                // constant must not silently change this test's oracle.
+                if depth <= 64 {
                     result.unwrap();
                     assert!(single.is_ok());
                     assert_eq!(&direct[6..], tree.unwrap().to_bytes());

@@ -17,6 +17,9 @@ pub mod msg;
 pub mod readiness;
 pub mod sys;
 
+#[doc(inline)]
 pub use blob::{Attr, BlobBuf, Field, MsgType};
+#[doc(inline)]
 pub use conn::{Connection, Incoming, LookupEntry, Reply, Request};
+#[doc(inline)]
 pub use msg::{attr, status, ty, Header, Message};

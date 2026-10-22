@@ -1971,11 +1971,12 @@ mod tests {
         let (mut client, mut server) = pair();
         let peer = std::thread::spawn(move || {
             let first = server.recv().unwrap();
-            std::thread::sleep(Duration::from_millis(100));
+            // The second request proves the caller has completed its first
+            // timeout. Delay the old reply by this handshake, not a sleep.
+            let second = server.recv().unwrap();
             let mut b = BlobBuf::new();
             b.put_u32(attr::STATUS, status::OK as u32);
             server.send(Header { ty: ty::STATUS, seq: first.header.seq, peer: 0 }, &mut b, None).unwrap();
-            let second = server.recv().unwrap();
             server.send(Header { ty: ty::STATUS, seq: second.header.seq, peer: 0 }, &mut b, None).unwrap();
         });
         let error = client.request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 30).unwrap_err();

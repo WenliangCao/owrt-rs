@@ -60,12 +60,10 @@ impl<'a> Attr<'a> {
 /// length must fit in what remains (`blob_pad_len(pos) <= rem`), so a trailing
 /// attribute whose padding bytes are missing is not yielded.
 pub fn attr_at(buf: &[u8], offset: usize) -> Option<(Attr<'_>, usize)> {
-    if buf.len() < offset + 4 {
-        return None;
-    }
-    let id_len = u32::from_be_bytes(buf[offset..offset + 4].try_into().unwrap());
+    let remaining = buf.get(offset..)?;
+    let id_len = u32::from_be_bytes(remaining.get(..4)?.try_into().unwrap());
     let raw_len = (id_len & LEN_MASK) as usize;
-    if raw_len < 4 || buf.len() < offset + pad4(raw_len) {
+    if raw_len < 4 || remaining.len() < pad4(raw_len) {
         return None;
     }
     Some((
@@ -81,6 +79,13 @@ pub fn attr_at(buf: &[u8], offset: usize) -> Option<(Attr<'_>, usize)> {
 pub struct AttrIter<'a> {
     buf: &'a [u8],
     offset: usize,
+}
+
+impl std::fmt::Debug for AttrIter<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AttrIter").field("bytes", &self.buf.len())
+            .field("offset", &self.offset).finish_non_exhaustive()
+    }
 }
 
 impl<'a> Iterator for AttrIter<'a> {
@@ -182,6 +187,14 @@ impl<'a> Field<'a> {
 /// Builder for a blob head attr containing raw ubus attrs and/or blobmsg fields.
 pub struct BlobBuf {
     data: Vec<u8>,
+}
+
+impl std::fmt::Debug for BlobBuf {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BlobBuf")
+            .field("bytes", &self.data.len())
+            .finish_non_exhaustive()
+    }
 }
 
 impl Default for BlobBuf {
@@ -430,6 +443,24 @@ impl BlobBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn arbitrary_offsets_do_not_overflow_or_read_outside_the_packet() {
+        let bytes = [0, 0, 0, 4];
+        assert!(attr_at(&bytes, 0).is_some());
+        for offset in [1, 4, 5, usize::MAX - 3, usize::MAX] {
+            assert!(attr_at(&bytes, offset).is_none(), "offset {offset}");
+        }
+        let truncated = [0, 0, 0, 5, 42];
+        assert!(attr_at(&truncated, 0).is_none());
+    }
+
+    #[test]
+    fn builder_debug_does_not_disclose_encoded_credentials() {
+        let mut buffer = BlobBuf::new();
+        buffer.msg_string("password", "unlogged-secret");
+        assert_eq!(format!("{buffer:?}"), "BlobBuf { bytes: 36, .. }");
+    }
 
     #[test]
     fn mutable_bytes_finalize_head_and_preserve_nested_padding() {
