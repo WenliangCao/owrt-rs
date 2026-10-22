@@ -1211,7 +1211,7 @@ mod tests {
         let first_total = (actual_buf / (3 * complete_frames)) & !3;
         let partial_total = (actual_buf - complete_frames * first_total + 128) & !3;
         let frame = |seq: u16, total: usize| {
-            assert!(total >= Header::LEN + 4 && total % 4 == 0);
+            assert!(total >= Header::LEN + 4 && total.is_multiple_of(4));
             let blob_len = total - Header::LEN;
             let mut blob = vec![seq as u8; blob_len];
             blob[..4].copy_from_slice(&(blob_len as u32).to_be_bytes());

@@ -121,12 +121,12 @@ fn run(socket: &str, acl_dir: &str) -> std::io::Result<()> {
 
     let (wake_r, wake_w) = bus_sys::nonblocking_pipe()?;
     WAKE_FD.store(wake_w.as_raw_fd(), Ordering::SeqCst);
-    // SAFETY: both fixed handlers only store atomics and write to the live,
-    // nonblocking wake pipe while preserving errno; neither allocates or locks.
     #[expect(
         unsafe_code,
         reason = "install the audited atomic/self-pipe signal handlers"
     )]
+    // SAFETY: both fixed handlers only store atomics and write to the live,
+    // nonblocking wake pipe while preserving errno; neither allocates or locks.
     unsafe {
         let _ = bus_sys::set_signal_handler(sys::SIGHUP, on_sighup);
         let _ = bus_sys::set_signal_handler(bus_sys::SIGTERM, on_term);

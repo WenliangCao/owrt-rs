@@ -895,7 +895,9 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
     fn fd_count() -> usize {
         std::fs::read_dir("/proc/self/fd")
             .expect("probe fd directory")
-            .map(|entry| entry.expect("probe fd entry"))
+            .inspect(|entry| {
+                entry.as_ref().expect("probe fd entry");
+            })
             .count()
     }
     fn run_case(sock: &str, mode: &str) -> [usize; 2] {
