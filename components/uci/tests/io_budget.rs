@@ -8,6 +8,16 @@ use std::time::{Duration, Instant};
 
 static NEXT: AtomicU64 = AtomicU64::new(0);
 
+#[test]
+fn an_unrepresentable_budget_expires_without_panicking_or_becoming_unbounded() {
+    let cancelled = AtomicBool::new(false);
+    let mut ctx = Context::new();
+    ctx.set_io_budget(Duration::MAX, &cancelled);
+    assert_eq!(ctx.check_io_budget(), Err(Error::TimedOut));
+    ctx.set_io_budget(Duration::from_secs(60), &cancelled);
+    assert_eq!(ctx.check_io_budget(), Ok(()));
+}
+
 struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {

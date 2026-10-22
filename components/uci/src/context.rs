@@ -88,9 +88,11 @@ impl<'a> Context<'a> {
 
     /// Start one cooperative load budget, shared by base and delta file locks,
     /// reads and parsing. It does not preempt a kernel filesystem operation.
+    /// A duration outside the platform clock's range expires immediately.
     pub fn set_io_budget(&mut self, timeout: Duration, cancelled: &'a AtomicBool) {
+        let now = Instant::now();
         self.io_budget = Some(IoBudget {
-            deadline: Instant::now() + timeout,
+            deadline: now.checked_add(timeout).unwrap_or(now),
             cancelled,
         });
     }

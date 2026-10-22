@@ -822,7 +822,7 @@ pub fn perror(ctx: &Context, prefix: Option<&str>) {
         .expect("UCI error formatting panicked while holding error state");
     if let Some(s) = ctx.parse_error_info() {
         let mut s = s;
-        s.truncate(126);
+        s.truncate(s.floor_char_boundary(126));
         *info = s;
     }
     info.push('\n');
@@ -841,6 +841,18 @@ pub fn perror(ctx: &Context, prefix: Option<&str>) {
 mod tests {
     use super::*;
     use std::io::Cursor;
+
+    #[test]
+    fn caller_supplied_unicode_error_reason_can_be_reported_without_panicking() {
+        let mut ctx = Context::new();
+        ctx.err = Some(Error::Parse);
+        ctx.pctx = Some(ParseInfo {
+                reason: Some("错误原因错误原因错误原因错误原因错误原因错误原因错误原因错误原因错误原因错误原因错误原因错误原因"),
+                line: 1,
+                byte: 0,
+            });
+        perror(&ctx, Some("unicode-test"));
+    }
 
     fn load(text: &str) -> (Context<'static>, usize) {
         let mut ctx = Context::new();
