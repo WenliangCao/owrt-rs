@@ -416,7 +416,7 @@ impl<'a> Scan<'a> {
             return None;
         }
         self.i += j;
-        Some(if neg { -v } else { v })
+        Some(if neg { v.wrapping_neg() } else { v })
     }
 
     /// `%hd`
@@ -993,6 +993,12 @@ mod tests {
         assert_eq!(atoi(b"-9223372036854775809"), -1);
         assert_eq!(strtol16(b"-8000000000000000"), (i64::MIN, 17));
         assert_eq!(strtol16(b"-8000000000000001"), (i64::MAX, 17));
+        let mut decimal = Scan {
+            s: b"-9223372036854775808 -9223372036854775809",
+            i: 0,
+        };
+        assert_eq!(decimal.d(), Some(i64::MIN));
+        assert_eq!(decimal.d(), Some(i64::MAX));
     }
 
     #[test]

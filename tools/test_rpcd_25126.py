@@ -20,6 +20,10 @@ def inner(root, side):
         fixture.start_bus()
         fixture.start_subject(obj="file")
         client = fixture.connect()
+        # The image's file.write calls fsync and global sync. Host writeback
+        # from parallel builds can exceed Bus's one-second default; this
+        # suite checks filesystem results, not a write-latency contract.
+        client.sock.settimeout(10)
         session, file, uci = [client.lookup(name) for name in ("session", "file", "uci")]
         code, replies = client.invoke(session, "create", integer("timeout", 120))
         assert code == 0
@@ -140,7 +144,7 @@ def main():
             for directory in ("tmp/out", "tmp/run/ubus", "tmp/lock", "tmp/state"):
                 (root / directory).mkdir(parents=True, exist_ok=True)
             subprocess.run(["cp", str(args.binary), str(root / "tmp/rpcd-rs")], check=True)
-            result = subprocess.run(["timeout", "-k", "3", "45", "unshare", "--mount", "--net", "--pid", "--fork",
+            result = subprocess.run(["timeout", "-k", "3", "60", "unshare", "--mount", "--net", "--pid", "--fork",
                                      "--kill-child", sys.executable, str(Path(__file__).resolve()), "--inner", str(root), side],
                                     capture_output=True)
             subprocess.run(["cp", "-a", str(root / "tmp/out"), str(args.output / side)], check=True)

@@ -270,19 +270,8 @@ fn exec_self(children: &delayed::Children) {
     eprintln!("respawn failed: {err}");
 }
 
-fn main() {
-    use std::io::Write;
-    // getopt "s:t:" (musl: no argument permutation)
-    let argv: Vec<String> = std::env::args().skip(1).collect();
-    if argv.first().map(String::as_str) == Some("--iwinfo-bench") {
-        // profiling aid: time every `info` op for one interface and count netlink sends
-        let Some(dev) = argv.get(1) else {
-            let _ = writeln!(std::io::stderr(), "usage: rpcd-rs --iwinfo-bench <ifname>");
-            std::process::exit(2);
-        };
-        iwinfoobj::bench(dev);
-        return;
-    }
+/// Parse getopt "s:t:" without argument permutation, as on musl.
+fn command_options(argv: &[String]) -> (Option<String>, i64) {
     let mut socket = None;
     let mut exec_timeout: i64 = 120_000;
     let mut i = 0;
@@ -296,7 +285,9 @@ fn main() {
         }
         let opt = a.as_bytes()[1];
         let val = if a.len() > 2 {
-            Some(a[2..].to_owned())
+            // An unknown non-ASCII option can put byte 2 inside a character.
+            // Its value is ignored below; known ASCII options keep it intact.
+            a.get(2..).map(str::to_owned)
         } else {
             i += 1;
             argv.get(i).cloned()
@@ -311,6 +302,22 @@ fn main() {
         }
         i += 1;
     }
+    (socket, exec_timeout)
+}
+
+fn main() {
+    use std::io::Write;
+    let argv: Vec<String> = std::env::args().skip(1).collect();
+    if argv.first().map(String::as_str) == Some("--iwinfo-bench") {
+        // profiling aid: time every `info` op for one interface and count netlink sends
+        let Some(dev) = argv.get(1) else {
+            let _ = writeln!(std::io::stderr(), "usage: rpcd-rs --iwinfo-bench <ifname>");
+            std::process::exit(2);
+        };
+        iwinfoobj::bench(dev);
+        return;
+    }
+    let (socket, exec_timeout) = command_options(&argv);
     if !(1000..=600_000).contains(&exec_timeout) {
         let _ = writeln!(std::io::stderr(), "Invalid execution timeout specified");
         std::process::exit(255);
@@ -597,6 +604,24 @@ fn strtol0(s: &str) -> i64 {
 #[cfg(test)]
 mod reconnect_tests {
     use super::*;
+
+    #[test]
+    fn command_options_preserve_known_flags_and_ignore_non_ascii_unknown_flags() {
+        let parse = |args: &[&str]| {
+            command_options(&args.iter().map(|arg| (*arg).to_owned()).collect::<Vec<_>>())
+        };
+        assert_eq!(
+            parse(&["-中", "-t60", "-s/tmp/路径"]),
+            (Some("/tmp/路径".into()), 60_000)
+        );
+        assert_eq!(
+            parse(&["-t", "0x10", "-s", "/tmp/bus"]),
+            (Some("/tmp/bus".into()), 16_000)
+        );
+        assert_eq!(parse(&["--", "-t1"]), (None, 120_000));
+        assert_eq!(parse(&["positional", "-t1"]), (None, 120_000));
+        assert_eq!(parse(&["-t601"]), (None, -1));
+    }
 
     #[test]
     fn file_read_denies_non_utf8_session_id_before_opening_the_path() {
