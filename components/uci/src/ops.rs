@@ -44,7 +44,8 @@ pub fn validate_name(s: &str) -> bool {
 
 /// uci_validate_text
 pub fn validate_text(s: &[u8]) -> bool {
-    !s.iter().any(|&c| c < 32 && c != b'\t' && c != b'\n' && c != b'\r')
+    !s.iter()
+        .any(|&c| c < 32 && c != b'\t' && c != b'\n' && c != b'\r')
 }
 
 /// strsep(&str, ".") over an Option<&[u8]> cursor: returns None once the
@@ -226,7 +227,9 @@ fn strtol(s: &[u8]) -> Option<i64> {
     let mut acc: u64 = 0;
     let mut overflow = false;
     while s.get(i).is_some_and(u8::is_ascii_digit) {
-        acc = acc.saturating_mul(10).saturating_add(u64::from(s[i] - b'0'));
+        acc = acc
+            .saturating_mul(10)
+            .saturating_add(u64::from(s[i] - b'0'));
         overflow |= acc > limit;
         i += 1;
     }
@@ -244,7 +247,12 @@ fn strtol(s: &[u8]) -> Option<i64> {
 }
 
 /// uci_lookup_ptr(ctx, ptr, str, extended)
-pub fn lookup_ptr(ctx: &mut Context, ptr: &mut Ptr, str_: Option<&[u8]>, extended: bool) -> Result<()> {
+pub fn lookup_ptr(
+    ctx: &mut Context,
+    ptr: &mut Ptr,
+    str_: Option<&[u8]>,
+    extended: bool,
+) -> Result<()> {
     if let Some(s) = str_ {
         parse_ptr(ptr, s)?;
     }
@@ -260,7 +268,7 @@ pub fn lookup_ptr(ctx: &mut Context, ptr: &mut Ptr, str_: Option<&[u8]>, extende
         None => {
             let name = ptr.package.clone().unwrap_or_default();
             // UCI_INTERNAL(uci_load): errors propagate
-            
+
             crate::file::load(ctx, &name)?
         }
     };
@@ -352,7 +360,12 @@ fn fixup_section(p: &Package, s: &Section) -> String {
 }
 
 /// uci_alloc_section: appends (or inserts after `after`) and bumps n_section.
-pub(crate) fn alloc_section(p: &mut Package, ty: &str, name: Option<&str>, after: Option<usize>) -> usize {
+pub(crate) fn alloc_section(
+    p: &mut Package,
+    ty: &str,
+    name: Option<&str>,
+    after: Option<usize>,
+) -> usize {
     let name = name.filter(|n| !n.is_empty());
     let s = Section {
         name: name.unwrap_or("").to_owned(),
@@ -373,7 +386,12 @@ pub(crate) fn alloc_section(p: &mut Package, ty: &str, name: Option<&str>, after
     }
 }
 
-pub(crate) fn alloc_option(s: &mut Section, name: &str, value: OptionValue, after: Option<usize>) -> usize {
+pub(crate) fn alloc_option(
+    s: &mut Section,
+    name: &str,
+    value: OptionValue,
+    after: Option<usize>,
+) -> usize {
     let o = Opt {
         name: name.to_owned(),
         value,
@@ -437,7 +455,13 @@ pub fn rename(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
 }
 
 /// uci_list_set_pos + uci_reorder_section
-pub fn reorder_section(ctx: &mut Context, pidx: usize, sidx: usize, pos: i32, internal: bool) -> Result<()> {
+pub fn reorder_section(
+    ctx: &mut Context,
+    pidx: usize,
+    sidx: usize,
+    pos: i32,
+    internal: bool,
+) -> Result<()> {
     let p = &mut ctx.root[pidx];
     // old_head is the element before ptr (or the list head when first)
     let old_head: Option<usize> = if sidx == 0 { None } else { Some(sidx - 1) };
@@ -457,7 +481,13 @@ pub fn reorder_section(ctx: &mut Context, pidx: usize, sidx: usize, pos: i32, in
     let changed = old_head != new_head;
     if !internal && p.has_delta && changed {
         let name = p.sections[insert_at].name.clone();
-        add_delta(p, Cmd::Reorder, &name, None, Some(pos.to_string().as_bytes()));
+        add_delta(
+            p,
+            Cmd::Reorder,
+            &name,
+            None,
+            Some(pos.to_string().as_bytes()),
+        );
     }
     Ok(())
 }
@@ -571,7 +601,12 @@ pub fn sscanf_int(s: &str) -> Option<i32> {
 }
 
 /// Append an already validated list value, shared by import and uci_add_list.
-pub(crate) fn append_list(s: &mut Section, option: &str, existing: Option<usize>, value: &[u8]) -> usize {
+pub(crate) fn append_list(
+    s: &mut Section,
+    option: &str,
+    existing: Option<usize>,
+    value: &[u8],
+) -> usize {
     let oidx = match existing {
         None => alloc_option(s, option, OptionValue::List(Vec::new()), None),
         Some(oidx) => {
@@ -604,7 +639,12 @@ pub fn add_list(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> 
     // on the next load.
     let option = ptr.option.as_deref();
     let p = &mut ctx.root[pidx];
-    ptr.o = Some(append_list(&mut p.sections[sidx], option.unwrap_or(""), ptr.o, value));
+    ptr.o = Some(append_list(
+        &mut p.sections[sidx],
+        option.unwrap_or(""),
+        ptr.o,
+        value,
+    ));
     if !internal && p.has_delta {
         add_delta(
             p,
@@ -657,7 +697,10 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     if !(ptr.s.is_some() || (ptr.option.is_none() && ptr.section.is_some())) {
         return Err(Error::Inval);
     }
-    if ptr.option.is_none() && !value.is_empty() && !std::str::from_utf8(value).is_ok_and(validate_type) {
+    if ptr.option.is_none()
+        && !value.is_empty()
+        && !std::str::from_utf8(value).is_ok_and(validate_type)
+    {
         return Err(Error::Inval);
     }
     let pidx = ptr.p.ok_or(Error::Inval)?;
@@ -680,7 +723,12 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     match (ptr.o, ptr.s, ptr.option.as_deref(), ptr.section.as_deref()) {
         (None, Some(sidx), Some(opt), _) => {
             // new option
-            let oidx = alloc_option(&mut p.sections[sidx], opt, OptionValue::Str(value.into()), None);
+            let oidx = alloc_option(
+                &mut p.sections[sidx],
+                opt,
+                OptionValue::Str(value.into()),
+                None,
+            );
             ptr.o = Some(oidx);
         }
         (_, None, None, Some(sec)) => {
@@ -738,19 +786,33 @@ mod tests {
     #[test]
     fn list_deletion_handles_signed_index_boundaries_without_losing_values() {
         for (index, expected) in [
-            (i32::MIN, vec!["one", "two"]), (-1, vec!["one", "two"]),
-            (i32::MAX, vec!["one", "two"]), (0, vec!["two"]), (1, vec!["one"]),
+            (i32::MIN, vec!["one", "two"]),
+            (-1, vec!["one", "two"]),
+            (i32::MAX, vec!["one", "two"]),
+            (0, vec!["two"]),
+            (1, vec!["one"]),
         ] {
             let mut ctx = Context::new();
             let input = b"config test s\nlist items one\nlist items two\n";
             crate::parse::import(&mut ctx, &mut input.as_slice(), Some("t"), None, true).unwrap();
             ctx.root[0].has_delta = true;
             let mut ptr = Ptr::default();
-            lookup_ptr(&mut ctx, &mut ptr, Some(format!("t.s.items={index}").as_bytes()), true).unwrap();
+            lookup_ptr(
+                &mut ctx,
+                &mut ptr,
+                Some(format!("t.s.items={index}").as_bytes()),
+                true,
+            )
+            .unwrap();
             delete(&mut ctx, &mut ptr, false).unwrap();
-            assert_eq!(ctx.root[0].sections[0].options[0].value,
-                OptionValue::List(expected.into_iter().map(Into::into).collect()));
-            assert_eq!(ctx.root[0].delta.len(), usize::from((0..2).contains(&index)));
+            assert_eq!(
+                ctx.root[0].sections[0].options[0].value,
+                OptionValue::List(expected.into_iter().map(Into::into).collect())
+            );
+            assert_eq!(
+                ctx.root[0].delta.len(),
+                usize::from((0..2).contains(&index))
+            );
         }
     }
 

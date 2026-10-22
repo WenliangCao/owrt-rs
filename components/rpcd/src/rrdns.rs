@@ -17,7 +17,16 @@ const DEF_LIMIT: i32 = 10;
 
 pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
     use MsgType::*;
-    vec![("lookup", vec![("addrs", Array), ("timeout", Int32), ("server", String), ("port", Int16), ("limit", Int32)])]
+    vec![(
+        "lookup",
+        vec![
+            ("addrs", Array),
+            ("timeout", Int32),
+            ("server", String),
+            ("port", Int16),
+            ("limit", Int32),
+        ],
+    )]
 }
 
 /// rrdns_find_nameserver: first `nameserver` line of /etc/resolv.conf that
@@ -60,7 +69,11 @@ fn parse_addr(s: &str) -> Option<([u8; 16], bool, String)> {
         let o = v4.octets();
         let mut key = [0u8; 16];
         key[..4].copy_from_slice(&o);
-        return Some((key, false, format!("{}.{}.{}.{}.in-addr.arpa", o[3], o[2], o[1], o[0])));
+        return Some((
+            key,
+            false,
+            format!("{}.{}.{}.{}.in-addr.arpa", o[3], o[2], o[1], o[0]),
+        ));
     }
     None
 }
@@ -197,12 +210,18 @@ struct Lookup {
 impl Lookup {
     /// rrdns_next_query: returns false when no address was left to take.
     fn next_query(&mut self) -> Result<(), ()> {
-        let Some(slot) = self.addrs.get(self.next) else { return Err(()) };
+        let Some(slot) = self.addrs.get(self.next) else {
+            return Err(());
+        };
         self.next += 1;
         let Some(addr) = slot else { return Err(()) };
-        let Some((key, v6, dname)) = parse_addr(addr) else { return Err(()) };
+        let Some((key, v6, dname)) = parse_addr(addr) else {
+            return Err(());
+        };
         let id = random_id();
-        let Some(msg) = mkquery(id, &dname) else { return Err(()) };
+        let Some(msg) = mkquery(id, &dname) else {
+            return Err(());
+        };
         if self.seen.contains(&key) {
             return Err(()); // -ENOTUNIQ
         }
@@ -226,7 +245,9 @@ impl Lookup {
         }
         let res = &res[..len];
         let id = u16::from_be_bytes([res[0], res[1]]);
-        let Some(req) = self.by_id.remove(&id) else { return Err(true) };
+        let Some(req) = self.by_id.remove(&id) else {
+            return Err(true);
+        };
         initparse(res).ok_or(false)?;
         let qd = u16::from_be_bytes([res[4], res[5]]) as usize;
         let an = u16::from_be_bytes([res[6], res[7]]) as usize;
@@ -278,7 +299,12 @@ fn run(mut lk: Lookup, limit: i32, timeout_ms: i32) -> Reply {
                     let _ = lk.next_query();
                 }
             }
-            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock || e.kind() == std::io::ErrorKind::TimedOut => break,
+            Err(e)
+                if e.kind() == std::io::ErrorKind::WouldBlock
+                    || e.kind() == std::io::ErrorKind::TimedOut =>
+            {
+                break
+            }
             Err(_) => {
                 // socket error: consume it like recv() would, drop nothing
                 let _ = lk.sock.recv(&mut probe);
@@ -296,7 +322,10 @@ pub enum Outcome {
 /// usock(USOCK_UDP): resolve the server name and try each address returned by
 /// libc until socket/connect succeeds. Resolution failure is UNKNOWN_ERROR.
 fn connect_server(server: &str, port: u16) -> std::io::Result<UdpSocket> {
-    let mut last = std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "no nameserver address");
+    let mut last = std::io::Error::new(
+        std::io::ErrorKind::AddrNotAvailable,
+        "no nameserver address",
+    );
     for peer in (server, port).to_socket_addrs()? {
         let bind = if peer.is_ipv4() {
             SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0))
@@ -321,10 +350,21 @@ pub fn resolve(addrs: &[String], timeout_ms: i32, limit: i32) -> Option<Vec<(Str
     }
     let server = find_nameserver()?;
     let sock = connect_server(&server, 53).ok()?;
-    let lk = Lookup { sock, addrs: addrs.iter().cloned().map(Some).collect(), next: 0, by_id: BTreeMap::new(), seen: BTreeSet::new(), out: BlobBuf::new() };
+    let lk = Lookup {
+        sock,
+        addrs: addrs.iter().cloned().map(Some).collect(),
+        next: 0,
+        by_id: BTreeMap::new(),
+        seen: BTreeSet::new(),
+        out: BlobBuf::new(),
+    };
     let reply = run(lk, limit, timeout_ms);
     let payload = reply.data.iter().next().unwrap_or_default();
-    Some(blob::fields(payload).filter_map(|f| f.as_str().map(|v| (f.name.to_owned(), v.to_owned()))).collect())
+    Some(
+        blob::fields(payload)
+            .filter_map(|f| f.as_str().map(|v| (f.name.to_owned(), v.to_owned())))
+            .collect(),
+    )
 }
 
 pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
@@ -332,9 +372,18 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
         return Outcome::Now(req, Reply::empty(status::METHOD_NOT_FOUND));
     }
     let raw = &req.data;
-    let port: i32 = arg(raw, "port", MsgType::Int16).and_then(|f| f.as_u32()).map(|v| v as u16 as i32).unwrap_or(53);
-    let limit: i32 = arg(raw, "limit", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(DEF_LIMIT);
-    let timeout: i32 = arg(raw, "timeout", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(DEF_TIMEOUT);
+    let port: i32 = arg(raw, "port", MsgType::Int16)
+        .and_then(|f| f.as_u32())
+        .map(|v| v as u16 as i32)
+        .unwrap_or(53);
+    let limit: i32 = arg(raw, "limit", MsgType::Int32)
+        .and_then(|f| f.as_u32())
+        .map(|v| v as i32)
+        .unwrap_or(DEF_LIMIT);
+    let timeout: i32 = arg(raw, "timeout", MsgType::Int32)
+        .and_then(|f| f.as_u32())
+        .map(|v| v as i32)
+        .unwrap_or(DEF_TIMEOUT);
     let server = arg_str(raw, "server").map(str::to_owned);
     let Some(addrs) = arg(raw, "addrs", MsgType::Array) else {
         return Outcome::Now(req, Reply::empty(status::INVALID_ARGUMENT));
@@ -354,9 +403,24 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
         Err(_) => return Outcome::Now(req, Reply::empty(status::UNKNOWN_ERROR)),
     };
     let list: Vec<Option<String>> = blob::iter(addrs.data)
-        .map(|a| a.field().and_then(|f| if f.ty == MsgType::String as u32 { f.as_str().map(str::to_owned) } else { None }))
+        .map(|a| {
+            a.field().and_then(|f| {
+                if f.ty == MsgType::String as u32 {
+                    f.as_str().map(str::to_owned)
+                } else {
+                    None
+                }
+            })
+        })
         .collect();
-    let lk = Lookup { sock, addrs: list, next: 0, by_id: BTreeMap::new(), seen: BTreeSet::new(), out: BlobBuf::new() };
+    let lk = Lookup {
+        sock,
+        addrs: list,
+        next: 0,
+        by_id: BTreeMap::new(),
+        seen: BTreeSet::new(),
+        out: BlobBuf::new(),
+    };
     match deferrer.defer(req, move || run(lk, limit, timeout)) {
         None => Outcome::Deferred,
         Some((req, reply)) => Outcome::Now(req, reply),
@@ -369,8 +433,14 @@ mod tests {
 
     #[test]
     fn ptr_names() {
-        assert_eq!(parse_addr("192.168.1.20").unwrap().2, "20.1.168.192.in-addr.arpa");
-        assert_eq!(parse_addr("2001:db8::1").unwrap().2, "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa");
+        assert_eq!(
+            parse_addr("192.168.1.20").unwrap().2,
+            "20.1.168.192.in-addr.arpa"
+        );
+        assert_eq!(
+            parse_addr("2001:db8::1").unwrap().2,
+            "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa"
+        );
         assert!(parse_addr("nope").is_none());
     }
 
@@ -418,12 +488,21 @@ mod tests {
         key[..4].copy_from_slice(&[1, 2, 3, 4]);
         let mut by_id = BTreeMap::new();
         by_id.insert(id, Pending { key, v6: false });
-        Lookup { sock, addrs: vec![], next: 0, by_id, seen: BTreeSet::new(), out: BlobBuf::new() }
+        Lookup {
+            sock,
+            addrs: vec![],
+            next: 0,
+            by_id,
+            seen: BTreeSet::new(),
+            out: BlobBuf::new(),
+        }
     }
 
     fn names(lk: Lookup) -> Vec<(String, String)> {
         let payload = lk.out.into_payload();
-        blob::fields(&payload).filter_map(|f| f.as_str().map(|v| (f.name.to_owned(), v.to_owned()))).collect()
+        blob::fields(&payload)
+            .filter_map(|f| f.as_str().map(|v| (f.name.to_owned(), v.to_owned())))
+            .collect()
     }
 
     /// ns_initparse walks every section before rrdns_parse_response hands out a
@@ -437,12 +516,16 @@ mod tests {
         let mut lk = lookup_for(0x1234, &peer);
         peer.send_to(&full, lk.sock.local_addr().unwrap()).unwrap();
         assert!(lk.parse_response().is_ok());
-        assert_eq!(names(lk), vec![("1.2.3.4".to_owned(), "host.lan".to_owned()); 2]);
+        assert_eq!(
+            names(lk),
+            vec![("1.2.3.4".to_owned(), "host.lan".to_owned()); 2]
+        );
 
         // the same message minus its last byte: the first answer is complete
         for cut in 1..=3 {
             let mut lk = lookup_for(0x1234, &peer);
-            peer.send_to(&full[..full.len() - cut], lk.sock.local_addr().unwrap()).unwrap();
+            peer.send_to(&full[..full.len() - cut], lk.sock.local_addr().unwrap())
+                .unwrap();
             assert_eq!(lk.parse_response(), Err(false), "cut {cut}");
             assert!(names(lk).is_empty(), "cut {cut} leaked a partial answer");
         }
@@ -453,12 +536,18 @@ mod tests {
         let mut lk = lookup_for(0x1234, &peer);
         peer.send_to(&trunc, lk.sock.local_addr().unwrap()).unwrap();
         assert_eq!(lk.parse_response(), Err(false));
-        assert!(names(lk).is_empty(), "an intact answer must not survive a bad additional section");
+        assert!(
+            names(lk).is_empty(),
+            "an intact answer must not survive a bad additional section"
+        );
     }
 
     #[test]
     fn name_uncompress() {
-        let msg = [3, b'w', b'w', b'w', 7, b'e', b'x', b'a', b'm', b'p', b'l', b'e', 3, b'c', b'o', b'm', 0, 0xc0, 4];
+        let msg = [
+            3, b'w', b'w', b'w', 7, b'e', b'x', b'a', b'm', b'p', b'l', b'e', 3, b'c', b'o', b'm',
+            0, 0xc0, 4,
+        ];
         assert_eq!(uncompress(&msg, 0).unwrap(), "www.example.com");
         assert_eq!(uncompress(&msg, 17).unwrap(), "example.com");
         assert_eq!(uncompress(&[0], 0).unwrap(), ".");

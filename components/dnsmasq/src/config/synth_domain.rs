@@ -324,18 +324,33 @@ mod tests {
         assert!(domain.reverse("2001:db8::7".parse().unwrap()).is_none());
         let mut forward = [b'p'; 47].to_vec();
         forward.extend_from_slice(b"2001-db8--7.test");
-        assert_eq!(domain.forward(&forward, true), Some("2001:db8::7".parse().unwrap()));
+        assert_eq!(
+            domain.forward(&forward, true),
+            Some("2001:db8::7".parse().unwrap())
+        );
 
         for (prefix, valid) in [(24, true), (25, false)] {
             let argument = format!("test,2001:db8::7,2001:db8::9,{}", "p".repeat(prefix));
             let domain = parse(&EncodedArg::command_line(argument.as_bytes())).unwrap();
-            assert_eq!(domain.reverse("2001:db8::7".parse().unwrap()).is_some(), valid);
+            assert_eq!(
+                domain.reverse("2001:db8::7".parse().unwrap()).is_some(),
+                valid
+            );
         }
         for (last_label, valid) in [(51, true), (52, false)] {
-            let suffix = format!("{}.{}.{}.{}", "a".repeat(63), "b".repeat(63), "c".repeat(63), "d".repeat(last_label));
+            let suffix = format!(
+                "{}.{}.{}.{}",
+                "a".repeat(63),
+                "b".repeat(63),
+                "c".repeat(63),
+                "d".repeat(last_label)
+            );
             let argument = format!("{suffix},192.0.2.7,192.0.2.9");
             let domain = parse(&EncodedArg::command_line(argument.as_bytes())).unwrap();
-            assert_eq!(domain.reverse("192.0.2.7".parse().unwrap()).is_some(), valid);
+            assert_eq!(
+                domain.reverse("192.0.2.7".parse().unwrap()).is_some(),
+                valid
+            );
         }
     }
 

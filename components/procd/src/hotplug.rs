@@ -278,7 +278,10 @@ impl Hotplug {
 
     /// # Safety
     /// Any queued firmware command must satisfy spawn_firmware's fork contract.
-    #[expect(unsafe_code, reason = "propagate the firmware worker contract to the event owner")]
+    #[expect(
+        unsafe_code,
+        reason = "propagate the firmware worker contract to the event owner"
+    )]
     unsafe fn start_next(&mut self) {
         if self.child.is_some() {
             return;
@@ -299,7 +302,10 @@ impl Hotplug {
             // reaches the fork path.
             CmdKind::StartConsole => {}
             CmdKind::Firmware => {
-                #[expect(unsafe_code, reason = "the pump caller owns the firmware fork prerequisite")]
+                #[expect(
+                    unsafe_code,
+                    reason = "the pump caller owns the firmware fork prerequisite"
+                )]
                 // SAFETY: start_next inherits this queued firmware prerequisite from pump.
                 let pid = unsafe { spawn_firmware(&cmd) };
                 if let Some(pid) = pid {
@@ -334,7 +340,10 @@ impl Hotplug {
     /// If rules or queued work can run a firmware command, the process must
     /// have one thread and hold no application locks across its fork. A closed
     /// fixture with no event input and only Exec/Button work needs no such fork.
-    #[expect(unsafe_code, reason = "the event owner must establish firmware worker prerequisites")]
+    #[expect(
+        unsafe_code,
+        reason = "the event owner must establish firmware worker prerequisites"
+    )]
     pub unsafe fn pump(&mut self, now: i64) -> (bool, Vec<BTreeMap<String, String>>) {
         let mut console_request = false;
         let mut events = Vec::new();
@@ -386,9 +395,14 @@ impl Hotplug {
                 continue;
             }
             let before = self.queue.len();
-            #[expect(unsafe_code, reason = "propagate the event owner's firmware fork contract")]
+            #[expect(
+                unsafe_code,
+                reason = "propagate the event owner's firmware fork contract"
+            )]
             // SAFETY: pump's caller establishes the prerequisite for any firmware work.
-            unsafe { self.start_next() };
+            unsafe {
+                self.start_next()
+            };
             if self.queue.len() == before {
                 break;
             }
@@ -411,7 +425,12 @@ impl Hotplug {
                 ty: MsgType::Array as u32,
                 data: &rules,
             };
-            let out = jsonscript::run_hotplug_rule(block, vars, &self.rule_file, &mut self.included_rules);
+            let out = jsonscript::run_hotplug_rule(
+                block,
+                vars,
+                &self.rule_file,
+                &mut self.included_rules,
+            );
             for e in out.errors {
                 // rule_handle_error()
                 log!(sys::LOG_ERR, "ERROR: {e}");
@@ -550,7 +569,10 @@ fn spawn_exec(cmd: &Queued) -> Option<i32> {
 /// `handle_firmware` in a forked child.
 /// # Safety
 /// The process must have one thread and hold no application locks at fork.
-#[expect(unsafe_code, reason = "preserve the platform firmware fork prerequisite")]
+#[expect(
+    unsafe_code,
+    reason = "preserve the platform firmware fork prerequisite"
+)]
 unsafe fn spawn_firmware(cmd: &Queued) -> Option<i32> {
     let dir = cmd.argv.first()?.clone();
     let vars = cmd.vars.clone();
@@ -559,11 +581,16 @@ unsafe fn spawn_firmware(cmd: &Queued) -> Option<i32> {
     fn transfer((dir, vars): (String, BTreeMap<String, String>)) {
         firmware_child(&dir, &vars);
     }
-    #[expect(unsafe_code, reason = "fixed firmware worker in the single-threaded supervisor")]
+    #[expect(
+        unsafe_code,
+        reason = "fixed firmware worker in the single-threaded supervisor"
+    )]
     // SAFETY: the hotplug supervisor has one thread. The child owns the
     // cloned strings/map, runs this fixed transfer, and exits without returning
     // into the parent's event loop; no parent lock or borrowed data is captured.
-    unsafe { owrt_platform::procd::process::spawn_firmware((dir, vars), transfer) }
+    unsafe {
+        owrt_platform::procd::process::spawn_firmware((dir, vars), transfer)
+    }
 }
 
 fn firmware_child(dir: &str, vars: &BTreeMap<String, String>) {
@@ -613,8 +640,11 @@ mod tests {
             coldplug: Coldplug::Idle,
             quiet_at: 0,
         };
-        let argv = vec!["/bin/sh".into(), "-c".into(),
-            "echo \"$ACTION\" >> \"$TRACE\"; [ \"$ACTION\" != pressed ]".into()];
+        let argv = vec![
+            "/bin/sh".into(),
+            "-c".into(),
+            "echo \"$ACTION\" >> \"$TRACE\"; [ \"$ACTION\" != pressed ]".into(),
+        ];
         let mut vars = BTreeMap::from([
             ("BUTTON".into(), "reset".into()),
             ("ACTION".into(), "pressed".into()),
@@ -622,10 +652,15 @@ mod tests {
         ]);
         hp.dispatch("button", argv.clone(), &vars, 100);
 
-        #[expect(unsafe_code, reason = "closed button fixture cannot enqueue a firmware fork")]
+        #[expect(
+            unsafe_code,
+            reason = "closed button fixture cannot enqueue a firmware fork"
+        )]
         // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
         // fixture enqueues only Button/Exec commands, never Firmware.
-        unsafe { hp.pump(100); };
+        unsafe {
+            hp.pump(100);
+        };
         assert!(hp.child.is_some(), "press handler must have started");
 
         // Release arrives before the press child has been reaped. The press
@@ -635,28 +670,45 @@ mod tests {
         fn reap(hp: &mut Hotplug) {
             let raw = hp.child.as_ref().unwrap().0;
             let pid = rustix::process::Pid::from_raw(raw).unwrap();
-            let (_, status) = rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::empty())
-                .unwrap().unwrap();
+            let (_, status) =
+                rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::empty())
+                    .unwrap()
+                    .unwrap();
             assert!(hp.reaped(raw, status.as_raw()));
         }
         reap(&mut hp);
         assert_eq!(hp.buttons.len(), 1, "press completion must arm the timeout");
 
-        #[expect(unsafe_code, reason = "closed button fixture cannot enqueue a firmware fork")]
+        #[expect(
+            unsafe_code,
+            reason = "closed button fixture cannot enqueue a firmware fork"
+        )]
         // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
         // fixture enqueues only Button/Exec commands, never Firmware.
-        unsafe { hp.pump(100); };
+        unsafe {
+            hp.pump(100);
+        };
         reap(&mut hp);
 
-        #[expect(unsafe_code, reason = "closed button fixture cannot enqueue a firmware fork")]
+        #[expect(
+            unsafe_code,
+            reason = "closed button fixture cannot enqueue a firmware fork"
+        )]
         // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
         // fixture enqueues only Button/Exec commands, never Firmware.
-        unsafe { hp.pump(1200); };
+        unsafe {
+            hp.pump(1200);
+        };
         let stale_timeout = hp.child.is_some();
-        if stale_timeout { reap(&mut hp); }
+        if stale_timeout {
+            reap(&mut hp);
+        }
         let actions = std::fs::read_to_string(&trace).unwrap();
         std::fs::remove_dir_all(dir).unwrap();
-        assert!(!stale_timeout, "released button must not run a stale timeout handler");
+        assert!(
+            !stale_timeout,
+            "released button must not run a stale timeout handler"
+        );
         assert_eq!(actions, "pressed\nreleased\n");
     }
 

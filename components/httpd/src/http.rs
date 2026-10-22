@@ -1,11 +1,11 @@
 //! HTTP/1.x request parsing and response writing with uhttpd's exact header
 //! conventions (status line, Connection/Keep-Alive, chunked encoding, Date).
 
+use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLOUT};
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
+use std::io::{self, BufRead, BufReader, IoSlice, Read, Write};
 use std::net::TcpStream;
-use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLOUT};
-use std::io::{self, BufRead, BufReader, Read, Write, IoSlice};
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
@@ -144,8 +144,23 @@ const MAX_HEADER_FIELDS: usize = 100;
 
 fn is_header_token(byte: u8) -> bool {
     byte.is_ascii_alphanumeric()
-        || matches!(byte, b'!' | b'#' | b'$' | b'%' | b'&' | b'\'' | b'*' | b'+'
-            | b'-' | b'.' | b'^' | b'_' | b'`' | b'|' | b'~')
+        || matches!(
+            byte,
+            b'!' | b'#'
+                | b'$'
+                | b'%'
+                | b'&'
+                | b'\''
+                | b'*'
+                | b'+'
+                | b'-'
+                | b'.'
+                | b'^'
+                | b'_'
+                | b'`'
+                | b'|'
+                | b'~'
+        )
 }
 
 pub enum ParseOutcome {
@@ -157,18 +172,33 @@ pub enum ParseOutcome {
     /// itself was bad, else the parsed one); `body` says whether uhttpd sends
     /// the `<h1>summary</h1>` body (request-line errors) or none (header
     /// errors, `uh_header_error`).
-    Bad { code: u16, summary: &'static str, version: Version, body: bool },
+    Bad {
+        code: u16,
+        summary: &'static str,
+        version: Version,
+        body: bool,
+    },
     /// No byte of a head arrived within the deadline's linger: the connection
     /// is idle and may be parked. Only produced with `HeadDeadline::linger`.
     Idle,
 }
 
 fn bad_line(code: u16, summary: &'static str) -> ParseOutcome {
-    ParseOutcome::Bad { code, summary, version: Version::V1_0, body: true }
+    ParseOutcome::Bad {
+        code,
+        summary,
+        version: Version::V1_0,
+        body: true,
+    }
 }
 
 fn bad_header(code: u16, summary: &'static str, version: Version) -> ParseOutcome {
-    ParseOutcome::Bad { code, summary, version, body: false }
+    ParseOutcome::Bad {
+        code,
+        summary,
+        version,
+        body: false,
+    }
 }
 
 /// uhttpd's user-agent classes (uhttpd.h:129-139). Only `Safari` and the old
@@ -207,7 +237,11 @@ fn classify_ua(value: &str) -> Option<UserAgent> {
                 b'4' | b'5' => true,
                 _ => false,
             };
-        return Some(if old { UserAgent::MsieOld } else { UserAgent::MsieNew });
+        return Some(if old {
+            UserAgent::MsieOld
+        } else {
+            UserAgent::MsieNew
+        });
     }
     if value.contains("Chrome/") {
         return Some(UserAgent::Chrome);
@@ -283,20 +317,41 @@ impl Read for Sock {
         let mut until: Option<Instant> = None;
         loop {
             match self.0.read(buf) {
-                Err(error) if matches!(error.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut) => {
+                Err(error)
+                    if matches!(
+                        error.kind(),
+                        io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
+                    ) =>
+                {
                     match read_wait() {
                         ReadWait::Passthrough => return Err(error),
-                        ReadWait::Linger => return Err(io::Error::new(io::ErrorKind::WouldBlock, "no request bytes within the linger")),
+                        ReadWait::Linger => {
+                            return Err(io::Error::new(
+                                io::ErrorKind::WouldBlock,
+                                "no request bytes within the linger",
+                            ))
+                        }
                         ReadWait::Budget(budget) => {
                             let deadline = *until.get_or_insert_with(|| Instant::now() + budget);
                             let left = deadline.saturating_duration_since(Instant::now());
                             if left.is_zero() {
-                                return Err(io::Error::new(io::ErrorKind::TimedOut, "client read deadline"));
+                                return Err(io::Error::new(
+                                    io::ErrorKind::TimedOut,
+                                    "client read deadline",
+                                ));
                             }
-                            let mut fds = [PollFd { fd: self.0.as_raw_fd(), events: POLLIN, revents: 0 }];
-                            let ms = left.as_millis().saturating_add(1).min(i32::MAX as u128) as i32;
+                            let mut fds = [PollFd {
+                                fd: self.0.as_raw_fd(),
+                                events: POLLIN,
+                                revents: 0,
+                            }];
+                            let ms =
+                                left.as_millis().saturating_add(1).min(i32::MAX as u128) as i32;
                             if poll_fds(&mut fds, ms)? == 0 {
-                                return Err(io::Error::new(io::ErrorKind::TimedOut, "client read deadline"));
+                                return Err(io::Error::new(
+                                    io::ErrorKind::TimedOut,
+                                    "client read deadline",
+                                ));
                             }
                         }
                     }
@@ -348,7 +403,12 @@ impl HeadDeadline {
     /// A deadline that started earlier: a keep-alive wait that began before
     /// the connection was parked keeps its original end.
     pub fn until(fd: RawFd, at: Instant) -> Self {
-        HeadDeadline { fd, at, linger: None, linger_socket: false }
+        HeadDeadline {
+            fd,
+            at,
+            linger: None,
+            linger_socket: false,
+        }
     }
 
     /// The connection's socket already times out reads at the linger; the
@@ -370,7 +430,10 @@ impl HeadDeadline {
         let left = self.at.saturating_duration_since(Instant::now());
         if left.is_zero() {
             // uhttpd closes without answering (client_timeout, client.c:95).
-            return Err(io::Error::new(io::ErrorKind::TimedOut, "request header timeout"));
+            return Err(io::Error::new(
+                io::ErrorKind::TimedOut,
+                "request header timeout",
+            ));
         }
         Ok(left)
     }
@@ -383,7 +446,11 @@ impl HeadDeadline {
             wait = wait.min(linger);
         }
         if self.linger_socket {
-            set_read_wait(if first_byte && self.linger.is_some() { ReadWait::Linger } else { ReadWait::Budget(wait) });
+            set_read_wait(if first_byte && self.linger.is_some() {
+                ReadWait::Linger
+            } else {
+                ReadWait::Budget(wait)
+            });
             return Ok(());
         }
         crate::set_read_timeout(self.fd, wait)
@@ -393,7 +460,10 @@ impl HeadDeadline {
     /// the usual timeout error otherwise.
     fn idle(&self) -> io::Result<HeadLine> {
         if self.linger.is_none() {
-            return Err(io::Error::new(io::ErrorKind::TimedOut, "request header timeout"));
+            return Err(io::Error::new(
+                io::ErrorKind::TimedOut,
+                "request header timeout",
+            ));
         }
         self.remaining()?;
         Ok(HeadLine::Idle)
@@ -443,7 +513,10 @@ fn read_head_line<R: Read>(
             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
             Err(error)
                 if first_byte
-                    && matches!(error.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut) =>
+                    && matches!(
+                        error.kind(),
+                        io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
+                    ) =>
             {
                 return match deadline {
                     Some(deadline) => deadline.idle(),
@@ -502,7 +575,9 @@ fn has_forbidden_ctl(bytes: &[u8]) -> bool {
             return true;
         }
     }
-    remainder.iter().any(|&b| (b < 0x20 && b != b'\t') || b == 0x7f)
+    remainder
+        .iter()
+        .any(|&b| (b < 0x20 && b != b'\t') || b == 0x7f)
 }
 
 #[cfg(test)]
@@ -538,8 +613,11 @@ mod ctl_scan_tests {
                     let mut bytes = [b'a'; 17];
                     bytes[position] = first;
                     bytes[position + 1] = second;
-                    assert_eq!(has_forbidden_ctl(&bytes), forbidden(first) || forbidden(second),
-                        "adjacent bytes {first:#x}, {second:#x} at {position}");
+                    assert_eq!(
+                        has_forbidden_ctl(&bytes),
+                        forbidden(first) || forbidden(second),
+                        "adjacent bytes {first:#x}, {second:#x} at {position}"
+                    );
                 }
             }
         }
@@ -556,7 +634,9 @@ mod ctl_scan_tests {
             wire.extend_from_slice(b"x\r\n\r\n");
             let outcome = read_request(&mut BufReader::new(wire.as_slice()), true, None).unwrap();
             if whitespace == b"\t " {
-                assert!(matches!(outcome, ParseOutcome::Request(ref request) if request.header("host") == Some("x")));
+                assert!(
+                    matches!(outcome, ParseOutcome::Request(ref request) if request.header("host") == Some("x"))
+                );
             } else {
                 assert!(matches!(outcome, ParseOutcome::Bad { code: 400, .. }));
             }
@@ -566,13 +646,20 @@ mod ctl_scan_tests {
     #[test]
     fn request_debug_omits_targets_and_header_values() {
         let wire = b"GET /?token=query-secret HTTP/1.1\r\nAuthorization: Basic auth-secret\r\nCookie: cookie-secret\r\nX-Token: custom-secret\r\n\r\n";
-        let super::ParseOutcome::Request(request) = super::read_request(
-            &mut std::io::BufReader::new(wire.as_slice()), true, None,
-        ).unwrap() else { panic!("valid request rejected") };
+        let super::ParseOutcome::Request(request) =
+            super::read_request(&mut std::io::BufReader::new(wire.as_slice()), true, None).unwrap()
+        else {
+            panic!("valid request rejected")
+        };
         for debug in [format!("{request:?}"), format!("{request:#?}")] {
             assert!(debug.contains("Request"));
             assert!(debug.contains("Get"));
-            for secret in ["query-secret", "auth-secret", "cookie-secret", "custom-secret"] {
+            for secret in [
+                "query-secret",
+                "auth-secret",
+                "cookie-secret",
+                "custom-secret",
+            ] {
                 assert!(!debug.contains(secret));
             }
         }
@@ -617,9 +704,12 @@ impl HeadBuffer {
     fn retained_bytes(&self) -> usize {
         let mut bytes = self.line.capacity();
         if let Some(request) = &self.spare {
-            bytes = bytes.saturating_add(request.url.capacity())
-                .saturating_add(request.headers.capacity().saturating_mul(
-                    std::mem::size_of::<(Cow<'static, str>, String)>()));
+            bytes = bytes.saturating_add(request.url.capacity()).saturating_add(
+                request
+                    .headers
+                    .capacity()
+                    .saturating_mul(std::mem::size_of::<(Cow<'static, str>, String)>()),
+            );
             for (name, value) in &request.headers {
                 bytes = bytes.saturating_add(value.capacity());
                 if let Cow::Owned(name) = name {
@@ -658,9 +748,7 @@ fn read_request_into<R: Read>(
         match read_head_line(reader, raw, 4096, deadline, first_line)? {
             HeadLine::Eof => return Ok(ParseOutcome::Eof),
             HeadLine::Idle => return Ok(ParseOutcome::Idle),
-            HeadLine::TooLong => {
-                return Ok(bad_line(413, "Request Entity Too Large"))
-            }
+            HeadLine::TooLong => return Ok(bad_line(413, "Request Entity Too Large")),
             HeadLine::Line => {}
         }
         head_bytes += raw.len();
@@ -676,7 +764,10 @@ fn read_request_into<R: Read>(
     }
     let line = String::from_utf8_lossy(raw);
     // strtok(data, " "): runs of spaces separate the three tokens, extra tokens are ignored
-    let mut parts = line.trim_end_matches(['\r', '\n']).split(' ').filter(|t| !t.is_empty());
+    let mut parts = line
+        .trim_end_matches(['\r', '\n'])
+        .split(' ')
+        .filter(|t| !t.is_empty());
     let (Some(method), Some(url), Some(version)) = (parts.next(), parts.next(), parts.next())
     else {
         return Ok(bad_line(400, "Bad Request"));
@@ -725,9 +816,7 @@ fn read_request_into<R: Read>(
     loop {
         match read_head_line(reader, raw, 4096, deadline, false)? {
             HeadLine::Eof => return Ok(bad_header(400, "Bad Request", version)),
-            HeadLine::TooLong => {
-                return Ok(bad_header(413, "Request Entity Too Large", version))
-            }
+            HeadLine::TooLong => return Ok(bad_header(413, "Request Entity Too Large", version)),
             HeadLine::Line | HeadLine::Idle => {}
         }
         let line = String::from_utf8_lossy(raw);
@@ -800,7 +889,12 @@ fn read_request_into<R: Read>(
     request.headers.truncate(used_headers);
     if content_lengths > 1 || (content_lengths > 0 && transfer_encodings > 0) {
         // uhttpd reports conflicting framing through uh_client_error, i.e. with a body
-        return Ok(ParseOutcome::Bad { code: 400, summary: "Bad Request", version, body: true });
+        return Ok(ParseOutcome::Bad {
+            code: 400,
+            summary: "Bad Request",
+            version,
+            body: true,
+        });
     }
     // client_header_complete (client.c:348-358), after the framing check and in
     // this order: Safari always forces a close, old MSIE only on POST.
@@ -878,16 +972,41 @@ pub struct Out<'a, T: Read + Write> {
 }
 
 impl<'a, T: Read + Write> Out<'a, T> {
-    pub fn new(client: &'a RefCell<BufReader<T>>, fd: RawFd, window: usize, timeout: Duration) -> Self {
+    pub fn new(
+        client: &'a RefCell<BufReader<T>>,
+        fd: RawFd,
+        window: usize,
+        timeout: Duration,
+    ) -> Self {
         // Ordinary response headers fit here. Avoid growing through many
         // tiny allocations before the first body write fills the window.
-        Self::with_buffer(client, fd, window, timeout, Vec::with_capacity(window.min(512)))
+        Self::with_buffer(
+            client,
+            fd,
+            window,
+            timeout,
+            Vec::with_capacity(window.min(512)),
+        )
     }
 
-    pub fn with_buffer(client: &'a RefCell<BufReader<T>>, fd: RawFd, window: usize,
-                       timeout: Duration, buf: Vec<u8>) -> Self {
-        Out { client, fd, buf, start: 0, end: 0,
-              window, timeout, deferred: false, plain_vectored: false }
+    pub fn with_buffer(
+        client: &'a RefCell<BufReader<T>>,
+        fd: RawFd,
+        window: usize,
+        timeout: Duration,
+        buf: Vec<u8>,
+    ) -> Self {
+        Out {
+            client,
+            fd,
+            buf,
+            start: 0,
+            end: 0,
+            window,
+            timeout,
+            deferred: false,
+            plain_vectored: false,
+        }
     }
 
     /// Plain sockets can combine queued headers and a borrowed large body in
@@ -937,11 +1056,21 @@ impl<'a, T: Read + Write> Out<'a, T> {
             if self.pending() == before {
                 let left = deadline.saturating_duration_since(Instant::now());
                 if left.is_zero() {
-                    return Err(io::Error::new(io::ErrorKind::TimedOut, "response write deadline"));
+                    return Err(io::Error::new(
+                        io::ErrorKind::TimedOut,
+                        "response write deadline",
+                    ));
                 }
-                let mut pfd = [PollFd { fd: self.fd, events: POLLOUT, revents: 0 }];
+                let mut pfd = [PollFd {
+                    fd: self.fd,
+                    events: POLLOUT,
+                    revents: 0,
+                }];
                 if poll_fds(&mut pfd, left.as_millis().min(i32::MAX as u128) as i32)? == 0 {
-                    return Err(io::Error::new(io::ErrorKind::TimedOut, "response write deadline"));
+                    return Err(io::Error::new(
+                        io::ErrorKind::TimedOut,
+                        "response write deadline",
+                    ));
                 }
             }
         }
@@ -956,8 +1085,16 @@ impl<T: Read + Write> Sink for Out<'_, T> {
 
     fn drain_ready(&mut self) -> io::Result<()> {
         while self.pending() != 0 {
-            match borrow(self.client)?.get_mut().write(&self.buf[self.start..self.end]) {
-                Ok(0) => return Err(io::Error::new(io::ErrorKind::WriteZero, "client accepted nothing")),
+            match borrow(self.client)?
+                .get_mut()
+                .write(&self.buf[self.start..self.end])
+            {
+                Ok(0) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::WriteZero,
+                        "client accepted nothing",
+                    ))
+                }
                 Ok(n) => {
                     self.start += n;
                     if self.start == self.end {
@@ -983,7 +1120,9 @@ impl<T: Read + Write> Sink for Out<'_, T> {
 
     fn copy_from(&mut self, source: &mut dyn Read, length: u64) -> io::Result<()> {
         if self.deferred {
-            return Err(io::Error::other("file copy cannot own deferred relay readiness"));
+            return Err(io::Error::other(
+                "file copy cannot own deferred relay readiness",
+            ));
         }
         self.compact();
         let mut remaining = length;
@@ -1016,10 +1155,16 @@ impl<T: Read + Write> Write for Out<'_, T> {
             let deadline = Instant::now() + self.timeout;
             let queued = self.pending();
             let result = borrow(self.client)?.get_mut().write_vectored(&[
-                IoSlice::new(&self.buf[self.start..self.end]), IoSlice::new(data),
+                IoSlice::new(&self.buf[self.start..self.end]),
+                IoSlice::new(data),
             ]);
             match result {
-                Ok(0) => return Err(io::Error::new(io::ErrorKind::WriteZero, "client accepted nothing")),
+                Ok(0) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::WriteZero,
+                        "client accepted nothing",
+                    ))
+                }
                 Ok(n) => {
                     self.start += n.min(queued);
                     data = &data[n.saturating_sub(queued)..];
@@ -1033,11 +1178,18 @@ impl<T: Read + Write> Write for Out<'_, T> {
                 }
                 // One optimistic attempt only. EINTR has consumed no bytes;
                 // both transient errors fall back using the original budget.
-                Err(e) if matches!(e.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted) => {}
+                Err(e)
+                    if matches!(
+                        e.kind(),
+                        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                    ) => {}
                 Err(e) => return Err(e),
             }
             if Instant::now() >= deadline {
-                return Err(io::Error::new(io::ErrorKind::TimedOut, "response write deadline"));
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "response write deadline",
+                ));
             }
             Some(deadline)
         } else {
@@ -1067,11 +1219,11 @@ impl<T: Read + Write> Write for Out<'_, T> {
     }
 }
 
-
 /// A failed borrow would mean read and write nested, which is a bug here. Turn
 /// it into an I/O error rather than panicking a connection thread.
 fn borrow<T>(cell: &RefCell<T>) -> io::Result<std::cell::RefMut<'_, T>> {
-    cell.try_borrow_mut().map_err(|_| io::Error::other("client stream already borrowed"))
+    cell.try_borrow_mut()
+        .map_err(|_| io::Error::other("client stream already borrowed"))
 }
 
 /// Where the chunked decoder is between calls, so a client that stops
@@ -1128,13 +1280,20 @@ const CHUNK_LINE_MAX: usize = 4096;
 /// followed by zero or more semicolon extensions with ASCII alphanumeric
 /// names and values. Empty extension names/values remain accepted upstream.
 fn parse_chunk_size(line: &[u8]) -> Option<u64> {
-    let digits = line.iter().take_while(|byte| byte.is_ascii_hexdigit()).count();
+    let digits = line
+        .iter()
+        .take_while(|byte| byte.is_ascii_hexdigit())
+        .count();
     if digits == 0 {
         return None;
     }
     let mut size = 0u64;
     for &byte in &line[..digits] {
-        let digit = if byte.is_ascii_digit() { byte - b'0' } else { byte.to_ascii_lowercase() - b'a' + 10 };
+        let digit = if byte.is_ascii_digit() {
+            byte - b'0'
+        } else {
+            byte.to_ascii_lowercase() - b'a' + 10
+        };
         size = size.checked_mul(16)?.checked_add(u64::from(digit))?;
         if size > i32::MAX as u64 {
             return None;
@@ -1142,10 +1301,16 @@ fn parse_chunk_size(line: &[u8]) -> Option<u64> {
     }
     let mut rest = &line[digits..];
     while let Some(extension) = rest.strip_prefix(b";") {
-        let name = extension.iter().take_while(|byte| byte.is_ascii_alphanumeric()).count();
+        let name = extension
+            .iter()
+            .take_while(|byte| byte.is_ascii_alphanumeric())
+            .count();
         rest = &extension[name..];
         if let Some(value) = rest.strip_prefix(b"=") {
-            let length = value.iter().take_while(|byte| byte.is_ascii_alphanumeric()).count();
+            let length = value
+                .iter()
+                .take_while(|byte| byte.is_ascii_alphanumeric())
+                .count();
             rest = &value[length..];
         }
     }
@@ -1216,7 +1381,9 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
         loop {
             match self.stage {
                 Stage::Size => {
-                    let Some(line) = self.take_line(CHUNK_LINE_MAX)? else { continue };
+                    let Some(line) = self.take_line(CHUNK_LINE_MAX)? else {
+                        continue;
+                    };
                     let Some(size) = parse_chunk_size(&line) else {
                         return Err(self.fail(io::ErrorKind::InvalidData, "bad chunk size"));
                     };
@@ -1243,22 +1410,32 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
                     return Ok(n);
                 }
                 Stage::AfterChunk => {
-                    let Some(line) = self.take_line(2)? else { continue };
+                    let Some(line) = self.take_line(2)? else {
+                        continue;
+                    };
                     if !line.is_empty() {
-                        return Err(self.fail(io::ErrorKind::InvalidData, "missing chunk terminator"));
+                        return Err(
+                            self.fail(io::ErrorKind::InvalidData, "missing chunk terminator")
+                        );
                     }
                     self.stage = Stage::Size;
                 }
                 Stage::Trailer => {
-                    let Some(line) = self.take_line(CHUNK_LINE_MAX)? else { continue };
+                    let Some(line) = self.take_line(CHUNK_LINE_MAX)? else {
+                        continue;
+                    };
                     if line.is_empty() {
                         self.done = true;
                         return Ok(0);
                     }
                     self.trailer_lines += 1;
                     self.trailer_bytes += line.len() + 2;
-                    if self.trailer_lines > MAX_HEADER_FIELDS || self.trailer_bytes > MAX_HEADER_BYTES {
-                        return Err(self.fail(io::ErrorKind::InvalidData, "trailer section too large"));
+                    if self.trailer_lines > MAX_HEADER_FIELDS
+                        || self.trailer_bytes > MAX_HEADER_BYTES
+                    {
+                        return Err(
+                            self.fail(io::ErrorKind::InvalidData, "trailer section too large")
+                        );
                     }
                 }
             }
@@ -1276,7 +1453,9 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
                 let mut src = self.src.borrow_mut();
                 let available = src.fill_buf()?;
                 if available.is_empty() {
-                    return Err(self.fail(io::ErrorKind::UnexpectedEof, "body ended inside framing"));
+                    return Err(
+                        self.fail(io::ErrorKind::UnexpectedEof, "body ended inside framing")
+                    );
                 }
                 match available.iter().position(|&b| b == b'\n') {
                     Some(pos) => {
@@ -1466,12 +1645,16 @@ impl<'a, W: Write> Response<'a, W> {
     /// Static Content-Length bodies may read straight into the output window;
     /// exactly `length` bytes are sent, see `Sink::copy_from`.
     pub fn copy_unchunked(&mut self, source: &mut dyn Read, length: u64) -> io::Result<()>
-    where W: Sink {
+    where
+        W: Sink,
+    {
         if self.is_head() {
             return Ok(());
         }
         if self.chunked {
-            return Err(io::Error::other("direct file copy requires unchunked framing"));
+            return Err(io::Error::other(
+                "direct file copy requires unchunked framing",
+            ));
         }
         self.out.copy_from(source, length)
     }
@@ -1545,8 +1728,13 @@ impl std::fmt::Display for HttpDate {
         write!(
             out,
             "{}, {:02} {} {:04} {:02}:{:02}:{:02} GMT",
-            DAYS[weekday], d, MONTHS[(m - 1) as usize], y,
-            secs / 3600, (secs % 3600) / 60, secs % 60
+            DAYS[weekday],
+            d,
+            MONTHS[(m - 1) as usize],
+            y,
+            secs / 3600,
+            (secs % 3600) / 60,
+            secs % 60
         )
     }
 }
@@ -1558,7 +1746,9 @@ fn days_from_civil(y: i64, m: u32, d: u32) -> Option<i64> {
     let mp = if m > 2 { m - 3 } else { m + 9 } as i64;
     let doy = (153 * mp + 2) / 5 + d as i64 - 1;
     let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    era.checked_mul(146_097)?.checked_add(doe)?.checked_sub(719_468)
+    era.checked_mul(146_097)?
+        .checked_add(doe)?
+        .checked_sub(719_468)
 }
 
 /// Parse RFC 1123 / RFC 850 / asctime dates like uhttpd's strptime fallbacks.
@@ -1605,7 +1795,8 @@ pub fn parse_http_date(s: &str) -> Option<i64> {
     let hh: i64 = hh.parse().ok()?;
     let mm: i64 = mm.parse().ok()?;
     let ss: i64 = ss.parse().ok()?;
-    days_from_civil(y, m, d)?.checked_mul(86_400)?
+    days_from_civil(y, m, d)?
+        .checked_mul(86_400)?
         .checked_add(hh.checked_mul(3600)?)?
         .checked_add(mm.checked_mul(60)?)?
         .checked_add(ss)
@@ -1668,7 +1859,10 @@ mod tests {
         ] {
             assert_eq!(parse_http_date(date), None, "overflowing date: {date}");
         }
-        assert_eq!(parse_http_date("Sun, 06 Nov 1994 08:49:37 GMT"), Some(784111777));
+        assert_eq!(
+            parse_http_date("Sun, 06 Nov 1994 08:49:37 GMT"),
+            Some(784111777)
+        );
     }
 
     fn head_with_size(size: usize) -> Vec<u8> {
@@ -1697,12 +1891,17 @@ mod tests {
             if size <= 16384 {
                 assert!(matches!(result, ParseOutcome::Request(_)), "size {size}");
             } else {
-                assert!(matches!(result, ParseOutcome::Bad { code: 431, .. }), "size {size}");
+                assert!(
+                    matches!(result, ParseOutcome::Bad { code: 431, .. }),
+                    "size {size}"
+                );
             }
         }
         for count in [100, 101] {
             let mut head = b"GET / HTTP/1.1\r\n".to_vec();
-            for _ in 0..count { head.extend_from_slice(b"X:\r\n"); }
+            for _ in 0..count {
+                head.extend_from_slice(b"X:\r\n");
+            }
             head.extend_from_slice(b"\r\n");
             let mut input = BufReader::new(io::Cursor::new(head));
             let result = read_request(&mut input, true, None).unwrap();
@@ -1716,7 +1915,10 @@ mod tests {
         let mut head = b"\r\n".repeat(8192);
         head.extend_from_slice(b"GET / HTTP/1.1\r\n\r\n");
         let mut input = BufReader::new(io::Cursor::new(head));
-        assert!(matches!(read_request(&mut input, true, None).unwrap(), ParseOutcome::Bad { code: 413, .. }));
+        assert!(matches!(
+            read_request(&mut input, true, None).unwrap(),
+            ParseOutcome::Bad { code: 413, .. }
+        ));
     }
 
     #[test]
@@ -1726,26 +1928,48 @@ mod tests {
         let mut reader = BufReader::new(io::Cursor::new(input));
         let mut heads = HeadBuffer::default();
         for _ in 0..2 {
-            let ParseOutcome::Request(request) = heads.read_request(&mut reader, true, None).unwrap() else {
+            let ParseOutcome::Request(request) =
+                heads.read_request(&mut reader, true, None).unwrap()
+            else {
                 panic!("each complete pipelined head has its own budget");
             };
             heads.recycle(request);
         }
-        assert!(matches!(heads.read_request(&mut reader, true, None).unwrap(), ParseOutcome::Eof));
+        assert!(matches!(
+            heads.read_request(&mut reader, true, None).unwrap(),
+            ParseOutcome::Eof
+        ));
         let mut input = head_with_size(16385);
         input.extend_from_slice(b"GET / HTTP/1.1\r\n\r\n");
         let mut reader = BufReader::new(io::Cursor::new(input));
-        assert!(matches!(heads.read_request(&mut reader, true, None).unwrap(), ParseOutcome::Bad { code: 431, .. }));
+        assert!(matches!(
+            heads.read_request(&mut reader, true, None).unwrap(),
+            ParseOutcome::Bad { code: 431, .. }
+        ));
     }
 
     #[test]
     fn header_names_are_nonempty_ascii_tokens_and_values_trim_only_ows() {
-        for field in [": value", " Host: value", "Host : value", "Host\t: value",
-            "X Name: value", "X@Name: value", "X(Name): value", "Höst: value", "X: value\r"] {
+        for field in [
+            ": value",
+            " Host: value",
+            "Host : value",
+            "Host\t: value",
+            "X Name: value",
+            "X@Name: value",
+            "X(Name): value",
+            "Höst: value",
+            "X: value\r",
+        ] {
             let raw = format!("GET / HTTP/1.1\r\n{field}\r\n\r\n");
             let mut input = BufReader::new(io::Cursor::new(raw));
-            assert!(matches!(read_request(&mut input, true, None).unwrap(),
-                ParseOutcome::Bad { code: 400, .. }), "{field:?}");
+            assert!(
+                matches!(
+                    read_request(&mut input, true, None).unwrap(),
+                    ParseOutcome::Bad { code: 400, .. }
+                ),
+                "{field:?}"
+            );
         }
         let raw = b"GET / HTTP/1.1\r\nX-!#$%&'*+.^_`|~: \tvalue\t \r\nX-Obs: \xc2\xa0value\xc2\xa0 \r\n\r\n";
         let mut input = BufReader::new(io::Cursor::new(raw));
@@ -1760,19 +1984,27 @@ mod tests {
     fn trailers_share_header_limits_and_never_become_pipelined_requests() {
         for (headers, trailers, accepted) in [(99, 1, true), (99, 2, false)] {
             let mut raw = b"POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\n".to_vec();
-            for _ in 1..headers { raw.extend_from_slice(b"X: v\r\n"); }
+            for _ in 1..headers {
+                raw.extend_from_slice(b"X: v\r\n");
+            }
             raw.extend_from_slice(b"\r\n0\r\n");
-            for _ in 0..trailers { raw.extend_from_slice(b"GET /hidden HTTP/1.1\r\n"); }
+            for _ in 0..trailers {
+                raw.extend_from_slice(b"GET /hidden HTTP/1.1\r\n");
+            }
             raw.extend_from_slice(b"\r\nGET /next HTTP/1.1\r\n\r\n");
             let cell = RefCell::new(BufReader::new(io::Cursor::new(raw)));
-            let ParseOutcome::Request(request) = read_request(&mut cell.borrow_mut(), true, None).unwrap() else {
+            let ParseOutcome::Request(request) =
+                read_request(&mut cell.borrow_mut(), true, None).unwrap()
+            else {
                 panic!("valid head rejected");
             };
             let mut body = BodyReader::new(&cell, &request);
             assert_eq!(body.read_all(0).is_ok(), accepted);
             assert_eq!(body.reusable(), accepted);
             if accepted {
-                let ParseOutcome::Request(next) = read_request(&mut cell.borrow_mut(), true, None).unwrap() else {
+                let ParseOutcome::Request(next) =
+                    read_request(&mut cell.borrow_mut(), true, None).unwrap()
+                else {
                     panic!("next request lost");
                 };
                 assert_eq!(next.url, "/next");
@@ -1784,11 +2016,16 @@ mod tests {
         raw.truncate(raw.len() - 2);
         raw.extend_from_slice(b"Transfer-Encoding: chunked\r\n\r\n0\r\nX: v\r\n\r\n");
         let cell = RefCell::new(BufReader::new(io::Cursor::new(raw)));
-        let ParseOutcome::Request(request) = read_request(&mut cell.borrow_mut(), true, None).unwrap() else {
+        let ParseOutcome::Request(request) =
+            read_request(&mut cell.borrow_mut(), true, None).unwrap()
+        else {
             panic!("valid head rejected");
         };
         let mut body = BodyReader::new(&cell, &request);
-        assert_eq!(body.read_all(0).unwrap_err().kind(), io::ErrorKind::InvalidData);
+        assert_eq!(
+            body.read_all(0).unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
         assert!(!body.reusable());
     }
 
@@ -1818,28 +2055,47 @@ mod tests {
 
     #[test]
     fn header_controls_cannot_reach_dispatch() {
-        for byte in (0..=31).chain([127]).filter(|b| *b != b'\t' && *b != b'\n' && *b != b'\r') {
+        for byte in (0..=31)
+            .chain([127])
+            .filter(|b| *b != b'\t' && *b != b'\n' && *b != b'\r')
+        {
             let mut raw = b"GET / HTTP/1.1\r\nX-Test: a".to_vec();
             raw.push(byte);
             raw.extend_from_slice(b"b\r\n\r\n");
             let mut input = BufReader::new(io::Cursor::new(raw));
-            assert!(matches!(read_request(&mut input, true, None).unwrap(), ParseOutcome::Bad { code: 400, .. }));
+            assert!(matches!(
+                read_request(&mut input, true, None).unwrap(),
+                ParseOutcome::Bad { code: 400, .. }
+            ));
         }
         let mut input = BufReader::new(io::Cursor::new(b"GET / HTTP/1.1\r\nX-Test: a\tb\r\n\r\n"));
-        assert!(matches!(read_request(&mut input, true, None).unwrap(), ParseOutcome::Request(_)));
+        assert!(matches!(
+            read_request(&mut input, true, None).unwrap(),
+            ParseOutcome::Request(_)
+        ));
     }
 
     #[test]
     fn chunk_length_boundary_is_checked_before_reading_payload() {
-        for (size, valid) in [("7fffffff", true), ("80000000", false), ("ffffffffffffffff", false)] {
+        for (size, valid) in [
+            ("7fffffff", true),
+            ("80000000", false),
+            ("ffffffffffffffff", false),
+        ] {
             let raw = format!("POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n{size}\r\nx");
             let mut input = BufReader::new(io::Cursor::new(raw));
-            let ParseOutcome::Request(request) = read_request(&mut input, true, None).unwrap() else { panic!() };
+            let ParseOutcome::Request(request) = read_request(&mut input, true, None).unwrap()
+            else {
+                panic!()
+            };
             let input = RefCell::new(input);
             let mut body = BodyReader::new(&input, &request);
             let result = body.read(&mut [0; 1]);
-            if valid { assert_eq!(result.unwrap(), 1); }
-            else { assert_eq!(result.unwrap_err().kind(), io::ErrorKind::InvalidData); }
+            if valid {
+                assert_eq!(result.unwrap(), 1);
+            } else {
+                assert_eq!(result.unwrap_err().kind(), io::ErrorKind::InvalidData);
+            }
         }
     }
 
@@ -1872,7 +2128,9 @@ mod tests {
         let mut input = BufReader::new(io::Cursor::new(raw));
         assert_eq!(input.fill_buf().unwrap(), raw);
         let deadline = HeadDeadline::until(-1, Instant::now() - Duration::from_secs(1));
-        let error = read_request(&mut input, true, Some(&deadline)).err().expect("deadline ignored");
+        let error = read_request(&mut input, true, Some(&deadline))
+            .err()
+            .expect("deadline ignored");
         assert_eq!(error.kind(), io::ErrorKind::TimedOut);
         assert_eq!(input.buffer(), raw);
     }
@@ -1880,7 +2138,10 @@ mod tests {
     #[test]
     fn a_timed_out_first_read_is_idle_only_with_a_linger_and_budget_left() {
         /// Times out on every read until `bytes` is set, then serves it.
-        struct Quiet { bytes: &'static [u8], timeouts: usize }
+        struct Quiet {
+            bytes: &'static [u8],
+            timeouts: usize,
+        }
         impl Read for Quiet {
             fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
                 if self.timeouts > 0 {
@@ -1895,23 +2156,54 @@ mod tests {
         }
         let head: &[u8] = b"GET /q HTTP/1.1\r\nHost: x\r\n\r\n";
         // With a linger and budget left: idle, and nothing consumed.
-        let mut input = BufReader::new(Quiet { bytes: head, timeouts: 1 });
-        let deadline = HeadDeadline::new(-1, Duration::from_secs(30)).with_linger(Duration::from_millis(50));
-        assert!(matches!(read_request(&mut input, true, Some(&deadline)).unwrap(), ParseOutcome::Idle));
+        let mut input = BufReader::new(Quiet {
+            bytes: head,
+            timeouts: 1,
+        });
+        let deadline =
+            HeadDeadline::new(-1, Duration::from_secs(30)).with_linger(Duration::from_millis(50));
+        assert!(matches!(
+            read_request(&mut input, true, Some(&deadline)).unwrap(),
+            ParseOutcome::Idle
+        ));
         assert!(input.buffer().is_empty());
         // The same reader then delivers the request normally.
-        let ParseOutcome::Request(r) = read_request(&mut input, true, Some(&deadline)).unwrap() else { panic!() };
+        let ParseOutcome::Request(r) = read_request(&mut input, true, Some(&deadline)).unwrap()
+        else {
+            panic!()
+        };
         assert_eq!(r.url, "/q");
         // Without a linger the timeout is the head timeout, as before.
-        let mut input = BufReader::new(Quiet { bytes: head, timeouts: 1 });
+        let mut input = BufReader::new(Quiet {
+            bytes: head,
+            timeouts: 1,
+        });
         let deadline = HeadDeadline::new(-1, Duration::from_secs(30));
-        assert_eq!(read_request(&mut input, true, Some(&deadline)).err().expect("timeout ignored").kind(), io::ErrorKind::TimedOut);
+        assert_eq!(
+            read_request(&mut input, true, Some(&deadline))
+                .err()
+                .expect("timeout ignored")
+                .kind(),
+            io::ErrorKind::TimedOut
+        );
         // With a linger but the budget gone: still the head timeout.
-        let mut input = BufReader::new(Quiet { bytes: head, timeouts: 1 });
-        let deadline = HeadDeadline::until(-1, Instant::now() - Duration::from_secs(1)).with_linger(Duration::from_millis(50));
-        assert_eq!(read_request(&mut input, true, Some(&deadline)).err().expect("timeout ignored").kind(), io::ErrorKind::TimedOut);
+        let mut input = BufReader::new(Quiet {
+            bytes: head,
+            timeouts: 1,
+        });
+        let deadline = HeadDeadline::until(-1, Instant::now() - Duration::from_secs(1))
+            .with_linger(Duration::from_millis(50));
+        assert_eq!(
+            read_request(&mut input, true, Some(&deadline))
+                .err()
+                .expect("timeout ignored")
+                .kind(),
+            io::ErrorKind::TimedOut
+        );
         // A timeout after part of the head arrived is never idle.
-        struct Partial { sent: bool }
+        struct Partial {
+            sent: bool,
+        }
         impl Read for Partial {
             fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
                 if self.sent {
@@ -1923,11 +2215,27 @@ mod tests {
             }
         }
         let mut input = BufReader::new(Partial { sent: false });
-        let deadline = HeadDeadline::new(-1, Duration::from_secs(30)).with_linger(Duration::from_millis(50));
-        assert_eq!(read_request(&mut input, true, Some(&deadline)).err().expect("timeout ignored").kind(), io::ErrorKind::WouldBlock);
+        let deadline =
+            HeadDeadline::new(-1, Duration::from_secs(30)).with_linger(Duration::from_millis(50));
+        assert_eq!(
+            read_request(&mut input, true, Some(&deadline))
+                .err()
+                .expect("timeout ignored")
+                .kind(),
+            io::ErrorKind::WouldBlock
+        );
         // No deadline at all: the error passes through untouched.
-        let mut input = BufReader::new(Quiet { bytes: head, timeouts: 1 });
-        assert_eq!(read_request(&mut input, true, None).err().expect("timeout ignored").kind(), io::ErrorKind::WouldBlock);
+        let mut input = BufReader::new(Quiet {
+            bytes: head,
+            timeouts: 1,
+        });
+        assert_eq!(
+            read_request(&mut input, true, None)
+                .err()
+                .expect("timeout ignored")
+                .kind(),
+            io::ErrorKind::WouldBlock
+        );
     }
 
     #[test]
@@ -1938,33 +2246,59 @@ mod tests {
         let mut peer = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
         let (server, _) = listener.accept().unwrap();
         // The connection's fixed receive timeout stands in for LINGER.
-        server.set_read_timeout(Some(Duration::from_millis(30))).unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_millis(30)))
+            .unwrap();
         let fd = server.as_raw_fd();
         let mut input = BufReader::new(Sock(server));
         // Nothing arrives within the linger: idle, nothing consumed, no socket option touched.
-        let deadline = HeadDeadline::new(fd, Duration::from_secs(30)).with_linger(Duration::from_millis(30)).linger_socket();
+        let deadline = HeadDeadline::new(fd, Duration::from_secs(30))
+            .with_linger(Duration::from_millis(30))
+            .linger_socket();
         let started = Instant::now();
-        assert!(matches!(read_request(&mut input, true, Some(&deadline)).unwrap(), ParseOutcome::Idle));
-        assert!(started.elapsed() >= Duration::from_millis(25) && started.elapsed() < Duration::from_secs(2));
+        assert!(matches!(
+            read_request(&mut input, true, Some(&deadline)).unwrap(),
+            ParseOutcome::Idle
+        ));
+        assert!(
+            started.elapsed() >= Duration::from_millis(25)
+                && started.elapsed() < Duration::from_secs(2)
+        );
         assert!(input.buffer().is_empty());
         assert_eq!(read_wait(), ReadWait::Linger);
         // Input present: served without waiting.
-        peer.write_all(b"GET /q HTTP/1.1\r\nHost: x\r\n\r\n").unwrap();
-        let ParseOutcome::Request(r) = read_request(&mut input, true, Some(&deadline)).unwrap() else { panic!() };
+        peer.write_all(b"GET /q HTTP/1.1\r\nHost: x\r\n\r\n")
+            .unwrap();
+        let ParseOutcome::Request(r) = read_request(&mut input, true, Some(&deadline)).unwrap()
+        else {
+            panic!()
+        };
         assert_eq!(r.url, "/q");
         // A head that stalls after its first bytes gets the head budget (poll
         // after the 30 ms socket timeout), then the head timeout; never idle.
         peer.write_all(b"GET /p HTTP/1.1\r\nHo").unwrap();
-        let deadline = HeadDeadline::new(fd, Duration::from_millis(90)).with_linger(Duration::from_millis(30)).linger_socket();
+        let deadline = HeadDeadline::new(fd, Duration::from_millis(90))
+            .with_linger(Duration::from_millis(30))
+            .linger_socket();
         let started = Instant::now();
-        let kind = read_request(&mut input, true, Some(&deadline)).err().expect("stalled head accepted").kind();
+        let kind = read_request(&mut input, true, Some(&deadline))
+            .err()
+            .expect("stalled head accepted")
+            .kind();
         assert_eq!(kind, io::ErrorKind::TimedOut);
-        assert!(started.elapsed() >= Duration::from_millis(80) && started.elapsed() < Duration::from_secs(2));
+        assert!(
+            started.elapsed() >= Duration::from_millis(80)
+                && started.elapsed() < Duration::from_secs(2)
+        );
         // A body read waits its budget through the short socket timeout.
         set_read_wait(ReadWait::Budget(Duration::from_millis(200)));
         let started = Instant::now();
         let mut sock = input.into_inner();
-        let writer = std::thread::spawn(move || { std::thread::sleep(Duration::from_millis(60)); peer.write_all(b"late").unwrap(); peer });
+        let writer = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(60));
+            peer.write_all(b"late").unwrap();
+            peer
+        });
         let mut buf = [0u8; 8];
         let n = sock.read(&mut buf).unwrap();
         assert_eq!(&buf[..n], b"late");
@@ -1972,13 +2306,19 @@ mod tests {
         // Budget exhausted with the peer still open: a timeout, not a hang.
         let _peer = writer.join().unwrap();
         set_read_wait(ReadWait::Budget(Duration::from_millis(50)));
-        assert_eq!(sock.read(&mut buf).unwrap_err().kind(), io::ErrorKind::TimedOut);
+        assert_eq!(
+            sock.read(&mut buf).unwrap_err().kind(),
+            io::ErrorKind::TimedOut
+        );
         set_read_wait(ReadWait::Passthrough);
     }
 
     #[test]
     fn interrupted_head_reads_preserve_partial_lines_and_deadline() {
-        struct InterruptedInput<'a> { bytes: &'a [u8], interrupt: bool }
+        struct InterruptedInput<'a> {
+            bytes: &'a [u8],
+            interrupt: bool,
+        }
         impl Read for InterruptedInput<'_> {
             fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
                 self.interrupt = !self.interrupt;
@@ -1992,9 +2332,14 @@ mod tests {
             }
         }
         let raw = b"GET /interrupted HTTP/1.1\r\nHost: x\r\nX-Test: intact\r\n\r\n";
-        let mut input = BufReader::new(InterruptedInput { bytes: raw, interrupt: false });
+        let mut input = BufReader::new(InterruptedInput {
+            bytes: raw,
+            interrupt: false,
+        });
         let deadline = HeadDeadline::new(-1, Duration::from_secs(1));
-        let ParseOutcome::Request(request) = read_request(&mut input, true, Some(&deadline)).unwrap() else {
+        let ParseOutcome::Request(request) =
+            read_request(&mut input, true, Some(&deadline)).unwrap()
+        else {
             panic!("interrupted head rejected")
         };
         assert_eq!(request.url, "/interrupted");
@@ -2008,7 +2353,9 @@ mod tests {
         }
         let mut input = BufReader::new(AlwaysInterrupted);
         let deadline = HeadDeadline::new(-1, Duration::from_millis(5));
-        let error = read_request(&mut input, true, Some(&deadline)).err().expect("deadline ignored");
+        let error = read_request(&mut input, true, Some(&deadline))
+            .err()
+            .expect("deadline ignored");
         assert_eq!(error.kind(), io::ErrorKind::TimedOut);
     }
 
@@ -2021,7 +2368,8 @@ mod tests {
         );
         let mut input = BufReader::with_capacity(17, io::Cursor::new(raw.as_bytes()));
         let mut heads = HeadBuffer::default();
-        let ParseOutcome::Request(first) = heads.read_request(&mut input, true, None).unwrap() else {
+        let ParseOutcome::Request(first) = heads.read_request(&mut input, true, None).unwrap()
+        else {
             panic!("first head rejected")
         };
         assert!(first.expect_continue && first.connection_close);
@@ -2031,7 +2379,8 @@ mod tests {
         assert_eq!(&body, b"abc");
         heads.recycle(first);
         assert!(heads.spare.is_some());
-        let ParseOutcome::Request(second) = heads.read_request(&mut input, true, None).unwrap() else {
+        let ParseOutcome::Request(second) = heads.read_request(&mut input, true, None).unwrap()
+        else {
             panic!("second head rejected")
         };
         assert_eq!(second.method, Method::Get);
@@ -2046,11 +2395,15 @@ mod tests {
 
     #[test]
     fn reused_head_drops_large_storage_without_rejecting_the_request() {
-        let raw = format!("GET /large HTTP/1.1\r\nX-First: {}\r\nX-Second: {}\r\n\r\n",
-                          "a".repeat(4000), "b".repeat(4000));
+        let raw = format!(
+            "GET /large HTTP/1.1\r\nX-First: {}\r\nX-Second: {}\r\n\r\n",
+            "a".repeat(4000),
+            "b".repeat(4000)
+        );
         let mut input = BufReader::new(io::Cursor::new(raw.as_bytes()));
         let mut heads = HeadBuffer::default();
-        let ParseOutcome::Request(request) = heads.read_request(&mut input, true, None).unwrap() else {
+        let ParseOutcome::Request(request) = heads.read_request(&mut input, true, None).unwrap()
+        else {
             panic!("valid large headers rejected")
         };
         assert_eq!(request.header("x-first").unwrap().len(), 4000);
@@ -2077,17 +2430,28 @@ mod tests {
     }
     impl VectorWrites {
         fn new(first: FirstWrite) -> Self {
-            Self { first, delay: Duration::ZERO, bytes: Vec::new(), vectors: 0,
-                scalars: 0, scalar_limit: 7, scalar_error: None }
+            Self {
+                first,
+                delay: Duration::ZERO,
+                bytes: Vec::new(),
+                vectors: 0,
+                scalars: 0,
+                scalar_limit: 7,
+                scalar_error: None,
+            }
         }
     }
     impl Read for VectorWrites {
-        fn read(&mut self, _: &mut [u8]) -> io::Result<usize> { Ok(0) }
+        fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+            Ok(0)
+        }
     }
     impl Write for VectorWrites {
         fn write(&mut self, data: &[u8]) -> io::Result<usize> {
             self.scalars += 1;
-            if let Some(error) = self.scalar_error.take() { return Err(error.into()); }
+            if let Some(error) = self.scalar_error.take() {
+                return Err(error.into());
+            }
             let n = data.len().min(self.scalar_limit);
             self.bytes.extend_from_slice(&data[..n]);
             Ok(n)
@@ -2108,7 +2472,9 @@ mod tests {
             }
             Ok(total)
         }
-        fn flush(&mut self) -> io::Result<()> { Ok(()) }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
     }
 
     #[test]
@@ -2116,8 +2482,17 @@ mod tests {
         let header = b"head:";
         let body: Vec<_> = (0..129).map(|i| (i % 251) as u8).collect();
         let total = header.len() + body.len();
-        for accepted in [1, header.len() - 1, header.len(), header.len() + 1, total - 1, total] {
-            let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(accepted))));
+        for accepted in [
+            1,
+            header.len() - 1,
+            header.len(),
+            header.len() + 1,
+            total - 1,
+            total,
+        ] {
+            let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(
+                accepted,
+            ))));
             let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
             out.enable_plain_vectored();
             out.write_all(header).unwrap();
@@ -2125,7 +2500,11 @@ mod tests {
             assert_eq!(out.write(&body).unwrap(), body.len());
             assert_eq!(out.pending(), 0, "even a short fallback tail must drain");
             if accepted == total {
-                assert_eq!(out.buf.capacity(), capacity, "complete write copied or grew output storage");
+                assert_eq!(
+                    out.buf.capacity(),
+                    capacity,
+                    "complete write copied or grew output storage"
+                );
                 assert_eq!(client.borrow().get_ref().scalars, 0);
             }
             let mut expected = header.to_vec();
@@ -2163,7 +2542,10 @@ mod tests {
     fn large_vectored_errors_propagate_and_do_not_write_later_bytes() {
         for (first, expected) in [
             (FirstWrite::Accept(0), io::ErrorKind::WriteZero),
-            (FirstWrite::Error(io::ErrorKind::BrokenPipe), io::ErrorKind::BrokenPipe),
+            (
+                FirstWrite::Error(io::ErrorKind::BrokenPipe),
+                io::ErrorKind::BrokenPipe,
+            ),
         ] {
             let client = RefCell::new(BufReader::new(VectorWrites::new(first)));
             let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
@@ -2179,22 +2561,31 @@ mod tests {
         let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
         out.enable_plain_vectored();
         out.write_all(b"head:").unwrap();
-        assert_eq!(out.write_all(&[42; 129]).unwrap_err().kind(), io::ErrorKind::BrokenPipe);
+        assert_eq!(
+            out.write_all(&[42; 129]).unwrap_err().kind(),
+            io::ErrorKind::BrokenPipe
+        );
         assert_eq!(client.borrow().get_ref().bytes, b"head:**");
         assert_eq!(client.borrow().get_ref().scalars, 1);
     }
 
     #[test]
     fn large_vectored_attempt_cannot_start_a_fresh_fallback_deadline() {
-        for first in [FirstWrite::Accept(7), FirstWrite::Error(io::ErrorKind::WouldBlock),
-                      FirstWrite::Error(io::ErrorKind::Interrupted)] {
+        for first in [
+            FirstWrite::Accept(7),
+            FirstWrite::Error(io::ErrorKind::WouldBlock),
+            FirstWrite::Error(io::ErrorKind::Interrupted),
+        ] {
             let mut writer = VectorWrites::new(first);
             writer.delay = Duration::from_millis(20);
             let client = RefCell::new(BufReader::new(writer));
             let mut out = Out::new(&client, -1, 64, Duration::from_millis(5));
             out.enable_plain_vectored();
             out.write_all(b"head:").unwrap();
-            assert_eq!(out.write_all(&[42; 129]).unwrap_err().kind(), io::ErrorKind::TimedOut);
+            assert_eq!(
+                out.write_all(&[42; 129]).unwrap_err().kind(),
+                io::ErrorKind::TimedOut
+            );
             assert_eq!(client.borrow().get_ref().vectors, 1);
             assert_eq!(client.borrow().get_ref().scalars, 0);
         }
@@ -2204,9 +2595,13 @@ mod tests {
     fn large_vectored_path_requires_plain_opt_in_and_defers_to_cgi_readiness() {
         // TLS does not opt in, and even an opted-in plain CGI sink defers.
         for (plain, deferred) in [(false, false), (true, true)] {
-            let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(usize::MAX))));
+            let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(
+                usize::MAX,
+            ))));
             let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
-            if plain { out.enable_plain_vectored(); }
+            if plain {
+                out.enable_plain_vectored();
+            }
             out.set_deferred(deferred);
             out.write_all(b"head:").unwrap();
             out.write_all(&[42; 129]).unwrap();
@@ -2218,13 +2613,18 @@ mod tests {
                 out.drain_ready().unwrap();
                 assert_eq!(out.pending(), 0);
             }
-            assert_eq!(client.borrow().get_ref().bytes, [b"head:".as_slice(), &[42; 129]].concat());
+            assert_eq!(
+                client.borrow().get_ref().bytes,
+                [b"head:".as_slice(), &[42; 129]].concat()
+            );
         }
     }
 
     #[test]
     fn large_vectored_opt_in_leaves_direct_file_reads_unchanged() {
-        let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(usize::MAX))));
+        let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(
+            usize::MAX,
+        ))));
         let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
         out.enable_plain_vectored();
         out.write_all(b"head:").unwrap();
@@ -2232,14 +2632,19 @@ mod tests {
         out.copy_from(&mut io::Cursor::new(source), 129).unwrap();
         out.finish_request().unwrap();
         assert_eq!(client.borrow().get_ref().vectors, 0);
-        assert_eq!(client.borrow().get_ref().bytes, [b"head:".as_slice(), &[42; 129]].concat());
+        assert_eq!(
+            client.borrow().get_ref().bytes,
+            [b"head:".as_slice(), &[42; 129]].concat()
+        );
     }
 
     #[test]
     fn reused_output_preserves_bytes_and_bounds_retained_capacity() {
         struct ShortWrites(Vec<u8>);
         impl Read for ShortWrites {
-            fn read(&mut self, _: &mut [u8]) -> io::Result<usize> { Ok(0) }
+            fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+                Ok(0)
+            }
         }
         impl Write for ShortWrites {
             fn write(&mut self, data: &[u8]) -> io::Result<usize> {
@@ -2247,7 +2652,9 @@ mod tests {
                 self.0.extend_from_slice(&data[..n]);
                 Ok(n)
             }
-            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
         }
         let client = RefCell::new(BufReader::new(ShortWrites(Vec::new())));
         let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
@@ -2261,7 +2668,10 @@ mod tests {
             assert!(out.buf.capacity() <= 128);
             assert_eq!(client.borrow().get_ref().0, expected);
         }
-        struct ShortReads<'a> { bytes: &'a [u8], interrupt: bool }
+        struct ShortReads<'a> {
+            bytes: &'a [u8],
+            interrupt: bool,
+        }
         impl Read for ShortReads<'_> {
             fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
                 self.interrupt = !self.interrupt;
@@ -2277,7 +2687,10 @@ mod tests {
         for length in [0, 1, 63, 64, 65, 257] {
             let bytes: Vec<u8> = (0..length).map(|i| (i % 251) as u8).collect();
             out.write_all(b"next:").unwrap();
-            let mut source = ShortReads { bytes: &bytes, interrupt: false };
+            let mut source = ShortReads {
+                bytes: &bytes,
+                interrupt: false,
+            };
             // Exactly the announced length is sent even when the file grew
             // after lookup, and no old initialized tail is exposed.
             let announced = length / 2;
@@ -2342,24 +2755,54 @@ mod tests {
         assert_eq!(drain(b"3\r\nabc\r\n0\r\n\r\n", true, None).unwrap(), b"abc");
         assert_eq!(drain(b"hello", false, Some(5)).unwrap(), b"hello");
         // several chunks, read through a 2-byte window
-        assert_eq!(drain(b"4\r\nabcd\r\n2\r\nef\r\n0\r\n\r\n", true, None).unwrap(), b"abcdef");
+        assert_eq!(
+            drain(b"4\r\nabcd\r\n2\r\nef\r\n0\r\n\r\n", true, None).unwrap(),
+            b"abcdef"
+        );
         // trailers before the final CRLF
-        assert_eq!(drain(b"1\r\nz\r\n0\r\nX-T: v\r\n\r\n", true, None).unwrap(), b"z");
+        assert_eq!(
+            drain(b"1\r\nz\r\n0\r\nX-T: v\r\n\r\n", true, None).unwrap(),
+            b"z"
+        );
 
         assert!(drain(b"3\r\nabcX\r\n0\r\n\r\n", true, None).is_err());
-        assert!(drain(&format!("{}\n", "a".repeat(CHUNK_LINE_MAX + 1)).into_bytes(), true, None).is_err());
+        assert!(drain(
+            &format!("{}\n", "a".repeat(CHUNK_LINE_MAX + 1)).into_bytes(),
+            true,
+            None
+        )
+        .is_err());
         assert!(drain(b"zz\r\n", true, None).is_err());
         // 25.12.6 rejects strtol-style prefixes, whitespace and unparsed
         // extension garbage instead of interpreting them as another size.
-        for size in ["", " ", " 1", "+1", "0x1", "1 ", "1;name=bad!", "1;name=\"quoted\"", "1;x=y garbage", "80000000"] {
+        for size in [
+            "",
+            " ",
+            " 1",
+            "+1",
+            "0x1",
+            "1 ",
+            "1;name=bad!",
+            "1;name=\"quoted\"",
+            "1;x=y garbage",
+            "80000000",
+        ] {
             let wire = format!("{size}\r\nx\r\n0\r\n\r\n");
             assert!(drain(wire.as_bytes(), true, None).is_err(), "{size:?}");
         }
-        assert_eq!(drain(b"01;name=value;flag\r\nx\r\n0\r\n\r\n", true, None).unwrap(), b"x");
+        assert_eq!(
+            drain(b"01;name=value;flag\r\nx\r\n0\r\n\r\n", true, None).unwrap(),
+            b"x"
+        );
         // Every framing boundary requires CRLF, including the separator
         // after data and the terminating blank line after trailers.
-        for wire in [b"1\nx\r\n0\r\n\r\n".as_slice(), b"1\r\nx\n0\r\n\r\n",
-            b"0\n\r\n", b"0\r\nX: y\n\r\n", b"0\r\n\n"] {
+        for wire in [
+            b"1\nx\r\n0\r\n\r\n".as_slice(),
+            b"1\r\nx\n0\r\n\r\n",
+            b"0\n\r\n",
+            b"0\r\nX: y\n\r\n",
+            b"0\r\n\n",
+        ] {
             assert!(drain(wire, true, None).is_err(), "{wire:?}");
         }
         // a Content-Length body that ends early is an error, not a short read
@@ -2410,7 +2853,10 @@ mod tests {
     fn decode_in_pieces(pieces: &[&[u8]]) -> io::Result<Vec<u8>> {
         let src = RefCell::new(io::BufReader::with_capacity(
             16,
-            Segments { pieces: pieces.iter().map(|p| p.to_vec()).collect(), eof_after: false },
+            Segments {
+                pieces: pieces.iter().map(|p| p.to_vec()).collect(),
+                eof_after: false,
+            },
         ));
         let request = chunked_request();
         let mut body = BodyReader::new(&src, &request);
@@ -2470,7 +2916,10 @@ mod tests {
             big.extend_from_slice(format!("X-{i}: {}\r\n", "v".repeat(600)).as_bytes());
         }
         big.extend_from_slice(b"\r\n");
-        assert_eq!(decode_in_pieces(&[&big]).unwrap_err().kind(), io::ErrorKind::InvalidData);
+        assert_eq!(
+            decode_in_pieces(&[&big]).unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
     }
 
     /// A body larger than the caller's limit is refused without collecting it,
@@ -2515,7 +2964,8 @@ mod tests {
         let safari_mac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15";
         let safari_ios = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
         let chrome_linux = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-        let firefox = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0";
+        let firefox =
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0";
         for ua in [chrome_mac, edge_mac, chrome_linux, firefox, "curl/8.4.0"] {
             assert!(!ua_closes(ua, "GET"), "must keep keep-alive: {ua}");
             assert!(!ua_closes(ua, "POST"), "must keep keep-alive: {ua}");
@@ -2526,15 +2976,29 @@ mod tests {
             assert!(ua_closes(ua, "POST"), "Safari must close: {ua}");
         }
         // "Opera" wins over everything after it
-        assert!(!ua_closes("Opera/9.80 (Macintosh; Intel Mac OS X) Safari/537.36", "GET"));
+        assert!(!ua_closes(
+            "Opera/9.80 (Macintosh; Intel Mac OS X) Safari/537.36",
+            "GET"
+        ));
         // UH_UA_MSIE_OLD: 4/5/6-without-SV1, and only on POST
-        for old in ["Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)", "Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)", "Mozilla/4.0 (compatible; MSIE 4.0; Windows 95)"] {
+        for old in [
+            "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
+            "Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)",
+            "Mozilla/4.0 (compatible; MSIE 4.0; Windows 95)",
+        ] {
             assert!(ua_closes(old, "POST"), "old MSIE POST must close: {old}");
             assert!(!ua_closes(old, "GET"), "old MSIE GET must not close: {old}");
         }
         // SV1 keeps MSIE 6 in UH_UA_MSIE_NEW, and 7+ is new anyway
-        for new in ["Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)", "Mozilla/4.0 (compatible; MSIE 60; Windows)"] {
-            assert!(!ua_closes(new, "POST"), "new MSIE must keep keep-alive: {new}");
+        for new in [
+            "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)",
+            "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)",
+            "Mozilla/4.0 (compatible; MSIE 60; Windows)",
+        ] {
+            assert!(
+                !ua_closes(new, "POST"),
+                "new MSIE must keep keep-alive: {new}"
+            );
         }
     }
 

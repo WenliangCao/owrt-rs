@@ -27,7 +27,10 @@ impl StartupChannel {
     /// Inherited signal handlers and panic hooks must not access copied parent
     /// resource owners or held locks; see
     /// [`dnsmasq_platform::process::background_startup`].
-    #[expect(unsafe_code, reason = "daemonization explicitly requires process ownership")]
+    #[expect(
+        unsafe_code,
+        reason = "daemonization explicitly requires process ownership"
+    )]
     pub unsafe fn begin(&mut self, config: &ProcessConfig) -> Result<bool, StartupError> {
         if config.debug {
             return Ok(false);
@@ -44,12 +47,14 @@ impl StartupChannel {
         // SAFETY: the caller supplies the process guarantees above. These
         // fixed callbacks only consume their pipe and emit startup diagnostics;
         // neither can return through or access the copied service owners.
-        let writer = unsafe { dnsmasq_platform::process::background_startup(
-            File::from(reader),
-            File::from(writer),
-            parent_report,
-            fork_failed,
-        ) }
+        let writer = unsafe {
+            dnsmasq_platform::process::background_startup(
+                File::from(reader),
+                File::from(writer),
+                parent_report,
+                fork_failed,
+            )
+        }
         .map_err(|error| failure("cannot fork into background", error))?;
         self.writer = Some(writer);
         Ok(false)

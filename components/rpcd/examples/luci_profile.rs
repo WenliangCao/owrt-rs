@@ -7,16 +7,16 @@
 #![cfg(not(test))]
 #![allow(dead_code)]
 
-#[path = "../src/luci.rs"]
-mod luci;
-#[path = "../src/util.rs"]
-#[allow(unused_imports)]
-mod util;
 #[path = "../src/glob.rs"]
 mod glob;
 #[path = "../src/ip.rs"]
 mod ip;
+#[path = "../src/luci.rs"]
+mod luci;
 mod profile_support;
+#[path = "../src/util.rs"]
+#[allow(unused_imports)]
+mod util;
 
 use owrt_ubus::convert::object_to_payload;
 use owrt_ubus::json::Json;
@@ -32,7 +32,10 @@ impl Ctx {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let n = args.get(1).map(|s| s.parse().expect("iterations")).unwrap_or(20000);
+    let n = args
+        .get(1)
+        .map(|s| s.parse().expect("iterations"))
+        .unwrap_or(20000);
     let filter = args.get(2).map(String::as_str).unwrap_or("");
     assert!(n > 0);
     println!("stage,iterations,ns_per_op,allocs,reallocs,requested_bytes");
@@ -41,10 +44,17 @@ fn main() {
             continue;
         }
         let stage = format!("luci_{method}");
-        if !["handler", "encode", "reply"].iter().any(|part| format!("{stage}_{part}").contains(filter)) {
+        if !["handler", "encode", "reply"]
+            .iter()
+            .any(|part| format!("{stage}_{part}").contains(filter))
+        {
             continue;
         }
-        let call = || luci::call(&Ctx, method, &[]).expect("successful handler").expect("reply");
+        let call = || {
+            luci::call(&Ctx, method, &[])
+                .expect("successful handler")
+                .expect("reply")
+        };
         let result = call();
         assert!(matches!(result, Json::Object(_)));
         let warmup = if method == "getFeatures" { 1 } else { 100 };

@@ -12,9 +12,7 @@
 //! falls back to the nft child, so the rendered ruleset can never differ from
 //! firewall4's.
 
-use rustix::net::{
-    self, sockopt, AddressFamily, RecvFlags, SendFlags, SocketFlags, SocketType,
-};
+use rustix::net::{self, sockopt, AddressFamily, RecvFlags, SendFlags, SocketFlags, SocketType};
 
 const NLMSG_ERROR: u16 = 2;
 const NLM_F_REQUEST: u16 = 1;
@@ -190,7 +188,10 @@ mod tests {
             assert_eq!(interpret(&object), None, "declared length {length}");
         }
         for header in [[2, 0, 0, 0], [1, 1, 0, 0]] {
-            assert_eq!(interpret(&reply(nfnl(NFT_MSG_NEWFLOWTABLE), SEQ, &header)), None);
+            assert_eq!(
+                interpret(&reply(nfnl(NFT_MSG_NEWFLOWTABLE), SEQ, &header)),
+                None
+            );
         }
     }
 

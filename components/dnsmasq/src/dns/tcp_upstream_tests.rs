@@ -74,14 +74,22 @@ fn immediate_source_bind_failures_yield_after_real_transport_budget() {
     // A syntactically valid, absent interface fails the real bind path before
     // connect. This exercises 65 kernel-backed attempts without a mock wait
     // or a reachable network endpoint (Darwin rejects interface binding).
-    upstream.set_source_bindings(&addresses.iter().enumerate().map(|(index, address)| {
-        let mut source = SourceSpec::wildcard(*address, 0);
-        source.interface = b"m6b-no-if-64".to_vec();
-        (ServerId(index as u64 + 1), source)
-    }).collect());
+    upstream.set_source_bindings(
+        &addresses
+            .iter()
+            .enumerate()
+            .map(|(index, address)| {
+                let mut source = SourceSpec::wildcard(*address, 0);
+                source.interface = b"m6b-no-if-64".to_vec();
+                (ServerId(index as u64 + 1), source)
+            })
+            .collect(),
+    );
     let deadline = Instant::now() + Duration::from_secs(2);
     let TcpProgress::Pending(wait) = upstream.start(GroupId(1), &query(7), deadline).unwrap()
-        else { panic!("64 attempts must yield before the 65th server"); };
+    else {
+        panic!("64 attempts must yield before the 65th server");
+    };
     assert_eq!(wait.fd, -1);
     assert_eq!(wait.events, 0);
     assert!(wait.deadline <= Instant::now());
@@ -270,7 +278,9 @@ fn step_after_poll(transport: &mut TcpUpstream, wait: TcpWait) -> Result<TcpProg
 fn waiting_for_reply(transport: &mut TcpUpstream, mut progress: TcpProgress) -> TcpWait {
     loop {
         match progress {
-            TcpProgress::Pending(wait) if wait.events == dnsmasq_platform::poll::POLLIN => return wait,
+            TcpProgress::Pending(wait) if wait.events == dnsmasq_platform::poll::POLLIN => {
+                return wait
+            }
             TcpProgress::Pending(wait) => progress = step_after_poll(transport, wait).unwrap(),
             TcpProgress::Complete(_) => panic!("unreplied query completed"),
         }

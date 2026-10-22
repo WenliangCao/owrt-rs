@@ -15,9 +15,9 @@
 use crate::files::{self, Lookup};
 use crate::http::{self, Method, ParseOutcome, Response};
 use crate::{is_rfc1918, path_matches, Parked, Server, Transport};
+use rustix::net::{self, RecvFlags, SendFlags};
 use std::io::{self, BufReader, Cursor, Write};
 use std::os::fd::{AsFd, RawFd};
-use rustix::net::{self, RecvFlags, SendFlags};
 use std::os::unix::fs::MetadataExt;
 
 /// Largest file body served inline. Covers LuCI's small assets and the
@@ -51,7 +51,11 @@ pub struct Scratch {
 
 impl Default for Scratch {
     fn default() -> Self {
-        Scratch { peek: Box::new([0; PEEK]), heads: http::HeadBuffer::default(), resp: None }
+        Scratch {
+            peek: Box::new([0; PEEK]),
+            heads: http::HeadBuffer::default(),
+            resp: None,
+        }
     }
 }
 
@@ -164,7 +168,10 @@ fn consume(fd: impl AsFd, scratch: &mut [u8], mut len: usize) -> io::Result<()> 
     Ok(())
 }
 
-enum SendOutcome { Complete, Blocked(usize) }
+enum SendOutcome {
+    Complete,
+    Blocked(usize),
+}
 fn send_some(fd: impl AsFd, buf: &[u8], mut off: usize) -> io::Result<SendOutcome> {
     while off < buf.len() {
         match net::send(&fd, &buf[off..], SendFlags::DONTWAIT | SendFlags::NOSIGNAL) {
@@ -203,7 +210,10 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
     }
     let config = &server.config;
     let mut reader = BufReader::new(Cursor::new(&s.peek[..head_len]));
-    let request = match s.heads.read_request(&mut reader, config.http_keepalive > 0, None) {
+    let request = match s
+        .heads
+        .read_request(&mut reader, config.http_keepalive > 0, None)
+    {
         Ok(ParseOutcome::Request(request)) => request,
         // Bad heads keep their existing thread-generated responses; Eof and
         // Idle cannot happen on a complete in-memory head.
@@ -228,7 +238,12 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
     if !eligible {
         return Event::Handoff;
     }
-    let pi = match files::lookup(&config.docroot, &request.url, config.no_symlinks, &config.index_files) {
+    let pi = match files::lookup(
+        &config.docroot,
+        &request.url,
+        config.no_symlinks,
+        &config.index_files,
+    ) {
         Lookup::Found(pi) => pi,
         Lookup::Redirect(_) | Lookup::NotFound => return Event::Handoff,
     };
@@ -236,7 +251,10 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
     if pi.info.is_some()
         || !pi.meta.is_file()
         || pi.meta.size() > MAX_BODY
-        || config.interpreters.iter().any(|(ext, _)| physical.len() > ext.len() && physical.ends_with(ext.as_str()))
+        || config
+            .interpreters
+            .iter()
+            .any(|(ext, _)| physical.len() > ext.len() && physical.ends_with(ext.as_str()))
         || server
             .cgi_physical_prefix
             .as_deref()
@@ -247,13 +265,23 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
     // Generate the complete response into bounded memory before touching the
     // socket. files::serve is the same code the thread path runs, so status,
     // conditionals, ETag, MIME, HEAD handling and bodies stay byte-identical.
-    let mut sink = MemSink { buf: s.take_resp(), cap: MAX_RESPONSE };
+    let mut sink = MemSink {
+        buf: s.take_resp(),
+        cap: MAX_RESPONSE,
+    };
     let close;
     {
         let mut resp = Response::new(&mut sink, &request, config.http_keepalive);
         // The listener serves many connections; a file kept open here would
         // outlive the connection, so it never reuses descriptors.
-        match files::serve(&request, &mut resp, &pi, config.no_dirlists, &config.dirlist_charset, false) {
+        match files::serve(
+            &request,
+            &mut resp,
+            &pi,
+            config.no_dirlists,
+            &config.dirlist_charset,
+            false,
+        ) {
             Ok(files::Served::Complete) => {}
             Ok(files::Served::Forbidden) | Err(_) => {
                 s.return_resp(sink.buf);

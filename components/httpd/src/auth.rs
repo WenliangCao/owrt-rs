@@ -10,13 +10,16 @@ pub struct Realm {
 
 impl std::fmt::Debug for Realm {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Realm").field("path", &self.path).finish_non_exhaustive()
+        f.debug_struct("Realm")
+            .field("path", &self.path)
+            .finish_non_exhaustive()
     }
 }
 
 impl Realm {
     pub fn new(path: String, user: String, password: String) -> Option<Self> {
-        let password = if let Some(account) = password.strip_prefix("$p$").filter(|s| !s.is_empty()) {
+        let password = if let Some(account) = password.strip_prefix("$p$").filter(|s| !s.is_empty())
+        {
             let resolved = account_password("/etc/shadow", account)
                 .or_else(|| account_password("/etc/passwd", account));
             match resolved {
@@ -29,15 +32,24 @@ impl Realm {
         if password.is_empty() {
             return None;
         }
-        Some(Self { path, user, password })
+        Some(Self {
+            path,
+            user,
+            password,
+        })
     }
 }
 
 fn account_password(file: &str, account: &str) -> Option<String> {
-    std::fs::read_to_string(file).ok()?.lines().find_map(|line| {
-        let mut fields = line.split(':');
-        (fields.next()? == account).then(|| fields.next().map(str::to_owned)).flatten()
-    })
+    std::fs::read_to_string(file)
+        .ok()?
+        .lines()
+        .find_map(|line| {
+            let mut fields = line.split(':');
+            (fields.next()? == account)
+                .then(|| fields.next().map(str::to_owned))
+                .flatten()
+        })
 }
 
 fn equal(a: &[u8], b: &[u8]) -> bool {
@@ -52,7 +64,9 @@ fn matches_password(password: &str, stored: &str) -> bool {
     if !stored.starts_with('$') && equal(password.as_bytes(), stored.as_bytes()) {
         return true;
     }
-    let (Ok(password), Ok(salt)) = (CString::new(password), CString::new(stored)) else { return false };
+    let (Ok(password), Ok(salt)) = (CString::new(password), CString::new(stored)) else {
+        return false;
+    };
     owrt_platform::text::with_crypt(&password, &salt, |result| equal(result, stored.as_bytes()))
 }
 
@@ -86,22 +100,39 @@ fn basic(header: &str) -> Option<(String, String)> {
 }
 
 /// None: no protected realm, Some(credentials): authenticated, Err: 401.
-pub fn check(realms: &[Realm], path: &str, header: Option<&str>) -> Result<Option<(String, String)>, ()> {
+pub fn check(
+    realms: &[Realm],
+    path: &str,
+    header: Option<&str>,
+) -> Result<Option<(String, String)>, ()> {
     let credentials = header.and_then(basic);
     let mut protected = false;
     for realm in realms {
-        if !path.as_bytes().get(..realm.path.len())
-            .is_some_and(|p| p.eq_ignore_ascii_case(realm.path.as_bytes())) {
+        if !path
+            .as_bytes()
+            .get(..realm.path.len())
+            .is_some_and(|p| p.eq_ignore_ascii_case(realm.path.as_bytes()))
+        {
             continue;
         }
         protected = true;
-        let Some((user, password)) = &credentials else { break };
+        let Some((user, password)) = &credentials else {
+            break;
+        };
         if user != &realm.user {
             continue;
         }
-        return if matches_password(password, &realm.password) { Ok(credentials) } else { Err(()) };
+        return if matches_password(password, &realm.password) {
+            Ok(credentials)
+        } else {
+            Err(())
+        };
     }
-    if protected { Err(()) } else { Ok(None) }
+    if protected {
+        Err(())
+    } else {
+        Ok(None)
+    }
 }
 
 #[cfg(test)]
@@ -111,7 +142,8 @@ mod tests {
     #[test]
     fn debug_omits_credentials() {
         for password in ["plaintext-secret", "$1$salt$hash-secret"] {
-            let realm = Realm::new("/private".into(), "username-secret".into(), password.into()).unwrap();
+            let realm =
+                Realm::new("/private".into(), "username-secret".into(), password.into()).unwrap();
             for debug in [format!("{realm:?}"), format!("{realm:#?}")] {
                 assert!(debug.contains("/private"));
                 assert!(!debug.contains("username-secret"));
@@ -126,8 +158,10 @@ mod tests {
         let realms = [realm];
         assert!(check(&realms, "/private/file", None).is_err());
         assert!(check(&realms, "/PRIVATE/file", Some("Basic dXNlcjp3cm9uZw==")).is_err());
-        assert_eq!(check(&realms, "/private", Some("Basic dXNlcjpzZWNyZXQ=")),
-            Ok(Some(("user".into(), "secret".into()))));
+        assert_eq!(
+            check(&realms, "/private", Some("Basic dXNlcjpzZWNyZXQ=")),
+            Ok(Some(("user".into(), "secret".into())))
+        );
         assert_eq!(check(&realms, "/public", None), Ok(None));
         assert!(!matches_password("$1$salt$hash", "$1$salt$hash"));
         assert!(!matches_password("anything", "$"));

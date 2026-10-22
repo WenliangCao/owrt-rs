@@ -24,7 +24,9 @@ pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
 
 /// rc_check_script: owned by root:root, u+x, not o+w.
 fn check_script(path: &str) -> i32 {
-    let Ok(m) = fs::metadata(path) else { return status::NOT_FOUND };
+    let Ok(m) = fs::metadata(path) else {
+        return status::NOT_FOUND;
+    };
     let mode = m.mode();
     if m.uid() != 0 || m.gid() != 0 || mode & 0o100 == 0 || mode & 0o002 != 0 {
         return status::PERMISSION_DENIED;
@@ -44,7 +46,11 @@ fn strtoul0(b: &[u8]) -> u64 {
         i += 1;
     }
     let mut base = 10u64;
-    if i + 1 < b.len() && b[i] == b'0' && (b[i + 1] == b'x' || b[i + 1] == b'X') && b.get(i + 2).is_some_and(|c| c.is_ascii_hexdigit()) {
+    if i + 1 < b.len()
+        && b[i] == b'0'
+        && (b[i + 1] == b'x' || b[i + 1] == b'X')
+        && b.get(i + 2).is_some_and(|c| c.is_ascii_hexdigit())
+    {
         base = 16;
         i += 2;
     } else if i < b.len() && b[i] == b'0' {
@@ -71,7 +77,11 @@ fn strtoul0(b: &[u8]) -> u64 {
     if overflow {
         return u64::MAX;
     }
-    if neg { v.wrapping_neg() } else { v }
+    if neg {
+        v.wrapping_neg()
+    } else {
+        v
+    }
 }
 
 struct Entry {
@@ -207,7 +217,9 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
             if fs::read_dir("/etc/init.d").is_err() {
                 return now(req, status::UNKNOWN_ERROR);
             }
-            let skip = arg(&req.data, "skip_running_check", MsgType::Int8).and_then(|f| f.as_bool()).unwrap_or(false);
+            let skip = arg(&req.data, "skip_running_check", MsgType::Int8)
+                .and_then(|f| f.as_bool())
+                .unwrap_or(false);
             let name = arg_str(&req.data, "name").map(str::to_owned);
             match deferrer.defer(req, move || list_run(name, skip)) {
                 None => Outcome::Deferred,
@@ -215,7 +227,9 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
             }
         }
         "init" => {
-            let (Some(name), Some(action)) = (arg_str(&req.data, "name"), arg_str(&req.data, "action")) else {
+            let (Some(name), Some(action)) =
+                (arg_str(&req.data, "name"), arg_str(&req.data, "action"))
+            else {
                 return now(req, status::INVALID_ARGUMENT);
             };
             if name.contains("..") || name.contains('/') {
@@ -226,7 +240,10 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
             if err != status::OK {
                 return now(req, err);
             }
-            if !matches!(action, "disable" | "enable" | "stop" | "start" | "restart" | "reload") {
+            if !matches!(
+                action,
+                "disable" | "enable" | "stop" | "start" | "restart" | "reload"
+            ) {
                 return now(req, status::INVALID_ARGUMENT);
             }
             let action = action.to_owned();

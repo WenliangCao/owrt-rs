@@ -90,19 +90,23 @@ impl UbusService {
         dns_name.extend_from_slice(b".dns");
         let deadline = cancelled.map(|_| Instant::now() + Duration::from_millis(100));
         let mut connection = match cancelled {
-            Some(cancelled) => Connection::connect_interruptible(
-                socket, deadline.unwrap(), cancelled,
-            ),
+            Some(cancelled) => {
+                Connection::connect_interruptible(socket, deadline.unwrap(), cancelled)
+            }
             None => Connection::connect(socket),
-        }.map_err(ConnectError::Transport)?;
+        }
+        .map_err(ConnectError::Transport)?;
         connection.set_server_io_timeout(Duration::from_millis(100));
         let registration_timeout = || -> Result<i32, ConnectError> {
             match deadline {
                 None => Ok(1000),
-                Some(deadline) => deadline.checked_duration_since(Instant::now())
+                Some(deadline) => deadline
+                    .checked_duration_since(Instant::now())
                     // Zero means unlimited to libubus; round up instead.
                     .map(|left| left.as_millis().saturating_add(1) as i32)
-                    .ok_or_else(|| ConnectError::Registration(io::Error::from(io::ErrorKind::TimedOut))),
+                    .ok_or_else(|| {
+                        ConnectError::Registration(io::Error::from(io::ErrorKind::TimedOut))
+                    }),
             }
         };
         let main_id = connection
@@ -442,7 +446,15 @@ mod tests {
             (true, true, false, false),
             (true, true, true, false),
         ] {
-            assert_eq!(DhcpLogging { quiet_dhcp, log_options, has_error }.suppresses_event(), suppressed);
+            assert_eq!(
+                DhcpLogging {
+                    quiet_dhcp,
+                    log_options,
+                    has_error
+                }
+                .suppresses_event(),
+                suppressed
+            );
         }
     }
 

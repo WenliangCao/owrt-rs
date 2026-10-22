@@ -178,7 +178,11 @@ impl LeaseIds {
         match self {
             Self::One(previous) => {
                 assert!(at <= 1);
-                let pair = if at == 0 { [id, *previous] } else { [*previous, id] };
+                let pair = if at == 0 {
+                    [id, *previous]
+                } else {
+                    [*previous, id]
+                };
                 let mut ids = Vec::new();
                 ids.extend(pair);
                 *self = Self::Many(ids);
@@ -309,7 +313,8 @@ impl LeaseNames {
     pub(crate) fn has_expired_name(&self, name: &[u8], now: i64) -> bool {
         let key = name_key(name);
         self.forward.get(key.as_ref()).is_some_and(|ids| {
-            ids.as_slice().iter()
+            ids.as_slice()
+                .iter()
                 .any(|&id| self.active[id] && !self.policy.live(self.entries[id].expires, now))
         }) || self
             .non_terminals
@@ -397,7 +402,10 @@ impl LeaseNames {
             }));
         }
         let static_addresses = hosts.lookup_in_bucket(
-            record.name, Some(false), self.policy.no_round_robin, host_bucket,
+            record.name,
+            Some(false),
+            self.policy.no_round_robin,
+            host_bucket,
         );
         cache.prepare_name(ForwardPublication {
             name: record.name,
@@ -533,23 +541,56 @@ mod tests {
             input(b"same.test", 1, Some(700)),
             input(b"same.test", 3, None),
         ];
-        let names = LeaseNames::build(&records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut ());
-        assert_eq!(names.lookup(b"same.test", 100).map(|entry|
-            (entry.address.octets()[3], entry.expires, entry.reverse)
-        ).collect::<Vec<_>>(), [
-            (3, None, true), (2, Some(800), true),
-            (1, Some(700), false), (1, None, false),
-        ]);
+        let names = LeaseNames::build(
+            &records,
+            &mut Hosts::new(),
+            &[],
+            LeasePolicy::default(),
+            &mut (),
+        );
+        assert_eq!(
+            names
+                .lookup(b"same.test", 100)
+                .map(|entry| (entry.address.octets()[3], entry.expires, entry.reverse))
+                .collect::<Vec<_>>(),
+            [
+                (3, None, true),
+                (2, Some(800), true),
+                (1, Some(700), false),
+                (1, None, false),
+            ]
+        );
     }
 
     #[test]
     fn canonical_index_does_not_change_retained_or_reverse_name_spelling() {
         let records = [input(b"MiXeD.Example", 7, Some(1000))];
-        let names = LeaseNames::build(&records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut ());
+        let names = LeaseNames::build(
+            &records,
+            &mut Hosts::new(),
+            &[],
+            LeasePolicy::default(),
+            &mut (),
+        );
         for generation in [&names, &names.rebuild(&mut Hosts::new(), &[], &mut ())] {
             assert_eq!(generation.inputs()[0].name.as_ref(), b"MiXeD.Example");
-            assert_eq!(generation.lookup(b"mixed.example", 100).next().unwrap().name.as_ref(), b"MiXeD.Example");
-            assert_eq!(generation.reverse(records[0].address, 100).unwrap().name.as_ref(), b"MiXeD.Example");
+            assert_eq!(
+                generation
+                    .lookup(b"mixed.example", 100)
+                    .next()
+                    .unwrap()
+                    .name
+                    .as_ref(),
+                b"MiXeD.Example"
+            );
+            assert_eq!(
+                generation
+                    .reverse(records[0].address, 100)
+                    .unwrap()
+                    .name
+                    .as_ref(),
+                b"MiXeD.Example"
+            );
         }
     }
 
@@ -568,7 +609,11 @@ mod tests {
         };
         let names = LeaseNames::build(&records, &mut Hosts::new(), &[], policy, &mut ());
         assert_eq!(
-            names.reverse(records[0].address, 999).unwrap().name.as_ref(),
+            names
+                .reverse(records[0].address, 999)
+                .unwrap()
+                .name
+                .as_ref(),
             b"lease.example"
         );
         assert_eq!(
@@ -626,23 +671,34 @@ mod tests {
         let fixture = b"192.0.2.2 old.test\n192.0.2.1 x.test\n\
             192.0.3.186 a.test\n192.0.3.185 a.test\n\
             192.0.2.1 y.test\n192.0.2.2 y.test\n";
-        let order = |hosts: &Hosts| hosts.addresses(b"a.test")
-            .map(|host| host.address.to_string()).collect::<Vec<_>>();
+        let order = |hosts: &Hosts| {
+            hosts
+                .addresses(b"a.test")
+                .map(|host| host.address.to_string())
+                .collect::<Vec<_>>()
+        };
         for expires in [None, Some(1000)] {
             let records = [input(b"a.test", 1, expires), input(b"a", 1, expires)];
             let previous = LeaseNames::build(
-                &records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut (),
+                &records,
+                &mut Hosts::new(),
+                &[],
+                LeasePolicy::default(),
+                &mut (),
             );
-            let mut hosts = configured_hosts_bulk(
-                &DnsConfig::default(), 37, 1497, 1000, 1000, &previous,
-            ).unwrap();
-            assert!(!hosts.read(fixture, 2, 37, false, |_| None).allocation_failed);
+            let mut hosts =
+                configured_hosts_bulk(&DnsConfig::default(), 37, 1497, 1000, 1000, &previous)
+                    .unwrap();
+            assert!(
+                !hosts
+                    .read(fixture, 2, 37, false, |_| None)
+                    .allocation_failed
+            );
             hosts.finish_bulk();
             let mut premature = hosts.try_clone().unwrap();
             let renamed = [input(b"x.test", 1, expires), input(b"x", 1, expires)];
-            let names = LeaseNames::build(
-                &renamed, &mut hosts, &[], LeasePolicy::default(), &mut (),
-            );
+            let names =
+                LeaseNames::build(&renamed, &mut hosts, &[], LeasePolicy::default(), &mut ());
             assert_eq!(order(&hosts), ["192.0.3.186", "192.0.3.185"]);
             assert!(names.lookup(b"a.test", 1).next().is_none());
             assert!(names.lookup(b"x", 1).next().is_some());
@@ -652,9 +708,16 @@ mod tests {
             // rejected address rotates the static RRset; the final x-name
             // publication cannot undo that query side effect.
             let stale = previous.rebuild(&mut premature, &[], &mut ());
-            assert!(matches!(stale.warnings(), [PublicationWarning::StaticAddress { .. }]));
+            assert!(matches!(
+                stale.warnings(),
+                [PublicationWarning::StaticAddress { .. }]
+            ));
             LeaseNames::build(
-                &renamed, &mut premature, &[], LeasePolicy::default(), &mut (),
+                &renamed,
+                &mut premature,
+                &[],
+                LeasePolicy::default(),
+                &mut (),
             );
             assert_eq!(order(&premature), ["192.0.3.185", "192.0.3.186"]);
         }

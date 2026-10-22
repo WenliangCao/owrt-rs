@@ -43,11 +43,13 @@ fn main() {
     std::thread::sleep(std::time::Duration::from_secs(2));
     let mut banner = Vec::new();
     let mut buf = [0u8; 4096];
-    let mut slurp = |banner: &mut Vec<u8>| while let Ok(n) = rustix::io::read(&master, &mut buf) {
-        if n == 0 {
-            break;
+    let mut slurp = |banner: &mut Vec<u8>| {
+        while let Ok(n) = rustix::io::read(&master, &mut buf) {
+            if n == 0 {
+                break;
+            }
+            banner.extend_from_slice(&buf[..n]);
         }
-        banner.extend_from_slice(&buf[..n]);
     };
     slurp(&mut banner);
     let _ = rustix::io::write(&master, b"\n");

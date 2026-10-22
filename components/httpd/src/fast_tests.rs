@@ -34,11 +34,16 @@ fn fixture() -> Fixture {
     std::fs::write(docroot.join("cgi-bin").join("script"), b"#!/bin/sh\n").unwrap();
     let config = parse_args_from(
         [
-            "-p", "127.0.0.1:0",
-            "-h", docroot.to_str().unwrap(),
-            "-x", "/cgi-bin",
-            "-u", "/ubus",
-            "-c", "/r94-no-httpd-config",
+            "-p",
+            "127.0.0.1:0",
+            "-h",
+            docroot.to_str().unwrap(),
+            "-x",
+            "/cgi-bin",
+            "-u",
+            "/ubus",
+            "-c",
+            "/r94-no-httpd-config",
         ]
         .into_iter()
         .map(str::to_owned),
@@ -65,7 +70,11 @@ fn fixture() -> Fixture {
         connections: AtomicUsize::new(0),
         accept_lock: Mutex::new(()),
         listeners: Mutex::new(Vec::new()),
-        scripts: ScriptSlots { count: Mutex::new(0), ready: Condvar::new(), limit: 1 },
+        scripts: ScriptSlots {
+            count: Mutex::new(0),
+            ready: Condvar::new(),
+            limit: 1,
+        },
         output_buffers: Mutex::new(Vec::new()),
         inventory: None,
     });
@@ -73,9 +82,21 @@ fn fixture() -> Fixture {
     read.set_nonblocking(true).unwrap();
     write.set_nonblocking(true).unwrap();
     let owned: std::os::fd::OwnedFd = write.into();
-    let parking = Arc::new(Parking { inbox: Mutex::new(Vec::new()), wake: owned.into() });
-    server.listeners.lock().unwrap().push(Arc::downgrade(&parking));
-    Fixture { server, parking, _wake_reader: read, docroot }
+    let parking = Arc::new(Parking {
+        inbox: Mutex::new(Vec::new()),
+        wake: owned.into(),
+    });
+    server
+        .listeners
+        .lock()
+        .unwrap()
+        .push(Arc::downgrade(&parking));
+    Fixture {
+        server,
+        parking,
+        _wake_reader: read,
+        docroot,
+    }
 }
 
 /// A connected pair with the server side wrapped as a parked connection.
@@ -103,8 +124,15 @@ fn parked_pair(f: &Fixture) -> (Parked, TcpStream) {
 }
 
 fn wait_readable(fd: RawFd) {
-    let mut fds = [owrt_ubus::sys::PollFd { fd, events: owrt_ubus::sys::POLLIN, revents: 0 }];
-    assert!(owrt_ubus::sys::poll_fds(&mut fds, 2000).unwrap() > 0, "no input within deadline");
+    let mut fds = [owrt_ubus::sys::PollFd {
+        fd,
+        events: owrt_ubus::sys::POLLIN,
+        revents: 0,
+    }];
+    assert!(
+        owrt_ubus::sys::poll_fds(&mut fds, 2000).unwrap() > 0,
+        "no input within deadline"
+    );
 }
 
 /// One event against a freshly parked connection carrying `request`.
@@ -137,7 +165,10 @@ fn read_response(peer: &mut TcpStream) -> Vec<u8> {
     let mut bytes = Vec::new();
     let mut buf = [0u8; 4096];
     loop {
-        let head_end = bytes.windows(4).position(|w| w == b"\r\n\r\n").map(|p| p + 4);
+        let head_end = bytes
+            .windows(4)
+            .position(|w| w == b"\r\n\r\n")
+            .map(|p| p + 4);
         if let Some(head_end) = head_end {
             let head = std::str::from_utf8(&bytes[..head_end]).unwrap();
             let length: usize = head
@@ -160,7 +191,13 @@ fn read_response(peer: &mut TcpStream) -> Vec<u8> {
 fn mask_date(response: &[u8]) -> Vec<u8> {
     let text = String::from_utf8_lossy(response);
     text.lines()
-        .map(|l| if l.starts_with("Date: ") { "Date: MASKED" } else { l })
+        .map(|l| {
+            if l.starts_with("Date: ") {
+                "Date: MASKED"
+            } else {
+                l
+            }
+        })
         .collect::<Vec<_>>()
         .join("\n")
         .into_bytes()
@@ -177,7 +214,11 @@ fn thread_response(f: &Fixture, request: &[u8], with_body: bool) -> Vec<u8> {
         server.run_connection(parked.transport, parked.conn, &parking, None, &mut heads)
     });
     peer.write_all(request).unwrap();
-    let response = if with_body { read_response(&mut peer) } else { read_headers(&mut peer) };
+    let response = if with_body {
+        read_response(&mut peer)
+    } else {
+        read_headers(&mut peer)
+    };
     drop(peer);
     let _ = handle.join().unwrap();
     f.server.connections.store(0, Ordering::Relaxed);
@@ -187,9 +228,11 @@ fn thread_response(f: &Fixture, request: &[u8], with_body: bool) -> Vec<u8> {
 #[test]
 fn ubus_prefix_requires_basic_auth_before_dispatch() {
     let mut f = fixture();
-    Arc::get_mut(&mut f.server).unwrap().config.auth.push(
-        auth::Realm::new("/ubus".into(), "user".into(), "secret".into()).unwrap(),
-    );
+    Arc::get_mut(&mut f.server)
+        .unwrap()
+        .config
+        .auth
+        .push(auth::Realm::new("/ubus".into(), "user".into(), "secret".into()).unwrap());
     for (path, authorization, expected) in [
         ("/ubus", "", 401),
         ("/ubus/list", "", 401),
@@ -203,14 +246,29 @@ fn ubus_prefix_requires_basic_auth_before_dispatch() {
         let server = Arc::clone(&f.server);
         let parking = Arc::clone(&f.parking);
         let worker = thread::spawn(move || {
-            server.run_connection(parked.transport, parked.conn, &parking, None, &mut http::HeadBuffer::default())
+            server.run_connection(
+                parked.transport,
+                parked.conn,
+                &parking,
+                None,
+                &mut http::HeadBuffer::default(),
+            )
         });
-        peer.write_all(format!("OPTIONS {path} HTTP/1.0\r\nAuthorization: {authorization}\r\n\r\n").as_bytes()).unwrap();
+        peer.write_all(
+            format!("OPTIONS {path} HTTP/1.0\r\nAuthorization: {authorization}\r\n\r\n").as_bytes(),
+        )
+        .unwrap();
         let mut response = String::new();
         peer.read_to_string(&mut response).unwrap();
         worker.join().unwrap();
-        assert!(response.starts_with(&format!("HTTP/1.0 {expected} ")), "{path}: {response}");
-        assert_eq!(response.contains("WWW-Authenticate: Basic realm=\""), expected == 401);
+        assert!(
+            response.starts_with(&format!("HTTP/1.0 {expected} ")),
+            "{path}: {response}"
+        );
+        assert_eq!(
+            response.contains("WWW-Authenticate: Basic realm=\""),
+            expected == 401
+        );
     }
 }
 
@@ -221,7 +279,10 @@ fn served_bytes_match_the_thread_path_for_get_head_and_conditionals() {
     let get = b"GET /hello.txt HTTP/1.1\r\nHost: localhost\r\n\r\n";
     let reference = thread_response(&f, get, true);
     let (event, _parked, mut peer) = fast_event(&f, &mut scratch, get);
-    assert!(matches!(event, fast::Event::Served), "eligible GET must serve inline");
+    assert!(
+        matches!(event, fast::Event::Served),
+        "eligible GET must serve inline"
+    );
     let inline = read_response(&mut peer);
     assert_eq!(mask_date(&inline), mask_date(&reference));
 
@@ -280,7 +341,11 @@ fn ineligible_requests_hand_off_with_the_socket_untouched() {
         let stream = parked.transport.tcp();
         stream.set_nonblocking(true).unwrap();
         let n = stream.peek(&mut pending).unwrap();
-        assert_eq!(&pending[..n], *request, "fastpath consumed bytes before handoff");
+        assert_eq!(
+            &pending[..n],
+            *request,
+            "fastpath consumed bytes before handoff"
+        );
         f.server.connections.store(0, Ordering::Relaxed);
     }
 }
@@ -291,7 +356,8 @@ fn keepalive_serves_repeatedly_and_close_variants_end_the_connection() {
     let mut scratch = fast::Scratch::default();
     let (mut parked, mut peer) = parked_pair(&f);
     for _ in 0..3 {
-        peer.write_all(b"GET /hello.txt HTTP/1.1\r\nHost: a\r\n\r\n").unwrap();
+        peer.write_all(b"GET /hello.txt HTTP/1.1\r\nHost: a\r\n\r\n")
+            .unwrap();
         wait_readable(parked.conn.fd);
         let event = fast::on_readable(&f.server, &mut parked, &mut scratch, 0);
         assert!(matches!(event, fast::Event::Served));
@@ -299,7 +365,8 @@ fn keepalive_serves_repeatedly_and_close_variants_end_the_connection() {
         assert!(response.starts_with(b"HTTP/1.1 200 "));
         assert!(String::from_utf8_lossy(&response).contains("Connection: Keep-Alive"));
     }
-    peer.write_all(b"GET /hello.txt HTTP/1.1\r\nHost: a\r\nConnection: close\r\n\r\n").unwrap();
+    peer.write_all(b"GET /hello.txt HTTP/1.1\r\nHost: a\r\nConnection: close\r\n\r\n")
+        .unwrap();
     wait_readable(parked.conn.fd);
     let event = fast::on_readable(&f.server, &mut parked, &mut scratch, 0);
     assert!(matches!(event, fast::Event::ServedClose));
@@ -307,7 +374,8 @@ fn keepalive_serves_repeatedly_and_close_variants_end_the_connection() {
     assert!(String::from_utf8_lossy(&response).contains("Connection: close"));
 
     // HTTP/1.0 closes; EOF from the peer closes without a response.
-    let (event, _parked, mut peer) = fast_event(&f, &mut scratch, b"GET /hello.txt HTTP/1.0\r\n\r\n");
+    let (event, _parked, mut peer) =
+        fast_event(&f, &mut scratch, b"GET /hello.txt HTTP/1.0\r\n\r\n");
     assert!(matches!(event, fast::Event::ServedClose));
     assert!(read_response(&mut peer).starts_with(b"HTTP/1.0 200 "));
     let (mut parked, peer) = parked_pair(&f);
@@ -380,8 +448,15 @@ fn blocked_send_drains_through_writable_events_without_corruption() {
         owrt_ubus::sys::poll_fds(&mut fds, 2000).unwrap();
         event = fast::on_writable(&mut parked, &mut scratch);
     }
-    assert!(matches!(event, fast::Event::Served), "drain ended without completion");
+    assert!(
+        matches!(event, fast::Event::Served),
+        "drain ended without completion"
+    );
     let (bytes, _peer) = reader.join().unwrap();
     assert_eq!(bytes.len(), expected);
-    assert_eq!(&bytes[junk_len..], &payload[..], "reply bytes reordered or lost");
+    assert_eq!(
+        &bytes[junk_len..],
+        &payload[..],
+        "reply bytes reordered or lost"
+    );
 }

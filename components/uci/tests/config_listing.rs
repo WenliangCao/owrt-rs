@@ -17,7 +17,9 @@ struct Fixture {
 impl Fixture {
     fn new() -> Self {
         let dir = std::env::temp_dir().join(format!(
-            "owrt-uci-list-{}-{}", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)
+            "owrt-uci-list-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
         ));
         fs::create_dir(&dir).unwrap();
         let mut ctx = Context::new();
@@ -42,7 +44,10 @@ fn distinguishes_no_glob_match_from_matches_that_are_all_excluded() {
     fs::write(f.dir.join("bad name"), "").unwrap();
     fs::write(f.dir.join(std::ffi::OsStr::from_bytes(b"bad\xffname")), "").unwrap();
     fs::create_dir(f.dir.join("directory")).unwrap();
-    assert_eq!(file::list_config_files(&f.ctx).unwrap(), Vec::<String>::new());
+    assert_eq!(
+        file::list_config_files(&f.ctx).unwrap(),
+        Vec::<String>::new()
+    );
 }
 
 #[test]
@@ -54,7 +59,10 @@ fn follows_link_targets_and_observes_add_remove_and_type_changes() {
     symlink("zeta", f.dir.join("filelink")).unwrap();
     symlink("directory", f.dir.join("dirlink")).unwrap();
     symlink("missing", f.dir.join("broken")).unwrap();
-    assert_eq!(file::list_config_files(&f.ctx).unwrap(), ["alpha", "broken", "filelink", "zeta"]);
+    assert_eq!(
+        file::list_config_files(&f.ctx).unwrap(),
+        ["alpha", "broken", "filelink", "zeta"]
+    );
 
     fs::remove_file(f.dir.join("zeta")).unwrap();
     fs::create_dir(f.dir.join("zeta")).unwrap();
@@ -62,7 +70,10 @@ fn follows_link_targets_and_observes_add_remove_and_type_changes() {
     fs::write(f.dir.join("directory"), "").unwrap();
     fs::remove_file(f.dir.join("alpha")).unwrap();
     fs::write(f.dir.join("newconfig"), "").unwrap();
-    assert_eq!(file::list_config_files(&f.ctx).unwrap(), ["broken", "directory", "dirlink", "newconfig"]);
+    assert_eq!(
+        file::list_config_files(&f.ctx).unwrap(),
+        ["broken", "directory", "dirlink", "newconfig"]
+    );
 }
 
 #[test]
@@ -75,5 +86,8 @@ fn names_survive_directory_buffer_refills_and_long_record_boundaries() {
         expected.push(name);
     }
     assert_eq!(file::list_config_files(&f.ctx).unwrap(), expected);
-    assert_eq!(file::list_config_files_in("bad\0directory"), Err(Error::NotFound));
+    assert_eq!(
+        file::list_config_files_in("bad\0directory"),
+        Err(Error::NotFound)
+    );
 }

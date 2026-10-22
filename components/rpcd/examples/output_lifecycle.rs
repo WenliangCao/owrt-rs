@@ -23,7 +23,10 @@ fn main() {
         std::io::stderr().write_all(b"y").unwrap();
     }
     // SAFETY: this test child deliberately closes its own stdout/stderr.
-    unsafe { close(1); close(2); }
+    unsafe {
+        close(1);
+        close(2);
+    }
     std::fs::write("/tmp/out/closed", b"closed").unwrap();
     std::thread::sleep(std::time::Duration::from_secs(30));
 }

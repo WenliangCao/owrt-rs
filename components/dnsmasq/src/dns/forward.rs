@@ -42,7 +42,9 @@ impl Question {
     }
 
     pub(super) fn parse_with_header_reusing(
-        packet: &[u8], header: Header, scratch: &mut Vec<u8>,
+        packet: &[u8],
+        header: Header,
+        scratch: &mut Vec<u8>,
     ) -> Result<Self, WireError> {
         if header.questions != 1 {
             return Err(WireError::InvalidName);
@@ -54,7 +56,6 @@ impl Question {
             class: u16::from_be_bytes([packet[end + 2], packet[end + 3]]),
         })
     }
-
 }
 
 /// The ordinary-query subset of FREC flags. DO also implies AD_QUESTION when

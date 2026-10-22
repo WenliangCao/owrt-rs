@@ -202,7 +202,10 @@ pub fn jail_argv(inst: &Instance) -> Vec<String> {
 /// # Safety
 /// Spawn only from a single-threaded process with no held application locks.
 /// The inherited cgroup-warning and NSS setup must remain valid after fork.
-#[expect(unsafe_code, reason = "callers must establish the inherited post-fork setup contract")]
+#[expect(
+    unsafe_code,
+    reason = "callers must establish the inherited post-fork setup contract"
+)]
 pub unsafe fn start(
     inst: &Instance,
     service: &str,
@@ -293,7 +296,10 @@ pub unsafe fn start(
         sys::ulog(sys::LOG_WARNING, &format!("{context}: {error}"));
     }
     inherit_ignored_sigpipe(&mut cmd);
-    #[expect(unsafe_code, reason = "fixed instance setup in the single-threaded supervisor")]
+    #[expect(
+        unsafe_code,
+        reason = "fixed instance setup in the single-threaded supervisor"
+    )]
     // SAFETY: the supervisor is single-threaded; setup owns every captured
     // value and these fixed callbacks retain no parent locks or borrows. The
     // child executes the configured setup once and then execs or exits.
@@ -309,10 +315,14 @@ pub unsafe fn start(
     let mut child = cmd.spawn()?;
     let pid = child.id() as i32;
     let pipes = (|| -> io::Result<_> {
-        let out = child.stdout.take()
+        let out = child
+            .stdout
+            .take()
             .map(|pipe| LogPipe::new(pipe.into(), crate::sys::LOG_INFO))
             .transpose()?;
-        let err = child.stderr.take()
+        let err = child
+            .stderr
+            .take()
             .map(|pipe| LogPipe::new(pipe.into(), crate::sys::LOG_ERR))
             .transpose()?;
         Ok((out, err))
@@ -393,7 +403,10 @@ pub fn signal_status(pid: i32, sig: i32) -> i32 {
 /// # Safety
 /// Spawn only from a single-threaded process with no held application locks;
 /// the existing terminal path setup allocates after fork and before exec.
-#[expect(unsafe_code, reason = "callers must establish the inherited terminal setup contract")]
+#[expect(
+    unsafe_code,
+    reason = "callers must establish the inherited terminal setup contract"
+)]
 pub unsafe fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
     if argv.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
@@ -406,10 +419,15 @@ pub unsafe fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
     } else {
         Some(id.to_string())
     };
-    #[expect(unsafe_code, reason = "fixed tty setup in the single-threaded supervisor")]
+    #[expect(
+        unsafe_code,
+        reason = "fixed tty setup in the single-threaded supervisor"
+    )]
     // SAFETY: this is the single-threaded inittab path; the callback captures
     // no parent locks or borrows, and the owned tty name lives through exec.
-    unsafe { owrt_platform::procd::process::configure_tty(&mut cmd, dev, sys::patch_fd) };
+    unsafe {
+        owrt_platform::procd::process::configure_tty(&mut cmd, dev, sys::patch_fd)
+    };
     let child = cmd.spawn()?;
     let pid = child.id() as i32;
     drop(child);

@@ -40,7 +40,9 @@ fn install_signal_handlers() -> Result<(), std::io::Error> {
         // SAFETY: the fixed handler performs only an atomic store and cannot
         // allocate, lock, access TLS, or unwind through the signal trampoline.
         #[expect(unsafe_code, reason = "register the fixed async-signal-safe handler")]
-        unsafe { unix::set_signal_handler(signal, handle_signal)?; }
+        unsafe {
+            unix::set_signal_handler(signal, handle_signal)?;
+        }
     }
     Ok(())
 }

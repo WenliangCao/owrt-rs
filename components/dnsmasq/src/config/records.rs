@@ -602,13 +602,25 @@ mod tests {
             apply(&mut config, line).unwrap();
         }
         let snapshot = config.clone();
-        apply(&mut config, b"dns-rr=test,28,00000000000000000000000000000001").unwrap();
+        apply(
+            &mut config,
+            b"dns-rr=test,28,00000000000000000000000000000001",
+        )
+        .unwrap();
         assert!(apply(&mut config, b"dns-rr=test,29,not-hex").is_err());
-        for (records, types) in [(&snapshot, &[1, 257, 65401][..]), (&config, &[1, 28, 257, 65401][..])] {
+        for (records, types) in [
+            (&snapshot, &[1, 257, 65401][..]),
+            (&config, &[1, 28, 257, 65401][..]),
+        ] {
             for rr_type in [0, 1, 16, 28, 29, 255, 257, 65401, 65535] {
                 assert_eq!(records.has_raw_type(rr_type), types.contains(&rr_type));
-                assert_eq!(records.has_raw_type(rr_type),
-                    records.raw_records().iter().any(|record| record.rr_type == rr_type));
+                assert_eq!(
+                    records.has_raw_type(rr_type),
+                    records
+                        .raw_records()
+                        .iter()
+                        .any(|record| record.rr_type == rr_type)
+                );
             }
         }
         assert_eq!(snapshot.raw_records().len(), 5);

@@ -593,13 +593,13 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     for f in entry.children() {
         use owrt_ubus::blob::MsgType;
         let expected = match f.name {
-            "command" | "netdev" | "file" | "triggers" | "respawn" | "watch"
-            | "error" | "watchdog" => Some(MsgType::Array),
+            "command" | "netdev" | "file" | "triggers" | "respawn" | "watch" | "error"
+            | "watchdog" => Some(MsgType::Array),
             "env" | "data" | "limits" | "jail" => Some(MsgType::Table),
             "nice" | "reload_signal" | "term_timeout" => Some(MsgType::Int32),
             "stdout" | "stderr" | "no_new_privs" | "trace" => Some(MsgType::Int8),
-            "user" | "group" | "seccomp" | "capabilities" | "pidfile" | "facility"
-            | "extroot" | "overlaydir" | "tmpoverlaysize" | "bundle" => Some(MsgType::String),
+            "user" | "group" | "seccomp" | "capabilities" | "pidfile" | "facility" | "extroot"
+            | "overlaydir" | "tmpoverlaysize" | "bundle" => Some(MsgType::String),
             _ => None,
         };
         // blobmsg_parse ignores fields whose outer type fails the policy.
@@ -642,7 +642,9 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                         Some(v) => {
                             // avl_insert() refuses a duplicate key: the FIRST
                             // entry under a name wins, later ones are dropped.
-                            i.env.entry(c.name.to_string()).or_insert_with(|| v.to_string());
+                            i.env
+                                .entry(c.name.to_string())
+                                .or_insert_with(|| v.to_string());
                         }
                         None => bad_field = true,
                     }
@@ -650,7 +652,9 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             }
             "data" => {
                 for c in f.children() {
-                    i.data.entry(c.name.to_string()).or_insert_with(|| (c.ty, c.data.to_vec()));
+                    i.data
+                        .entry(c.name.to_string())
+                        .or_insert_with(|| (c.ty, c.data.to_vec()));
                 }
             }
             "limits" => {
@@ -659,7 +663,9 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                         Some(v) => {
                             // avl_insert() refuses a duplicate key: the FIRST
                             // entry under a name wins, later ones are dropped.
-                            i.limits.entry(c.name.to_string()).or_insert_with(|| v.to_string());
+                            i.limits
+                                .entry(c.name.to_string())
+                                .or_insert_with(|| v.to_string());
                         }
                         None => bad_field = true,
                     }
@@ -675,7 +681,9 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 let mut by_name: BTreeMap<String, u32> = BTreeMap::new();
                 for c in f.children() {
                     if let Some(n) = c.as_str() {
-                        by_name.entry(n.to_string()).or_insert_with(|| crate::sys::if_nametoindex(n));
+                        by_name
+                            .entry(n.to_string())
+                            .or_insert_with(|| crate::sys::if_nametoindex(n));
                     } else {
                         bad_field = true;
                     }
@@ -686,7 +694,9 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 let mut by_path: BTreeMap<String, [u8; 16]> = BTreeMap::new();
                 for c in f.children() {
                     if let Some(p) = c.as_str() {
-                        by_path.entry(p.to_string()).or_insert_with(|| crate::sys::file_md5(p));
+                        by_path
+                            .entry(p.to_string())
+                            .or_insert_with(|| crate::sys::file_md5(p));
                     } else {
                         bad_field = true;
                     }
@@ -694,7 +704,11 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 i.file = by_path.into_iter().collect();
             }
             "watch" => {
-                i.watch = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+                i.watch = f
+                    .children()
+                    .filter_map(|c| c.as_str())
+                    .map(str::to_string)
+                    .collect();
             }
             "error" => {
                 // Same array rule: sorted by the string, duplicates dropped.
@@ -806,7 +820,11 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                                 kept.entry(key).or_insert_with(|| (e.ty, e.data.to_vec()));
                             }
                             for (ty, payload) in kept.into_values() {
-                                let e = owrt_ubus::blob::Field { name: "", ty, data: &payload };
+                                let e = owrt_ubus::blob::Field {
+                                    name: "",
+                                    ty,
+                                    data: &payload,
+                                };
                                 if let Some(arg) = setns_argstr(e) {
                                     i.jail.setns.push(arg);
                                 }
@@ -837,7 +855,11 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                     }
                 }
                 // Mode out of range falls back to 0, freq of 0 to 30.
-                i.watchdog_mode = if vals[0] < WATCHDOG_MODE_MAX { vals[0] } else { 0 };
+                i.watchdog_mode = if vals[0] < WATCHDOG_MODE_MAX {
+                    vals[0]
+                } else {
+                    0
+                };
                 i.watchdog_freq = if vals[1] > 0 { vals[1] } else { 30 };
             }
             _ => {}
@@ -891,17 +913,21 @@ mod tests {
         let mut instance = Instance::new("service");
         instance.command = vec!["/bin/service".into(), secret.into()];
         instance.env.insert("TOKEN".into(), secret.into());
-        instance.data.insert("opaque".into(), (3, secret.as_bytes().to_vec()));
+        instance
+            .data
+            .insert("opaque".into(), (3, secret.as_bytes().to_vec()));
         instance.triggers = Some(secret.as_bytes().to_vec());
         let encoded = format!("{:?}", secret.as_bytes());
         for debug in [format!("{instance:?}"), format!("{instance:#?}")] {
             assert!(!debug.contains(secret), "credential leaked: {debug}");
-            assert!(!debug.contains(&encoded), "encoded credential leaked: {debug}");
+            assert!(
+                !debug.contains(&encoded),
+                "encoded credential leaked: {debug}"
+            );
         }
         assert_eq!(instance.command[1], secret);
         assert_eq!(instance.env["TOKEN"], secret);
     }
-
 
     /// R81 F21: `*self = new` dropped the running child's log pipes.
     #[test]
@@ -923,7 +949,10 @@ mod tests {
 
         assert!(live.log_out.is_some(), "log pipe dropped by take_config");
         assert_eq!(live.log_out.as_ref().unwrap().fd.as_raw_fd(), raw);
-        assert!(rustix::io::fcntl_getfd(&live.log_out.as_ref().unwrap().fd).is_ok(),"read end was closed");
+        assert!(
+            rustix::io::fcntl_getfd(&live.log_out.as_ref().unwrap().fd).is_ok(),
+            "read end was closed"
+        );
     }
 
     #[test]
@@ -986,7 +1015,9 @@ mod validity_tests {
         let t = b.msg_open_table("one");
         build(&mut b);
         b.msg_close(t);
-        let f = owrt_ubus::blob::fields(b.payload()).next().expect("one entry");
+        let f = owrt_ubus::blob::fields(b.payload())
+            .next()
+            .expect("one entry");
         parse("one", f)
     }
 
@@ -1109,7 +1140,10 @@ mod setns_tests {
 
     #[test]
     fn a_missing_half_yields_nothing_so_the_flag_is_omitted() {
-        assert!(one_entry(|b| { b.msg_u32("pid", 42); }).is_none());
+        assert!(one_entry(|b| {
+            b.msg_u32("pid", 42);
+        })
+        .is_none());
         assert!(one_entry(|b| {
             let a = b.msg_open_array("namespaces");
             b.msg_string("", "net");
@@ -1158,7 +1192,9 @@ mod dump_tests {
                 .unwrap_or_else(|| panic!("no field {want}"));
             data = child.data;
         }
-        owrt_ubus::blob::fields(data).map(|f| f.name.to_string()).collect()
+        owrt_ubus::blob::fields(data)
+            .map(|f| f.name.to_string())
+            .collect()
     }
 
     fn with_triggers_and_setns() -> Instance {
@@ -1210,7 +1246,10 @@ mod dump_tests {
         let plain = dumped_names(&i, false, &[]);
         assert!(!plain.iter().any(|n| n == "triggers"), "{plain:?}");
         let verbose = dumped_names(&i, true, &[]);
-        let pos = verbose.iter().position(|n| n == "triggers").expect("triggers in verbose dump");
+        let pos = verbose
+            .iter()
+            .position(|n| n == "triggers")
+            .expect("triggers in verbose dump");
         // C emits it after the jail block and before watchdog: last here.
         assert_eq!(pos, verbose.len() - 1, "{verbose:?}");
     }
@@ -1218,11 +1257,18 @@ mod dump_tests {
     #[test]
     fn every_setns_entry_is_dumped_raw_even_when_ujail_skips_it() {
         let mut i = with_triggers_and_setns();
-        assert_eq!(i.jail.setns, vec!["1:net".to_string()], "only the valid one renders");
+        assert_eq!(
+            i.jail.setns,
+            vec!["1:net".to_string()],
+            "only the valid one renders"
+        );
         // Two distinct key prefixes (an array attr vs an int attr first), so
         // both survive, and the pid-less one sorts first.
         assert_eq!(i.jail.setns_raw.len(), 2);
-        assert!(i.jail.setns_raw[0].1.len() < i.jail.setns_raw[1].1.len(), "nopid entry first");
+        assert!(
+            i.jail.setns_raw[0].1.len() < i.jail.setns_raw[1].1.len(),
+            "nopid entry first"
+        );
         // The build host has no /sbin/ujail, so parse() cleared has_jail the
         // way the C does without require_jail. The dump path under test is
         // the one a rootfs WITH ujail takes, so put the flag back.
@@ -1373,7 +1419,10 @@ mod r73_fidelity_tests {
         });
         let r = i.respawn.as_ref().expect("respawn set");
         assert_eq!((r.threshold, r.timeout, r.retry), (0, 0, 0));
-        assert_eq!(i.watchdog_mode, 0, "mode 99->0 fallback applies to the atoi'd 0");
+        assert_eq!(
+            i.watchdog_mode, 0,
+            "mode 99->0 fallback applies to the atoi'd 0"
+        );
         assert_eq!(i.watchdog_freq, 30, "freq 0 falls back to 30");
     }
 }

@@ -14,7 +14,6 @@ use std::os::fd::{AsFd, AsRawFd, BorrowedFd};
 
 use crate::netlink::{self, Attrs, Netlink};
 
-
 pub const AF_UNSPEC: u8 = 0;
 pub const AF_INET: u8 = 2;
 pub const AF_INET6: u8 = 10;
@@ -60,7 +59,6 @@ pub const IFLA_BR_VLAN_FILTERING: u16 = 7;
 pub const IFLA_BR_MCAST_SNOOPING: u16 = 23;
 pub const IFLA_BR_MCAST_QUERIER: u16 = 25;
 pub const IFLA_BR_MCAST_HASH_MAX: u16 = 27;
-
 
 pub const IFA_ADDRESS: u16 = 1;
 pub const IFA_LOCAL: u16 = 2;
@@ -192,7 +190,10 @@ fn check_route(payload: &[u8], index: u32) -> bool {
     netlink::parse_attrs(&payload[12..])
         .into_iter()
         .find(|(t, _)| *t == RTA_OIF)
-        .and_then(|(_, v)| v.get(..4).map(|b| u32::from_le_bytes(b.try_into().unwrap())))
+        .and_then(|(_, v)| {
+            v.get(..4)
+                .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
+        })
         == Some(index)
 }
 
@@ -318,7 +319,11 @@ pub struct Route {
 
 impl Route {
     pub fn v4(target: Ipv4Addr, mask: u8) -> Self {
-        Self { target: IpAddr::V4(target), mask, ..Self::v4_default(Ipv4Addr::UNSPECIFIED) }
+        Self {
+            target: IpAddr::V4(target),
+            mask,
+            ..Self::v4_default(Ipv4Addr::UNSPECIFIED)
+        }
     }
 
     pub fn v4_default(nexthop: Ipv4Addr) -> Self {
@@ -371,7 +376,10 @@ pub fn encode_addr(index: u32, addr: &Address, add: bool) -> (u16, [u8; 8], Vec<
             a.bytes(IFA_ADDRESS, &p.octets());
         }
     } else {
-        let ci = ifa_cacheinfo(addr.preferred.unwrap_or(u32::MAX), addr.valid.unwrap_or(u32::MAX));
+        let ci = ifa_cacheinfo(
+            addr.preferred.unwrap_or(u32::MAX),
+            addr.valid.unwrap_or(u32::MAX),
+        );
         a.bytes(IFA_CACHEINFO, &ci);
         if add && addr.offlink {
             a.u32(IFA_FLAGS, IFA_F_NOPREFIXROUTE);
@@ -392,7 +400,11 @@ pub fn encode_route(index: u32, route: &Route, add: bool) -> (u16, [u8; 12], Vec
     let mut with_dev = !route.nodev;
     if add {
         if with_dev {
-            scope = if have_gw { RT_SCOPE_UNIVERSE } else { RT_SCOPE_LINK };
+            scope = if have_gw {
+                RT_SCOPE_UNIVERSE
+            } else {
+                RT_SCOPE_LINK
+            };
         } else {
             scope = RT_SCOPE_UNIVERSE;
             ty = RTN_UNREACHABLE;
@@ -401,11 +413,14 @@ pub fn encode_route(index: u32, route: &Route, add: bool) -> (u16, [u8; 12], Vec
     // An explicit route type overrides the type, and can move the route to
     // the local table and change its scope -- and for the reject types it
     // drops the output device, which is how netifd writes a null route.
-    let mut table_byte = if table < 256 { table as u8 } else { RT_TABLE_UNSPEC };
+    let mut table_byte = if table < 256 {
+        table as u8
+    } else {
+        RT_TABLE_UNSPEC
+    };
     if let Some(t) = route.ty {
         ty = t;
-        if table == RT_TABLE_MAIN
-            && matches!(t, RTN_LOCAL | RTN_BROADCAST | RTN_NAT | RTN_ANYCAST)
+        if table == RT_TABLE_MAIN && matches!(t, RTN_LOCAL | RTN_BROADCAST | RTN_NAT | RTN_ANYCAST)
         {
             table_byte = RT_TABLE_LOCAL;
         }
@@ -467,14 +482,32 @@ pub fn encode_route(index: u32, route: &Route, add: bool) -> (u16, [u8; 12], Vec
 /// The delegated-prefix source rejection from interface_set_prefix_address.
 /// Keep the host bits, as C does: the kernel receives the assignment address
 /// with its prefix length, plus the downstream input device.
-pub fn encode_prefix_reject(dev: &str, addr: Ipv6Addr, mask: u8, add: bool) -> (u16, [u8; 12], Vec<u8>) {
-    let hdr = rtmsg(AF_INET6, 0, mask, 0, RT_TABLE_UNSPEC, RTPROT_STATIC,
-                    RT_SCOPE_UNIVERSE, FR_ACT_UNREACHABLE, 0);
+pub fn encode_prefix_reject(
+    dev: &str,
+    addr: Ipv6Addr,
+    mask: u8,
+    add: bool,
+) -> (u16, [u8; 12], Vec<u8>) {
+    let hdr = rtmsg(
+        AF_INET6,
+        0,
+        mask,
+        0,
+        RT_TABLE_UNSPEC,
+        RTPROT_STATIC,
+        RT_SCOPE_UNIVERSE,
+        FR_ACT_UNREACHABLE,
+        0,
+    );
     let mut attrs = Attrs::new();
     attrs.str0(FRA_IIFNAME, dev);
     attrs.bytes(FRA_SRC, &addr.octets());
     attrs.u32(FRA_PRIORITY, 4_200_000_000);
-    (if add { RTM_NEWRULE } else { RTM_DELRULE }, hdr, attrs.as_bytes().to_vec())
+    (
+        if add { RTM_NEWRULE } else { RTM_DELRULE },
+        hdr,
+        attrs.as_bytes().to_vec(),
+    )
 }
 
 /// Bridge creation parameters. Only the options this device's config can reach
@@ -563,7 +596,9 @@ pub struct System {
 
 impl System {
     pub fn open() -> io::Result<Self> {
-        Ok(Self { nl: Netlink::open(0)? })
+        Ok(Self {
+            nl: Netlink::open(0)?,
+        })
     }
 
     /// ifindex by name, from a `RTM_GETLINK` with `IFLA_IFNAME` — netifd's
@@ -579,12 +614,10 @@ impl System {
                 if m.payload.len() < 16 {
                     return Ok(0);
                 }
-                Ok(i32::from_le_bytes([
-                    m.payload[4],
-                    m.payload[5],
-                    m.payload[6],
-                    m.payload[7],
-                ]) as u32)
+                Ok(
+                    i32::from_le_bytes([m.payload[4], m.payload[5], m.payload[6], m.payload[7]])
+                        as u32,
+                )
             }
             Ok(None) => Ok(0),
             Err(e) if e.raw_os_error() == Some(19) => Ok(0), // ENODEV
@@ -638,7 +671,12 @@ impl System {
 
     pub fn bridge_addbr(&mut self, name: &str, cfg: &BridgeConfig) -> io::Result<()> {
         let (ty, hdr, attrs) = encode_addbr(name, cfg);
-        self.nl.request(ty, netlink::NLM_F_CREATE | netlink::NLM_F_EXCL, &hdr, &attrs)
+        self.nl.request(
+            ty,
+            netlink::NLM_F_CREATE | netlink::NLM_F_EXCL,
+            &hdr,
+            &attrs,
+        )
     }
 
     pub fn bridge_set_options(&mut self, name: &str, cfg: &BridgeConfig) -> io::Result<()> {
@@ -660,7 +698,12 @@ impl System {
 
     pub fn add_address(&mut self, index: u32, addr: &Address) -> io::Result<()> {
         let (ty, hdr, attrs) = encode_addr(index, addr, true);
-        self.nl.request(ty, netlink::NLM_F_CREATE | netlink::NLM_F_REPLACE, &hdr, &attrs)
+        self.nl.request(
+            ty,
+            netlink::NLM_F_CREATE | netlink::NLM_F_REPLACE,
+            &hdr,
+            &attrs,
+        )
     }
 
     pub fn del_address(&mut self, index: u32, addr: &Address) -> io::Result<()> {
@@ -670,10 +713,21 @@ impl System {
 
     pub fn add_route(&mut self, index: u32, route: &Route) -> io::Result<()> {
         let (ty, hdr, attrs) = encode_route(index, route, true);
-        self.nl.request(ty, netlink::NLM_F_CREATE | netlink::NLM_F_REPLACE, &hdr, &attrs)
+        self.nl.request(
+            ty,
+            netlink::NLM_F_CREATE | netlink::NLM_F_REPLACE,
+            &hdr,
+            &attrs,
+        )
     }
 
-    pub fn prefix_reject(&mut self, dev: &str, addr: Ipv6Addr, mask: u8, add: bool) -> io::Result<()> {
+    pub fn prefix_reject(
+        &mut self,
+        dev: &str,
+        addr: Ipv6Addr,
+        mask: u8,
+        add: bool,
+    ) -> io::Result<()> {
         let (ty, hdr, attrs) = encode_prefix_reject(dev, addr, mask, add);
         self.nl.request(ty, 0, &hdr, &attrs)
     }
@@ -721,8 +775,13 @@ impl System {
             a.bytes(NDA_LLADDR, &mac);
         }
         let ty = if add { RTM_NEWNEIGH } else { RTM_DELNEIGH };
-        let flags = if add { netlink::NLM_F_CREATE | netlink::NLM_F_REPLACE } else { 0 };
-        self.nl.request(ty, netlink::NLM_F_REQUEST | flags, &hdr, a.as_bytes())
+        let flags = if add {
+            netlink::NLM_F_CREATE | netlink::NLM_F_REPLACE
+        } else {
+            0
+        };
+        self.nl
+            .request(ty, netlink::NLM_F_REQUEST | flags, &hdr, a.as_bytes())
     }
 
     /// `system_if_clear_state`: bring the device down, take it out of any
@@ -757,10 +816,7 @@ impl System {
         ] {
             self.clear_entries(index, kind, af);
         }
-        let _ = std::fs::write(
-            format!("/proc/sys/net/ipv6/conf/{name}/disable_ipv6"),
-            "0",
-        );
+        let _ = std::fs::write(format!("/proc/sys/net/ipv6/conf/{name}/disable_ipv6"), "0");
     }
 
     /// `system_if_clear_entries`: dump, keep what belongs to this device, and
@@ -788,7 +844,9 @@ impl System {
                 RTM_GETROUTE => rtmsg(af, 0, 0, 0, 0, 0, 0, 0, RTM_F_CLONED).to_vec(),
                 _ => ndmsg(af, 0, if pass == 0 { 0 } else { NTF_PROXY }).to_vec(),
             };
-            let Ok(msgs) = self.nl.dump(kind, &hdr) else { continue };
+            let Ok(msgs) = self.nl.dump(kind, &hdr) else {
+                continue;
+            };
             for m in msgs {
                 if m.ty != new_ty {
                     continue;
@@ -805,14 +863,15 @@ impl System {
         }
         for payload in queued {
             // an entry that is already gone is not an error worth reporting
-            let _ = self.nl.request(del_ty, netlink::NLM_F_REQUEST, &payload, &[]);
+            let _ = self
+                .nl
+                .request(del_ty, netlink::NLM_F_REQUEST, &payload, &[]);
         }
     }
 
     pub fn dump_links(&mut self) -> io::Result<Vec<netlink::Msg>> {
         self.nl.dump(RTM_GETLINK, &ifinfomsg(AF_UNSPEC, 0, 0, 0))
     }
-
 }
 
 /// The `SIOCGIF*` half of `system_if_get_settings`: an AF_INET datagram socket
@@ -828,13 +887,19 @@ impl AsRawFd for IfIoctl {
 }
 
 impl AsFd for IfIoctl {
-    fn as_fd(&self) -> BorrowedFd<'_> { self.fd.as_fd() }
+    fn as_fd(&self) -> BorrowedFd<'_> {
+        self.fd.as_fd()
+    }
 }
 
 impl IfIoctl {
     pub fn open() -> io::Result<Self> {
-        let fd = rustix::net::socket_with(rustix::net::AddressFamily::INET,
-            rustix::net::SocketType::DGRAM, rustix::net::SocketFlags::CLOEXEC, None)?;
+        let fd = rustix::net::socket_with(
+            rustix::net::AddressFamily::INET,
+            rustix::net::SocketType::DGRAM,
+            rustix::net::SocketFlags::CLOEXEC,
+            None,
+        )?;
         Ok(Self { fd })
     }
 
@@ -846,7 +911,12 @@ impl IfIoctl {
     /// A numeric field of the ifreq union, at `off` bytes into the struct.
     pub fn ioctl_u32(&self, ifname: &str, req: u64, off: usize) -> io::Result<u32> {
         let r = self.call(ifname, req)?;
-        Ok(u32::from_le_bytes([r[off], r[off + 1], r[off + 2], r[off + 3]]))
+        Ok(u32::from_le_bytes([
+            r[off],
+            r[off + 1],
+            r[off + 2],
+            r[off + 3],
+        ]))
     }
 
     /// `SIOCGIFHWADDR`: `struct sockaddr` at offset 16, so the six address
@@ -908,7 +978,11 @@ pub fn subnet_route(addr: &Address, metric: u32, table: u32) -> Route {
     let target = match addr.ip {
         IpAddr::V4(v) => {
             let bits = u32::from_be_bytes(v.octets());
-            let mask = if addr.mask == 0 { 0 } else { u32::MAX << (32 - addr.mask.min(32)) };
+            let mask = if addr.mask == 0 {
+                0
+            } else {
+                u32::MAX << (32 - addr.mask.min(32))
+            };
             IpAddr::V4(Ipv4Addr::from(bits & mask))
         }
         IpAddr::V6(v) => IpAddr::V6(clear_v6(v, addr.mask)),
@@ -954,7 +1028,10 @@ mod tests {
         assert!(offlink_route(&addr).is_none());
         let mut v4 = Address::new("192.0.2.17".parse().unwrap(), 24);
         v4.offlink = true;
-        assert_eq!(offlink_route(&v4).unwrap().target, "192.0.2.0".parse::<IpAddr>().unwrap());
+        assert_eq!(
+            offlink_route(&v4).unwrap().target,
+            "192.0.2.0".parse::<IpAddr>().unwrap()
+        );
         v4.mask = 32;
         assert!(offlink_route(&v4).is_none());
     }
@@ -1015,7 +1092,10 @@ mod tests {
         let mut a = Address::new("fd00::1".parse::<IpAddr>().unwrap(), 64);
         a.offlink = true;
         let (_, _, add) = encode_addr(3, &a, true);
-        assert_eq!(attr_u32(&parse_attrs(&add), IFA_FLAGS), Some(IFA_F_NOPREFIXROUTE));
+        assert_eq!(
+            attr_u32(&parse_attrs(&add), IFA_FLAGS),
+            Some(IFA_F_NOPREFIXROUTE)
+        );
         let (_, _, del) = encode_addr(3, &a, false);
         assert!(attr(&parse_attrs(&del), IFA_FLAGS).is_none());
 
@@ -1097,15 +1177,20 @@ mod tests {
         let top = parse_attrs(&attrs);
         let li = attr(&top, IFLA_LINKINFO | crate::netlink::NLA_F_NESTED).unwrap();
         let lip = parse_attrs(li);
-        assert_eq!(crate::netlink::attr_str(&lip, IFLA_INFO_KIND), Some("bridge"));
-        let data =
-            parse_attrs(attr(&lip, IFLA_INFO_DATA | crate::netlink::NLA_F_NESTED).unwrap());
+        assert_eq!(
+            crate::netlink::attr_str(&lip, IFLA_INFO_KIND),
+            Some("bridge")
+        );
+        let data = parse_attrs(attr(&lip, IFLA_INFO_DATA | crate::netlink::NLA_F_NESTED).unwrap());
         // netifd's defaults are 8 s / 1 s / 10 s, in hundredths of a second,
         // and snooping is off unless configured
         assert_eq!(attr_u32(&data, IFLA_BR_FORWARD_DELAY), Some(800));
         assert_eq!(attr_u32(&data, IFLA_BR_HELLO_TIME), Some(100));
         assert_eq!(attr_u32(&data, IFLA_BR_MAX_AGE), Some(1000));
-        assert_eq!(crate::netlink::attr_u8(&data, IFLA_BR_MCAST_SNOOPING), Some(0));
+        assert_eq!(
+            crate::netlink::attr_u8(&data, IFLA_BR_MCAST_SNOOPING),
+            Some(0)
+        );
         assert_eq!(attr_u32(&data, IFLA_BR_MCAST_HASH_MAX), Some(512));
         // ageing_time is absent unless configured, matching BRIDGE_OPT_AGEING_TIME
         assert!(attr(&data, IFLA_BR_AGEING_TIME).is_none());
@@ -1113,19 +1198,25 @@ mod tests {
 
     #[test]
     fn a_v4_address_gets_a_computed_broadcast() {
-        let a = Address::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 24)
-            .with_default_broadcast();
+        let a = Address::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 24).with_default_broadcast();
         assert_eq!(a.broadcast, Some(Ipv4Addr::new(10, 0, 0, 255)));
         let (_, _, attrs) = encode_addr(3, &a, true);
-        assert_eq!(attr(&parse_attrs(&attrs), IFA_BROADCAST).unwrap(), &[10, 0, 0, 255]);
+        assert_eq!(
+            attr(&parse_attrs(&attrs), IFA_BROADCAST).unwrap(),
+            &[10, 0, 0, 255]
+        );
     }
 
     #[test]
     fn a_31_or_32_broadcasts_to_all_ones() {
         for mask in [31u8, 32] {
-            let a = Address::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), mask)
-                .with_default_broadcast();
-            assert_eq!(a.broadcast, Some(Ipv4Addr::new(255, 255, 255, 255)), "/{mask}");
+            let a =
+                Address::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), mask).with_default_broadcast();
+            assert_eq!(
+                a.broadcast,
+                Some(Ipv4Addr::new(255, 255, 255, 255)),
+                "/{mask}"
+            );
         }
     }
 

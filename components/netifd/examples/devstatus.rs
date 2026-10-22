@@ -13,9 +13,10 @@ use owrt_netifd::{device, ethtool, netlink, sys};
 use owrt_ubus::blob::BlobBuf;
 use owrt_ubus::json::Json;
 
-
 fn main() {
-    let path = std::env::args().nth(1).expect("usage: devstatus <c-status.json>");
+    let path = std::env::args()
+        .nth(1)
+        .expect("usage: devstatus <c-status.json>");
     let text = std::fs::read_to_string(&path).expect("read");
     let Ok(Json::Object(devs)) = owrt_ubus::json::parse(&text) else {
         eprintln!("not a status object");
@@ -65,7 +66,12 @@ fn main() {
         d.dump_status(&mut b, Some(&e), None);
         b.msg_close(t);
     }
-    println!("{}", owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact());
+    println!(
+        "{}",
+        owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact()
+    );
 }
 
 /// `system_if_get_master_ifindex`: `IFLA_LINKINFO/IFLA_INFO_KIND == "dsa"` then

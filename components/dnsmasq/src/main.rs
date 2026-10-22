@@ -38,9 +38,9 @@ use dnsmasq_rs::dns::filewatch::{NetworkEvents, RouteWatch, WatchError};
 use dnsmasq_rs::dns::forward::SocketToken;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::dns::lease_names::{LeasePolicy, PublicationWarning};
-use dnsmasq_rs::dns::service::{LocalDnsService, TcpFramer, TcpWriteFrame};
 #[cfg(test)]
 use dnsmasq_rs::dns::service::encode_tcp_frame;
+use dnsmasq_rs::dns::service::{LocalDnsService, TcpFramer, TcpWriteFrame};
 use dnsmasq_rs::dns::tcp_service::{TcpDnsService, TcpServiceProgress, TcpWait};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::helper::{Config as HelperConfig, Helper, LeaseDelivery};
@@ -78,14 +78,14 @@ use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use dnsmasq_platform::signals::{
-    STOP_REQUESTED, RELOAD_REQUESTED, DEBUG_MODE, LOG_REOPEN_REQUESTED,
-    CACHE_DUMP_REQUESTED, ALARM_REQUESTED,
-};
-#[cfg(target_os = "linux")]
-use dnsmasq_platform::signals::SIGNAL_WAKE_WRITE;
 #[cfg(all(test, feature = "process-test-support"))]
 use dnsmasq_platform::signals::request_stop;
+#[cfg(target_os = "linux")]
+use dnsmasq_platform::signals::SIGNAL_WAKE_WRITE;
+use dnsmasq_platform::signals::{
+    ALARM_REQUESTED, CACHE_DUMP_REQUESTED, DEBUG_MODE, LOG_REOPEN_REQUESTED, RELOAD_REQUESTED,
+    STOP_REQUESTED,
+};
 const UDP_PACKETS_PER_TURN: usize = 16;
 const RELOAD_FILE_TURNS_PER_EVENT: usize = 16;
 const UBUS_RETRY_INTERVAL: Duration = Duration::from_secs(1);
@@ -110,10 +110,12 @@ fn owner_poll_timeout(deadline: Option<Instant>, now: Instant, runnable: bool) -
     let Some(deadline) = deadline else {
         return -1;
     };
-    deadline.saturating_duration_since(now).as_nanos()
-        .div_ceil(1_000_000).min(i32::MAX as u128) as i32
+    deadline
+        .saturating_duration_since(now)
+        .as_nanos()
+        .div_ceil(1_000_000)
+        .min(i32::MAX as u128) as i32
 }
-
 
 fn main() {
     #[cfg(all(
@@ -291,11 +293,15 @@ struct ParentDns {
 
 impl ParentDns {
     fn provider_hosts(&self) -> &Hosts {
-        self.pending_hosts.as_ref().map_or(&self.local.hosts, |(hosts, _)| hosts)
+        self.pending_hosts
+            .as_ref()
+            .map_or(&self.local.hosts, |(hosts, _)| hosts)
     }
 
     fn provider_hosts_mut(&mut self) -> &mut Hosts {
-        self.pending_hosts.as_mut().map_or(&mut self.local.hosts, |(hosts, _)| hosts)
+        self.pending_hosts
+            .as_mut()
+            .map_or(&mut self.local.hosts, |(hosts, _)| hosts)
     }
 
     fn import_tcp_cache_transfer(
@@ -303,9 +309,9 @@ impl ParentDns {
         transaction: dnsmasq_rs::dns::cache::CacheTransaction,
         now: i64,
     ) -> bool {
-        self.daemon.as_mut().is_some_and(|daemon| {
-            daemon.import_tcp_cache_transfer(transaction, now, &self.local)
-        })
+        self.daemon
+            .as_mut()
+            .is_some_and(|daemon| daemon.import_tcp_cache_transfer(transaction, now, &self.local))
     }
 }
 
@@ -404,7 +410,9 @@ impl ParentEvents {
                 return;
             };
             match UbusService::connect_bytes_interruptible(
-                None, name, Some(|| STOP_REQUESTED.load(Ordering::Acquire)),
+                None,
+                name,
+                Some(|| STOP_REQUESTED.load(Ordering::Acquire)),
             ) {
                 Ok(service) => {
                     self.ubus = Some(service);
@@ -558,7 +566,13 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
             .parent
             .try_borrow_mut()
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
-        let ParentDns { local, daemon, pending_hosts, hosts_initializing, .. } = &mut *parent;
+        let ParentDns {
+            local,
+            daemon,
+            pending_hosts,
+            hosts_initializing,
+            ..
+        } = &mut *parent;
         let daemon = daemon
             .as_mut()
             .ok_or_else(|| io::Error::other("DNS publication is disabled"))?;
@@ -568,13 +582,11 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
             // inserting the new names and performing their static lookups.
             hosts.finish_bulk();
         }
-        let hosts = pending_hosts.as_mut().map_or(&mut local.hosts, |(hosts, _)| hosts);
-        let names = daemon.publish_lease_names(
-            records,
-            hosts,
-            &local.config.records.cnames,
-            self.policy,
-        );
+        let hosts = pending_hosts
+            .as_mut()
+            .map_or(&mut local.hosts, |(hosts, _)| hosts);
+        let names =
+            daemon.publish_lease_names(records, hosts, &local.config.records.cnames, self.policy);
         report_lease_name_warnings(&names);
         if let Some((hosts, snapshot)) = pending_hosts.take() {
             daemon.publish_hosts_source(snapshot);
@@ -623,8 +635,15 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         // These booleans are accepted by option.c but their consumers are
         // compiled out in the exact NO_DHCP6/NO_DNSSEC image.
-        if matches!(directive.name.as_slice(), b"log-malloc" | b"quiet-ra" | b"quiet-dhcp6"
-            | b"enable-ra" | b"dnssec-debug" | b"dnssec-no-timecheck") {
+        if matches!(
+            directive.name.as_slice(),
+            b"log-malloc"
+                | b"quiet-ra"
+                | b"quiet-dhcp6"
+                | b"enable-ra"
+                | b"dnssec-debug"
+                | b"dnssec-no-timecheck"
+        ) {
             return Ok(());
         }
         if runtime.logging.apply(directive)?
@@ -735,7 +754,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     result
 }
 
-#[expect(unsafe_code, reason = "the binary owns its single-threaded process startup")]
+#[expect(
+    unsafe_code,
+    reason = "the binary owns its single-threaded process startup"
+)]
 fn run_inner(
     args: &[OsString],
     #[cfg(target_os = "linux")] startup: &mut dnsmasq_rs::startup::daemonize::StartupChannel,
@@ -878,7 +900,10 @@ fn run_inner(
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
     #[cfg(target_os = "linux")]
-    let signal_wake = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC).ok();
+    let signal_wake = rustix::pipe::pipe_with(
+        rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC,
+    )
+    .ok();
     #[cfg(target_os = "linux")]
     if let Some((_, write_end)) = &signal_wake {
         SIGNAL_WAKE_WRITE.store(write_end.as_raw_fd(), Ordering::Release);
@@ -992,11 +1017,13 @@ fn run_inner(
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     // SAFETY: main has created no threads, shared mappings or atfork hooks;
     // no stdio or owner lock is held, and the helper receives only owned config.
-    let initial_leases = unsafe { dnsmasq_rs::startup::lease_init::initialize(
-        &dhcp_config,
-        runtime.process.debug,
-        &mut early_logger,
-    ) }?;
+    let initial_leases = unsafe {
+        dnsmasq_rs::startup::lease_init::initialize(
+            &dhcp_config,
+            runtime.process.debug,
+            &mut early_logger,
+        )
+    }?;
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     if !dhcp_config.ranges.is_empty() || !dhcp_config.relay.is_empty() {
         return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
@@ -1150,8 +1177,13 @@ fn run_inner(
         match TftpListener::bind_config(
             &tftp_config,
             &daemon_config,
-            &runtime.dhcp.no_dhcp_interfaces.iter()
-                .chain(&runtime.dhcp.no_dhcp6_interfaces).cloned().collect::<Vec<_>>(),
+            &runtime
+                .dhcp
+                .no_dhcp_interfaces
+                .iter()
+                .chain(&runtime.dhcp.no_dhcp6_interfaces)
+                .cloned()
+                .collect::<Vec<_>>(),
             &runtime.dhcp.no_tftp_interfaces,
             identity.runtime_uid(&runtime.process),
             if dns_enabled {
@@ -1299,7 +1331,9 @@ fn run_inner(
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     // SAFETY: the daemon has no worker threads or shared writable mappings.
     // NSS and logging calls have returned; no lock guard crosses the fork.
-    let dhcp_helper = helper_config.map(|config| unsafe { Helper::start(config) }).transpose()?;
+    let dhcp_helper = helper_config
+        .map(|config| unsafe { Helper::start(config) })
+        .transpose()?;
     #[cfg(target_os = "linux")]
     identity
         .drop_privileges(&runtime.process, capabilities)
@@ -1342,11 +1376,13 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     let mut dns_files = DnsFiles::new(&daemon_config, dns_enabled, daemon_config.clear_on_reload)?;
     #[cfg(target_os = "linux")]
-    let route_watch = Some(RouteWatch::new()
-        .map_err(|error| dnsmasq_rs::startup::StartupError {
-            code: 5,
-            message: format!("cannot create netlink socket: {error}"),
-        })?);
+    let route_watch =
+        Some(
+            RouteWatch::new().map_err(|error| dnsmasq_rs::startup::StartupError {
+                code: 5,
+                message: format!("cannot create netlink socket: {error}"),
+            })?,
+        );
     #[cfg(target_os = "linux")]
     dns_files.request(ReloadReason::Init);
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1634,8 +1670,11 @@ fn run_inner(
         }
         poll.log_dns_diagnostics(); // C releases startup errfd before check_servers.
     }
-    poll.interface_refresh.complete(Instant::now(), pending_listener_retry(&pending_static_dns,
-        &interface_snapshot.borrow()) || poll.tftp_pending_interfaces());
+    poll.interface_refresh.complete(
+        Instant::now(),
+        pending_listener_retry(&pending_static_dns, &interface_snapshot.borrow())
+            || poll.tftp_pending_interfaces(),
+    );
     // C's INAME_USED latch survives interface removal. Once an explicit
     // address belonged to an interface, it cannot become an unowned fallback.
     let mut owned_explicit: Vec<IpAddr> = interface_snapshot
@@ -1671,230 +1710,254 @@ fn run_inner(
             let mut failed_snapshot = false;
             match listeners::snapshot() {
                 Ok(interfaces) => {
-                let previous_interfaces = interface_snapshot.borrow_mut().clone();
-                let changed = previous_interfaces != interfaces;
-                *interface_snapshot.borrow_mut() = interfaces.clone();
-                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-                if changed {
-                    if let Some(dhcp) = &mut poll.dhcp {
-                        dhcp.listener.invalidate_relay_interfaces();
+                    let previous_interfaces = interface_snapshot.borrow_mut().clone();
+                    let changed = previous_interfaces != interfaces;
+                    *interface_snapshot.borrow_mut() = interfaces.clone();
+                    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                    if changed {
+                        if let Some(dhcp) = &mut poll.dhcp {
+                            dhcp.listener.invalidate_relay_interfaces();
+                        }
                     }
-                }
-                if changed && poll.address_refresh_requires_enumeration() {
-                    poll.enumerate_interface_records();
-                }
-                for interface in &interfaces {
-                    if daemon_config.listen_addresses.contains(&interface.address)
-                        && !owned_explicit.contains(&interface.address)
-                    {
-                        owned_explicit.push(interface.address);
+                    if changed && poll.address_refresh_requires_enumeration() {
+                        poll.enumerate_interface_records();
                     }
-                }
-                if daemon_config.bind_dynamic {
-                    pending_static_dns = listeners::tentative_addresses(&daemon_config,
-                        runtime.scalar.dns_port, &interfaces);
-                }
-                let mut dns_addresses = listeners::bound_addresses(
-                    &daemon_config,
-                    runtime.scalar.dns_port,
-                    &interfaces,
-                );
-                if daemon_config.bind_dynamic {
-                    dns_addresses.retain(|address| {
-                        !owned_explicit.contains(&address.ip())
-                            || persistent_unowned.contains(address)
-                            || interfaces
-                                .iter()
-                                .any(|interface| interface.address == address.ip())
-                    });
-                }
-                let mut eligible = dns_addresses.clone();
-                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-                if let Some(tftp) = &mut poll.tftp {
+                    for interface in &interfaces {
+                        if daemon_config.listen_addresses.contains(&interface.address)
+                            && !owned_explicit.contains(&interface.address)
+                        {
+                            owned_explicit.push(interface.address);
+                        }
+                    }
                     if daemon_config.bind_dynamic {
-                        for (address, _) in &bound_listeners {
-                            if !persistent_unowned.contains(address)
+                        pending_static_dns = listeners::tentative_addresses(
+                            &daemon_config,
+                            runtime.scalar.dns_port,
+                            &interfaces,
+                        );
+                    }
+                    let mut dns_addresses = listeners::bound_addresses(
+                        &daemon_config,
+                        runtime.scalar.dns_port,
+                        &interfaces,
+                    );
+                    if daemon_config.bind_dynamic {
+                        dns_addresses.retain(|address| {
+                            !owned_explicit.contains(&address.ip())
+                                || persistent_unowned.contains(address)
+                                || interfaces
+                                    .iter()
+                                    .any(|interface| interface.address == address.ip())
+                        });
+                    }
+                    let mut eligible = dns_addresses.clone();
+                    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                    if let Some(tftp) = &mut poll.tftp {
+                        if daemon_config.bind_dynamic {
+                            for (address, _) in &bound_listeners {
+                                if !persistent_unowned.contains(address)
+                                    && !interfaces
+                                        .iter()
+                                        .any(|interface| interface.address == address.ip())
+                                {
+                                    tftp.retire_listener(*address);
+                                }
+                            }
+                        }
+                        tftp.refresh_listener_interfaces(&interfaces);
+                        for mut address in tftp.listener_addresses() {
+                            address.set_port(runtime.scalar.dns_port);
+                            if !eligible.contains(&address) {
+                                eligible.push(address);
+                            }
+                        }
+                    }
+                    if daemon_config.bind_dynamic {
+                        bound_listeners.retain(|(address, token)| {
+                            if eligible.contains(address) {
+                                return true;
+                            }
+                            #[cfg(target_os = "linux")]
+                            if let Some(logger) = &mut poll.logger {
+                                let interface = previous_interfaces
+                                    .iter()
+                                    .find(|interface| interface.address == address.ip());
+                                logger.emit(listener_debug_event(
+                                    "stopped listening",
+                                    *address,
+                                    interface,
+                                ));
+                            }
+                            poll.remove_listener(*token);
+                            false
+                        });
+                    }
+                    let attempts = if daemon_config.bind_dynamic {
+                        if changed || poll.retry_bound_listeners {
+                            eligible.clone()
+                        } else {
+                            Vec::new()
+                        }
+                    } else if poll.retry_bound_listeners {
+                        eligible.clone()
+                    } else {
+                        pending_static_dns.clone()
+                    };
+                    let retrying = poll.retry_bound_listeners;
+                    poll.retry_bound_listeners = false;
+                    for address in attempts {
+                        if !eligible.contains(&address) {
+                            continue;
+                        }
+                        let existing = bound_listeners
+                            .iter()
+                            .find(|(bound, _)| *bound == address)
+                            .map(|(_, token)| *token);
+                        let listener = existing.and_then(|token| {
+                            poll.listeners
+                                .iter()
+                                .find(|listener| listener.token == token)
+                        });
+                        let needed = if dns_addresses.contains(&address) {
+                            (
+                                listener.is_none_or(|listener| listener.udp.is_none()),
+                                listener.is_none_or(|listener| listener.tcp.is_none()),
+                            )
+                        } else {
+                            (false, false)
+                        };
+                        // Preserve successful sockets while retrying only the missing DNS protocol.
+                        if existing.is_some() && !needed.0 && !needed.1 {
+                            continue;
+                        }
+                        let (udp, tcp, mut bind_errors) = if needed.0 || needed.1 {
+                            open_late_dns_listener(address, &daemon_config, &interfaces, needed)
+                        } else {
+                            (None, None, Vec::new())
+                        };
+                        poll.retry_bound_listeners |= !bind_errors.is_empty();
+                        let mut opened = udp.is_some() || tcp.is_some();
+                        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                        if let Some(tftp) = poll.tftp.as_mut().filter(|_| existing.is_none()) {
+                            match tftp.bind_listener(address) {
+                                Ok(bound) => opened |= bound,
+                                Err(error)
+                                    if !suppressed_listener_error(
+                                        &error,
+                                        daemon_config.bind_dynamic,
+                                    ) =>
+                                {
+                                    bind_errors.push(error)
+                                }
+                                Err(_) => {}
+                            }
+                        }
+                        #[cfg(target_os = "linux")]
+                        if let Some(logger) = &mut poll.logger {
+                            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+                            let mut label = address.ip().to_string();
+                            if let SocketAddr::V6(address) = address {
+                                if address.scope_id() != 0 {
+                                    if let Some(interface) = interfaces
+                                        .iter()
+                                        .find(|interface| interface.index == address.scope_id())
+                                    {
+                                        label.push('%');
+                                        label.push_str(&String::from_utf8_lossy(
+                                            interface.link_name(),
+                                        ));
+                                    }
+                                }
+                            }
+                            for error in bind_errors.into_iter().filter(|_| !retrying) {
+                                logger.emit(LogEvent::new(
+                                    Service::Dns,
+                                    Priority::Warning,
+                                    format!(
+                                        "failed to create listening socket for {label}: {}",
+                                        dnsmasq_rs::logging::error_text(&error)
+                                    )
+                                    .into_bytes(),
+                                ));
+                            }
+                        }
+                        if opened {
+                            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                            if let Some(tftp) = &mut poll.tftp {
+                                tftp.finish_shared_listener_attempt(address);
+                            }
+                            #[cfg(target_os = "linux")]
+                            if let Some(logger) = &mut poll.logger {
+                                let interface = interfaces
+                                    .iter()
+                                    .find(|interface| interface.address == address.ip());
+                                logger.emit(listener_debug_event("listening", address, interface));
+                            }
+                            if daemon_config.listen_addresses.contains(&address.ip())
                                 && !interfaces
                                     .iter()
                                     .any(|interface| interface.address == address.ip())
+                                && !persistent_unowned.contains(&address)
                             {
-                                tftp.retire_listener(*address);
+                                persistent_unowned.push(address);
                             }
-                        }
-                    }
-                    tftp.refresh_listener_interfaces(&interfaces);
-                    for mut address in tftp.listener_addresses() {
-                        address.set_port(runtime.scalar.dns_port);
-                        if !eligible.contains(&address) {
-                            eligible.push(address);
-                        }
-                    }
-                }
-                if daemon_config.bind_dynamic {
-                    bound_listeners.retain(|(address, token)| {
-                        if eligible.contains(address) {
-                            return true;
-                        }
-                        #[cfg(target_os = "linux")]
-                        if let Some(logger) = &mut poll.logger {
-                            let interface = previous_interfaces
-                                .iter()
-                                .find(|interface| interface.address == address.ip());
-                            logger.emit(listener_debug_event(
-                                "stopped listening",
-                                *address,
-                                interface,
-                            ));
-                        }
-                        poll.remove_listener(*token);
-                        false
-                    });
-                }
-                let attempts = if daemon_config.bind_dynamic {
-                    if changed || poll.retry_bound_listeners {
-                        eligible.clone()
-                    } else {
-                        Vec::new()
-                    }
-                } else if poll.retry_bound_listeners {
-                    eligible.clone()
-                } else {
-                    pending_static_dns.clone()
-                };
-                let retrying = poll.retry_bound_listeners;
-                poll.retry_bound_listeners = false;
-                for address in attempts {
-                    if !eligible.contains(&address) {
-                        continue;
-                    }
-                    let existing = bound_listeners.iter()
-                        .find(|(bound, _)| *bound == address)
-                        .map(|(_, token)| *token);
-                    let listener = existing.and_then(|token| {
-                        poll.listeners.iter().find(|listener| listener.token == token)
-                    });
-                    let needed = if dns_addresses.contains(&address) {
-                        (
-                            listener.is_none_or(|listener| listener.udp.is_none()),
-                            listener.is_none_or(|listener| listener.tcp.is_none()),
-                        )
-                    } else {
-                        (false, false)
-                    };
-                    // Preserve successful sockets while retrying only the missing DNS protocol.
-                    if existing.is_some() && !needed.0 && !needed.1 {
-                        continue;
-                    }
-                    let (udp, tcp, mut bind_errors) = if needed.0 || needed.1 {
-                        open_late_dns_listener(address, &daemon_config, &interfaces, needed)
-                    } else {
-                        (None, None, Vec::new())
-                    };
-                    poll.retry_bound_listeners |= !bind_errors.is_empty();
-                    let mut opened = udp.is_some() || tcp.is_some();
-                    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-                    if let Some(tftp) = poll.tftp.as_mut().filter(|_| existing.is_none()) {
-                        match tftp.bind_listener(address) {
-                            Ok(bound) => opened |= bound,
-                            Err(error)
-                                if !suppressed_listener_error(
-                                    &error,
-                                    daemon_config.bind_dynamic,
-                                ) =>
-                            {
-                                bind_errors.push(error)
-                            }
-                            Err(_) => {}
-                        }
-                    }
-                    #[cfg(target_os = "linux")]
-                    if let Some(logger) = &mut poll.logger {
-                        use dnsmasq_rs::logging::{LogEvent, Priority, Service};
-                        let mut label = address.ip().to_string();
-                        if let SocketAddr::V6(address) = address {
-                            if address.scope_id() != 0 {
-                                if let Some(interface) = interfaces
-                                    .iter()
-                                    .find(|interface| interface.index == address.scope_id())
+                            if let Some(token) = existing {
+                                if let Some(listener) = poll
+                                    .listeners
+                                    .iter_mut()
+                                    .find(|listener| listener.token == token)
                                 {
-                                    label.push('%');
-                                    label.push_str(&String::from_utf8_lossy(interface.link_name()));
-                                }
-                            }
-                        }
-                        for error in bind_errors.into_iter().filter(|_| !retrying) {
-                            logger.emit(LogEvent::new(
-                                Service::Dns,
-                                Priority::Warning,
-                                format!(
-                                    "failed to create listening socket for {label}: {}",
-                                    dnsmasq_rs::logging::error_text(&error)
-                                )
-                                .into_bytes(),
-                            ));
-                        }
-                    }
-                    if opened {
-                        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-                        if let Some(tftp) = &mut poll.tftp {
-                            tftp.finish_shared_listener_attempt(address);
-                        }
-                        #[cfg(target_os = "linux")]
-                        if let Some(logger) = &mut poll.logger {
-                            let interface = interfaces
-                                .iter()
-                                .find(|interface| interface.address == address.ip());
-                            logger.emit(listener_debug_event("listening", address, interface));
-                        }
-                        if daemon_config.listen_addresses.contains(&address.ip())
-                            && !interfaces
-                                .iter()
-                                .any(|interface| interface.address == address.ip())
-                            && !persistent_unowned.contains(&address)
-                        {
-                            persistent_unowned.push(address);
-                        }
-                        if let Some(token) = existing {
-                            if let Some(listener) = poll.listeners.iter_mut()
-                                .find(|listener| listener.token == token) {
-                                if udp.is_some() {
-                                    listener.udp = udp;
-                                }
-                                if tcp.is_some() {
-                                    listener.tcp = tcp;
+                                    if udp.is_some() {
+                                        listener.udp = udp;
+                                    }
+                                    if tcp.is_some() {
+                                        listener.tcp = tcp;
+                                    }
+                                } else {
+                                    poll.add_listener(token, udp, tcp);
                                 }
                             } else {
+                                let token = SocketToken(next_listener);
+                                next_listener += 1;
                                 poll.add_listener(token, udp, tcp);
+                                bound_listeners.push((address, token));
                             }
-                        } else {
-                            let token = SocketToken(next_listener);
-                            next_listener += 1;
-                            poll.add_listener(token, udp, tcp);
-                            bound_listeners.push((address, token));
+                            pending_static_dns.retain(|pending| *pending != address);
                         }
-                        pending_static_dns.retain(|pending| *pending != address);
                     }
-                }
                 }
                 Err(error) => {
                     failed_snapshot = true;
                     #[cfg(target_os = "linux")]
                     if let Some(logger) = &mut poll.logger {
                         use dnsmasq_rs::logging::{LogEvent, Priority, Service};
-                        logger.emit(LogEvent::new(Service::Dns, Priority::Error,
-                            format!("failed to enumerate interfaces: {}", dnsmasq_rs::logging::error_text(&error)).into_bytes()));
+                        logger.emit(LogEvent::new(
+                            Service::Dns,
+                            Priority::Error,
+                            format!(
+                                "failed to enumerate interfaces: {}",
+                                dnsmasq_rs::logging::error_text(&error)
+                            )
+                            .into_bytes(),
+                        ));
                     }
                 }
             }
-            poll.interface_refresh.complete(Instant::now(), failed_snapshot
-                || poll.retry_bound_listeners
-                || pending_listener_retry(&pending_static_dns, &interface_snapshot.borrow())
-                || poll.tftp_pending_interfaces());
+            poll.interface_refresh.complete(
+                Instant::now(),
+                failed_snapshot
+                    || poll.retry_bound_listeners
+                    || pending_listener_retry(&pending_static_dns, &interface_snapshot.borrow())
+                    || poll.tftp_pending_interfaces(),
+            );
         }
         // Address events and HUP both publish before new DNS admission.
         let signaled = !poll.reload_in_progress()
-            && RELOAD_REQUESTED.fetch_update(Ordering::AcqRel, Ordering::Acquire,
-                |count| count.checked_sub(1)).is_ok();
+            && RELOAD_REQUESTED
+                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                    count.checked_sub(1)
+                })
+                .is_ok();
         poll.process_reload_before_dns(runtime.scalar.local_ttl, signaled)?;
         poll.step()?;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -2147,10 +2210,12 @@ fn dhcp_device_name(
             let name = interface.link_name();
             DeviceInterface {
                 name,
-                dhcp4_ok: !interface.loopback && !config.auth.selected(interface.address, &interface.name)
+                dhcp4_ok: !interface.loopback
+                    && !config.auth.selected(interface.address, &interface.name)
                     && !excluded(&dhcp.no_dhcp_interfaces, name),
                 // whichdevice still sees C's dhcp6_ok in the no-DHCPv6 image.
-                dhcp6_ok: !interface.loopback && !config.auth.selected(interface.address, &interface.name)
+                dhcp6_ok: !interface.loopback
+                    && !config.auth.selected(interface.address, &interface.name)
                     && !excluded(&dhcp.no_dhcp6_interfaces, name),
             }
         })
@@ -2176,12 +2241,22 @@ fn domain_interface_snapshot(
 }
 
 /// Retry only pending addresses absent from the snapshot or still tentative.
-fn pending_listener_retry(pending: &[SocketAddr], interfaces: &[dnsmasq_rs::interfaces::DnsInterface]) -> bool {
+fn pending_listener_retry(
+    pending: &[SocketAddr],
+    interfaces: &[dnsmasq_rs::interfaces::DnsInterface],
+) -> bool {
     pending.iter().any(|address| {
         let mut found = false;
         let mut all_tentative = true;
-        for interface in interfaces.iter().filter(|row| row.address == address.ip()
-            && match address { SocketAddr::V6(v6) if v6.ip().is_unicast_link_local() => v6.scope_id() == row.index, _ => true }) {
+        for interface in interfaces.iter().filter(|row| {
+            row.address == address.ip()
+                && match address {
+                    SocketAddr::V6(v6) if v6.ip().is_unicast_link_local() => {
+                        v6.scope_id() == row.index
+                    }
+                    _ => true,
+                }
+        }) {
             found = true;
             all_tentative &= interface.tentative;
         }
@@ -2198,7 +2273,9 @@ struct InterfaceRefresh {
 }
 
 impl InterfaceRefresh {
-    fn request(&mut self) { self.requested = true; }
+    fn request(&mut self) {
+        self.requested = true;
+    }
     fn due(&self, now: Instant) -> bool {
         self.requested || self.retry_at.is_some_and(|due| due <= now)
     }
@@ -2210,7 +2287,9 @@ impl InterfaceRefresh {
         self.retry_at = pending.then_some(now + Duration::from_secs(1));
         // BSD/Darwin has no RouteWatch in this owner; retain its old fallback.
         #[cfg(not(target_os = "linux"))]
-        { self.retry_at = Some(now + Duration::from_millis(100)); }
+        {
+            self.retry_at = Some(now + Duration::from_millis(100));
+        }
     }
 }
 
@@ -2411,7 +2490,9 @@ impl M6bDiagnostics {
         self.path.is_some()
     }
 
-    fn record_loop(&mut self) { self.loop_rounds += 1; }
+    fn record_loop(&mut self) {
+        self.loop_rounds += 1;
+    }
 
     fn listener_mut(&mut self, index: usize) -> &mut M6bListenerCounters {
         if index >= self.listeners.len() {
@@ -2542,11 +2623,15 @@ struct M6bDiagnostics {
 #[cfg(not(feature = "m6b-diagnostics"))]
 impl M6bDiagnostics {
     fn new(_listener_count: usize) -> Self {
-        Self { disabled_listener: M6bListenerCounters::default() }
+        Self {
+            disabled_listener: M6bListenerCounters::default(),
+        }
     }
 
     #[inline]
-    fn enabled(&self) -> bool { false }
+    fn enabled(&self) -> bool {
+        false
+    }
 
     #[inline]
     fn record_loop(&mut self) {}
@@ -2557,13 +2642,22 @@ impl M6bDiagnostics {
     }
 
     #[inline]
-    fn record_wait(&mut self, _timeout: i32, _ready: usize, _elapsed: Duration,
-                   _network_ready: bool, _file_ready: bool, _signal_ready: bool) -> io::Result<()> {
+    fn record_wait(
+        &mut self,
+        _timeout: i32,
+        _ready: usize,
+        _elapsed: Duration,
+        _network_ready: bool,
+        _file_ready: bool,
+        _signal_ready: bool,
+    ) -> io::Result<()> {
         Ok(())
     }
 
     #[inline]
-    fn write(&mut self) -> io::Result<()> { Ok(()) }
+    fn write(&mut self) -> io::Result<()> {
+        Ok(())
+    }
 }
 
 // Both EDNS queues are advanced by the existing owner. The UDP queue retains
@@ -2596,7 +2690,9 @@ enum UdpAdmission {
     Accept,
     Reject,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    PendingInterfaces { loopback: bool },
+    PendingInterfaces {
+        loopback: bool,
+    },
 }
 struct PendingInterfaceTcp {
     query_ids: dnsmasq_rs::query_logging::QueryIds,
@@ -2684,7 +2780,8 @@ struct TcpDnsWork {
 // Error/hangup interests apply to either operation, but POLLOUT alone
 // must never authorize a read after the client completes an answer.
 fn poll_events_match(events: i16, wanted: i16) -> bool {
-    events & (wanted | dnsmasq_platform::poll::POLLERR | dnsmasq_platform::poll::POLLHUP | 0x20) != 0
+    events & (wanted | dnsmasq_platform::poll::POLLERR | dnsmasq_platform::poll::POLLHUP | 0x20)
+        != 0
 }
 
 enum TcpClientPhase {
@@ -2706,7 +2803,9 @@ impl TcpDnsWork {
             self.query_ids.next(true, Some(self.peer))
         };
         if self.service.query_logging {
-            if let Some(event) = dnsmasq_rs::query_logging::QueryEvent::request(query, self.peer, self.auth_query) {
+            if let Some(event) =
+                dnsmasq_rs::query_logging::QueryEvent::request(query, self.peer, self.auth_query)
+            {
                 self.query_events.push((self.query_context, event));
             }
         }
@@ -2750,11 +2849,15 @@ impl TcpDnsWork {
             let owner = parent.try_borrow().map_err(|_| ())?;
             self.forward.cached_query_name(
                 query,
-                owner.daemon.as_ref().and_then(|daemon| daemon.current_cache()),
+                owner
+                    .daemon
+                    .as_ref()
+                    .and_then(|daemon| daemon.current_cache()),
                 now,
             )
         } else {
-            self.forward.cached_query_name(query, self.cache_view.as_ref(), now)
+            self.forward
+                .cached_query_name(query, self.cache_view.as_ref(), now)
         };
         let view = &mut self.cache_view;
         let counters = &mut self.cache_counters;
@@ -2810,8 +2913,13 @@ impl TcpDnsWork {
                 forward_name,
             )
         } else {
-            self.forward
-                .step_with_local_upstream_cache(local, no_cache, now, &mut sink, cached_name)
+            self.forward.step_with_local_upstream_cache(
+                local,
+                no_cache,
+                now,
+                &mut sink,
+                cached_name,
+            )
         }
         .map_err(|_| ())?;
         self.query_events.extend(
@@ -2867,32 +2975,54 @@ impl TcpDnsWork {
             Ok((header, question)) if self.cache_debug => {
                 let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
                 let daemon = owner.daemon.as_mut().ok_or(())?;
-                let answer = daemon.current_answer_local_or_cached(
-                    &query, header, &question, &mut self.service, now, decoration.cacheable, true,
-                ).map_err(|_| ())?;
+                let answer = daemon
+                    .current_answer_local_or_cached(
+                        &query,
+                        header,
+                        &question,
+                        &mut self.service,
+                        now,
+                        decoration.cacheable,
+                        true,
+                    )
+                    .map_err(|_| ())?;
                 for event in daemon.take_local_query_events() {
                     self.service.record_query_event(event);
                 }
                 answer
             }
-            Ok((header, question)) => {
-                dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::answer_local_or_cached(
-                    self.cache_view.as_mut(), &query, header, &question,
-                    &mut self.service, now, decoration.cacheable,
-                    true,
-                ).map_err(|_| ())?
-            }
+            Ok((header, question)) => dnsmasq_rs::dns::daemon::DnsDaemon::<
+                dnsmasq_rs::dns::upstream::OsRandom,
+            >::answer_local_or_cached(
+                self.cache_view.as_mut(),
+                &query,
+                header,
+                &question,
+                &mut self.service,
+                now,
+                decoration.cacheable,
+                true,
+            )
+            .map_err(|_| ())?,
         };
         self.collect_local_query_events();
         let answer = lookup.answer;
         let stale = matches!(answer, Some(QueryResult::Stale(_)));
-        if let Some(QueryResult::Local(packet) | QueryResult::Cached(packet) | QueryResult::Stale(packet)) = answer {
+        if let Some(
+            QueryResult::Local(packet) | QueryResult::Cached(packet) | QueryResult::Stale(packet),
+        ) = answer
+        {
             if stale {
                 self.stale_query = Some(query);
             }
             self.queue_answer(parent, packet, false)?;
         } else {
-            match self.run_forward(parent, Some(&query), self.no_cache, lookup.forward_name.as_ref())? {
+            match self.run_forward(
+                parent,
+                Some(&query),
+                self.no_cache,
+                lookup.forward_name.as_ref(),
+            )? {
                 TcpServiceProgress::Pending(wait) => {
                     self.phase = TcpClientPhase::Forwarding {
                         no_cache: self.no_cache,
@@ -3216,18 +3346,24 @@ impl SinglePoll {
         self.hosts_staged = None;
         self.hosts_reload_failed = false;
         let (cache_size, name_hash_capacity, retained_leases) = {
-            let mut parent = self.service.try_borrow_mut()
+            let mut parent = self
+                .service
+                .try_borrow_mut()
                 .map_err(|_| io::Error::other("DNS state already borrowed"))?;
-            let previous_capacity = parent.provider_hosts().name_hash_capacity()
+            let previous_capacity = parent
+                .provider_hosts()
+                .name_hash_capacity()
                 .max(parent.local.hosts.name_hash_capacity());
             // C first publishes DHCP DNS names after EVENT_INIT's hosts scan
             // and lease reconciliation. The provider can initialize earlier
             // here, but its provisional names must not suppress that first
             // reverse-host rename. The latch also covers HUP during init.
-            let retained_leases = (!parent.hosts_initializing)
-                .then(|| Arc::clone(&parent.local.leases));
+            let retained_leases =
+                (!parent.hosts_initializing).then(|| Arc::clone(&parent.local.leases));
             parent.pending_hosts = None;
-            let Some(daemon) = parent.daemon.as_mut() else { return Ok(()); };
+            let Some(daemon) = parent.daemon.as_mut() else {
+                return Ok(());
+            };
             daemon.begin_hosts_reload();
             (daemon.cache_capacity(), previous_capacity, retained_leases)
         };
@@ -3248,10 +3384,11 @@ impl SinglePoll {
                 if let Some(reader) = self.hosts_read.take() {
                     // Restart this incremental read after the bulk scan, using
                     // its path again rather than a stale open file descriptor.
-                    self.hosts_deferred.push_back(dnsmasq_rs::dns::hostsdir::HostChange {
-                        source: reader.finish().source,
-                        deleted: false,
-                    });
+                    self.hosts_deferred
+                        .push_back(dnsmasq_rs::dns::hostsdir::HostChange {
+                            source: reader.finish().source,
+                            deleted: false,
+                        });
                 }
                 self.hosts_deferred.append(&mut self.hosts_requests);
             }
@@ -3268,15 +3405,22 @@ impl SinglePoll {
                 &empty_leases
             }
         };
-        match read_hosts_with_notices(&self.config, local_ttl, self.packet_limit,
-            cache_size, name_hash_capacity, retained_leases, |notice| {
-            #[cfg(target_os = "linux")]
-            if let Some(logger) = self.logger.as_mut() {
-                logger.emit(notice.into_log_event());
-            }
-            #[cfg(not(target_os = "linux"))]
-            let _ = notice;
-        }) {
+        match read_hosts_with_notices(
+            &self.config,
+            local_ttl,
+            self.packet_limit,
+            cache_size,
+            name_hash_capacity,
+            retained_leases,
+            |notice| {
+                #[cfg(target_os = "linux")]
+                if let Some(logger) = self.logger.as_mut() {
+                    logger.emit(notice.into_log_event());
+                }
+                #[cfg(not(target_os = "linux"))]
+                let _ = notice;
+            },
+        ) {
             Ok(hosts) => self.hosts_staged = Some(hosts),
             Err(_) => self.hosts_reload_failed = true,
         }
@@ -3322,10 +3466,14 @@ impl SinglePoll {
     fn has_dhcp_dns_publisher(&self) -> bool {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         {
-            self.dhcp.as_ref().is_some_and(|dhcp| dhcp.provider.is_some())
+            self.dhcp
+                .as_ref()
+                .is_some_and(|dhcp| dhcp.provider.is_some())
         }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-        { false }
+        {
+            false
+        }
     }
 
     fn reload_data(&mut self, local_ttl: u32) -> io::Result<()> {
@@ -3393,14 +3541,17 @@ impl SinglePoll {
     #[cfg(target_os = "linux")]
     fn reload_file_work_runnable(&self) -> bool {
         let mut runnable = self.dns_file_work_runnable()
-            || self.hosts_read.as_ref().is_some_and(|reader| reader.runnable())
+            || self
+                .hosts_read
+                .as_ref()
+                .is_some_and(|reader| reader.runnable())
             || (self.hosts_read.is_none()
                 && (!self.hosts_requests.is_empty() || !self.hosts_deferred.is_empty()));
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-            runnable |= provider.try_borrow().is_ok_and(|provider| {
-                provider.file_work_pending() && provider.files_runnable()
-            });
+            runnable |= provider
+                .try_borrow()
+                .is_ok_and(|provider| provider.file_work_pending() && provider.files_runnable());
         }
         runnable
     }
@@ -3408,7 +3559,8 @@ impl SinglePoll {
     fn hosts_work_pending(&self) -> bool {
         #[cfg(target_os = "linux")]
         {
-            self.hosts_read.is_some() || !self.hosts_requests.is_empty()
+            self.hosts_read.is_some()
+                || !self.hosts_requests.is_empty()
                 || !self.hosts_deferred.is_empty()
         }
         #[cfg(not(target_os = "linux"))]
@@ -3485,10 +3637,18 @@ impl SinglePoll {
 
     fn tftp_pending_interfaces(&self) -> bool {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        { self.tftp.as_ref().is_some_and(|listener|
-            pending_listener_retry(listener.pending_listener_addresses(), &self.interfaces.borrow())) }
+        {
+            self.tftp.as_ref().is_some_and(|listener| {
+                pending_listener_retry(
+                    listener.pending_listener_addresses(),
+                    &self.interfaces.borrow(),
+                )
+            })
+        }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-        { false }
+        {
+            false
+        }
     }
 
     #[cfg(target_os = "linux")]
@@ -3522,8 +3682,15 @@ impl SinglePoll {
         if let Some(logger) = &mut self.logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for code in events.errors {
-                logger.emit(LogEvent::new(Service::Dns, Priority::Error,
-                    format!("netlink returns error: {}", dnsmasq_rs::logging::error_text(&io::Error::from_raw_os_error(code))).into_bytes()));
+                logger.emit(LogEvent::new(
+                    Service::Dns,
+                    Priority::Error,
+                    format!(
+                        "netlink returns error: {}",
+                        dnsmasq_rs::logging::error_text(&io::Error::from_raw_os_error(code))
+                    )
+                    .into_bytes(),
+                ));
             }
         }
     }
@@ -3538,12 +3705,21 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn step_route_events(&mut self) {
-        let ready = self.route_watch.as_ref().is_some_and(|watch| self.fd_ready(watch.raw_fd(), dnsmasq_platform::poll::POLLIN));
-        if !ready && self.route_retry_at.is_none() { return; }
+        let ready = self
+            .route_watch
+            .as_ref()
+            .is_some_and(|watch| self.fd_ready(watch.raw_fd(), dnsmasq_platform::poll::POLLIN));
+        if !ready && self.route_retry_at.is_none() {
+            return;
+        }
         let now = Instant::now();
-        if self.route_retry_at.is_some_and(|due| due > now) { return; }
+        if self.route_retry_at.is_some_and(|due| due > now) {
+            return;
+        }
         self.route_retry_at = None;
-        let Some(watch) = &mut self.route_watch else { return; };
+        let Some(watch) = &mut self.route_watch else {
+            return;
+        };
         let result = watch.read_events();
         self.finish_route_read(result, now);
     }
@@ -3559,15 +3735,26 @@ impl SinglePoll {
                 // an address event, resolver trigger, or snapshot resync.
                 self.route_retry_at = Some(now);
             }
-            Err(error) if matches!(error.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted) => {}
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                ) => {}
             Err(error) => {
                 // Other persistent read errors must not spin on POLLERR.
                 // This error-only cooldown still needs its actual fault gate.
                 self.route_retry_at = Some(now + Duration::from_secs(1));
                 if let Some(logger) = &mut self.logger {
                     use dnsmasq_rs::logging::{LogEvent, Priority, Service};
-                    logger.emit(LogEvent::new(Service::Dns, Priority::Error,
-                        format!("failed to read netlink socket: {}", dnsmasq_rs::logging::error_text(&error)).into_bytes()));
+                    logger.emit(LogEvent::new(
+                        Service::Dns,
+                        Priority::Error,
+                        format!(
+                            "failed to read netlink socket: {}",
+                            dnsmasq_rs::logging::error_text(&error)
+                        )
+                        .into_bytes(),
+                    ));
                 }
             }
         }
@@ -3581,10 +3768,15 @@ impl SinglePoll {
             return false;
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref())
-            .is_some_and(|provider| provider.try_borrow().map_or(true, |provider| {
-                provider.file_work_pending() || provider.files_runnable()
-            }))
+        if self
+            .dhcp
+            .as_ref()
+            .and_then(|dhcp| dhcp.provider.as_ref())
+            .is_some_and(|provider| {
+                provider.try_borrow().map_or(true, |provider| {
+                    provider.file_work_pending() || provider.files_runnable()
+                })
+            })
         {
             return false;
         }
@@ -3592,7 +3784,10 @@ impl SinglePoll {
     }
 
     #[cfg(target_os = "linux")]
-    #[expect(unsafe_code, reason = "private single-threaded owner controls resolver forks")]
+    #[expect(
+        unsafe_code,
+        reason = "private single-threaded owner controls resolver forks"
+    )]
     fn step_dns_files(&mut self) {
         if self.hosts_work_pending() {
             self.files_runnable = false;
@@ -3616,7 +3811,10 @@ impl SinglePoll {
         {
             return;
         }
-        let watch_ready = self.dns_files.as_ref().and_then(DnsFiles::watch_fd)
+        let watch_ready = self
+            .dns_files
+            .as_ref()
+            .and_then(DnsFiles::watch_fd)
             .is_some_and(|fd| self.fd_ready(fd, dnsmasq_platform::poll::POLLIN));
         let Some(files) = &mut self.dns_files else {
             return;
@@ -3834,10 +4032,16 @@ impl SinglePoll {
             if self.hosts_reload_failed {
                 return 0;
             }
-            let Some(staged) = self.hosts_staged.as_ref() else { return 0; };
+            let Some(staged) = self.hosts_staged.as_ref() else {
+                return 0;
+            };
             match staged.try_replace_source_with_leases(
-                source.uid, source.path.as_os_str().as_encoded_bytes(), records, ttl,
-                std::iter::empty::<(&[u8], IpAddr, bool, bool)>(), line_ends,
+                source.uid,
+                source.path.as_os_str().as_encoded_bytes(),
+                records,
+                ttl,
+                std::iter::empty::<(&[u8], IpAddr, bool, bool)>(),
+                line_ends,
             ) {
                 Ok((hosts, removed)) => {
                     self.hosts_staged = Some(hosts);
@@ -3857,21 +4061,31 @@ impl SinglePoll {
             // Keep both published owners intact until assembly and the second
             // publication copy succeed. Failed insertions must abandon the
             // entire replacement, not silently publish its accepted prefix.
-            let retained_leases = parent.local.leases.active_entries().map(|lease| (
-                lease.name.as_ref(), IpAddr::V4(lease.address),
-                lease.reverse, lease.expires.is_none(),
-            ));
-            let Ok((mut hosts, source_removed)) = parent.provider_hosts().try_replace_source_with_leases(
-                source.uid,
-                source.path.as_os_str().as_encoded_bytes(),
-                records,
-                ttl,
-                retained_leases,
-                line_ends,
-            ) else { return 0; };
+            let retained_leases = parent.local.leases.active_entries().map(|lease| {
+                (
+                    lease.name.as_ref(),
+                    IpAddr::V4(lease.address),
+                    lease.reverse,
+                    lease.expires.is_none(),
+                )
+            });
+            let Ok((mut hosts, source_removed)) =
+                parent.provider_hosts().try_replace_source_with_leases(
+                    source.uid,
+                    source.path.as_os_str().as_encoded_bytes(),
+                    records,
+                    ttl,
+                    retained_leases,
+                    line_ends,
+                )
+            else {
+                return 0;
+            };
             removed = source_removed;
             if parent.daemon.is_some() {
-                let Ok(mut snapshot) = hosts.try_clone() else { return 0; };
+                let Ok(mut snapshot) = hosts.try_clone() else {
+                    return 0;
+                };
                 snapshot.finish_bulk();
                 if provider_publishes_leases {
                     parent.pending_hosts = Some((hosts, snapshot));
@@ -3901,7 +4115,8 @@ impl SinglePoll {
                 let mut provider = provider.borrow_mut();
                 if !provider.file_work_pending() {
                     report_dhcp_maintenance(
-                        &provider.hosts_changed(now_seconds()), self.logger.as_mut(),
+                        &provider.hosts_changed(now_seconds()),
+                        self.logger.as_mut(),
                     );
                 }
             }
@@ -3928,12 +4143,18 @@ impl SinglePoll {
                 }
                 self.hosts_notice(
                     Priority::Error,
-                    format!("failed to load names from {}: Cannot allocate memory", loaded.source.path.display()),
+                    format!(
+                        "failed to load names from {}: Cannot allocate memory",
+                        loaded.source.path.display()
+                    ),
                 );
                 0
             } else {
                 self.publish_hosts_source_lines(
-                    &loaded.source, loaded.records, loaded.ttl, loaded.line_ends,
+                    &loaded.source,
+                    loaded.records,
+                    loaded.ttl,
+                    loaded.line_ends,
                 )
             };
             if !self.hosts_bulk && removed != 0 {
@@ -3998,10 +4219,7 @@ impl SinglePoll {
                     );
                 }
             } else {
-                match dnsmasq_rs::dns::hostsdir::HostsRead::open(
-                    change.source.clone(),
-                    ttl,
-                ) {
+                match dnsmasq_rs::dns::hostsdir::HostsRead::open(change.source.clone(), ttl) {
                     Ok(reader) => self.hosts_read = Some(reader),
                     Err(error) => {
                         let removed = self.publish_hosts_source(&change.source, Vec::new(), ttl);
@@ -4052,9 +4270,12 @@ impl SinglePoll {
     fn step_dhcp_files(&mut self) {
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             let mut provider = provider.borrow_mut();
-            let watch_ready = provider.file_watch_fd()
+            let watch_ready = provider
+                .file_watch_fd()
                 .is_some_and(|fd| self.fd_ready(fd, dnsmasq_platform::poll::POLLIN));
-            if let Some(report) = provider.step_files_with_watch_readiness(now_seconds(), watch_ready) {
+            if let Some(report) =
+                provider.step_files_with_watch_readiness(now_seconds(), watch_ready)
+            {
                 report_dhcp_maintenance(&report, self.logger.as_mut());
             }
         }
@@ -4116,13 +4337,17 @@ impl SinglePoll {
             reader.append_poll_fds(fds);
         }
         if self.route_retry_at.is_none() {
-            if let Some(watch) = &self.route_watch { watch.append_poll_fds(fds); }
+            if let Some(watch) = &self.route_watch {
+                watch.append_poll_fds(fds);
+            }
         }
     }
 
     fn wait_for_files(&mut self) -> io::Result<()> {
         #[cfg(any(target_os = "linux", test))]
-        { self.udp_only_wake = None; }
+        {
+            self.udp_only_wake = None;
+        }
         #[cfg(target_os = "linux")]
         {
             use dnsmasq_platform::poll::{PollFd, POLLIN, POLLOUT};
@@ -4156,13 +4381,16 @@ impl SinglePoll {
                 || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0
                 || CACHE_DUMP_REQUESTED.load(Ordering::Acquire) != 0
                 || ALARM_REQUESTED.load(Ordering::Acquire) != 0
-                || (RELOAD_REQUESTED.load(Ordering::Acquire) != 0
-                    && !self.reload_in_progress());
+                || (RELOAD_REQUESTED.load(Ordering::Acquire) != 0 && !self.reload_in_progress());
             if !self.interface_work_pending() {
-                if let Some(due) = self.interface_refresh.retry_at { wake_at(due); }
+                if let Some(due) = self.interface_refresh.retry_at {
+                    wake_at(due);
+                }
                 runnable |= self.interface_refresh.requested;
             }
-            if let Some(due) = self.route_retry_at { wake_at(due); }
+            if let Some(due) = self.route_retry_at {
+                wake_at(due);
+            }
 
             // The normal owner waits on network and file descriptors in one
             // set.  `step` still performs bounded nonblocking work after the
@@ -4193,9 +4421,12 @@ impl SinglePoll {
             }
             let upstream_fd_start = fds.len();
             let timer_sentinel = now + Duration::from_secs(3600);
-            self.upstream_next_due = self.service.borrow().daemon.as_ref().and_then(|daemon| {
-                daemon.append_poll_fds(&mut fds, timer_sentinel)
-            });
+            self.upstream_next_due = self
+                .service
+                .borrow()
+                .daemon
+                .as_ref()
+                .and_then(|daemon| daemon.append_poll_fds(&mut fds, timer_sentinel));
             if let Some(due) = self.upstream_next_due {
                 wake_at(due);
             }
@@ -4211,7 +4442,9 @@ impl SinglePoll {
                         runnable = true;
                     }
                 }
-                let Some(work) = &client.dns_work else { continue };
+                let Some(work) = &client.dns_work else {
+                    continue;
+                };
                 wake_at(work.deadline);
                 if !work.mac_ready && !work.mac_deferred {
                     wake_at(work.mac_deadline);
@@ -4225,20 +4458,16 @@ impl SinglePoll {
                         if work.input_offset < work.input.len() {
                             runnable = true;
                         }
-                        (
-                            work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
-                            POLLIN,
-                        )
+                        (work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd), POLLIN)
                     }
                     TcpClientPhase::WaitingMac { .. } => {
                         wake_at(work.mac_deadline);
                         runnable |= work.mac_ready;
                         (-1, 0)
                     }
-                    TcpClientPhase::Writing { .. } => (
-                        work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
-                        POLLOUT,
-                    ),
+                    TcpClientPhase::Writing { .. } => {
+                        (work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd), POLLOUT)
+                    }
                     TcpClientPhase::Forwarding { wait, .. } => {
                         wake_at(wait.deadline);
                         (wait.fd, wait.events)
@@ -4274,14 +4503,19 @@ impl SinglePoll {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(dhcp) = &self.dhcp {
                 if self.dhcp_packet_work_allowed() {
-                    let interfaces_pending = dhcp.provider.as_ref()
+                    let interfaces_pending = dhcp
+                        .provider
+                        .as_ref()
                         .is_some_and(|provider| provider.borrow().packet_interfaces_pending());
                     if !interfaces_pending {
                         dhcp.listener.append_poll_fds(&mut fds);
                     }
                 }
-                if let Some(provider) = dhcp.provider.as_ref()
-                    .filter(|_| self.dhcp_packet_work_allowed()) {
+                if let Some(provider) = dhcp
+                    .provider
+                    .as_ref()
+                    .filter(|_| self.dhcp_packet_work_allowed())
+                {
                     let provider = provider.borrow();
                     // Packet interface dumps share the file owner, but their
                     // readiness must also resume the DHCP transaction.
@@ -4329,8 +4563,13 @@ impl SinglePoll {
             if let Some(neighbors) = &self.neighbors {
                 neighbors.append_poll_fds(&mut fds);
                 if let Some(due) = neighbors.active_dump_deadline() {
-                    wake_at(neighbor_poll_deadline(due, now,
-                        SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default()));
+                    wake_at(neighbor_poll_deadline(
+                        due,
+                        now,
+                        SystemTime::now()
+                            .duration_since(UNIX_EPOCH)
+                            .unwrap_or_default(),
+                    ));
                 }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -4393,15 +4632,13 @@ impl SinglePoll {
                 .and_then(|index| fds.get(index))
                 .is_some_and(|fd| fd.revents != 0);
             self.ready_fds.clear();
-            self.ready_fds.extend(
-                fds.iter()
-                    .filter(|fd| fd.revents != 0)
-                    .copied(),
-            );
+            self.ready_fds
+                .extend(fds.iter().filter(|fd| fd.revents != 0).copied());
             // Slots are attached to the actual clients before poll. A newly
             // accepted connection cannot inherit readiness from a reused fd.
             for client in &mut self.clients {
-                client.ready_events = client.poll_slot
+                client.ready_events = client
+                    .poll_slot
                     .and_then(|slot| fds.get(slot))
                     .map_or(0, |fd| fd.revents);
             }
@@ -4428,7 +4665,10 @@ impl SinglePoll {
                 let ready = self.ready_fds[0];
                 if ready.revents == POLLIN {
                     self.udp_only_wake = self.listeners.iter().find_map(|listener| {
-                        listener.udp.as_ref().filter(|udp| udp.as_raw_fd() == ready.fd)
+                        listener
+                            .udp
+                            .as_ref()
+                            .filter(|udp| udp.as_raw_fd() == ready.fd)
                             .map(|_| (listener.token, deadline))
                     });
                 }
@@ -4467,7 +4707,10 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn fd_ready(&self, fd: i32, wanted: i16) -> bool {
-        let events = self.ready_fds.iter().filter(|ready| ready.fd == fd)
+        let events = self
+            .ready_fds
+            .iter()
+            .filter(|ready| ready.fd == fd)
             .fold(0, |events, ready| events | ready.revents);
         poll_events_match(events, wanted)
     }
@@ -4479,13 +4722,17 @@ impl SinglePoll {
         tcp: Option<TcpListener>,
     ) {
         #[cfg(any(target_os = "linux", test))]
-        { self.udp_only_wake = None; }
+        {
+            self.udp_only_wake = None;
+        }
         self.listeners.push(PollListener { token, udp, tcp });
     }
 
     fn remove_listener(&mut self, token: SocketToken) {
         #[cfg(any(target_os = "linux", test))]
-        { self.udp_only_wake = None; }
+        {
+            self.udp_only_wake = None;
+        }
         self.listeners.retain(|listener| listener.token != token);
     }
 
@@ -4524,8 +4771,12 @@ impl SinglePoll {
         }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
         ALARM_REQUESTED.store(0, Ordering::Release);
-        if CACHE_DUMP_REQUESTED.fetch_update(Ordering::AcqRel, Ordering::Acquire,
-            |count| count.checked_sub(1)).is_err() {
+        if CACHE_DUMP_REQUESTED
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                count.checked_sub(1)
+            })
+            .is_err()
+        {
             return;
         }
         #[cfg(target_os = "linux")]
@@ -4534,12 +4785,21 @@ impl SinglePoll {
             let metrics = self.metrics(&event);
             let parent = self.service.borrow();
             if let (Some(daemon), Some(logger)) = (&parent.daemon, &mut self.logger) {
-                daemon.dump_cache(&parent.local, now_seconds(), &metrics, event.tcp_high_water,
-                    self.tcp_limit, DEBUG_MODE.load(Ordering::Relaxed), |line| {
+                daemon.dump_cache(
+                    &parent.local,
+                    now_seconds(),
+                    &metrics,
+                    event.tcp_high_water,
+                    self.tcp_limit,
+                    DEBUG_MODE.load(Ordering::Relaxed),
+                    |line| {
                         logger.emit(dnsmasq_rs::logging::LogEvent::new(
                             dnsmasq_rs::logging::Service::Dns,
-                            dnsmasq_rs::logging::Priority::Info, line.into_bytes()));
-                    });
+                            dnsmasq_rs::logging::Priority::Info,
+                            line.into_bytes(),
+                        ));
+                    },
+                );
                 event.tcp_high_water = event.tcp_active;
             }
         }
@@ -4571,65 +4831,126 @@ impl SinglePoll {
     // retain the full turn; idle DHCP uses its existing in-memory state.
     #[cfg(any(target_os = "linux", test))]
     fn udp_dispatch_idle(&self, now: Instant) -> bool {
-        if self.m6b.enabled() || self.ubus_ready || !self.clients.is_empty()
-            || !self.pending_edns_udp.is_empty() || self.edns_udp_runnable
-            || self.full_reload_pending || self.interface_refresh.requested
-            || self.interface_refresh.retry_at.is_some_and(|due| due <= now) || self.hosts_staged.is_some()
-            || self.hosts_reload_failed || self.pending_interface_udp.is_some()
+        if self.m6b.enabled()
+            || self.ubus_ready
+            || !self.clients.is_empty()
+            || !self.pending_edns_udp.is_empty()
+            || self.edns_udp_runnable
+            || self.full_reload_pending
+            || self.interface_refresh.requested
+            || self
+                .interface_refresh
+                .retry_at
+                .is_some_and(|due| due <= now)
+            || self.hosts_staged.is_some()
+            || self.hosts_reload_failed
+            || self.pending_interface_udp.is_some()
             || self.pending_interface_tcp.is_some()
             || STOP_REQUESTED.load(Ordering::Acquire)
             || RELOAD_REQUESTED.load(Ordering::Acquire) != 0
             || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0
             || CACHE_DUMP_REQUESTED.load(Ordering::Acquire) != 0
             || ALARM_REQUESTED.load(Ordering::Acquire) != 0
-        { return false; }
+        {
+            return false;
+        }
         #[cfg(target_os = "linux")]
-        if self.upstream_ready || self.upstream_next_due.is_some_and(|due| due <= now)
-            || self.route_retry_at.is_some_and(|due| due <= now) || self.files_runnable
-            || self.hosts_bulk || self.hosts_full_reload || self.hosts_work_pending()
+        if self.upstream_ready
+            || self.upstream_next_due.is_some_and(|due| due <= now)
+            || self.route_retry_at.is_some_and(|due| due <= now)
+            || self.files_runnable
+            || self.hosts_bulk
+            || self.hosts_full_reload
+            || self.hosts_work_pending()
             || self.pending_interface_files.is_some()
-            || self.dns_files.as_ref().is_some_and(|files| files.has_work() || files.initializing())
-            || self.early_logger.iter().chain(self.logger.iter())
-                .any(|logger| logger.has_pending() || logger.retry_deadline().is_some_and(|due| due <= now))
-        { return false; }
+            || self
+                .dns_files
+                .as_ref()
+                .is_some_and(|files| files.has_work() || files.initializing())
+            || self
+                .early_logger
+                .iter()
+                .chain(self.logger.iter())
+                .any(|logger| {
+                    logger.has_pending() || logger.retry_deadline().is_some_and(|due| due <= now)
+                })
+        {
+            return false;
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self.helper.is_some() || self.tftp.is_some()
-            || self.neighbors.is_some() || self.interface_work_pending()
-            || self.pending_udp_admission.is_some() || self.helper_init.is_some()
-            || self.helper_init_error.is_some() || self.pending_delivery.is_some()
-            || self.script_arp || self.arp_awake || self.dhcp_ready || self.tftp_ready
-            || self.neighbors_ready || self.tftp_next_due.is_some()
-        { return false; }
+        if self.helper.is_some()
+            || self.tftp.is_some()
+            || self.neighbors.is_some()
+            || self.interface_work_pending()
+            || self.pending_udp_admission.is_some()
+            || self.helper_init.is_some()
+            || self.helper_init_error.is_some()
+            || self.pending_delivery.is_some()
+            || self.script_arp
+            || self.arp_awake
+            || self.dhcp_ready
+            || self.tftp_ready
+            || self.neighbors_ready
+            || self.tftp_next_due.is_some()
+        {
+            return false;
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(dhcp) = &self.dhcp {
             // Do not repeat has_input()/poll here: readiness belongs to the
             // existing wait. A reply already queued in userspace is different.
-            if dhcp.listener.has_pending_reply() { return false; }
+            if dhcp.listener.has_pending_reply() {
+                return false;
+            }
             if let Some(provider) = &dhcp.provider {
-                let Ok(provider) = provider.try_borrow() else { return false };
-                if provider.files_initializing() || provider.file_work_pending()
-                    || provider.files_runnable() || provider.packet_interfaces_pending()
-                    || provider.packet_interfaces_runnable() || provider.maintenance_due(now)
-                    || provider.script_delivery_enabled() || provider.has_frozen_script_delivery()
-                { return false; }
+                let Ok(provider) = provider.try_borrow() else {
+                    return false;
+                };
+                if provider.files_initializing()
+                    || provider.file_work_pending()
+                    || provider.files_runnable()
+                    || provider.packet_interfaces_pending()
+                    || provider.packet_interfaces_runnable()
+                    || provider.maintenance_due(now)
+                    || provider.script_delivery_enabled()
+                    || provider.has_frozen_script_delivery()
+                {
+                    return false;
+                }
             }
         }
-        let Ok(event) = self.parent_events.try_borrow() else { return false };
+        let Ok(event) = self.parent_events.try_borrow() else {
+            return false;
+        };
         if event.ubus.as_ref().is_some_and(UbusService::has_pending)
             || (event.ubus_name.is_some() && event.ubus.is_none() && event.ubus_retry_at <= now)
-        { return false; }
+        {
+            return false;
+        }
         #[cfg(target_os = "linux")]
-        if !event.ubus_notices.is_empty() { return false; }
-        let Ok(parent) = self.service.try_borrow() else { return false };
-        !parent.hosts_initializing && parent.pending_hosts.is_none()
-            && parent.daemon.as_ref().is_some_and(|daemon| daemon.pending_count() == 0)
+        if !event.ubus_notices.is_empty() {
+            return false;
+        }
+        let Ok(parent) = self.service.try_borrow() else {
+            return false;
+        };
+        !parent.hosts_initializing
+            && parent.pending_hosts.is_none()
+            && parent
+                .daemon
+                .as_ref()
+                .is_some_and(|daemon| daemon.pending_count() == 0)
     }
 
     #[cfg(any(target_os = "linux", test))]
     fn take_udp_only_listener(&mut self, now: Instant) -> Option<(usize, Option<Instant>)> {
         let (token, deadline) = self.udp_only_wake.take()?;
-        if deadline.is_some_and(|due| due <= now) || !self.udp_dispatch_idle(now) { return None; }
-        self.listeners.iter().position(|listener| listener.token == token && listener.udp.is_some())
+        if deadline.is_some_and(|due| due <= now) || !self.udp_dispatch_idle(now) {
+            return None;
+        }
+        self.listeners
+            .iter()
+            .position(|listener| listener.token == token && listener.udp.is_some())
             .map(|index| (index, deadline))
     }
 
@@ -4648,8 +4969,11 @@ impl SinglePoll {
             }
         }
         #[cfg(any(target_os = "linux", test))]
-        if let Some((index, deadline)) = self.udp_only_wake.is_some()
-            .then(|| self.take_udp_only_listener(Instant::now())).flatten()
+        if let Some((index, deadline)) = self
+            .udp_only_wake
+            .is_some()
+            .then(|| self.take_udp_only_listener(Instant::now()))
+            .flatten()
         {
             let mut budget = UDP_PACKETS_PER_TURN;
             self.step_udp_batch(index, &mut budget);
@@ -4733,14 +5057,18 @@ impl SinglePoll {
         if self.m6b.enabled() {
             let counters = self.m6b.listener_mut(index);
             counters.max_batch = counters.max_batch.max(batch);
-            if *budget == 0 { counters.budget_yields += 1; }
+            if *budget == 0 {
+                counters.budget_yields += 1;
+            }
         }
     }
 
     fn step_after_udp(&mut self) {
         #[cfg(target_os = "linux")]
         if self.upstream_ready
-            || self.upstream_next_due.is_some_and(|due| due <= Instant::now())
+            || self
+                .upstream_next_due
+                .is_some_and(|due| due <= Instant::now())
         {
             self.poll_udp_completions();
             self.upstream_ready = false;
@@ -4748,9 +5076,12 @@ impl SinglePoll {
         #[cfg(not(target_os = "linux"))]
         self.poll_udp_completions();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self.neighbors_ready || self.neighbors.as_ref()
-            .and_then(NeighborCache::active_dump_deadline)
-            .is_some_and(|due| due <= now_seconds() as u64)
+        if self.neighbors_ready
+            || self
+                .neighbors
+                .as_ref()
+                .and_then(NeighborCache::active_dump_deadline)
+                .is_some_and(|due| due <= now_seconds() as u64)
         {
             // MAC waiters consume the completed snapshot in this same wake.
             self.neighbors_ready = true;
@@ -4825,7 +5156,8 @@ impl SinglePoll {
             return;
         }
         self.interfaces_enumerated = true;
-        if !needed_for_admission && self.config.interface_records.rules.is_empty()
+        if !needed_for_admission
+            && self.config.interface_records.rules.is_empty()
             && !self.config.needs_domain_interfaces()
         {
             if let Some(daemon) = &mut self.service.borrow_mut().daemon {
@@ -4852,7 +5184,9 @@ impl SinglePoll {
     fn interface_work_pending(&self) -> bool {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         {
-            self.interface_collector.as_ref().is_some_and(|collector| collector.busy())
+            self.interface_collector
+                .as_ref()
+                .is_some_and(|collector| collector.busy())
         }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
         {
@@ -4911,7 +5245,11 @@ impl SinglePoll {
                 daemon.publish_interface_records(records);
             }
         }
-        if let Some(tftp) = self.tftp.as_mut().filter(|tftp| tftp.needs_interface_admission()) {
+        if let Some(tftp) = self
+            .tftp
+            .as_mut()
+            .filter(|tftp| tftp.needs_interface_admission())
+        {
             tftp.resume_interface_admission(&self.interfaces.borrow(), now_seconds() as u64);
             self.tftp_ready = true;
         }
@@ -4931,11 +5269,21 @@ impl SinglePoll {
         }
         if let Some(pending) = self.pending_udp_admission.take() {
             let admitted = self.interfaces.try_borrow().is_ok_and(|interfaces| {
-                listeners::udp_acl_exception(&self.config, &interfaces, pending.incoming.destination,
-                    pending.incoming.interface, pending.loopback)
+                listeners::udp_acl_exception(
+                    &self.config,
+                    &interfaces,
+                    pending.incoming.destination,
+                    pending.incoming.interface,
+                    pending.loopback,
+                )
             });
             if admitted {
-                self.process_admitted_udp(pending.token, pending.udp, pending.incoming, pending.query.into());
+                self.process_admitted_udp(
+                    pending.token,
+                    pending.udp,
+                    pending.incoming,
+                    pending.query.into(),
+                );
             }
         }
         if let Some(pending) = self.pending_interface_tcp.take() {
@@ -4965,11 +5313,20 @@ impl SinglePoll {
             let Ok(name) = udp.ingress_name(incoming.interface) else {
                 return UdpAdmission::Reject;
             };
-            let length = name.iter().position(|byte| *byte == 0).unwrap_or(name.len());
+            let length = name
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(name.len());
             // This is also the implicit loopback name in C's interface list.
             // A failed flags lookup disables only that rule and its exception.
             let loopback = udp.ingress_loopback(&name).is_ok_and(|value| value);
-            if listeners::udp_acl_name(&self.config, incoming.destination, &name[..length], loopback, true) {
+            if listeners::udp_acl_name(
+                &self.config,
+                incoming.destination,
+                &name[..length],
+                loopback,
+                true,
+            ) {
                 return UdpAdmission::Accept;
             }
             // C still checks the IPv4 label exception against the new list.
@@ -4982,8 +5339,13 @@ impl SinglePoll {
             // A same-turn latch or early control-socket failure keeps the
             // prior generation. Do not retry synchronously via getifaddrs.
             return if self.interfaces.try_borrow().is_ok_and(|interfaces| {
-                listeners::udp_acl_exception(&self.config, &interfaces, incoming.destination,
-                    incoming.interface, loopback)
+                listeners::udp_acl_exception(
+                    &self.config,
+                    &interfaces,
+                    incoming.destination,
+                    incoming.interface,
+                    loopback,
+                )
             }) {
                 UdpAdmission::Accept
             } else {
@@ -4992,9 +5354,13 @@ impl SinglePoll {
         }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
         let _ = udp;
-        if listeners::admit(&self.config, &interfaces, incoming.peer.ip(), incoming.destination,
-            incoming.interface)
-        {
+        if listeners::admit(
+            &self.config,
+            &interfaces,
+            incoming.peer.ip(),
+            incoming.destination,
+            incoming.interface,
+        ) {
             UdpAdmission::Accept
         } else {
             UdpAdmission::Reject
@@ -5053,8 +5419,7 @@ impl SinglePoll {
             Err(error)
                 if matches!(
                     error.kind(),
-                    io::ErrorKind::WouldBlock
-                        | io::ErrorKind::TimedOut
+                    io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
                 ) =>
             {
                 if self.m6b.enabled() {
@@ -5081,7 +5446,11 @@ impl SinglePoll {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             UdpAdmission::PendingInterfaces { loopback } => {
                 self.pending_udp_admission = Some(PendingUdpAdmission {
-                    token, udp, incoming, query: self.udp_buffer[..incoming.len].to_vec(), loopback,
+                    token,
+                    udp,
+                    incoming,
+                    query: self.udp_buffer[..incoming.len].to_vec(),
+                    loopback,
                 });
                 return true;
             }
@@ -5100,20 +5469,46 @@ impl SinglePoll {
 
     // Admission has already enforced ingress/ACL policy. Only this immediate
     // receive path owns mutable packet storage; deferred packets stay general.
-    fn try_plain_udp_hit(&mut self, udp: &DnsSocket, incoming: listeners::Incoming,
-                         packet: &mut [u8]) -> bool {
-        if self.query_logging.enabled || self.config.edns.active() || self.config.loop_detect
+    fn try_plain_udp_hit(
+        &mut self,
+        udp: &DnsSocket,
+        incoming: listeners::Incoming,
+        packet: &mut [u8],
+    ) -> bool {
+        if self.query_logging.enabled
+            || self.config.edns.active()
+            || self.config.loop_detect
             || self.config.auth.has_interfaces()
-        { return false; }
-        #[cfg(target_os = "linux")]
-        if self.dump.enabled(dnsmasq_rs::dump::QUERY) || self.dump.enabled(dnsmasq_rs::dump::REPLY) {
+        {
             return false;
         }
-        let Ok(mut event) = self.parent_events.try_borrow_mut() else { return false };
-        if event.ubus.as_ref().is_some_and(UbusService::dns_has_subscribers) { return false; }
-        let Ok(mut parent) = self.service.try_borrow_mut() else { return false };
-        let ParentDns { local, daemon, query_ids, .. } = &mut *parent;
-        let Some(daemon) = daemon.as_mut() else { return false };
+        #[cfg(target_os = "linux")]
+        if self.dump.enabled(dnsmasq_rs::dump::QUERY) || self.dump.enabled(dnsmasq_rs::dump::REPLY)
+        {
+            return false;
+        }
+        let Ok(mut event) = self.parent_events.try_borrow_mut() else {
+            return false;
+        };
+        if event
+            .ubus
+            .as_ref()
+            .is_some_and(UbusService::dns_has_subscribers)
+        {
+            return false;
+        }
+        let Ok(mut parent) = self.service.try_borrow_mut() else {
+            return false;
+        };
+        let ParentDns {
+            local,
+            daemon,
+            query_ids,
+            ..
+        } = &mut *parent;
+        let Some(daemon) = daemon.as_mut() else {
+            return false;
+        };
         let Some(length) = daemon.try_plain_cached_udp_in_place(packet, incoming.len, local) else {
             return false;
         };
@@ -5124,21 +5519,33 @@ impl SinglePoll {
         }
         // Keep the general path's upstream completion boundary before sending
         // this answer, including timers, releases and already queued events.
-        let responses = daemon.poll_with_local(Duration::ZERO, local).unwrap_or_default();
+        let responses = daemon
+            .poll_with_local(Duration::ZERO, local)
+            .unwrap_or_default();
         let _ = local.take_query_events();
         let _ = daemon.take_query_events();
         drop(parent);
-        let _ = udp.send(&packet[..length], incoming.peer,
+        let _ = udp.send(
+            &packet[..length],
+            incoming.peer,
             (!self.config.bind_interfaces && !self.config.bind_dynamic)
-                .then_some((incoming.destination, incoming.interface)));
+                .then_some((incoming.destination, incoming.interface)),
+        );
         event.local_answered = event.local_answered.wrapping_add(1);
         drop(event);
-        if !responses.is_empty() { self.send_udp_responses(responses); }
+        if !responses.is_empty() {
+            self.send_udp_responses(responses);
+        }
         true
     }
 
-    fn process_admitted_udp(&mut self, token: SocketToken, udp: Arc<DnsSocket>,
-                            incoming: listeners::Incoming, query: Cow<'_, [u8]>) -> bool {
+    fn process_admitted_udp(
+        &mut self,
+        token: SocketToken,
+        udp: Arc<DnsSocket>,
+        incoming: listeners::Incoming,
+        query: Cow<'_, [u8]>,
+    ) -> bool {
         let query_context = match self.service.try_borrow_mut() {
             Ok(mut parent) => parent.query_ids.next(false, Some(incoming.peer)),
             Err(_) => return true,
@@ -5161,13 +5568,21 @@ impl SinglePoll {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if self.config.auth.has_interfaces() {
                 auth = if (self.config.bind_interfaces || self.config.bind_dynamic)
-                    && incoming.destination.is_ipv4() {
-                    self.interfaces.borrow().iter().any(|row| row.address == incoming.destination
-                        && self.config.auth.selected(row.address, &row.name))
+                    && incoming.destination.is_ipv4()
+                {
+                    self.interfaces.borrow().iter().any(|row| {
+                        row.address == incoming.destination
+                            && self.config.auth.selected(row.address, &row.name)
+                    })
                 } else {
                     udp.ingress_name(incoming.interface).is_ok_and(|name| {
-                        let length = name.iter().position(|byte| *byte == 0).unwrap_or(name.len());
-                        self.config.auth.selected(incoming.destination, &name[..length])
+                        let length = name
+                            .iter()
+                            .position(|byte| *byte == 0)
+                            .unwrap_or(name.len());
+                        self.config
+                            .auth
+                            .selected(incoming.destination, &name[..length])
                     })
                 };
             }
@@ -5303,7 +5718,9 @@ impl SinglePoll {
         };
         // Only a DNS subscription callback consumes this snapshot. Keep its
         // original pre-processing state boundary when one is needed.
-        let metrics = event.ubus.as_ref()
+        let metrics = event
+            .ubus
+            .as_ref()
             .is_some_and(UbusService::dns_has_subscribers)
             .then(|| self.metrics(&event));
         let mut parent = match self.service.try_borrow_mut() {
@@ -5416,9 +5833,7 @@ impl SinglePoll {
                         cached_reply = true;
                         Some((answer, false))
                     }
-                    Ok(QueryResult::Local(answer)) => {
-                        Some((answer, false))
-                    }
+                    Ok(QueryResult::Local(answer)) => Some((answer, false)),
                     Ok(QueryResult::Stale(answer)) => Some((answer, true)),
                     _ => None,
                 }
@@ -5508,9 +5923,9 @@ impl SinglePoll {
                 #[cfg(target_os = "linux")]
                 if let Some(logger) = &mut self.logger {
                     for (context, notice) in refresh_query_events {
-                        if let Some(notice) = dnsmasq_rs::logging::query::format(
-                            self.query_logging, context, &notice,
-                        ) {
+                        if let Some(notice) =
+                            dnsmasq_rs::logging::query::format(self.query_logging, context, &notice)
+                        {
                             logger.emit(notice);
                         }
                     }
@@ -5520,7 +5935,9 @@ impl SinglePoll {
             }
         }
         drop(event);
-        if !responses.is_empty() { self.send_udp_responses(responses); }
+        if !responses.is_empty() {
+            self.send_udp_responses(responses);
+        }
     }
 
     // Keep the multi-response send/dump walk outside the ordinary cache hit.
@@ -5566,7 +5983,9 @@ impl SinglePoll {
         };
         // Only a DNS subscription callback consumes this snapshot. Keep its
         // original pre-processing state boundary when one is needed.
-        let metrics = event.ubus.as_ref()
+        let metrics = event
+            .ubus
+            .as_ref()
             .is_some_and(UbusService::dns_has_subscribers)
             .then(|| self.metrics(&event));
         let mut parent = match self.service.try_borrow_mut() {
@@ -5688,13 +6107,16 @@ impl SinglePoll {
         let auth_query = if let Some((name, _)) = &ingress {
             self.config.auth.selected(destination.ip(), name)
         } else {
-            interfaces.iter().any(|row| row.address == destination.ip()
-                && match destination {
-                    SocketAddr::V6(address) if address.ip().is_unicast_link_local() =>
-                        address.scope_id() == row.index,
-                    _ => true,
-                }
-                && self.config.auth.selected(row.address, &row.name))
+            interfaces.iter().any(|row| {
+                row.address == destination.ip()
+                    && match destination {
+                        SocketAddr::V6(address) if address.ip().is_unicast_link_local() => {
+                            address.scope_id() == row.index
+                        }
+                        _ => true,
+                    }
+                    && self.config.auth.selected(row.address, &row.name)
+            })
         };
         drop(interfaces);
         if stream.set_nonblocking(true).is_err() {
@@ -5847,7 +6269,9 @@ impl SinglePoll {
     fn tcp_client_ready(&self, index: usize) -> bool {
         let client = &self.clients[index];
         let now = Instant::now();
-        let Some(work) = &client.dns_work else { return true };
+        let Some(work) = &client.dns_work else {
+            return true;
+        };
         if now >= work.deadline {
             return true;
         }
@@ -5859,14 +6283,19 @@ impl SinglePoll {
             return now >= work.mac_deadline || neighbor_ready;
         }
         match &work.phase {
-            TcpClientPhase::Reading => work.input_offset < work.input.len()
-                || poll_events_match(client.ready_events, dnsmasq_platform::poll::POLLIN),
-            TcpClientPhase::WaitingMac { .. } =>
-                work.mac_ready || now >= work.mac_deadline || neighbor_ready,
-            TcpClientPhase::Forwarding { wait, .. } => now >= wait.deadline
-                || poll_events_match(client.ready_events, wait.events),
-            TcpClientPhase::Writing { .. } =>
-                poll_events_match(client.ready_events, dnsmasq_platform::poll::POLLOUT),
+            TcpClientPhase::Reading => {
+                work.input_offset < work.input.len()
+                    || poll_events_match(client.ready_events, dnsmasq_platform::poll::POLLIN)
+            }
+            TcpClientPhase::WaitingMac { .. } => {
+                work.mac_ready || now >= work.mac_deadline || neighbor_ready
+            }
+            TcpClientPhase::Forwarding { wait, .. } => {
+                now >= wait.deadline || poll_events_match(client.ready_events, wait.events)
+            }
+            TcpClientPhase::Writing { .. } => {
+                poll_events_match(client.ready_events, dnsmasq_platform::poll::POLLOUT)
+            }
         }
     }
 
@@ -5901,11 +6330,23 @@ impl SinglePoll {
             }
             #[cfg(target_os = "linux")]
             let (readable, writable, forward_ready) = match &self.clients[index].dns_work {
-                Some(TcpDnsWork { phase: TcpClientPhase::Forwarding { wait, .. }, .. }) =>
-                    (false, false, poll_events_match(self.clients[index].ready_events, wait.events)),
+                Some(TcpDnsWork {
+                    phase: TcpClientPhase::Forwarding { wait, .. },
+                    ..
+                }) => (
+                    false,
+                    false,
+                    poll_events_match(self.clients[index].ready_events, wait.events),
+                ),
                 _ => (
-                    poll_events_match(self.clients[index].ready_events, dnsmasq_platform::poll::POLLIN),
-                    poll_events_match(self.clients[index].ready_events, dnsmasq_platform::poll::POLLOUT),
+                    poll_events_match(
+                        self.clients[index].ready_events,
+                        dnsmasq_platform::poll::POLLIN,
+                    ),
+                    poll_events_match(
+                        self.clients[index].ready_events,
+                        dnsmasq_platform::poll::POLLOUT,
+                    ),
                     false,
                 ),
             };
@@ -5916,16 +6357,25 @@ impl SinglePoll {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             let result = if let Some(work) = &mut self.clients[index].dns_work {
                 let neighbors = &mut self.neighbors;
-                work.step(&self.service, &mut |source, lazy| {
-                    lookup_edns_mac(neighbors, source, lazy)
-                }, readable, writable, forward_ready)
+                work.step(
+                    &self.service,
+                    &mut |source, lazy| lookup_edns_mac(neighbors, source, lazy),
+                    readable,
+                    writable,
+                    forward_ready,
+                )
             } else {
                 Ok(false)
             };
             #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
             let result = if let Some(work) = &mut self.clients[index].dns_work {
-                work.step(&self.service, &mut |_, _| ClientMacLookup::Ready(None),
-                    readable, writable, forward_ready)
+                work.step(
+                    &self.service,
+                    &mut |_, _| ClientMacLookup::Ready(None),
+                    readable,
+                    writable,
+                    forward_ready,
+                )
             } else {
                 Ok(false)
             };
@@ -5938,10 +6388,13 @@ impl SinglePoll {
                     // before run_forward reaches its normal collection point.
                     // Transfer them too before releasing the producer owners.
                     work.collect_local_query_events();
-                    work.query_events.extend(work.forward.take_query_events().into_iter()
-                        .map(|event| (work.query_context, event)));
-                    for (query_context, event) in std::mem::take(&mut work.query_events)
-                    {
+                    work.query_events.extend(
+                        work.forward
+                            .take_query_events()
+                            .into_iter()
+                            .map(|event| (work.query_context, event)),
+                    );
+                    for (query_context, event) in std::mem::take(&mut work.query_events) {
                         if let Some(event) = dnsmasq_rs::logging::query::format(
                             self.query_logging,
                             query_context,
@@ -5984,9 +6437,13 @@ impl SinglePoll {
                 (&mut self.logger, &mut self.clients[index].log_context)
             {
                 let log_ready = logger.tcp_poll_fd(context).is_some_and(|fd| {
-                    self.ready_fds.iter().any(|ready| ready.fd == fd
-                        && poll_events_match(ready.revents, dnsmasq_platform::poll::POLLOUT))
-                }) || logger.tcp_retry_deadline(context).is_some_and(|due| due <= Instant::now());
+                    self.ready_fds.iter().any(|ready| {
+                        ready.fd == fd
+                            && poll_events_match(ready.revents, dnsmasq_platform::poll::POLLOUT)
+                    })
+                }) || logger
+                    .tcp_retry_deadline(context)
+                    .is_some_and(|due| due <= Instant::now());
                 // Preserve the first forced finish after network closure.
                 // Later turns retry only actual writable/timer work, while an
                 // empty or failed queue can release its client immediately.
@@ -6094,9 +6551,12 @@ impl SinglePoll {
         }
         let upstream_fd_start = fds.len();
         let timer_sentinel = Instant::now() + Duration::from_secs(3600);
-        self.upstream_next_due = self.service.borrow().daemon.as_ref().and_then(|daemon| {
-            daemon.append_poll_fds(&mut fds, timer_sentinel)
-        });
+        self.upstream_next_due = self
+            .service
+            .borrow()
+            .daemon
+            .as_ref()
+            .and_then(|daemon| daemon.append_poll_fds(&mut fds, timer_sentinel));
         if let Some(due) = self.upstream_next_due {
             deadline = deadline.min(due);
         }
@@ -6112,7 +6572,9 @@ impl SinglePoll {
                     deadline = Instant::now();
                 }
             }
-            let Some(work) = &client.dns_work else { continue };
+            let Some(work) = &client.dns_work else {
+                continue;
+            };
             deadline = deadline.min(work.deadline);
             if !work.mac_ready && !work.mac_deferred {
                 deadline = deadline.min(work.mac_deadline);
@@ -6123,20 +6585,18 @@ impl SinglePoll {
                     if work.input_offset < work.input.len() {
                         deadline = Instant::now();
                     }
-                    (
-                        work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
-                        POLLIN,
-                    )
+                    (work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd), POLLIN)
                 }
                 TcpClientPhase::WaitingMac { .. } => {
                     deadline = deadline.min(work.mac_deadline);
-                    if work.mac_ready { deadline = Instant::now(); }
+                    if work.mac_ready {
+                        deadline = Instant::now();
+                    }
                     (-1, 0)
                 }
-                TcpClientPhase::Writing { .. } => (
-                    work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
-                    POLLOUT,
-                ),
+                TcpClientPhase::Writing { .. } => {
+                    (work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd), POLLOUT)
+                }
                 TcpClientPhase::Forwarding { wait, .. } => {
                     deadline = deadline.min(wait.deadline);
                     (wait.fd, wait.events)
@@ -6162,8 +6622,13 @@ impl SinglePoll {
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
             if let Some(due) = neighbors.active_dump_deadline() {
-                deadline = deadline.min(neighbor_poll_deadline(due, Instant::now(),
-                    SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default()));
+                deadline = deadline.min(neighbor_poll_deadline(
+                    due,
+                    Instant::now(),
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap_or_default(),
+                ));
             }
         }
         let neighbors_fd_end = fds.len();
@@ -6183,18 +6648,27 @@ impl SinglePoll {
             .min(i32::MAX as u128) as i32;
         let ready = dnsmasq_platform::poll::poll_fds(&mut fds, millis)?;
         self.ready_fds.clear();
-        self.ready_fds.extend(fds.iter().filter(|fd| fd.revents != 0).copied());
+        self.ready_fds
+            .extend(fds.iter().filter(|fd| fd.revents != 0).copied());
         for client in &mut self.clients {
-            client.ready_events = client.poll_slot.and_then(|slot| fds.get(slot))
+            client.ready_events = client
+                .poll_slot
+                .and_then(|slot| fds.get(slot))
                 .map_or(0, |fd| fd.revents);
         }
-        self.upstream_ready = fds[upstream_fd_start..upstream_fd_end].iter()
+        self.upstream_ready = fds[upstream_fd_start..upstream_fd_end]
+            .iter()
             .any(|fd| fd.revents != 0);
-        self.tftp_ready = fds[tftp_fd_start..tftp_fd_end].iter()
+        self.tftp_ready = fds[tftp_fd_start..tftp_fd_end]
+            .iter()
             .any(|fd| fd.revents != 0);
-        self.neighbors_ready = fds[neighbors_fd_start..neighbors_fd_end].iter()
+        self.neighbors_ready = fds[neighbors_fd_start..neighbors_fd_end]
+            .iter()
             .any(|fd| fd.revents != 0)
-            || self.neighbors.as_ref().and_then(NeighborCache::active_dump_deadline)
+            || self
+                .neighbors
+                .as_ref()
+                .and_then(NeighborCache::active_dump_deadline)
                 .is_some_and(|due| due <= now_seconds() as u64);
         self.step_interface_collector();
         // C's delay_dhcp does not consume inotify/route events. They remain
@@ -6226,13 +6700,21 @@ impl SinglePoll {
         // A full pipe or unready/stopping helper is driven only by its fd.
         if helper.can_enqueue()
             && (self.pending_delivery.is_some()
-                || (self.helper_init.is_none() && !self.files_initializing()
-                    && self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref())
-                    .and_then(|provider| provider.try_borrow().ok())
-                    .is_some_and(|provider| provider.has_frozen_script_delivery()))
-                || self.neighbors.as_ref()
+                || (self.helper_init.is_none()
+                    && !self.files_initializing()
+                    && self
+                        .dhcp
+                        .as_ref()
+                        .and_then(|dhcp| dhcp.provider.as_ref())
+                        .and_then(|provider| provider.try_borrow().ok())
+                        .is_some_and(|provider| provider.has_frozen_script_delivery()))
+                || self
+                    .neighbors
+                    .as_ref()
                     .is_some_and(|neighbors| neighbors.front_script_change().is_some())
-                || self.tftp.as_ref()
+                || self
+                    .tftp
+                    .as_ref()
                     .is_some_and(|tftp| tftp.front_completion().is_some()))
         {
             Some(now)
@@ -6523,7 +7005,8 @@ impl SinglePoll {
         }
         // The main wait already witnessed DHCP/PXE input or the fresh dump's
         // progress. No other owner consumes the queued packet between turns.
-        let input_pending = self.dhcp_ready || self
+        let input_pending = self.dhcp_ready
+            || self
                 .dhcp
                 .as_ref()
                 .is_some_and(|dhcp| dhcp.listener.has_input().unwrap_or(false));
@@ -6774,7 +7257,8 @@ impl SinglePoll {
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
         }
-        self.arp_awake |= dnsmasq_platform::poll::poll_fds(&mut fds, 0).is_ok_and(|ready| ready != 0);
+        self.arp_awake |=
+            dnsmasq_platform::poll::poll_fds(&mut fds, 0).is_ok_and(|ready| ready != 0);
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -6814,7 +7298,9 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn capture_completed_tcp_macs(&mut self) {
         for index in 0..self.clients.len() {
-            let Some(work) = self.clients[index].dns_work.as_ref() else { continue };
+            let Some(work) = self.clients[index].dns_work.as_ref() else {
+                continue;
+            };
             if work.mac_ready
                 || (work.mac_deferred && !matches!(&work.phase, TcpClientPhase::WaitingMac { .. }))
             {
@@ -6854,8 +7340,12 @@ impl SinglePoll {
             return;
         }
         let now_instant = Instant::now();
-        if !self.tftp_ready && !(active && self.neighbors_ready)
-            && !(active && self.tftp_next_due.is_some_and(|deadline| deadline <= now_instant))
+        if !self.tftp_ready
+            && !(active && self.neighbors_ready)
+            && !(active
+                && self
+                    .tftp_next_due
+                    .is_some_and(|deadline| deadline <= now_instant))
         {
             return;
         }
@@ -6895,7 +7385,11 @@ impl SinglePoll {
             events.iter().any(|event| {
                 use dnsmasq_rs::tftp_runtime::RuntimeEvent;
                 match event {
-                    RuntimeEvent::Send { id: Some(_), packet, .. } => {
+                    RuntimeEvent::Send {
+                        id: Some(_),
+                        packet,
+                        ..
+                    } => {
                         matches!(packet.get(..2), Some([0, 3] | [0, 5] | [0, 6]))
                     }
                     // tftp.c:679-684 calls get_block without sending. With a
@@ -6926,7 +7420,8 @@ impl SinglePoll {
         if self.helper.as_ref().is_none_or(Helper::is_finished) {
             while listener.pop_completion().is_some() {}
         }
-        self.tftp_next_due = listener.has_pending_work()
+        self.tftp_next_due = listener
+            .has_pending_work()
             .then_some(now_instant + Duration::from_millis(250));
         let needs_interfaces = listener.needs_interface_admission();
         if needs_interfaces {
@@ -7139,9 +7634,16 @@ impl HostsReadNotice {
 
 #[cfg(any(test, not(target_os = "linux")))]
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
-    let mut hosts = read_hosts_with_notices(config, local_ttl, 1232 + 255 + 10,
-        1000, 1000, &dnsmasq_rs::dns::lease_names::LeaseNames::default(), |_| {})
-        .unwrap_or_default();
+    let mut hosts = read_hosts_with_notices(
+        config,
+        local_ttl,
+        1232 + 255 + 10,
+        1000,
+        1000,
+        &dnsmasq_rs::dns::lease_names::LeaseNames::default(),
+        |_| {},
+    )
+    .unwrap_or_default();
     hosts.finish_bulk();
     hosts
 }
@@ -7189,8 +7691,7 @@ fn read_hosts_with_notices(
                 return Ok(());
             }
         };
-        let path_name = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes())
-            ?;
+        let path_name = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes())?;
         hosts.set_source_name_checked(source, path_name)?;
         let stats = hosts.read_from_with_diagnostics(
             file,
@@ -7205,10 +7706,18 @@ fn read_hosts_with_notices(
                     .and_then(|name| dnsmasq_rs::hosts::try_copy(name).ok())
             },
             |line, address| {
-                let prefix: &[u8] = if address { b"bad address at " } else { b"bad name at " };
-                let Ok(mut message) = dnsmasq_rs::hosts::try_copy(prefix) else { return; };
+                let prefix: &[u8] = if address {
+                    b"bad address at "
+                } else {
+                    b"bad name at "
+                };
+                let Ok(mut message) = dnsmasq_rs::hosts::try_copy(prefix) else {
+                    return;
+                };
                 let path = path.as_os_str().as_encoded_bytes();
-                if message.try_reserve(path.len() + 32).is_err() { return; }
+                if message.try_reserve(path.len() + 32).is_err() {
+                    return;
+                }
                 message.extend_from_slice(path);
                 let _ = write!(message, " line {line}");
                 report(HostsReadNotice::Error(message));
@@ -7220,12 +7729,20 @@ fn read_hosts_with_notices(
             return Err(dnsmasq_rs::hosts::IngestionError);
         }
         if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
-            report(HostsReadNotice::Complete { path, names: stats.accepted });
+            report(HostsReadNotice::Complete {
+                path,
+                names: stats.accepted,
+            });
         }
         Ok(())
     }
     let mut hosts = dnsmasq_rs::dns::local::configured_hosts_bulk(
-        config, local_ttl, packet_limit, cache_size, name_hash_capacity, retained_leases,
+        config,
+        local_ttl,
+        packet_limit,
+        cache_size,
+        name_hash_capacity,
+        retained_leases,
     )?;
     // `no-hosts` suppresses only the built-in /etc/hosts source. Explicit
     // addn-hosts files remain active in dnsmasq.
@@ -7328,7 +7845,8 @@ pub fn run_process_tests() {
     tests::last_tftp_completion_wakes_helper_without_another_packet();
     tests::frozen_dhcp_callbacks_resume_after_pipe_capacity_returns();
     hostsdir_init_tests::polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication();
-    hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed();
+    hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed(
+    );
     tests::delivered_signal_counters_wake_even_without_a_pipe_byte();
     tests::signal_wake_preserves_interrupted_errno_with_or_without_backpressure();
     udp_dispatch_tests::udp_dispatch_rechecks_work_queued_after_poll_without_consuming_it();
@@ -7351,7 +7869,12 @@ mod neighbor_tail_tests;
 #[path = "main_hostsdir_init_tests.rs"]
 mod hostsdir_init_tests;
 
-#[cfg(all(test, target_os = "linux", target_pointer_width = "64", feature = "process-test-support"))]
+#[cfg(all(
+    test,
+    target_os = "linux",
+    target_pointer_width = "64",
+    feature = "process-test-support"
+))]
 #[path = "main_hosts_initial_hup_tests.rs"]
 mod hosts_initial_hup_tests;
 
@@ -7382,16 +7905,29 @@ mod tests {
 
     pub(super) fn test_owner(config: DnsConfig, daemon: Option<DnsDaemon>) -> SinglePoll {
         let local = LocalDnsService::new_with_limits(
-            config.clone(), read_hosts(&config, 37), 37, 1232, 1232,
+            config.clone(),
+            read_hosts(&config, 37),
+            37,
+            1232,
+            1232,
         );
         SinglePoll::new(
             Rc::new(RefCell::new(ParentDns {
-                local, daemon, query_ids: Default::default(),
+                local,
+                daemon,
+                query_ids: Default::default(),
                 pending_hosts: None,
                 hosts_initializing: false,
             })),
-            Rc::new(RefCell::new(ParentEvents::new(&UbusConfig::default()).unwrap())),
-            Rc::new(RefCell::new(Vec::new())), config, Vec::new(), 1232, 20, 1232,
+            Rc::new(RefCell::new(
+                ParentEvents::new(&UbusConfig::default()).unwrap(),
+            )),
+            Rc::new(RefCell::new(Vec::new())),
+            config,
+            Vec::new(),
+            1232,
+            20,
+            1232,
             Vec::new(),
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             None,
@@ -7410,11 +7946,23 @@ mod tests {
         let now = Instant::now();
         assert_eq!(owner_poll_timeout(None, now, false), -1);
         assert_eq!(owner_poll_timeout(None, now, true), 0);
-        assert_eq!(owner_poll_timeout(Some(now + Duration::from_secs(3600)), now, true), 0);
-        assert_eq!(owner_poll_timeout(Some(now + Duration::from_nanos(1)), now, false), 1);
+        assert_eq!(
+            owner_poll_timeout(Some(now + Duration::from_secs(3600)), now, true),
+            0
+        );
+        assert_eq!(
+            owner_poll_timeout(Some(now + Duration::from_nanos(1)), now, false),
+            1
+        );
         assert_eq!(owner_poll_timeout(Some(now), now, false), 0);
-        assert_eq!(owner_poll_timeout(Some(now + Duration::from_secs(7200)), now, false), 7_200_000);
-        assert_eq!(owner_poll_timeout(Some(now + Duration::from_secs(u32::MAX as u64)), now, false), i32::MAX);
+        assert_eq!(
+            owner_poll_timeout(Some(now + Duration::from_secs(7200)), now, false),
+            7_200_000
+        );
+        assert_eq!(
+            owner_poll_timeout(Some(now + Duration::from_secs(u32::MAX as u64)), now, false),
+            i32::MAX
+        );
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -7424,19 +7972,30 @@ mod tests {
         let mut owner = test_owner(DnsConfig::default(), None);
         let mut collector = InterfaceCollector::new().unwrap();
         collector.begin().unwrap();
-        assert!(collector.runnable(), "the first dump send has no readable fd yet");
+        assert!(
+            collector.runnable(),
+            "the first dump send has no readable fd yet"
+        );
         owner.interface_collector = Some(collector);
         for _ in 0..64 {
             owner.wait_for_files().unwrap();
             owner.step().unwrap();
-            if !owner.interface_work_pending() { break; }
+            if !owner.interface_work_pending() {
+                break;
+            }
         }
-        assert!(!owner.interface_work_pending(), "dump fd and deadline must resume its owner");
+        assert!(
+            !owner.interface_work_pending(),
+            "dump fd and deadline must resume its owner"
+        );
         assert!(owner.interfaces_enumerated);
         assert!(owner.interfaces.borrow().iter().any(|row| row.loopback));
         let collector = owner.interface_collector.as_ref().unwrap();
         assert!(!collector.runnable());
-        assert!(collector.deadline().is_none(), "completed dumps must remove their timer");
+        assert!(
+            collector.deadline().is_none(),
+            "completed dumps must remove their timer"
+        );
     }
 
     #[cfg(target_os = "linux")]
@@ -7447,36 +8006,73 @@ mod tests {
         use std::io::{Read, Write};
         use std::os::unix::fs::OpenOptionsExt;
         let path = std::env::temp_dir().join(format!("owner-dump-wake-{}", std::process::id()));
-        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
-        let mut reader = std::fs::OpenOptions::new().read(true).custom_flags(0o4000).open(&path).unwrap();
-        let dump = DumpHandle::open(&DumpConfig { file: Some(path.clone()), mask: QUERY }, 1232).unwrap();
-        let mut filler = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&path).unwrap();
+        assert!(std::process::Command::new("mkfifo")
+            .arg(&path)
+            .status()
+            .unwrap()
+            .success());
+        let mut reader = std::fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(0o4000)
+            .open(&path)
+            .unwrap();
+        let dump = DumpHandle::open(
+            &DumpConfig {
+                file: Some(path.clone()),
+                mask: QUERY,
+            },
+            1232,
+        )
+        .unwrap();
+        let mut filler = std::fs::OpenOptions::new()
+            .write(true)
+            .custom_flags(0o4000)
+            .open(&path)
+            .unwrap();
         for size in [4096, 1] {
             loop {
                 match filler.write(&[0; 4096][..size]) {
                     Ok(count) => assert_ne!(count, 0),
-                    Err(error) => { assert_eq!(error.kind(), io::ErrorKind::WouldBlock); break; }
+                    Err(error) => {
+                        assert_eq!(error.kind(), io::ErrorKind::WouldBlock);
+                        break;
+                    }
                 }
             }
         }
-        dump.udp(QUERY, b"queued dump", "192.0.2.1:12345".parse().unwrap(), "192.0.2.2:53".parse().unwrap());
-        let fd = dump.poll_fd().expect("the accepted record must retain write interest");
+        dump.udp(
+            QUERY,
+            b"queued dump",
+            "192.0.2.1:12345".parse().unwrap(),
+            "192.0.2.2:53".parse().unwrap(),
+        );
+        let fd = dump
+            .poll_fd()
+            .expect("the accepted record must retain write interest");
         let mut owner = test_owner(DnsConfig::default(), None);
         owner.dump = dump.clone();
         let mut fds = Vec::new();
         owner.append_file_fds(&mut fds, true);
-        assert!(fds.iter().any(|row| row.fd == fd && row.events == dnsmasq_platform::poll::POLLOUT));
+        assert!(fds
+            .iter()
+            .any(|row| row.fd == fd && row.events == dnsmasq_platform::poll::POLLOUT));
         assert_eq!(dnsmasq_platform::poll::poll_fds(&mut fds, 0).unwrap(), 0);
         let mut bytes = [0; 8192];
         loop {
             match reader.read(&mut bytes) {
                 Ok(count) => assert_ne!(count, 0),
-                Err(error) => { assert_eq!(error.kind(), io::ErrorKind::WouldBlock); break; }
+                Err(error) => {
+                    assert_eq!(error.kind(), io::ErrorKind::WouldBlock);
+                    break;
+                }
             }
         }
         owner.wait_for_files().unwrap();
         owner.step().unwrap();
-        assert!(dump.poll_fd().is_none(), "drained dump must remove write interest");
+        assert!(
+            dump.poll_fd().is_none(),
+            "drained dump must remove write interest"
+        );
         let count = reader.read(&mut bytes).unwrap();
         assert!(bytes[..count].ends_with(b"queued dump"));
         let notices = dump.take_notices();
@@ -7510,8 +8106,10 @@ mod tests {
                 _ => ALARM_REQUESTED.store(before, Ordering::Release),
             }
             result.unwrap();
-            assert!(started.elapsed() < Duration::from_millis(50),
-                "logical signals cannot wait for the 100ms fallback");
+            assert!(
+                started.elapsed() < Duration::from_millis(50),
+                "logical signals cannot wait for the 100ms fallback"
+            );
         }
     }
 
@@ -7519,7 +8117,10 @@ mod tests {
     #[test]
     fn signal_wake_drains_a_full_buffer_without_another_write() {
         let mut owner = test_owner(DnsConfig::default(), None);
-        let (reader, writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC).unwrap();
+        let (reader, writer) = rustix::pipe::pipe_with(
+            rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC,
+        )
+        .unwrap();
         let mut writer = std::fs::File::from(writer);
         writer.write_all(&[1; 64]).unwrap();
         owner.signal_wake_read = Some(reader);
@@ -7527,26 +8128,41 @@ mod tests {
         owner.drain_signal_wake();
         assert!(started.elapsed() < Duration::from_millis(50));
         let mut reader = std::fs::File::from(owner.signal_wake_read.take().unwrap());
-        assert_eq!(reader.read(&mut [0; 1]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        assert_eq!(
+            reader.read(&mut [0; 1]).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
+        );
     }
 
     #[cfg(target_os = "linux")]
     #[cfg(feature = "process-test-support")]
     pub(super) fn signal_wake_preserves_interrupted_errno_with_or_without_backpressure() {
         for (has_pipe, saturated) in [(false, false), (true, false), (true, true)] {
-            let (reader, writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC).unwrap();
+            let (reader, writer) = rustix::pipe::pipe_with(
+                rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC,
+            )
+            .unwrap();
             let mut writer = std::fs::File::from(writer);
             if saturated {
                 let mut filled = 0;
                 loop {
                     match writer.write(&[1; 4096]) {
-                        Ok(count) => { assert!(count > 0); filled += count; }
-                        Err(error) => { assert_eq!(error.kind(), io::ErrorKind::WouldBlock); break; }
+                        Ok(count) => {
+                            assert!(count > 0);
+                            filled += count;
+                        }
+                        Err(error) => {
+                            assert_eq!(error.kind(), io::ErrorKind::WouldBlock);
+                            break;
+                        }
                     }
                     assert!(filled < 2 * 1024 * 1024);
                 }
             }
-            let previous_fd = SIGNAL_WAKE_WRITE.swap(if has_pipe { writer.as_raw_fd() } else { -1 }, Ordering::AcqRel);
+            let previous_fd = SIGNAL_WAKE_WRITE.swap(
+                if has_pipe { writer.as_raw_fd() } else { -1 },
+                Ordering::AcqRel,
+            );
             let previous_stop = STOP_REQUESTED.swap(false, Ordering::AcqRel);
             let (_, observed_errno) = dnsmasq_platform::signals::with_errno(5, || request_stop(15));
             let delivered = STOP_REQUESTED.swap(previous_stop, Ordering::AcqRel);
@@ -7565,14 +8181,17 @@ mod tests {
         let mut interfaces = listeners::snapshot().unwrap();
         let mut config = DnsConfig::default();
         config.bind_interfaces = true;
-        let (udp, tcp) = open_dns_listener("127.0.0.1:0".parse().unwrap(), &config, &interfaces).unwrap();
+        let (udp, tcp) =
+            open_dns_listener("127.0.0.1:0".parse().unwrap(), &config, &interfaces).unwrap();
         let udp = udp.unwrap();
         let address = udp.local_addr().unwrap();
         let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         // Later snapshots do not alter metadata policy of an already bound fd.
         interfaces.clear();
         let check = |udp: &DnsSocket, no_pktinfo: bool| {
-            client.send_to(b"factory", udp.local_addr().unwrap()).unwrap();
+            client
+                .send_to(b"factory", udp.local_addr().unwrap())
+                .unwrap();
             let mut bytes = [0; 32];
             let incoming = udp.receive(&mut bytes).unwrap().unwrap();
             assert_eq!(incoming.destination, address.ip());
@@ -7583,15 +8202,19 @@ mod tests {
         drop((udp, tcp));
         // Every new fd derives policy from its own creation snapshot.
         for known in [false, true] {
-            if known { interfaces = listeners::snapshot().unwrap(); }
-            let (udp, tcp, errors) = open_late_dns_listener(address, &config, &interfaces, (true, true));
+            if known {
+                interfaces = listeners::snapshot().unwrap();
+            }
+            let (udp, tcp, errors) =
+                open_late_dns_listener(address, &config, &interfaces, (true, true));
             assert!(errors.is_empty(), "{errors:?}");
             let udp = udp.unwrap();
             check(&udp, known);
             drop((udp, tcp));
         }
         config.bind_dynamic = true;
-        let (udp, tcp, errors) = open_late_dns_listener(address, &config, &interfaces, (true, true));
+        let (udp, tcp, errors) =
+            open_late_dns_listener(address, &config, &interfaces, (true, true));
         assert!(errors.is_empty(), "{errors:?}");
         check(&udp.unwrap(), false);
         drop(tcp);
@@ -7600,13 +8223,28 @@ mod tests {
     #[test]
     fn pending_listener_retry_requires_unfinished_initial_address() {
         let address: SocketAddr = "[fd42::1]:53".parse().unwrap();
-        let mut row = DnsInterface { index: 7, name: b"fixture".to_vec(), address: address.ip(),
-            netmask: "ffff:ffff:ffff:ffff::".parse().unwrap(), loopback: false, tentative: true };
+        let mut row = DnsInterface {
+            index: 7,
+            name: b"fixture".to_vec(),
+            address: address.ip(),
+            netmask: "ffff:ffff:ffff:ffff::".parse().unwrap(),
+            loopback: false,
+            tentative: true,
+        };
         assert!(pending_listener_retry(&[address], &[row.clone()]));
         row.tentative = false;
-        assert!(!pending_listener_retry(&[address], &[row.clone()]), "a mature bind error is not a DAD timer");
-        assert!(!pending_listener_retry(&[], &[row]), "ordinary configs have no periodic interface scan");
-        assert!(pending_listener_retry(&[address], &[]), "a captured DAD address can return later");
+        assert!(
+            !pending_listener_retry(&[address], &[row.clone()]),
+            "a mature bind error is not a DAD timer"
+        );
+        assert!(
+            !pending_listener_retry(&[], &[row]),
+            "ordinary configs have no periodic interface scan"
+        );
+        assert!(
+            pending_listener_retry(&[address], &[]),
+            "a captured DAD address can return later"
+        );
     }
 
     #[cfg(target_os = "linux")]
@@ -7615,29 +8253,49 @@ mod tests {
         let now = Instant::now();
         let mut refresh = InterfaceRefresh::default();
         assert!(!refresh.due(now + Duration::from_secs(3600)));
-        refresh.request(); assert!(refresh.due(now));
+        refresh.request();
+        assert!(refresh.due(now));
         refresh.complete(now, true);
         assert_eq!(refresh.retry_at, Some(now + Duration::from_secs(1)));
         assert!(!refresh.due(now + Duration::from_millis(999)));
         assert!(refresh.due(now + Duration::from_secs(1)));
         refresh.complete(now, false);
-        assert!(refresh.retry_at.is_none()); assert!(!refresh.requested);
+        assert!(refresh.retry_at.is_none());
+        assert!(!refresh.requested);
     }
 
     #[cfg(target_os = "linux")]
     #[test]
     fn multicast_enobufs_continues_without_fabricating_any_event() {
-        let mut config = DnsConfig::default(); config.no_hosts = true; config.no_resolv = true;
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.no_resolv = true;
         let mut owner = test_owner(config.clone(), None);
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
         let now = Instant::now();
         owner.finish_route_read(Err(io::Error::from_raw_os_error(105)), now);
-        assert_eq!(owner.route_retry_at, Some(now), "next bounded owner turn must continue the drain");
-        assert!(!owner.interface_refresh.requested, "overflow is not NEWADDR");
-        assert!(owner.interface_refresh.retry_at.is_none(), "overflow does not request snapshot resync");
-        assert!(!owner.dns_files.as_ref().unwrap().has_work(), "overflow is not NEWROUTE/full reload");
+        assert_eq!(
+            owner.route_retry_at,
+            Some(now),
+            "next bounded owner turn must continue the drain"
+        );
+        assert!(
+            !owner.interface_refresh.requested,
+            "overflow is not NEWADDR"
+        );
+        assert!(
+            owner.interface_refresh.retry_at.is_none(),
+            "overflow does not request snapshot resync"
+        );
+        assert!(
+            !owner.dns_files.as_ref().unwrap().has_work(),
+            "overflow is not NEWROUTE/full reload"
+        );
         owner.finish_route_read(Err(io::Error::from_raw_os_error(11)), now);
-        assert!(owner.route_retry_at.is_none(), "EAGAIN returns to the real fd wait");
+        assert!(
+            owner.route_retry_at.is_none(),
+            "EAGAIN returns to the real fd wait"
+        );
         owner.finish_route_read(Err(io::Error::from_raw_os_error(5)), now);
         assert_eq!(owner.route_retry_at, Some(now + Duration::from_secs(1)));
         assert!(!owner.interface_refresh.requested);
@@ -7647,15 +8305,31 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn port_zero_address_actor_does_not_need_a_dns_file_owner() {
-        let mut config = DnsConfig::default(); config.bind_dynamic = true;
+        let mut config = DnsConfig::default();
+        config.bind_dynamic = true;
         let mut owner = test_owner(config, None);
         assert!(owner.dns_files.is_none());
-        owner.apply_network_events(NetworkEvents { address: true, ..Default::default() });
-        assert!(owner.interface_refresh.requested, "address publication survives DNS disabled");
-        assert!(!owner.retry_bound_listeners, "address is not the legacy route-retry flag");
+        owner.apply_network_events(NetworkEvents {
+            address: true,
+            ..Default::default()
+        });
+        assert!(
+            owner.interface_refresh.requested,
+            "address publication survives DNS disabled"
+        );
+        assert!(
+            !owner.retry_bound_listeners,
+            "address is not the legacy route-retry flag"
+        );
         owner.interface_refresh.complete(Instant::now(), false);
-        owner.apply_network_events(NetworkEvents { route: true, ..Default::default() });
-        assert!(!owner.interface_refresh.requested, "a route is not a fake address change");
+        owner.apply_network_events(NetworkEvents {
+            route: true,
+            ..Default::default()
+        });
+        assert!(
+            !owner.interface_refresh.requested,
+            "a route is not a fake address change"
+        );
     }
 
     #[cfg(target_os = "linux")]
@@ -7663,20 +8337,51 @@ mod tests {
     fn address_actor_is_independent_of_held_hosts_publication() {
         use dnsmasq_rs::dns::hostsdir::{HostSource, HostsRead};
         let path = std::env::temp_dir().join(format!("address-held-hosts-{}", std::process::id()));
-        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
-        let mut config = DnsConfig::default(); config.no_hosts = true; config.no_resolv = true;
+        assert!(std::process::Command::new("mkfifo")
+            .arg(&path)
+            .status()
+            .unwrap()
+            .success());
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.no_resolv = true;
         config.bind_dynamic = true;
         let mut owner = test_owner(config.clone(), None);
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
-        owner.hosts_read = Some(HostsRead::open(HostSource { path: path.clone(), uid: 1 }, 37).unwrap());
+        owner.hosts_read = Some(
+            HostsRead::open(
+                HostSource {
+                    path: path.clone(),
+                    uid: 1,
+                },
+                37,
+            )
+            .unwrap(),
+        );
         assert!(!owner.dns_file_work_runnable());
-        owner.apply_network_events(NetworkEvents { address: true, ..Default::default() });
+        owner.apply_network_events(NetworkEvents {
+            address: true,
+            ..Default::default()
+        });
         assert!(owner.interface_refresh.requested);
-        assert!(!owner.dns_files.as_ref().unwrap().has_work(), "address must not queue resolver reload");
-        owner.apply_network_events(NetworkEvents { route: true, ..Default::default() });
-        assert!(owner.dns_files.as_ref().unwrap().has_work(), "real route is retained until file order allows it");
-        assert!(!owner.dns_file_work_runnable(), "a held FIFO does not become busy-runnable");
-        drop(owner); std::fs::remove_file(path).unwrap();
+        assert!(
+            !owner.dns_files.as_ref().unwrap().has_work(),
+            "address must not queue resolver reload"
+        );
+        owner.apply_network_events(NetworkEvents {
+            route: true,
+            ..Default::default()
+        });
+        assert!(
+            owner.dns_files.as_ref().unwrap().has_work(),
+            "real route is retained until file order allows it"
+        );
+        assert!(
+            !owner.dns_file_work_runnable(),
+            "a held FIFO does not become busy-runnable"
+        );
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
     }
 
     fn add_test_tcp(owner: &mut SinglePoll) -> TcpStream {
@@ -7685,8 +8390,14 @@ mod tests {
         let (stream, address) = listener.accept().unwrap();
         stream.set_nonblocking(true).unwrap();
         owner.finish_tcp_accept(PendingInterfaceTcp {
-            query_ids: Default::default(), stream, peer: address, local_network: None,
-            mac: None, mac_ready: true, mac_deferred: false, accept_clock: now_seconds(),
+            query_ids: Default::default(),
+            stream,
+            peer: address,
+            local_network: None,
+            mac: None,
+            mac_ready: true,
+            mac_deferred: false,
+            accept_clock: now_seconds(),
             auth_query: false,
         });
         assert_eq!(owner.clients.len(), 1);
@@ -7697,10 +8408,15 @@ mod tests {
     fn park_edns_waiters(owner: &mut SinglePoll, count: usize) {
         for index in 0..count {
             owner.pending_edns_udp.push(PendingEdnsUdp {
-                query_context: Default::default(), listener: SocketToken(99),
-                client: ClientRequest { source: SocketAddr::from(([192, 0, 2, index as u8], 5300)),
-                    destination: "192.0.2.1".parse().unwrap(), interface: 0 },
-                query: test_dns_query(), deadline: Instant::now() + Duration::from_secs(3),
+                query_context: Default::default(),
+                listener: SocketToken(99),
+                client: ClientRequest {
+                    source: SocketAddr::from(([192, 0, 2, index as u8], 5300)),
+                    destination: "192.0.2.1".parse().unwrap(),
+                    interface: 0,
+                },
+                query: test_dns_query(),
+                deadline: Instant::now() + Duration::from_secs(3),
             });
         }
     }
@@ -7711,9 +8427,14 @@ mod tests {
         let now = Instant::now();
         // Both normal and probe owners use this same active-dump projection.
         // A coarse two-second epoch bound must not acquire an extra second.
-        assert_eq!(neighbor_poll_deadline(102, now, Duration::from_millis(100_750)) - now,
-            Duration::from_millis(1250));
-        assert_eq!(neighbor_poll_deadline(102, now, Duration::from_millis(102_250)), now);
+        assert_eq!(
+            neighbor_poll_deadline(102, now, Duration::from_millis(100_750)) - now,
+            Duration::from_millis(1250)
+        );
+        assert_eq!(
+            neighbor_poll_deadline(102, now, Duration::from_millis(102_250)),
+            now
+        );
     }
 
     #[test]
@@ -7728,8 +8449,10 @@ mod tests {
             assert!(owner.ready_fds.is_empty());
             let started = Instant::now();
             owner.wait_for_files().unwrap();
-            assert!(started.elapsed() < Duration::from_millis(100),
-                "a ready budget tail must not sleep to its three-second fallback");
+            assert!(
+                started.elapsed() < Duration::from_millis(100),
+                "a ready budget tail must not sleep to its three-second fallback"
+            );
         }
         owner.step_edns_udp_with_lookup(|_, _| ClientMacLookup::Ready(None));
         assert!(owner.pending_edns_udp.is_empty());
@@ -7767,43 +8490,77 @@ mod tests {
         use std::os::fd::AsRawFd;
         let mut owner = test_owner(DnsConfig::default(), None);
         let mut peer = add_test_tcp(&mut owner);
-        peer.write_all(&encode_tcp_frame(&test_dns_query()).unwrap()).unwrap();
+        peer.write_all(&encode_tcp_frame(&test_dns_query()).unwrap())
+            .unwrap();
         owner.clients[0].dns_work.as_mut().unwrap().mac_ready = false;
         owner.clients[0].dns_work.as_mut().unwrap().mac_deferred = false;
-        owner.clients[0].dns_work.as_mut().unwrap().mac_deadline = Instant::now() + Duration::from_secs(3);
+        owner.clients[0].dns_work.as_mut().unwrap().mac_deadline =
+            Instant::now() + Duration::from_secs(3);
         owner.clients[0].ready_events = POLLIN;
-        assert!(!owner.tcp_client_ready(0), "unread DNS cannot resolve a pending MAC");
-        let stream_fd = owner.clients[0].dns_work.as_ref().unwrap().stream.as_ref().unwrap().as_raw_fd();
+        assert!(
+            !owner.tcp_client_ready(0),
+            "unread DNS cannot resolve a pending MAC"
+        );
+        let stream_fd = owner.clients[0]
+            .dns_work
+            .as_ref()
+            .unwrap()
+            .stream
+            .as_ref()
+            .unwrap()
+            .as_raw_fd();
         let started = Instant::now();
         owner.wait_for_files().unwrap();
-        assert!(started.elapsed() >= Duration::from_millis(50),
-            "without a signal pipe this fixture uses100ms fallback, not the queued socket");
+        assert!(
+            started.elapsed() >= Duration::from_millis(50),
+            "without a signal pipe this fixture uses100ms fallback, not the queued socket"
+        );
         assert!(!owner.poll_fds.iter().any(|fd| fd.fd == stream_fd));
         assert_eq!(owner.clients[0].ready_events, 0);
         owner.neighbors_ready = true;
-        assert!(owner.tcp_client_ready(0), "dump completion authorizes the MAC resume");
+        assert!(
+            owner.tcp_client_ready(0),
+            "dump completion authorizes the MAC resume"
+        );
         owner.step_tcp_clients();
         assert!(owner.clients[0].dns_work.as_ref().unwrap().mac_ready);
-        assert!(owner.clients[0].dns_work.as_ref().unwrap().input.is_empty(), "MAC wake does not invent read readiness");
+        assert!(
+            owner.clients[0].dns_work.as_ref().unwrap().input.is_empty(),
+            "MAC wake does not invent read readiness"
+        );
         owner.neighbors_ready = false;
         owner.wait_for_files().unwrap();
-        assert!(owner.tcp_client_ready(0), "now the real queued DNS socket becomes readable");
+        assert!(
+            owner.tcp_client_ready(0),
+            "now the real queued DNS socket becomes readable"
+        );
     }
 
     fn test_dns_query() -> Vec<u8> {
         use dnsmasq_rs::dns::wire::{Name, PacketWriter};
         let mut writer = PacketWriter::new(7, 0x100, 1232).unwrap();
-        writer.question(&Name::from_ascii("ready.test").unwrap(), 1, 1).unwrap();
+        writer
+            .question(&Name::from_ascii("ready.test").unwrap(), 1, 1)
+            .unwrap();
         writer.finish()
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    pub(super) fn attach_test_dhcp(owner: &mut SinglePoll, provider: DhcpProvider) -> std::net::UdpSocket {
-        let listener = DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(), DhcpListener::Dhcp, &[]).unwrap();
+    pub(super) fn attach_test_dhcp(
+        owner: &mut SinglePoll,
+        provider: DhcpProvider,
+    ) -> std::net::UdpSocket {
+        let listener =
+            DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(), DhcpListener::Dhcp, &[])
+                .unwrap();
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         peer.connect(listener.local_addr().unwrap()).unwrap();
-        owner.dhcp = Some(DhcpService { provider: Some(Rc::new(RefCell::new(provider))), listener,
-            pxe_next: false, output: vec![0; 16_384] });
+        owner.dhcp = Some(DhcpService {
+            provider: Some(Rc::new(RefCell::new(provider))),
+            listener,
+            pxe_next: false,
+            output: vec![0; 16_384],
+        });
         peer
     }
 
@@ -7812,25 +8569,44 @@ mod tests {
     fn helper_init_keeps_queued_dhcp_and_due_maintenance_off_the_wait_set() {
         for fatal in [false, true] {
             let mut owner = test_owner(DnsConfig::default(), None);
-            let provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
-                ..Default::default() }, Vec::new(), 0, || false).unwrap();
+            let provider = DhcpProvider::new(
+                DhcpConfig {
+                    no_ping: true,
+                    lease_read_only: true,
+                    ..Default::default()
+                },
+                Vec::new(),
+                0,
+                || false,
+            )
+            .unwrap();
             let peer = attach_test_dhcp(&mut owner, provider);
             peer.send(b"queued-dhcp").unwrap();
             if fatal {
-                owner.helper_init_error = Some(dnsmasq_rs::helper::StartError { code: 5, message: "held helper error".into() });
+                owner.helper_init_error = Some(dnsmasq_rs::helper::StartError {
+                    code: 5,
+                    message: "held helper error".into(),
+                });
             } else {
                 owner.helper_init = Some(Default::default());
             }
             let started = Instant::now();
             owner.wait_for_files().unwrap();
-            assert!(started.elapsed() >= Duration::from_millis(25),
-                "neither unread DHCP nor an unprocessable alarm may busy-poll");
+            assert!(
+                started.elapsed() >= Duration::from_millis(25),
+                "neither unread DHCP nor an unprocessable alarm may busy-poll"
+            );
             owner.step_dhcp();
             assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
             let address = owner.dhcp.as_ref().unwrap().listener.local_addr().unwrap();
             assert!(!owner.poll_fds.iter().any(|fd| {
                 let mut probe = Vec::new();
-                owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut probe);
+                owner
+                    .dhcp
+                    .as_ref()
+                    .unwrap()
+                    .listener
+                    .append_poll_fds(&mut probe);
                 probe.iter().any(|socket| socket.fd == fd.fd)
             }));
             owner.helper_init = None;
@@ -7838,8 +8614,10 @@ mod tests {
             assert!(owner.dhcp_packet_work_allowed());
             owner.wait_for_files().unwrap();
             owner.step_dhcp();
-            assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap(),
-                "the original input becomes consumable after the helper gate opens at {address}");
+            assert!(
+                !owner.dhcp.as_ref().unwrap().listener.has_input().unwrap(),
+                "the original input becomes consumable after the helper gate opens at {address}"
+            );
         }
     }
 
@@ -7847,32 +8625,65 @@ mod tests {
     #[test]
     fn held_dhcp_bank_fifo_does_not_spin_on_queued_packet_and_dns_still_replies() {
         use std::os::unix::fs::OpenOptionsExt;
-        let path = std::env::temp_dir().join(format!("ready-dhcp-bank-fifo-{}", std::process::id()));
-        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        let path =
+            std::env::temp_dir().join(format!("ready-dhcp-bank-fifo-{}", std::process::id()));
+        assert!(std::process::Command::new("mkfifo")
+            .arg(&path)
+            .status()
+            .unwrap()
+            .success());
         let mut config = DnsConfig::default();
         config.no_hosts = true;
         config.no_resolv = true;
         config.bind_interfaces = true;
         config.local_service_net = false;
-        config.apply_resolved(&lex_line(b"address=/ready.test/192.0.2.4").unwrap().unwrap()).unwrap();
-        let daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
+        config
+            .apply_resolved(&lex_line(b"address=/ready.test/192.0.2.4").unwrap().unwrap())
+            .unwrap();
+        let daemon =
+            DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
         let mut owner = test_owner(config, Some(daemon));
-        let mut provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
-            option_files: vec![path.as_os_str().as_encoded_bytes().to_vec()], ..Default::default() }, Vec::new(), 0, || false).unwrap();
+        let mut provider = DhcpProvider::new(
+            DhcpConfig {
+                no_ping: true,
+                lease_read_only: true,
+                option_files: vec![path.as_os_str().as_encoded_bytes().to_vec()],
+                ..Default::default()
+            },
+            Vec::new(),
+            0,
+            || false,
+        )
+        .unwrap();
         provider.start_file_owner().unwrap();
         for _ in 0..16 {
-            if !provider.files_runnable() { break; }
+            if !provider.files_runnable() {
+                break;
+            }
             provider.step_files_with_watch_readiness(now_seconds(), false);
         }
-        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&path).unwrap();
+        let mut writer = std::fs::OpenOptions::new()
+            .write(true)
+            .custom_flags(0o4000)
+            .open(&path)
+            .unwrap();
         writer.write_all(b"option:domain-name,initial\n").unwrap();
         drop(writer);
-        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(now_seconds(), false)).is_some());
+        assert!((0..16)
+            .find_map(|_| provider.step_files_with_watch_readiness(now_seconds(), false))
+            .is_some());
         assert!(!provider.files_initializing());
-        let held_writer = std::fs::OpenOptions::new().read(true).write(true).custom_flags(0o4000).open(&path).unwrap();
+        let held_writer = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .custom_flags(0o4000)
+            .open(&path)
+            .unwrap();
         provider.reload_data_files(now_seconds());
         for _ in 0..16 {
-            if !provider.files_runnable() { break; }
+            if !provider.files_runnable() {
+                break;
+            }
             provider.step_files_with_watch_readiness(now_seconds(), false);
         }
         assert!(provider.file_work_pending() && !provider.files_runnable());
@@ -7880,27 +8691,50 @@ mod tests {
         peer.send(b"queued-dhcp").unwrap();
         let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let dns_peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
-        dns_peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
-        dns_peer.send_to(&test_dns_query(), udp.local_addr().unwrap()).unwrap();
+        dns_peer
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        dns_peer
+            .send_to(&test_dns_query(), udp.local_addr().unwrap())
+            .unwrap();
         owner.add_listener(SocketToken(9), Some(udp), None);
         owner.wait_for_files().unwrap();
         owner.step().unwrap();
         let mut answer = [0; 1232];
         let count = dns_peer.recv(&mut answer).unwrap();
-        assert_eq!(&answer[count-4..count], &[192, 0, 2, 4], "runtime FIFO cannot block ordinary DNS");
+        assert_eq!(
+            &answer[count - 4..count],
+            &[192, 0, 2, 4],
+            "runtime FIFO cannot block ordinary DNS"
+        );
         assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
         let started = Instant::now();
         owner.wait_for_files().unwrap();
-        assert!(started.elapsed() >= Duration::from_millis(25), "the queued blocked DHCP packet is not readiness");
+        assert!(
+            started.elapsed() >= Duration::from_millis(25),
+            "the queued blocked DHCP packet is not readiness"
+        );
         let mut socket_fds = Vec::new();
-        owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut socket_fds);
-        assert!(!owner.poll_fds.iter().any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)),
-            "blocked input must be absent even if scheduler latency masks a spin");
+        owner
+            .dhcp
+            .as_ref()
+            .unwrap()
+            .listener
+            .append_poll_fds(&mut socket_fds);
+        assert!(
+            !owner
+                .poll_fds
+                .iter()
+                .any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)),
+            "blocked input must be absent even if scheduler latency masks a spin"
+        );
         drop(held_writer);
         for _ in 0..16 {
             owner.wait_for_files().unwrap();
             owner.step_dhcp_files();
-            if !owner.dhcp_reload_in_progress() { break; }
+            if !owner.dhcp_reload_in_progress() {
+                break;
+            }
         }
         assert!(!owner.dhcp_reload_in_progress());
         owner.wait_for_files().unwrap();
@@ -7914,22 +8748,44 @@ mod tests {
     #[test]
     fn packet_snapshot_controls_dhcp_wait_until_publication() {
         let mut owner = test_owner(DnsConfig::default(), None);
-        let mut provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
-            ..Default::default() }, Vec::new(), 0, || false).unwrap();
+        let mut provider = DhcpProvider::new(
+            DhcpConfig {
+                no_ping: true,
+                lease_read_only: true,
+                ..Default::default()
+            },
+            Vec::new(),
+            0,
+            || false,
+        )
+        .unwrap();
         provider.initialize(now_seconds());
         provider.start_interface_owner().unwrap();
         let snapshot_ready = provider.prepare_packet_interfaces().unwrap();
         let peer = attach_test_dhcp(&mut owner, provider);
         peer.send(b"queued-dhcp").unwrap();
         let mut socket_fds = Vec::new();
-        owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut socket_fds);
+        owner
+            .dhcp
+            .as_ref()
+            .unwrap()
+            .listener
+            .append_poll_fds(&mut socket_fds);
         owner.wait_for_files().unwrap();
-        assert_eq!(owner.poll_fds.iter().any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)),
-            snapshot_ready, "only a complete fresh dump enables the packet listener");
+        assert_eq!(
+            owner
+                .poll_fds
+                .iter()
+                .any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)),
+            snapshot_ready,
+            "only a complete fresh dump enables the packet listener"
+        );
         assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
         for _ in 0..16 {
             owner.step_dhcp();
-            if !owner.dhcp.as_ref().unwrap().listener.has_input().unwrap() { break; }
+            if !owner.dhcp.as_ref().unwrap().listener.has_input().unwrap() {
+                break;
+            }
             owner.wait_for_files().unwrap();
         }
         assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
@@ -7939,23 +8795,42 @@ mod tests {
     #[test]
     fn global_interface_generation_keeps_queued_dhcp_until_its_publication() {
         let mut owner = test_owner(DnsConfig::default(), None);
-        let provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
-            ..Default::default() }, Vec::new(), 0, || false).unwrap();
+        let provider = DhcpProvider::new(
+            DhcpConfig {
+                no_ping: true,
+                lease_read_only: true,
+                ..Default::default()
+            },
+            Vec::new(),
+            0,
+            || false,
+        )
+        .unwrap();
         let peer = attach_test_dhcp(&mut owner, provider);
         peer.send(b"queued-dhcp").unwrap();
         let mut collector = dnsmasq_rs::dns::interface_collect::InterfaceCollector::new().unwrap();
         collector.begin().unwrap();
         owner.interface_collector = Some(collector);
         let mut socket_fds = Vec::new();
-        owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut socket_fds);
+        owner
+            .dhcp
+            .as_ref()
+            .unwrap()
+            .listener
+            .append_poll_fds(&mut socket_fds);
         for _ in 0..32 {
             assert!(!owner.dhcp_packet_work_allowed());
             owner.wait_for_files().unwrap();
-            assert!(!owner.poll_fds.iter().any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)));
+            assert!(!owner
+                .poll_fds
+                .iter()
+                .any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)));
             owner.step_dhcp();
             assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
             owner.step_interface_collector();
-            if !owner.interface_work_pending() { break; }
+            if !owner.interface_work_pending() {
+                break;
+            }
         }
         assert!(!owner.interface_work_pending());
         owner.wait_for_files().unwrap();
@@ -7966,33 +8841,76 @@ mod tests {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[test]
     fn lease_alarm_without_network_traffic_expires_and_rewrites_the_lease_file() {
-        let path = std::env::temp_dir().join(format!("ready-dhcp-alarm-{}.leases", std::process::id()));
+        let path =
+            std::env::temp_dir().join(format!("ready-dhcp-alarm-{}.leases", std::process::id()));
         let now = now_seconds();
-        std::fs::write(&path, format!("{} 02:00:00:00:00:01 192.0.2.10 lease-alarm *\n", now+2)).unwrap();
-        let mut provider = DhcpProvider::new(DhcpConfig { no_ping: true,
-            lease_file: Some(path.as_os_str().as_encoded_bytes().to_vec()), ..Default::default() }, Vec::new(), 0, || false).unwrap();
+        std::fs::write(
+            &path,
+            format!("{} 02:00:00:00:00:01 192.0.2.10 lease-alarm *\n", now + 2),
+        )
+        .unwrap();
+        let mut provider = DhcpProvider::new(
+            DhcpConfig {
+                no_ping: true,
+                lease_file: Some(path.as_os_str().as_encoded_bytes().to_vec()),
+                ..Default::default()
+            },
+            Vec::new(),
+            0,
+            || false,
+        )
+        .unwrap();
         provider.initialize(now);
         assert_eq!(provider.lease_counters().pruned4, 0);
         let mut owner = test_owner(DnsConfig::default(), None);
         let _unused_peer = attach_test_dhcp(&mut owner, provider);
         let deadline = Instant::now() + Duration::from_secs(4);
-        while owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap().borrow().lease_counters().pruned4 == 0 {
-            assert!(Instant::now() < deadline, "expiry must not require a new DHCP request");
+        while owner
+            .dhcp
+            .as_ref()
+            .unwrap()
+            .provider
+            .as_ref()
+            .unwrap()
+            .borrow()
+            .lease_counters()
+            .pruned4
+            == 0
+        {
+            assert!(
+                Instant::now() < deadline,
+                "expiry must not require a new DHCP request"
+            );
             owner.wait_for_files().unwrap();
             owner.step_dhcp();
         }
         assert!(std::fs::read(&path).unwrap().is_empty());
         assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
-        assert!(owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap().borrow().next_maintenance().is_none());
+        assert!(owner
+            .dhcp
+            .as_ref()
+            .unwrap()
+            .provider
+            .as_ref()
+            .unwrap()
+            .borrow()
+            .next_maintenance()
+            .is_none());
         drop(owner);
         std::fs::remove_file(path).unwrap();
     }
 
     #[cfg(target_os = "linux")]
     fn finish_test_file_init(owner: &mut SinglePoll) {
-        owner.dns_files.as_mut().unwrap().request(ReloadReason::Init);
+        owner
+            .dns_files
+            .as_mut()
+            .unwrap()
+            .request(ReloadReason::Init);
         for _ in 0..32 {
-            if !owner.dns_files.as_ref().unwrap().has_work() { break; }
+            if !owner.dns_files.as_ref().unwrap().has_work() {
+                break;
+            }
             owner.step_dns_files();
             owner.step_hosts_files();
         }
@@ -8009,20 +8927,31 @@ mod tests {
         config.no_hosts = true;
         config.bind_interfaces = true;
         config.addn_hosts = vec![Some(path.clone())];
-        let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
-            DaemonOptions::default()).unwrap();
+        let daemon = DnsDaemon::new(
+            config.clone(),
+            read_hosts(&config, 37),
+            &[],
+            DaemonOptions::default(),
+        )
+        .unwrap();
         let mut owner = test_owner(config.clone(), Some(daemon));
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
         let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let tcp = TcpListener::bind(udp.local_addr().unwrap()).unwrap();
         tcp.set_nonblocking(true).unwrap();
         let mut tcp_peer = TcpStream::connect(tcp.local_addr().unwrap()).unwrap();
-        tcp_peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        tcp_peer
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
         let udp_peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
-        udp_peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        udp_peer
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
         let query = test_dns_query();
         udp_peer.send_to(&query, udp.local_addr().unwrap()).unwrap();
-        tcp_peer.write_all(&encode_tcp_frame(&query).unwrap()).unwrap();
+        tcp_peer
+            .write_all(&encode_tcp_frame(&query).unwrap())
+            .unwrap();
         owner.add_listener(SocketToken(1), Some(udp), Some(tcp));
         owner.wait_for_files().unwrap();
         std::fs::write(&path, b"192.0.2.43 ready.test\n").unwrap();
@@ -8039,7 +8968,10 @@ mod tests {
         tcp_peer.read_exact(&mut size).unwrap();
         let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
         tcp_peer.read_exact(&mut answer).unwrap();
-        assert!(answer.ends_with(&[192, 0, 2, 43]), "new accept must snapshot the new hosts bank");
+        assert!(
+            answer.ends_with(&[192, 0, 2, 43]),
+            "new accept must snapshot the new hosts bank"
+        );
         drop(owner);
         std::fs::remove_file(path).unwrap();
     }
@@ -8049,25 +8981,38 @@ mod tests {
     fn hup_publishes_small_resolver_and_server_inputs_before_tcp_accept() {
         use dnsmasq_rs::config::dns::{RuleTarget, ServerHost};
         for resolver in [true, false] {
-            let path = std::env::temp_dir().join(format!("hup-bank-order-{}-{resolver}", std::process::id()));
-            let text = |address| if resolver { format!("nameserver {address}\n") }
-                else { format!("server=/ready.test/{address}\n") };
+            let path = std::env::temp_dir()
+                .join(format!("hup-bank-order-{}-{resolver}", std::process::id()));
+            let text = |address| {
+                if resolver {
+                    format!("nameserver {address}\n")
+                } else {
+                    format!("server=/ready.test/{address}\n")
+                }
+            };
             std::fs::write(&path, text("127.0.0.2")).unwrap();
             let mut config = DnsConfig::default();
             config.no_hosts = true;
             config.bind_interfaces = true;
             config.no_resolv = !resolver;
             config.no_poll = resolver;
-            if resolver { config.resolv_files = vec![path.clone()]; }
-            else { config.servers_file = Some(path.clone()); }
-            let daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
+            if resolver {
+                config.resolv_files = vec![path.clone()];
+            } else {
+                config.servers_file = Some(path.clone());
+            }
+            let daemon =
+                DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default())
+                    .unwrap();
             let mut owner = test_owner(config.clone(), Some(daemon));
             owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
             finish_test_file_init(&mut owner);
-            let contains = |config: &DnsConfig, address: &str| config.rules.iter().any(|rule| {
-                matches!(&rule.target, RuleTarget::Upstream(endpoint)
+            let contains = |config: &DnsConfig, address: &str| {
+                config.rules.iter().any(|rule| {
+                    matches!(&rule.target, RuleTarget::Upstream(endpoint)
                     if endpoint.host == ServerHost::Address(address.parse().unwrap()))
-            });
+                })
+            };
             assert!(contains(&owner.service.borrow().local.config, "127.0.0.2"));
             std::fs::write(&path, text("127.0.0.3")).unwrap();
             owner.process_reload_before_dns(37, true).unwrap();
@@ -8075,8 +9020,14 @@ mod tests {
             assert!(contains(&owner.service.borrow().local.config, "127.0.0.3"));
             assert!(!contains(&owner.service.borrow().local.config, "127.0.0.2"));
             let _peer = add_test_tcp(&mut owner);
-            assert!(contains(&owner.clients[0].dns_work.as_ref().unwrap().service.config, "127.0.0.3"));
-            assert!(!contains(&owner.clients[0].dns_work.as_ref().unwrap().service.config, "127.0.0.2"));
+            assert!(contains(
+                &owner.clients[0].dns_work.as_ref().unwrap().service.config,
+                "127.0.0.3"
+            ));
+            assert!(!contains(
+                &owner.clients[0].dns_work.as_ref().unwrap().service.config,
+                "127.0.0.2"
+            ));
             drop(owner);
             std::fs::remove_file(path).unwrap();
         }
@@ -8092,26 +9043,48 @@ mod tests {
         config.no_poll = true;
         config.bind_interfaces = true;
         config.resolv_files = vec![path.clone()];
-        config.apply(&lex_line(b"host-record=ready.test,192.0.2.99").unwrap().unwrap()).unwrap();
-        let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
-            DaemonOptions::default()).unwrap();
+        config
+            .apply(
+                &lex_line(b"host-record=ready.test,192.0.2.99")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        let daemon = DnsDaemon::new(
+            config.clone(),
+            read_hosts(&config, 37),
+            &[],
+            DaemonOptions::default(),
+        )
+        .unwrap();
         let mut owner = test_owner(config.clone(), Some(daemon));
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
         finish_test_file_init(&mut owner);
-        std::fs::write(&path, format!("{}nameserver 127.0.0.3\n", "# padding\n".repeat(128 * 1024))).unwrap();
+        std::fs::write(
+            &path,
+            format!("{}nameserver 127.0.0.3\n", "# padding\n".repeat(128 * 1024)),
+        )
+        .unwrap();
         let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
-        peer.send_to(&test_dns_query(), udp.local_addr().unwrap()).unwrap();
+        peer.send_to(&test_dns_query(), udp.local_addr().unwrap())
+            .unwrap();
         owner.add_listener(SocketToken(1), Some(udp), None);
         owner.wait_for_files().unwrap();
         owner.process_reload_before_dns(37, true).unwrap();
-        assert!(owner.dns_files.as_ref().unwrap().has_work(), "prephase must not drain an unbounded large file");
+        assert!(
+            owner.dns_files.as_ref().unwrap().has_work(),
+            "prephase must not drain an unbounded large file"
+        );
         owner.step().unwrap();
         let mut answer = [0; 1232];
         let length = peer.recv(&mut answer).unwrap();
         assert!(answer[..length].ends_with(&[192, 0, 2, 99]));
-        assert!(owner.dns_files.as_ref().unwrap().has_work(), "DNS remains healthy during the pending file generation");
+        assert!(
+            owner.dns_files.as_ref().unwrap().has_work(),
+            "DNS remains healthy during the pending file generation"
+        );
         drop(owner);
         std::fs::remove_file(path).unwrap();
     }
@@ -8127,28 +9100,46 @@ mod tests {
         config.no_hosts = true;
         config.bind_interfaces = true;
         config.servers_file = Some(path.clone());
-        let daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
+        let daemon =
+            DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
         let mut owner = test_owner(config.clone(), Some(daemon));
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
-        for (reason, address) in [(ReloadReason::Init, "127.0.0.2"),
-                                   (ReloadReason::Signal, "127.0.0.3")] {
+        for (reason, address) in [
+            (ReloadReason::Init, "127.0.0.2"),
+            (ReloadReason::Signal, "127.0.0.3"),
+        ] {
             std::fs::write(&path, format!("server=/ready.test/{address}\n")).unwrap();
             assert!(!owner.files_runnable, "the previous FileStep is idle");
             owner.dns_files.as_mut().unwrap().request(reason);
             assert!(owner.dns_files.as_ref().unwrap().watch_fd().is_none());
-            assert!(owner.dns_file_work_runnable(), "a late request must wake the owner");
+            assert!(
+                owner.dns_file_work_runnable(),
+                "a late request must wake the owner"
+            );
             for _ in 0..16 {
-                if !owner.dns_files.as_ref().unwrap().has_work() { break; }
+                if !owner.dns_files.as_ref().unwrap().has_work() {
+                    break;
+                }
                 assert!(owner.dns_file_work_runnable());
                 owner.wait_for_files().unwrap();
                 owner.step_dns_files();
             }
             assert!(!owner.dns_files.as_ref().unwrap().has_work());
-            assert!(!owner.dns_file_work_runnable(), "idle file sources must not spin");
-            assert!(owner.service.borrow().local.config.rules.iter().any(|rule| {
-                matches!(&rule.target, RuleTarget::Upstream(endpoint)
+            assert!(
+                !owner.dns_file_work_runnable(),
+                "idle file sources must not spin"
+            );
+            assert!(owner
+                .service
+                .borrow()
+                .local
+                .config
+                .rules
+                .iter()
+                .any(|rule| {
+                    matches!(&rule.target, RuleTarget::Upstream(endpoint)
                     if endpoint.host == ServerHost::Address(address.parse().unwrap()))
-            }));
+                }));
         }
         drop(owner);
         std::fs::remove_file(path).unwrap();
@@ -8159,22 +9150,44 @@ mod tests {
     fn held_hosts_fifo_blocks_dns_runnable_without_losing_its_request() {
         use dnsmasq_rs::dns::hostsdir::{HostSource, HostsRead};
         let path = std::env::temp_dir().join(format!("ready-hosts-fifo-{}", std::process::id()));
-        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        assert!(std::process::Command::new("mkfifo")
+            .arg(&path)
+            .status()
+            .unwrap()
+            .success());
         let mut config = DnsConfig::default();
         config.no_resolv = true;
         config.no_hosts = true;
         let mut owner = test_owner(config.clone(), None);
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
-        owner.dns_files.as_mut().unwrap().request(ReloadReason::Signal);
+        owner
+            .dns_files
+            .as_mut()
+            .unwrap()
+            .request(ReloadReason::Signal);
         owner.files_runnable = true; // stale previous result is also suppressed
-        owner.hosts_read = Some(HostsRead::open(HostSource { path: path.clone(), uid: 1 },
-            37).unwrap());
+        owner.hosts_read = Some(
+            HostsRead::open(
+                HostSource {
+                    path: path.clone(),
+                    uid: 1,
+                },
+                37,
+            )
+            .unwrap(),
+        );
         assert!(!owner.hosts_read.as_ref().unwrap().runnable());
-        assert!(!owner.dns_file_work_runnable(), "DNS cannot busy-poll ahead of hosts publication");
+        assert!(
+            !owner.dns_file_work_runnable(),
+            "DNS cannot busy-poll ahead of hosts publication"
+        );
         owner.step_dns_files();
         assert!(owner.dns_files.as_ref().unwrap().has_work());
         owner.hosts_read.take();
-        assert!(owner.dns_file_work_runnable(), "finishing hosts makes the saved request runnable");
+        assert!(
+            owner.dns_file_work_runnable(),
+            "finishing hosts makes the saved request runnable"
+        );
         drop(owner);
         std::fs::remove_file(path).unwrap();
     }
@@ -8184,7 +9197,11 @@ mod tests {
     fn startup_fifo_keeps_blocked_dns_off_both_wait_sets_without_dropping_it() {
         use std::os::fd::AsRawFd;
         let path = std::env::temp_dir().join(format!("ready-startup-fifo-{}", std::process::id()));
-        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        assert!(std::process::Command::new("mkfifo")
+            .arg(&path)
+            .status()
+            .unwrap()
+            .success());
         let mut config = DnsConfig::default();
         config.no_hosts = true;
         config.no_poll = true;
@@ -8192,16 +9209,28 @@ mod tests {
         config.resolv_files = vec![path.clone()];
         let mut owner = test_owner(config.clone(), None);
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
-        owner.dns_files.as_mut().unwrap().request(ReloadReason::Init);
+        owner
+            .dns_files
+            .as_mut()
+            .unwrap()
+            .request(ReloadReason::Init);
         // Init first publishes its cache/hosts barrier, before opening input.
         // Advance only genuinely runnable stages to the actual FIFO wait.
         for _ in 0..16 {
-            if !owner.dns_file_work_runnable() { break; }
+            if !owner.dns_file_work_runnable() {
+                break;
+            }
             owner.step_dns_files();
         }
         assert!(owner.files_initializing());
-        assert!(!owner.dns_file_work_runnable(), "the opened FIFO waits for input");
-        assert!(!owner.dhcp_packet_work_allowed(), "DHCP must also wait for initial hosts");
+        assert!(
+            !owner.dns_file_work_runnable(),
+            "the opened FIFO waits for input"
+        );
+        assert!(
+            !owner.dhcp_packet_work_allowed(),
+            "DHCP must also wait for initial hosts"
+        );
         let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         let query = test_dns_query();
@@ -8214,33 +9243,59 @@ mod tests {
         tcp_peer.write_all(&frame).unwrap();
         owner.add_listener(SocketToken(1), Some(Arc::clone(&udp)), Some(tcp));
         owner.wait_for_files().unwrap();
-        assert!(!owner.poll_fds.iter().any(|fd| fd.fd == udp.as_raw_fd()),
-            "a queued but unprocessable DNS packet must not spin normal poll");
-        assert!(!owner.poll_fds.iter().any(|fd| fd.fd == tcp_fd),
-            "a pending but unprocessable TCP accept also cannot spin poll");
-        assert!(!owner.wait_during_probe(None, Duration::from_millis(25), Default::default()).unwrap(),
-            "blocked DNS readiness must not consume the probe wait");
+        assert!(
+            !owner.poll_fds.iter().any(|fd| fd.fd == udp.as_raw_fd()),
+            "a queued but unprocessable DNS packet must not spin normal poll"
+        );
+        assert!(
+            !owner.poll_fds.iter().any(|fd| fd.fd == tcp_fd),
+            "a pending but unprocessable TCP accept also cannot spin poll"
+        );
+        assert!(
+            !owner
+                .wait_during_probe(None, Duration::from_millis(25), Default::default())
+                .unwrap(),
+            "blocked DNS readiness must not consume the probe wait"
+        );
         let mut packet = [0; 1232];
         let queued = udp.receive(&mut packet).unwrap().unwrap();
-        assert_eq!(&packet[..queued.len], query.as_slice(), "the original DNS input stays queued");
-        assert!(owner.clients.is_empty(), "probe cannot admit a premature TCP snapshot");
+        assert_eq!(
+            &packet[..queued.len],
+            query.as_slice(),
+            "the original DNS input stays queued"
+        );
+        assert!(
+            owner.clients.is_empty(),
+            "probe cannot admit a premature TCP snapshot"
+        );
         let (mut queued_tcp, _) = owner.listeners[0].tcp.as_ref().unwrap().accept().unwrap();
         let mut queued_frame = vec![0; frame.len()];
         queued_tcp.read_exact(&mut queued_frame).unwrap();
-        assert_eq!(queued_frame, frame, "the original TCP request also stays queued");
+        assert_eq!(
+            queued_frame, frame,
+            "the original TCP request also stays queued"
+        );
         drop(owner);
         std::fs::remove_file(path).unwrap();
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[cfg(feature = "process-test-support")]
-    #[expect(unsafe_code, reason = "called only by the standalone process test runner")]
+    #[expect(
+        unsafe_code,
+        reason = "called only by the standalone process test runner"
+    )]
     pub(super) fn ready_test_helper() -> Helper {
         // SAFETY: the standalone runner starts on main with one thread, no
         // shared mappings/atfork hooks and no held locks; config is owned.
-        let mut helper = unsafe { Helper::start(HelperConfig {
-            script: "/bin/true".into(), script_user: None, debug: false,
-        }) }.unwrap();
+        let mut helper = unsafe {
+            Helper::start(HelperConfig {
+                script: "/bin/true".into(),
+                script_user: None,
+                debug: false,
+            })
+        }
+        .unwrap();
         let deadline = Instant::now() + Duration::from_secs(5);
         while !helper.ready() {
             assert!(Instant::now() < deadline);
@@ -8273,15 +9328,22 @@ mod tests {
         // Both the explicit final ACK and C's final-ACK timeout leave no
         // active transfer fd/timer to wake the owner for its callback.
         for ack in [true, false] {
-            let runtime = TransferRuntime::new(RuntimeConfig {
-                path: RuntimePathPolicy { prefix: Some(root.as_os_str().as_bytes().to_vec()),
-                    lowercase: false }, ..Default::default()
-            }, RealFileOpener::new(0, false));
+            let runtime = TransferRuntime::new(
+                RuntimeConfig {
+                    path: RuntimePathPolicy {
+                        prefix: Some(root.as_os_str().as_bytes().to_vec()),
+                        lowercase: false,
+                    },
+                    ..Default::default()
+                },
+                RealFileOpener::new(0, false),
+            );
             let mut listener = TftpListener::bind("127.0.0.1:0".parse().unwrap(), runtime).unwrap();
             let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
             peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
             let now = now_seconds() as u64;
-            peer.send_to(b"\0\x01boot\0octet\0", listener.local_addr().unwrap()).unwrap();
+            peer.send_to(b"\0\x01boot\0octet\0", listener.local_addr().unwrap())
+                .unwrap();
             listener.poll_once(now).unwrap();
             let mut packet = [0; 1024];
             let (_, transfer) = peer.recv_from(&mut packet).unwrap();
@@ -8302,8 +9364,11 @@ mod tests {
             owner.wait_for_files().unwrap();
             owner.step_helper();
             assert!(owner.tftp.as_ref().unwrap().front_completion().is_none());
-            assert_eq!(owner.helper_next_due(clock), None,
-                "drained sources and an idle live helper must not spin");
+            assert_eq!(
+                owner.helper_next_due(clock),
+                None,
+                "drained sources and an idle live helper must not spin"
+            );
             finish_test_helper(owner.helper.as_mut().unwrap());
         }
         std::fs::remove_dir_all(root).unwrap();
@@ -8313,46 +9378,95 @@ mod tests {
     #[cfg(feature = "process-test-support")]
     pub(super) fn frozen_dhcp_callbacks_resume_after_pipe_capacity_returns() {
         let path = std::env::temp_dir().join(format!("ready-helper-leases-{}", std::process::id()));
-        std::fs::write(&path, b"0 02:00:00:00:00:01 192.0.2.10 one *\n0 02:00:00:00:00:02 192.0.2.11 two *\n").unwrap();
-        let mut provider = DhcpProvider::new(DhcpConfig {
-            no_ping: true, script: Some(b"/bin/true".to_vec()),
-            lease_file: Some(path.as_os_str().as_encoded_bytes().to_vec()),
-            ..Default::default()
-        }, Vec::new(), 0, || false).unwrap();
+        std::fs::write(
+            &path,
+            b"0 02:00:00:00:00:01 192.0.2.10 one *\n0 02:00:00:00:00:02 192.0.2.11 two *\n",
+        )
+        .unwrap();
+        let mut provider = DhcpProvider::new(
+            DhcpConfig {
+                no_ping: true,
+                script: Some(b"/bin/true".to_vec()),
+                lease_file: Some(path.as_os_str().as_encoded_bytes().to_vec()),
+                ..Default::default()
+            },
+            Vec::new(),
+            0,
+            || false,
+        )
+        .unwrap();
         provider.tick(now_seconds()).unwrap();
         assert!(provider.has_frozen_script_delivery());
         let mut owner = test_owner(DnsConfig::default(), None);
         owner.pending_delivery = provider.take_script_delivery();
         assert!(owner.pending_delivery.is_some());
-        assert!(provider.has_frozen_script_delivery(), "taking one freezes the next callback");
+        assert!(
+            provider.has_frozen_script_delivery(),
+            "taking one freezes the next callback"
+        );
         owner.dhcp = Some(DhcpService {
             provider: Some(Rc::new(RefCell::new(provider))),
-            listener: DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(),
-                DhcpListener::Dhcp, &[]).unwrap(), pxe_next: false,
+            listener: DhcpSocketListener::bind(
+                "127.0.0.1:0".parse().unwrap(),
+                DhcpListener::Dhcp,
+                &[],
+            )
+            .unwrap(),
+            pxe_next: false,
             output: vec![0; 16_384],
         });
         owner.helper = Some(ready_test_helper());
         let now = Instant::now();
         assert_eq!(owner.helper_next_due(now), Some(now));
-        assert!(owner.helper.as_mut().unwrap().enqueue(&dnsmasq_rs::helper::Event::Tftp {
-            size: 0, address: "127.0.0.1".parse().unwrap(), filename: b"backpressure".to_vec(),
-        }).unwrap());
-        assert_eq!(owner.helper_next_due(now), None,
-            "occupied command slot waits for POLLOUT instead of spinning");
+        assert!(owner
+            .helper
+            .as_mut()
+            .unwrap()
+            .enqueue(&dnsmasq_rs::helper::Event::Tftp {
+                size: 0,
+                address: "127.0.0.1".parse().unwrap(),
+                filename: b"backpressure".to_vec(),
+            })
+            .unwrap());
+        assert_eq!(
+            owner.helper_next_due(now),
+            None,
+            "occupied command slot waits for POLLOUT instead of spinning"
+        );
         owner.helper.as_mut().unwrap().step().unwrap();
         owner.step_helper();
         assert!(owner.pending_delivery.is_none());
-        assert_eq!(owner.helper_next_due(now), Some(now),
-            "the provider's next frozen callback also wakes the owner");
+        assert_eq!(
+            owner.helper_next_due(now),
+            Some(now),
+            "the provider's next frozen callback also wakes the owner"
+        );
         owner.dns_files = Some(DnsFiles::new(&DnsConfig::default(), true, false).unwrap());
-        owner.dns_files.as_mut().unwrap().request(ReloadReason::Init);
+        owner
+            .dns_files
+            .as_mut()
+            .unwrap()
+            .request(ReloadReason::Init);
         assert!(owner.files_initializing());
-        assert_eq!(owner.helper_next_due(now), None,
-            "a callback blocked by startup files must not busy-poll");
+        assert_eq!(
+            owner.helper_next_due(now),
+            None,
+            "a callback blocked by startup files must not busy-poll"
+        );
         owner.step_helper();
         assert!(owner.pending_delivery.is_none());
-        assert!(owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap()
-            .borrow().has_frozen_script_delivery(), "startup gate retains the callback");
+        assert!(
+            owner
+                .dhcp
+                .as_ref()
+                .unwrap()
+                .provider
+                .as_ref()
+                .unwrap()
+                .borrow()
+                .has_frozen_script_delivery(),
+            "startup gate retains the callback"
+        );
         owner.dns_files = None;
         assert_eq!(owner.helper_next_due(now), Some(now));
         owner.step_helper();
@@ -8370,17 +9484,28 @@ mod tests {
         let client = owner.clients[0].dns_work.as_mut().unwrap();
         // Model a prefix already sent, leaving the same six answer bytes.
         client.phase = TcpClientPhase::Writing {
-            frame: TcpWriteFrame::new(b"answer".to_vec()).unwrap(), offset: 2,
+            frame: TcpWriteFrame::new(b"answer".to_vec()).unwrap(),
+            offset: 2,
         };
-        assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
-            false, true, false).unwrap());
+        assert!(client
+            .step(
+                &owner.service,
+                &mut |_, _| ClientMacLookup::Ready(None),
+                false,
+                true,
+                false
+            )
+            .unwrap());
         let mut answer = [0; 6];
         peer.read_exact(&mut answer).unwrap();
         assert_eq!(&answer, b"answer");
         assert!(matches!(client.phase, TcpClientPhase::Reading));
         assert!(client.input.is_empty());
         let mut pending = [0; 32];
-        assert_eq!(client.stream.as_ref().unwrap().peek(&mut pending).unwrap(), 16);
+        assert_eq!(
+            client.stream.as_ref().unwrap().peek(&mut pending).unwrap(),
+            16
+        );
         assert_eq!(&pending[..16], b"not-yet-readable");
     }
 
@@ -8388,14 +9513,27 @@ mod tests {
     fn tcp_buffered_frame_runs_without_socket_readiness_and_sends_new_answer() {
         let mut config = DnsConfig::default();
         config.no_hosts = true;
-        config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
+        config
+            .apply(
+                &lex_line(b"host-record=ready.test,192.0.2.7")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
         let mut owner = test_owner(config, None);
         let mut peer = add_test_tcp(&mut owner);
         let query = test_dns_query();
         let client = owner.clients[0].dns_work.as_mut().unwrap();
         client.input = encode_tcp_frame(&query).unwrap();
-        assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
-            false, false, false).unwrap());
+        assert!(client
+            .step(
+                &owner.service,
+                &mut |_, _| ClientMacLookup::Ready(None),
+                false,
+                false,
+                false
+            )
+            .unwrap());
         let mut size = [0; 2];
         peer.read_exact(&mut size).unwrap();
         let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
@@ -8423,17 +9561,33 @@ mod tests {
             long.extend(std::iter::repeat_n(b'a', usize::from(length)));
         }
         long.extend_from_slice(&[0, 0, 1, 0, 1]);
-        let cases = [multi, compressed, zero,
+        let cases = [
+            multi,
+            compressed,
+            zero,
             with_tail(&[0xc0, 12, 0, 1, 0, 1]),
             with_tail(&[0xc0, 255, 0, 1, 0, 1]),
-            with_tail(&[0x41, 8, b'a', 0, 0, 1, 0, 1]), long];
+            with_tail(&[0x41, 8, b'a', 0, 0, 1, 0, 1]),
+            long,
+        ];
         for debug in [false, true] {
             let mut config = DnsConfig::default();
             config.no_hosts = true;
             config.no_resolv = true;
-            config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
-            let mut daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
-                DaemonOptions::default()).unwrap();
+            config
+                .apply(
+                    &lex_line(b"host-record=ready.test,192.0.2.7")
+                        .unwrap()
+                        .unwrap(),
+                )
+                .unwrap();
+            let mut daemon = DnsDaemon::new(
+                config.clone(),
+                read_hosts(&config, 37),
+                &[],
+                DaemonOptions::default(),
+            )
+            .unwrap();
             daemon.enable_cache(32, 0, 0, dnsmasq_rs::dns::cache::StalePolicy::Disabled);
             let mut owner = test_owner(config, Some(daemon));
             let mut peer = add_test_tcp(&mut owner);
@@ -8442,14 +9596,25 @@ mod tests {
             for query in cases.iter().chain(std::iter::once(&valid)) {
                 client.input = encode_tcp_frame(query).unwrap();
                 client.input_offset = 0;
-                assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
-                    false, false, false).unwrap());
+                assert!(client
+                    .step(
+                        &owner.service,
+                        &mut |_, _| ClientMacLookup::Ready(None),
+                        false,
+                        false,
+                        false
+                    )
+                    .unwrap());
                 let mut size = [0; 2];
                 peer.read_exact(&mut size).unwrap();
                 let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
                 peer.read_exact(&mut answer).unwrap();
                 let header = dnsmasq_rs::dns::wire::Header::parse(&answer).unwrap();
-                let expected = if query == &valid { (0x8580, 1) } else { (0x8185, 0) };
+                let expected = if query == &valid {
+                    (0x8580, 1)
+                } else {
+                    (0x8185, 0)
+                };
                 assert_eq!((header.flags, header.answers), expected);
                 assert!(matches!(client.phase, TcpClientPhase::Reading));
             }
@@ -8461,7 +9626,13 @@ mod tests {
     fn real_tcp_read_budget_tail_resumes_through_normal_and_probe_owner() {
         let mut config = DnsConfig::default();
         config.no_hosts = true;
-        config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
+        config
+            .apply(
+                &lex_line(b"host-record=ready.test,192.0.2.7")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
         let mut owner = test_owner(config, None);
         let mut peer = add_test_tcp(&mut owner);
         let frame = encode_tcp_frame(&test_dns_query()).unwrap();
@@ -8470,13 +9641,38 @@ mod tests {
 
         owner.wait_for_files().unwrap();
         owner.step_tcp_clients();
-        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 4, "eight read/write steps serve four frames");
-        assert!(matches!(owner.clients[0].dns_work.as_ref().unwrap().phase, TcpClientPhase::Reading));
-        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().input.len(), pipeline.len());
-        assert!(owner.clients[0].dns_work.as_ref().unwrap().input_offset < owner.clients[0].dns_work.as_ref().unwrap().input.len());
+        assert_eq!(
+            owner.clients[0].dns_work.as_ref().unwrap().queries,
+            4,
+            "eight read/write steps serve four frames"
+        );
+        assert!(matches!(
+            owner.clients[0].dns_work.as_ref().unwrap().phase,
+            TcpClientPhase::Reading
+        ));
+        assert_eq!(
+            owner.clients[0].dns_work.as_ref().unwrap().input.len(),
+            pipeline.len()
+        );
+        assert!(
+            owner.clients[0].dns_work.as_ref().unwrap().input_offset
+                < owner.clients[0].dns_work.as_ref().unwrap().input.len()
+        );
         let mut byte = [0];
-        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().stream.as_ref().unwrap().peek(&mut byte).unwrap_err().kind(),
-            io::ErrorKind::WouldBlock, "no new kernel read event can authorize the tail");
+        assert_eq!(
+            owner.clients[0]
+                .dns_work
+                .as_ref()
+                .unwrap()
+                .stream
+                .as_ref()
+                .unwrap()
+                .peek(&mut byte)
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::WouldBlock,
+            "no new kernel read event can authorize the tail"
+        );
 
         let started = Instant::now();
         owner.wait_for_files().unwrap();
@@ -8488,18 +9684,28 @@ mod tests {
         assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 8);
 
         let started = Instant::now();
-        assert!(owner.wait_during_probe(None, Duration::from_millis(200), Default::default()).unwrap());
+        assert!(owner
+            .wait_during_probe(None, Duration::from_millis(200), Default::default())
+            .unwrap());
         assert!(started.elapsed() < Duration::from_millis(50));
         assert_eq!(owner.clients[0].ready_events, 0);
         assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 9);
-        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().input_offset, owner.clients[0].dns_work.as_ref().unwrap().input.len());
+        assert_eq!(
+            owner.clients[0].dns_work.as_ref().unwrap().input_offset,
+            owner.clients[0].dns_work.as_ref().unwrap().input.len()
+        );
         for _ in 0..9 {
             let mut size = [0; 2];
             peer.read_exact(&mut size).unwrap();
             let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
             peer.read_exact(&mut answer).unwrap();
             assert!(answer.ends_with(&[192, 0, 2, 7]));
-            assert_eq!(dnsmasq_rs::dns::wire::Header::parse(&answer).unwrap().rcode(), 0);
+            assert_eq!(
+                dnsmasq_rs::dns::wire::Header::parse(&answer)
+                    .unwrap()
+                    .rcode(),
+                0
+            );
         }
     }
 
@@ -8514,16 +9720,22 @@ mod tests {
         // second 64-step tail for normal poll and one attempt for probe poll.
         for port in 10000..10193 {
             let line = format!("server=127.0.0.1#{port}@m6b-no-if-64");
-            config.apply(&lex_line(line.as_bytes()).unwrap().unwrap()).unwrap();
+            config
+                .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+                .unwrap();
         }
         let mut owner = test_owner(config, None);
         let mut peer = add_test_tcp(&mut owner);
-        peer.write_all(&encode_tcp_frame(&test_dns_query()).unwrap()).unwrap();
+        peer.write_all(&encode_tcp_frame(&test_dns_query()).unwrap())
+            .unwrap();
         owner.wait_for_files().unwrap();
         owner.step_tcp_clients();
         let assert_yield = |owner: &SinglePoll| {
-            let TcpClientPhase::Forwarding { wait, .. } = &owner.clients[0].dns_work.as_ref().unwrap().phase
-                else { panic!("real transport must still have failed servers to visit"); };
+            let TcpClientPhase::Forwarding { wait, .. } =
+                &owner.clients[0].dns_work.as_ref().unwrap().phase
+            else {
+                panic!("real transport must still have failed servers to visit");
+            };
             assert_eq!(wait.fd, -1);
             assert_eq!(wait.events, 0);
             assert!(wait.deadline <= Instant::now());
@@ -8538,10 +9750,15 @@ mod tests {
         owner.step_tcp_clients();
         assert_yield(&owner);
         let started = Instant::now();
-        assert!(owner.wait_during_probe(None, Duration::from_millis(200), Default::default()).unwrap());
+        assert!(owner
+            .wait_during_probe(None, Duration::from_millis(200), Default::default())
+            .unwrap());
         assert!(started.elapsed() < Duration::from_millis(50));
         assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 1);
-        assert!(matches!(owner.clients[0].dns_work.as_ref().unwrap().phase, TcpClientPhase::Reading));
+        assert!(matches!(
+            owner.clients[0].dns_work.as_ref().unwrap().phase,
+            TcpClientPhase::Reading
+        ));
         let mut size = [0; 2];
         peer.read_exact(&mut size).unwrap();
         let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
@@ -8549,7 +9766,12 @@ mod tests {
         // C tcp_talk exhausts failed local_bind attempts, tcp_request sets
         // EDE_NETERR, and make_local_answer(flags=0) uses REFUSED, not
         // SERVFAIL (forward.c:2633/2734; rfc1035.c:1370-1376). No OPT here.
-        assert_eq!(dnsmasq_rs::dns::wire::Header::parse(&answer).unwrap().rcode(), 5);
+        assert_eq!(
+            dnsmasq_rs::dns::wire::Header::parse(&answer)
+                .unwrap()
+                .rcode(),
+            5
+        );
     }
 
     #[cfg(target_os = "linux")]
@@ -8559,11 +9781,17 @@ mod tests {
         let _peer = add_test_tcp(&mut owner);
         owner.clients[0].dns_work.as_mut().unwrap().deadline = Instant::now();
         owner.step_tcp_clients();
-        assert!(owner.clients.is_empty(), "expired idle client must release its slot");
+        assert!(
+            owner.clients.is_empty(),
+            "expired idle client must release its slot"
+        );
         let _peer = add_test_tcp(&mut owner);
         owner.clients[0].dns_work.take();
         owner.step_tcp_clients();
-        assert!(owner.clients.is_empty(), "log-complete client must release its slot");
+        assert!(
+            owner.clients.is_empty(),
+            "log-complete client must release its slot"
+        );
     }
 
     #[cfg(target_os = "linux")]
@@ -8572,16 +9800,26 @@ mod tests {
         use dnsmasq_platform::poll::{PollFd, POLLIN, POLLOUT};
         let mut owner = test_owner(DnsConfig::default(), None);
         owner.ready_fds = vec![
-            PollFd { fd: 42, events: POLLOUT, revents: POLLOUT },
-            PollFd { fd: 42, events: POLLIN, revents: 0 },
+            PollFd {
+                fd: 42,
+                events: POLLOUT,
+                revents: POLLOUT,
+            },
+            PollFd {
+                fd: 42,
+                events: POLLIN,
+                revents: 0,
+            },
         ];
         assert!(owner.fd_ready(42, POLLOUT));
         assert!(!owner.fd_ready(42, POLLIN));
         owner.ready_fds[1].revents = POLLIN;
         assert!(owner.fd_ready(42, POLLIN));
         let _peer = add_test_tcp(&mut owner);
-        assert_eq!(owner.clients[0].ready_events, 0,
-            "accepted client owns no slot from the previous poll");
+        assert_eq!(
+            owner.clients[0].ready_events, 0,
+            "accepted client owns no slot from the previous poll"
+        );
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -8592,21 +9830,47 @@ mod tests {
         let mut config = DnsConfig::default();
         config.no_resolv = true;
         let line = format!("server=127.0.0.1#{}", server.local_addr().unwrap().port());
-        config.apply(&lex_line(line.as_bytes()).unwrap().unwrap()).unwrap();
-        let mut daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions {
-            upstream_lifetime: Lifetime::Fixed(Duration::from_millis(20)),
-            ..Default::default()
-        }).unwrap();
-        assert!(matches!(daemon.forward_udp(&test_dns_query(), ClientRequest {
-            source: "127.0.0.1:53000".parse().unwrap(), destination: "127.0.0.1".parse().unwrap(),
-            interface: 0,
-        }).unwrap(), QueryResult::Forwarded(_)));
+        config
+            .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+            .unwrap();
+        let mut daemon = DnsDaemon::new(
+            config.clone(),
+            Hosts::new(),
+            &[],
+            DaemonOptions {
+                upstream_lifetime: Lifetime::Fixed(Duration::from_millis(20)),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert!(matches!(
+            daemon
+                .forward_udp(
+                    &test_dns_query(),
+                    ClientRequest {
+                        source: "127.0.0.1:53000".parse().unwrap(),
+                        destination: "127.0.0.1".parse().unwrap(),
+                        interface: 0,
+                    }
+                )
+                .unwrap(),
+            QueryResult::Forwarded(_)
+        ));
         let mut owner = test_owner(config, Some(daemon));
         owner.wait_for_files().unwrap();
         assert!(!owner.upstream_ready);
         assert!(owner.upstream_next_due.unwrap() <= Instant::now());
         owner.step().unwrap();
-        assert_eq!(owner.service.borrow().daemon.as_ref().unwrap().pending_count(), 0);
+        assert_eq!(
+            owner
+                .service
+                .borrow()
+                .daemon
+                .as_ref()
+                .unwrap()
+                .pending_count(),
+            0
+        );
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -8616,18 +9880,33 @@ mod tests {
         config.bind_interfaces = true;
         config.no_hosts = true;
         config.no_resolv = true;
-        config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
-        let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
-            DaemonOptions::default()).unwrap();
+        config
+            .apply(
+                &lex_line(b"host-record=ready.test,192.0.2.7")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        let daemon = DnsDaemon::new(
+            config.clone(),
+            read_hosts(&config, 37),
+            &[],
+            DaemonOptions::default(),
+        )
+        .unwrap();
         let mut owner = test_owner(config, Some(daemon));
         let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let address = udp.local_addr().unwrap();
         owner.add_listener(SocketToken(1), Some(udp), None);
         let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
-        client.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        client
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
         client.send_to(&test_dns_query(), address).unwrap();
         assert!(owner.ready_fds.is_empty());
-        assert!(owner.wait_during_probe(None, Duration::from_millis(50), Default::default()).unwrap());
+        assert!(owner
+            .wait_during_probe(None, Duration::from_millis(50), Default::default())
+            .unwrap());
         let mut answer = [0; 1232];
         let (length, _) = client.recv_from(&mut answer).unwrap();
         assert!(answer[..length].ends_with(&[192, 0, 2, 7]));
@@ -8640,41 +9919,77 @@ mod tests {
         use dnsmasq_rs::logging::{LogEvent, Logger, Priority, Service};
         use std::os::unix::fs::OpenOptionsExt;
         let path = std::env::temp_dir().join(format!("dnsmasq-ready-log-{}", std::process::id()));
-        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
-        let (logger, _) = Logger::start(&LoggingConfig { file: Some(path.clone()),
-            ..Default::default() }, &Default::default(), None).unwrap();
+        assert!(std::process::Command::new("mkfifo")
+            .arg(&path)
+            .status()
+            .unwrap()
+            .success());
+        let (logger, _) = Logger::start(
+            &LoggingConfig {
+                file: Some(path.clone()),
+                ..Default::default()
+            },
+            &Default::default(),
+            None,
+        )
+        .unwrap();
         let mut owner = test_owner(DnsConfig::default(), None);
         owner.logger = Some(logger);
         let _peer = add_test_tcp(&mut owner);
         let context = owner.clients[0].log_context.as_mut().unwrap();
-        owner.logger.as_mut().unwrap().emit_tcp(context,
-            LogEvent::new(Service::Dns, Priority::Info, b"pending child log".to_vec()));
+        owner.logger.as_mut().unwrap().emit_tcp(
+            context,
+            LogEvent::new(Service::Dns, Priority::Info, b"pending child log".to_vec()),
+        );
         let (lease_root, interface_root) = {
             let work = owner.clients[0].dns_work.as_mut().unwrap();
             // Each accepted owner has independent DNS allocations as well as
             // two shared publication roots; none belongs to the log context.
-            work.cache_view = Some(dnsmasq_rs::dns::cache::Cache::new(4096,
-                Default::default()));
+            work.cache_view = Some(dnsmasq_rs::dns::cache::Cache::new(4096, Default::default()));
             work.input = vec![0; 65_535];
             // Keep a legal partial 1232-byte frame under this fixture's limit.
             work.framer.push_frame(&[0x04, 0xd0, 1]).unwrap();
             work.mac = Some(vec![7; 1024]);
             work.stale_query = Some(vec![0; 1232]);
             work.deadline = Instant::now();
-            (Arc::downgrade(&work.service.leases), Arc::downgrade(&work.service.interfaces))
+            (
+                Arc::downgrade(&work.service.leases),
+                Arc::downgrade(&work.service.interfaces),
+            )
         };
         owner.step_tcp_clients();
         assert_eq!(owner.clients.len(), 1);
-        assert_eq!(owner.parent_events.borrow().tcp_active, 1, "G still holds its slot");
-        assert!(owner.clients[0].dns_work.is_none(), "all DNS allocations are released together");
-        assert_eq!(lease_root.strong_count(), 1, "only the parent's lease root remains");
-        assert_eq!(interface_root.strong_count(), 1, "only the parent's interface root remains");
+        assert_eq!(
+            owner.parent_events.borrow().tcp_active,
+            1,
+            "G still holds its slot"
+        );
+        assert!(
+            owner.clients[0].dns_work.is_none(),
+            "all DNS allocations are released together"
+        );
+        assert_eq!(
+            lease_root.strong_count(),
+            1,
+            "only the parent's lease root remains"
+        );
+        assert_eq!(
+            interface_root.strong_count(),
+            1,
+            "only the parent's interface root remains"
+        );
         assert!(owner.clients[0].log_context.is_some());
-        let mut reader = std::fs::OpenOptions::new().read(true).custom_flags(0o4000)
-            .open(&path).unwrap();
+        let mut reader = std::fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(0o4000)
+            .open(&path)
+            .unwrap();
         owner.wait_for_files().unwrap();
         owner.step_tcp_clients();
-        assert!(owner.clients.is_empty(), "FIFO timer must drain log and free TCP slot");
+        assert!(
+            owner.clients.is_empty(),
+            "FIFO timer must drain log and free TCP slot"
+        );
         assert_eq!(owner.parent_events.borrow().tcp_active, 0);
         let mut message = String::new();
         match reader.read_to_string(&mut message) {
@@ -8706,7 +10021,9 @@ mod tests {
                 }
             };
             stream.set_nonblocking(false).unwrap();
-            stream.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
             let mut length = [0; 2];
             stream.read_exact(&mut length).unwrap();
             let mut query = vec![0; usize::from(u16::from_be_bytes(length))];
@@ -8714,24 +10031,43 @@ mod tests {
             query_sender.send(query.clone()).unwrap();
             reply_receiver.recv_timeout(Duration::from_secs(3)).unwrap();
             query[2..4].copy_from_slice(&0x8180u16.to_be_bytes());
-            stream.write_all(&encode_tcp_frame(&query).unwrap()).unwrap();
+            stream
+                .write_all(&encode_tcp_frame(&query).unwrap())
+                .unwrap();
             let mut byte = [0];
             closed_sender.send(stream.read(&mut byte).unwrap()).unwrap();
         });
         let mut config = DnsConfig::default();
         config.no_hosts = true;
         config.no_resolv = true;
-        config.apply(&lex_line(format!("server=127.0.0.1#{}", address.port())
-            .as_bytes()).unwrap().unwrap()).unwrap();
+        config
+            .apply(
+                &lex_line(format!("server=127.0.0.1#{}", address.port()).as_bytes())
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
         let mut owner = test_owner(config, None);
         #[cfg(target_os = "linux")]
         let log_path = {
             use dnsmasq_rs::config::logging::LoggingConfig;
             use dnsmasq_rs::logging::Logger;
-            let path = std::env::temp_dir().join(format!("dnsmasq-stale-log-{}", std::process::id()));
-            assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
-            let (logger, _) = Logger::start(&LoggingConfig { file: Some(path.clone()),
-                ..Default::default() }, &Default::default(), None).unwrap();
+            let path =
+                std::env::temp_dir().join(format!("dnsmasq-stale-log-{}", std::process::id()));
+            assert!(std::process::Command::new("mkfifo")
+                .arg(&path)
+                .status()
+                .unwrap()
+                .success());
+            let (logger, _) = Logger::start(
+                &LoggingConfig {
+                    file: Some(path.clone()),
+                    ..Default::default()
+                },
+                &Default::default(),
+                None,
+            )
+            .unwrap();
             owner.logger = Some(logger);
             owner.query_logging.enabled = true;
             path
@@ -8743,16 +10079,24 @@ mod tests {
             work.cache_view = Some(dnsmasq_rs::dns::cache::Cache::new(4096, Default::default()));
             work.stale_query = Some(query.clone());
             work.phase = TcpClientPhase::Writing {
-                frame: TcpWriteFrame::new(query.clone()).unwrap(), offset: 0,
+                frame: TcpWriteFrame::new(query.clone()).unwrap(),
+                offset: 0,
             };
             work.queries = 1;
             // File/FIFO logging has exactly one buffer, matching C. Keep the
             // first producer warning; later request/forward events must reach
             // the logger and count as overflow while the FIFO has no reader.
-            work.query_events.push((work.query_context,
-                dnsmasq_rs::query_logging::QueryEvent::warning(b"stale-work warning before release".to_vec())));
-            work.query_events.push((work.query_context,
-                dnsmasq_rs::query_logging::QueryEvent::request(&query, work.peer, work.auth_query).unwrap()));
+            work.query_events.push((
+                work.query_context,
+                dnsmasq_rs::query_logging::QueryEvent::warning(
+                    b"stale-work warning before release".to_vec(),
+                ),
+            ));
+            work.query_events.push((
+                work.query_context,
+                dnsmasq_rs::query_logging::QueryEvent::request(&query, work.peer, work.auth_query)
+                    .unwrap(),
+            ));
             Arc::downgrade(&work.service.leases)
         };
         // Test readiness drives nonblocking I/O. The real owner poll is covered
@@ -8760,7 +10104,8 @@ mod tests {
         let drive = |owner: &mut SinglePoll| {
             #[cfg(target_os = "linux")]
             for client in &mut owner.clients {
-                client.ready_events = dnsmasq_platform::poll::POLLIN | dnsmasq_platform::poll::POLLOUT;
+                client.ready_events =
+                    dnsmasq_platform::poll::POLLIN | dnsmasq_platform::poll::POLLOUT;
             }
             owner.step_tcp_clients();
         };
@@ -8768,7 +10113,10 @@ mod tests {
         loop {
             drive(&mut owner);
             match query_receiver.try_recv() {
-                Ok(received) => { assert_eq!(received, query); break; }
+                Ok(received) => {
+                    assert_eq!(received, query);
+                    break;
+                }
                 Err(std::sync::mpsc::TryRecvError::Empty) => {
                     assert!(Instant::now() < due);
                     std::thread::sleep(Duration::from_millis(1));
@@ -8779,17 +10127,34 @@ mod tests {
         let mut frame = vec![0; query.len() + 2];
         peer.read_exact(&mut frame).unwrap();
         assert_eq!(frame, encode_tcp_frame(&query).unwrap());
-        assert_eq!(peer.read(&mut [0]).unwrap(), 0, "downstream is already closed");
+        assert_eq!(
+            peer.read(&mut [0]).unwrap(),
+            0,
+            "downstream is already closed"
+        );
         let work = owner.clients[0].dns_work.as_ref().unwrap();
         assert!(work.stream.is_none());
         assert!(work.refreshing_stale);
         assert!(matches!(work.phase, TcpClientPhase::Forwarding { .. }));
-        assert_eq!(lease_root.strong_count(), 2, "pending refresh still pins the accepted view");
+        assert_eq!(
+            lease_root.strong_count(),
+            2,
+            "pending refresh still pins the accepted view"
+        );
         assert_eq!(owner.parent_events.borrow().tcp_active, 1);
-        for _ in 0..8 { drive(&mut owner); }
-        assert!(owner.clients[0].dns_work.is_some(), "pending upstream must not release early");
+        for _ in 0..8 {
+            drive(&mut owner);
+        }
+        assert!(
+            owner.clients[0].dns_work.is_some(),
+            "pending upstream must not release early"
+        );
         reply_sender.send(()).unwrap();
-        while owner.clients.first().is_some_and(|client| client.dns_work.is_some()) {
+        while owner
+            .clients
+            .first()
+            .is_some_and(|client| client.dns_work.is_some())
+        {
             assert!(Instant::now() < due);
             drive(&mut owner);
             std::thread::sleep(Duration::from_millis(1));
@@ -8799,19 +10164,31 @@ mod tests {
         assert_eq!(owner.parent_events.borrow().tcp_active, 0);
         #[cfg(target_os = "linux")]
         {
-            assert_eq!(owner.clients.len(), 1, "G remains held while accepted logs are blocked");
+            assert_eq!(
+                owner.clients.len(),
+                1,
+                "G remains held while accepted logs are blocked"
+            );
             assert_eq!(owner.parent_events.borrow().tcp_active, 1);
             assert!(owner.clients[0].dns_work.is_none());
             assert!(owner.clients[0].log_context.is_some());
         }
-        assert_eq!(closed_receiver.recv_timeout(Duration::from_secs(3)).unwrap(), 0,
-            "persistent upstream also closes when DNS work ends");
+        assert_eq!(
+            closed_receiver
+                .recv_timeout(Duration::from_secs(3))
+                .unwrap(),
+            0,
+            "persistent upstream also closes when DNS work ends"
+        );
         server.join().unwrap();
         #[cfg(target_os = "linux")]
         {
             use std::os::unix::fs::OpenOptionsExt;
-            let mut reader = std::fs::OpenOptions::new().read(true).custom_flags(0o4000)
-                .open(&log_path).unwrap();
+            let mut reader = std::fs::OpenOptions::new()
+                .read(true)
+                .custom_flags(0o4000)
+                .open(&log_path)
+                .unwrap();
             while !owner.clients.is_empty() {
                 assert!(Instant::now() < due);
                 owner.wait_for_files().unwrap();
@@ -8980,24 +10357,35 @@ mod tests {
 
     #[test]
     fn ordinary_hosts_diagnostics_include_the_source_and_complete_after_errors() {
-        let path = std::env::temp_dir().join(format!("dnsmasq-rs-bad hosts-{}", std::process::id()));
+        let path =
+            std::env::temp_dir().join(format!("dnsmasq-rs-bad hosts-{}", std::process::id()));
         std::fs::write(&path, b"# comment\n192.0.2.44 \xff good.test \x01\n").unwrap();
         let mut config = DnsConfig::default();
         config.no_hosts = true;
         config.addn_hosts.push(Some(path.clone()));
         let mut notices = Vec::new();
-        let hosts = read_hosts_with_notices(&config, 37, 1232 + 255 + 10, 1000, 1000,
+        let hosts = read_hosts_with_notices(
+            &config,
+            37,
+            1232 + 255 + 10,
+            1000,
+            1000,
             &dnsmasq_rs::dns::lease_names::LeaseNames::default(),
-            |notice| notices.push(notice)).unwrap();
+            |notice| notices.push(notice),
+        )
+        .unwrap();
         let message = format!("bad name at {} line 2", path.display()).into_bytes();
-        assert_eq!(notices, [
-            HostsReadNotice::Error(message.clone()),
-            HostsReadNotice::Error(message),
-            HostsReadNotice::Complete {
-                path: path.as_os_str().as_encoded_bytes().to_vec(),
-                names: 1,
-            },
-        ]);
+        assert_eq!(
+            notices,
+            [
+                HostsReadNotice::Error(message.clone()),
+                HostsReadNotice::Error(message),
+                HostsReadNotice::Complete {
+                    path: path.as_os_str().as_encoded_bytes().to_vec(),
+                    names: 1,
+                },
+            ]
+        );
         assert!(hosts.name_exists(b"good.test"));
         #[cfg(target_os = "linux")]
         for notice in notices {

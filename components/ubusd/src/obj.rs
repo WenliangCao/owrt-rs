@@ -7,7 +7,7 @@
 //! order, and the path index is a byte-ordered map (avl_strcmp).
 
 use std::collections::BTreeMap;
-use std::collections::{HashMap, hash_map::Entry};
+use std::collections::{hash_map::Entry, HashMap};
 use std::rc::Rc;
 
 /// Ids below this are reserved for the built-in system objects.
@@ -131,7 +131,10 @@ impl Registry {
         loop {
             let id = crate::sys::random_id(SYSTEM_OBJECT_MAX)?;
             if let Entry::Vacant(slot) = self.types.entry(id) {
-                slot.insert(ObjType { refcount: 1, methods });
+                slot.insert(ObjType {
+                    refcount: 1,
+                    methods,
+                });
                 return Ok(id);
             }
         }
@@ -164,7 +167,10 @@ impl Registry {
             };
             match self.objects.entry(id) {
                 Entry::Occupied(_) if fixed_id.is_some() => {
-                    return Err(std::io::Error::new(std::io::ErrorKind::AlreadyExists, "object id in use"));
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::AlreadyExists,
+                        "object id in use",
+                    ));
                 }
                 Entry::Occupied(_) => continue,
                 Entry::Vacant(slot) => {
@@ -217,7 +223,10 @@ impl Registry {
     #[cfg(test)]
     pub fn path_prefix(&self, prefix: &[u8]) -> Vec<u32> {
         self.paths
-            .range::<[u8], _>((std::ops::Bound::Included(prefix), std::ops::Bound::Unbounded))
+            .range::<[u8], _>((
+                std::ops::Bound::Included(prefix),
+                std::ops::Bound::Unbounded,
+            ))
             .take_while(|(k, _)| k.starts_with(prefix))
             .map(|(_, v)| *v)
             .collect()
@@ -226,7 +235,10 @@ impl Registry {
     /// Record a subscription. Returns true when this is the first subscriber,
     /// which is when the target's owner has to be told the object went active.
     pub fn subscribe(&mut self, subscriber: u32, target: u32) -> bool {
-        let first = self.objects.get(&target).is_some_and(|o| o.subscribers.is_empty());
+        let first = self
+            .objects
+            .get(&target)
+            .is_some_and(|o| o.subscribers.is_empty());
         if let Some(t) = self.objects.get_mut(&target) {
             t.subscribers.insert(0, subscriber);
         }
@@ -330,9 +342,14 @@ mod tests {
     #[test]
     fn path_prefix_walks_in_strcmp_order() {
         let mut r = Registry::default();
-        for (i, p) in [&b"network"[..], b"network.device", b"network.interface", b"system"]
-            .iter()
-            .enumerate()
+        for (i, p) in [
+            &b"network"[..],
+            b"network.device",
+            b"network.interface",
+            b"system",
+        ]
+        .iter()
+        .enumerate()
         {
             let id = 2000 + i as u32;
             r.objects.insert(id, Object::new(None));

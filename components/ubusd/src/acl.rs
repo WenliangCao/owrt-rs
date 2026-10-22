@@ -56,7 +56,13 @@ impl Acl {
     /// objects -- and is allowed for every caller: ubusd_acl.c:108
     /// `if (!cl || !cl->uid || !obj) return 0;`. The system objects then apply
     /// their own checks (SEND/LISTEN on the event id, root-only for monitor).
-    pub fn check(&self, cred: Option<&Cred>, obj: Option<&[u8]>, method: Option<&[u8]>, ty: AclType) -> bool {
+    pub fn check(
+        &self,
+        cred: Option<&Cred>,
+        obj: Option<&[u8]>,
+        method: Option<&[u8]>,
+        ty: AclType,
+    ) -> bool {
         let Some(cred) = cred else { return true };
         if cred.uid == 0 {
             return true;
@@ -193,20 +199,32 @@ fn load_file(path: &str) -> io::Result<Vec<AclEntry>> {
     let st = crate::sys::stat_of(path)
         .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "stat failed"))?;
     if st.mode & crate::sys::S_IFMT != crate::sys::S_IFREG {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "not a regular file"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "not a regular file",
+        ));
     }
     if st.uid != 0 || st.gid != 0 {
-        return Err(io::Error::new(io::ErrorKind::PermissionDenied, "wrong owner"));
+        return Err(io::Error::new(
+            io::ErrorKind::PermissionDenied,
+            "wrong owner",
+        ));
     }
     if st.mode & (crate::sys::S_IWOTH | crate::sys::S_IWGRP | crate::sys::S_IXOTH) != 0 {
-        return Err(io::Error::new(io::ErrorKind::PermissionDenied, "wrong permissions"));
+        return Err(io::Error::new(
+            io::ErrorKind::PermissionDenied,
+            "wrong permissions",
+        ));
     }
 
     let text = std::fs::read_to_string(path)?;
     let doc = json::parse(&text).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     // `user` wins over `group`; a file with neither is ignored entirely.
-    let (user, group, uid, gid) = match (doc.get("user").and_then(Json::as_str), doc.get("group").and_then(Json::as_str)) {
+    let (user, group, uid, gid) = match (
+        doc.get("user").and_then(Json::as_str),
+        doc.get("group").and_then(Json::as_str),
+    ) {
         (Some(u), _) => {
             let uid = crate::sys::user_id(u).unwrap_or(0) as i64;
             (Some(u.to_owned()), None, uid, -1)
@@ -253,7 +271,12 @@ fn load_file(path: &str) -> io::Result<Vec<AclEntry>> {
             }
             let list: Vec<String> = methods
                 .and_then(Json::as_array)
-                .map(|a| a.iter().filter_map(Json::as_str).map(str::to_owned).collect())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(Json::as_str)
+                        .map(str::to_owned)
+                        .collect()
+                })
                 .unwrap_or_default();
             let p = priv_acl.cloned();
             push(name, &|e: &mut AclEntry| {
@@ -324,23 +347,41 @@ mod tests {
 
     #[test]
     fn method_grants_use_c_string_names() {
-        let cred = Cred { uid: 1234, gid: 1234, extra_gid: &[] };
-        for (grant, method, allowed) in [("ping\0suffix", &b"ping"[..], true),
-                                         ("*\0suffix", b"other", true),
-                                         ("safe\0ping", b"ping", false),
-                                         ("\0suffix", b"", true)] {
+        let cred = Cred {
+            uid: 1234,
+            gid: 1234,
+            extra_gid: &[],
+        };
+        for (grant, method, allowed) in [
+            ("ping\0suffix", &b"ping"[..], true),
+            ("*\0suffix", b"other", true),
+            ("safe\0ping", b"ping", false),
+            ("\0suffix", b"", true),
+        ] {
             let mut e = entry("example", false, 1234);
             e.methods = vec![grant.to_owned()];
             let a = acl(vec![e]);
-            assert_eq!(a.check(Some(&cred), Some(b"example"), Some(method), AclType::Access), allowed);
+            assert_eq!(
+                a.check(Some(&cred), Some(b"example"), Some(method), AclType::Access),
+                allowed
+            );
         }
     }
 
     #[test]
     fn root_bypasses_every_check() {
         let a = acl(vec![]);
-        let cred = Cred { uid: 0, gid: 0, extra_gid: &[] };
-        assert!(a.check(Some(&cred), Some(b"anything"), Some(b"call"), AclType::Publish));
+        let cred = Cred {
+            uid: 0,
+            gid: 0,
+            extra_gid: &[],
+        };
+        assert!(a.check(
+            Some(&cred),
+            Some(b"anything"),
+            Some(b"call"),
+            AclType::Publish
+        ));
     }
 
     #[test]
@@ -358,7 +399,11 @@ mod tests {
         let mut e = entry("bss.", true, 101);
         e.send = true;
         let a = acl(vec![e]);
-        let network = Cred { uid: 101, gid: 101, extra_gid: &[] };
+        let network = Cred {
+            uid: 101,
+            gid: 101,
+            extra_gid: &[],
+        };
         for method in [&b"send"[..], b"register", b"query", b"add"] {
             assert!(a.check(Some(&network), None, Some(method), AclType::Access));
         }
@@ -382,7 +427,11 @@ mod tests {
         std::fs::write(dir.join("notes.txt"), "not an acl file").unwrap();
         assert!(!a.load(dir.to_str().unwrap()));
         let _ = std::fs::remove_dir_all(&dir);
-        let dnsmasq = Cred { uid: 453, gid: 453, extra_gid: &[] };
+        let dnsmasq = Cred {
+            uid: 453,
+            gid: 453,
+            extra_gid: &[],
+        };
         assert!(a.check(Some(&dnsmasq), Some(b"dnsmasq"), None, AclType::Publish));
         assert_eq!(a.seq, seq_before);
         assert!(!a.load("/nonexistent/owrt/acl.d"));
@@ -401,15 +450,26 @@ mod tests {
         std::fs::write(dir.join("c.json.bak"), "{}").unwrap();
         let files = acl_files(dir.to_str().unwrap());
         let _ = std::fs::remove_dir_all(&dir);
-        let names: Vec<&str> = files.iter().map(|p| p.rsplit('/').next().unwrap()).collect();
+        let names: Vec<&str> = files
+            .iter()
+            .map(|p| p.rsplit('/').next().unwrap())
+            .collect();
         assert_eq!(names, ["a.json", "b.json"]);
     }
 
     #[test]
     fn non_root_needs_a_matching_entry() {
         let a = acl(vec![entry("dnsmasq", false, 100)]);
-        let ok = Cred { uid: 100, gid: 100, extra_gid: &[] };
-        let other = Cred { uid: 101, gid: 101, extra_gid: &[] };
+        let ok = Cred {
+            uid: 100,
+            gid: 100,
+            extra_gid: &[],
+        };
+        let other = Cred {
+            uid: 101,
+            gid: 101,
+            extra_gid: &[],
+        };
         assert!(a.check(Some(&ok), Some(b"dnsmasq"), None, AclType::Publish));
         assert!(!a.check(Some(&other), Some(b"dnsmasq"), None, AclType::Publish));
         assert!(!a.check(Some(&ok), Some(b"dnsmasq.dns"), None, AclType::Publish));
@@ -418,7 +478,11 @@ mod tests {
     #[test]
     fn partial_entry_matches_prefix_only() {
         let a = acl(vec![entry("hostapd.", true, 100)]);
-        let c = Cred { uid: 100, gid: 100, extra_gid: &[] };
+        let c = Cred {
+            uid: 100,
+            gid: 100,
+            extra_gid: &[],
+        };
         assert!(a.check(Some(&c), Some(b"hostapd.wlan0"), None, AclType::Publish));
         assert!(!a.check(Some(&c), Some(b"hostapd"), None, AclType::Publish));
     }
@@ -426,9 +490,23 @@ mod tests {
     #[test]
     fn access_needs_the_method_or_a_wildcard() {
         let a = acl(vec![entry("hotplug.dhcp", false, 100)]);
-        let c = Cred { uid: 100, gid: 100, extra_gid: &[] };
-        assert!(a.check(Some(&c), Some(b"hotplug.dhcp"), Some(b"call"), AclType::Access));
-        assert!(!a.check(Some(&c), Some(b"hotplug.dhcp"), Some(b"other"), AclType::Access));
+        let c = Cred {
+            uid: 100,
+            gid: 100,
+            extra_gid: &[],
+        };
+        assert!(a.check(
+            Some(&c),
+            Some(b"hotplug.dhcp"),
+            Some(b"call"),
+            AclType::Access
+        ));
+        assert!(!a.check(
+            Some(&c),
+            Some(b"hotplug.dhcp"),
+            Some(b"other"),
+            AclType::Access
+        ));
     }
 
     #[test]
@@ -436,7 +514,11 @@ mod tests {
         let mut e = entry("log", false, -1);
         e.gid = 42;
         let a = acl(vec![e]);
-        let c = Cred { uid: 100, gid: 7, extra_gid: &[42] };
+        let c = Cred {
+            uid: 100,
+            gid: 7,
+            extra_gid: &[42],
+        };
         assert!(a.check(Some(&c), Some(b"log"), None, AclType::Publish));
     }
 }

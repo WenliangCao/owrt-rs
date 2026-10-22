@@ -12,11 +12,16 @@ use profile_support::measure;
 fn main() -> std::io::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let dir = args.get(1).expect("config directory");
-    let n: u64 = args.get(2).map(|s| s.parse().expect("iterations")).unwrap_or(20000);
+    let n: u64 = args
+        .get(2)
+        .map(|s| s.parse().expect("iterations"))
+        .unwrap_or(20000);
     let filter = args.get(3).map(String::as_str).unwrap_or("");
     assert!(n > 0);
     println!("stage,iterations,ns_per_op,allocs,reallocs,requested_bytes");
-    measure("context_new", n, filter, || { black_box(Context::new()); });
+    measure("context_new", n, filter, || {
+        black_box(Context::new());
+    });
     let mut listing = Context::new();
     listing.set_confdir(dir);
     measure("list_config_files", n, filter, || {
@@ -58,7 +63,11 @@ fn main() -> std::io::Result<()> {
     for cached in [false, true] {
         // One measured operation is a two-file pair, so both the timing and
         // allocation probe cover the same mix (measure counts one probe call).
-        let stage = if cached { "cached_alternating_pair" } else { "load_alternating_pair" };
+        let stage = if cached {
+            "cached_alternating_pair"
+        } else {
+            "load_alternating_pair"
+        };
         let mut cache = ReadCache::default();
         measure(stage, n, filter, || {
             for name in ["network", "r84fixture"] {
@@ -67,8 +76,9 @@ fn main() -> std::io::Result<()> {
                 if cached {
                     let pidx = file::load_cached(&mut ctx, name, &mut cache).unwrap();
                     cache.recycle(black_box(ctx.root.remove(pidx)));
+                } else {
+                    file::load(&mut ctx, name).unwrap();
                 }
-                else { file::load(&mut ctx, name).unwrap(); }
                 black_box(ctx);
             }
         });

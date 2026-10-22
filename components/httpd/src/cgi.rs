@@ -153,7 +153,10 @@ fn spawn_failed<W: Sink>(
     const ENFILE: i32 = 23;
     const EMFILE: i32 = 24;
     let reason = strerror(error);
-    if matches!(error.raw_os_error(), Some(EAGAIN | ENOMEM | ENFILE | EMFILE)) {
+    if matches!(
+        error.raw_os_error(),
+        Some(EAGAIN | ENOMEM | ENFILE | EMFILE)
+    ) {
         resp.error(
             500,
             "Internal Server Error",
@@ -174,7 +177,9 @@ fn spawn_failed<W: Sink>(
         resp.body(
             format!(
                 "Unable to launch the requested CGI program:\n  {}: {reason}\n",
-                interpreter.map(str::to_owned).unwrap_or_else(|| pi.phys.clone())
+                interpreter
+                    .map(str::to_owned)
+                    .unwrap_or_else(|| pi.phys.clone())
             )
             .as_bytes(),
         )?;
@@ -189,8 +194,14 @@ pub fn run<W: Sink, R: io::BufRead>(
     resp: &mut Response<W>,
     pi: &PathInfo,
 ) -> io::Result<()> {
-    let mut command = Command::new(ctx.interpreter.map(std::path::Path::new).unwrap_or(pi.path()));
-    if ctx.interpreter.is_some() { command.arg(pi.path()); }
+    let mut command = Command::new(
+        ctx.interpreter
+            .map(std::path::Path::new)
+            .unwrap_or(pi.path()),
+    );
+    if ctx.interpreter.is_some() {
+        command.arg(pi.path());
+    }
     command
         .env_clear()
         .env("PATH", ctx.cgi_path)
@@ -251,8 +262,8 @@ pub fn run<W: Sink, R: io::BufRead>(
     // From here the relay owns readiness: `write` only queues.
     resp.sink().set_deferred(true);
     // proc.c arms the timeout only when -t is positive; zero disables it.
-    let deadline = (ctx.script_timeout > 0)
-        .then(|| Instant::now() + Duration::from_secs(ctx.script_timeout));
+    let deadline =
+        (ctx.script_timeout > 0).then(|| Instant::now() + Duration::from_secs(ctx.script_timeout));
     // One small staging window between the client and the script: the body is
     // pulled only when the script's stdin has room, so an upload of any size
     // costs this buffer, and a script that stops reading back-pressures the
@@ -315,23 +326,44 @@ pub fn run<W: Sink, R: io::BufRead>(
         // so HUP/ERR still arrive, and wait on the client instead.
         let want_body = stdin.is_some() && !have_staged && !body_failed;
         let want_write = resp.sink().pending() > 0;
-        let mut fds = [PollFd { fd: -1, events: 0, revents: 0 }; 4];
+        let mut fds = [PollFd {
+            fd: -1,
+            events: 0,
+            revents: 0,
+        }; 4];
         let mut slot = [usize::MAX; 4];
         let mut n = 0;
-        let add = |fd: RawFd, events: i16, which: usize, fds: &mut [PollFd; 4], slot: &mut [usize; 4], n: &mut usize| {
-            fds[*n] = PollFd { fd, events, revents: 0 };
+        let add = |fd: RawFd,
+                   events: i16,
+                   which: usize,
+                   fds: &mut [PollFd; 4],
+                   slot: &mut [usize; 4],
+                   n: &mut usize| {
+            fds[*n] = PollFd {
+                fd,
+                events,
+                revents: 0,
+            };
             slot[*n] = which;
             *n += 1;
         };
         if want_stdout {
-            add(stdout.as_raw_fd(), POLLIN, OUT_PIPE, &mut fds, &mut slot, &mut n);
+            add(
+                stdout.as_raw_fd(),
+                POLLIN,
+                OUT_PIPE,
+                &mut fds,
+                &mut slot,
+                &mut n,
+            );
         }
         if let Some(f) = &stdin {
             let events = if have_staged { POLLOUT } else { 0 };
             add(f.as_raw_fd(), events, IN_PIPE, &mut fds, &mut slot, &mut n);
         }
         if want_body || want_write {
-            let events = (if want_body { POLLIN } else { 0 }) | (if want_write { POLLOUT } else { 0 });
+            let events =
+                (if want_body { POLLIN } else { 0 }) | (if want_write { POLLOUT } else { 0 });
             add(client_fd, events, CLIENT, &mut fds, &mut slot, &mut n);
         }
         if n == 0 {
@@ -344,7 +376,9 @@ pub fn run<W: Sink, R: io::BufRead>(
         let wait_ms = if script_done && !want_write {
             0
         } else {
-            remaining.map_or(CHILD_TICK_MS as i32, |left| left.as_millis().min(CHILD_TICK_MS as u128) as i32)
+            remaining.map_or(CHILD_TICK_MS as i32, |left| {
+                left.as_millis().min(CHILD_TICK_MS as u128) as i32
+            })
         };
         if poll_fds(&mut fds[..n], wait_ms).is_err() {
             break;
@@ -377,7 +411,11 @@ pub fn run<W: Sink, R: io::BufRead>(
                 f.fd == stdin.as_ref().map_or(-1, |s| s.as_raw_fd()) && f.revents & POLLOUT != 0
             })
         {
-            match stdin.as_mut().expect("checked").write(&stage[stage_pos..staged]) {
+            match stdin
+                .as_mut()
+                .expect("checked")
+                .write(&stage[stage_pos..staged])
+            {
                 Ok(0) | Err(_) => stdin = None,
                 Ok(w) => stage_pos += w,
             }
@@ -450,7 +488,8 @@ pub fn run<W: Sink, R: io::BufRead>(
     // response that is ready right at the deadline still gets out.
     let flushed = outcome.and_then(|()| match deadline {
         Some(deadline) => {
-            let left = deadline.saturating_duration_since(Instant::now())
+            let left = deadline
+                .saturating_duration_since(Instant::now())
                 .max(Duration::from_millis(CHILD_TICK_MS));
             flush_within(resp.sink(), left)
         }
@@ -473,11 +512,21 @@ fn flush_within<S: Sink>(sink: &mut S, budget: Duration) -> io::Result<()> {
         if sink.pending() == before {
             let left = deadline.saturating_duration_since(Instant::now());
             if left.is_zero() {
-                return Err(io::Error::new(io::ErrorKind::TimedOut, "client stopped reading"));
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "client stopped reading",
+                ));
             }
-            let mut pfd = [PollFd { fd: sink.fd(), events: POLLOUT, revents: 0 }];
+            let mut pfd = [PollFd {
+                fd: sink.fd(),
+                events: POLLOUT,
+                revents: 0,
+            }];
             if poll_fds(&mut pfd, left.as_millis().min(i32::MAX as u128) as i32)? == 0 {
-                return Err(io::Error::new(io::ErrorKind::TimedOut, "client stopped reading"));
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "client stopped reading",
+                ));
             }
         }
     }
@@ -514,7 +563,12 @@ fn relay<W: Sink>(
             // DEVIATION, no C counterpart: reading stops here, so what is
             // left of the body would desynchronise the connection.
             resp.force_close();
-            cgi_error(resp, 500, "Internal Server Error", "CGI header block too large")?;
+            cgi_error(
+                resp,
+                500,
+                "Internal Server Error",
+                "CGI header block too large",
+            )?;
             return Ok(false);
         }
         line.pop();
@@ -560,14 +614,19 @@ fn relay<W: Sink>(
                         [b'+', tail @ ..] => (1, tail),
                         bytes => (1, bytes),
                     };
-                    *status_code = sign * digits.iter().take_while(|b| b.is_ascii_digit())
-                        .fold(0, |n, b| n * 10 + i32::from(b - b'0'));
+                    *status_code = sign
+                        * digits
+                            .iter()
+                            .take_while(|b| b.is_ascii_digit())
+                            .fold(0, |n, b| n * 10 + i32::from(b - b'0'));
                     *status_text = rest.to_owned();
                 }
             }
             continue;
         }
-        if name.eq_ignore_ascii_case("Content-Length") || name.eq_ignore_ascii_case("Transfer-Encoding") {
+        if name.eq_ignore_ascii_case("Content-Length")
+            || name.eq_ignore_ascii_case("Transfer-Encoding")
+        {
             *disable_chunked = true;
         }
         headers.push((name.to_owned(), value.to_owned()));
@@ -575,7 +634,12 @@ fn relay<W: Sink>(
     // Headers still unfinished: what is buffered is all header, so it counts.
     if *header_bytes + header_buf.len() > MAX_HEADER_BYTES {
         resp.force_close();
-        cgi_error(resp, 500, "Internal Server Error", "CGI header block too large")?;
+        cgi_error(
+            resp,
+            500,
+            "Internal Server Error",
+            "CGI header block too large",
+        )?;
         return Ok(false);
     }
     Ok(true)
@@ -607,7 +671,11 @@ mod tests {
         fs::write(&phys, content).unwrap();
         fs::set_permissions(&phys, fs::Permissions::from_mode(0o755)).unwrap();
         let meta = fs::metadata(&phys).unwrap();
-        let pi = PathInfo::for_test(phys.to_str().unwrap().to_owned(), dir.to_str().unwrap().len(), meta);
+        let pi = PathInfo::for_test(
+            phys.to_str().unwrap().to_owned(),
+            dir.to_str().unwrap().len(),
+            meta,
+        );
         assert_eq!(pi.name(), "/script");
         (dir, pi)
     }
@@ -690,7 +758,14 @@ mod tests {
         let started = Instant::now();
         {
             let mut resp = Response::new(&mut out, &request, 0);
-            run(&ctx, &request, &mut crate::http::BodyReader::new(&src, &request), &mut resp, &pi).unwrap();
+            run(
+                &ctx,
+                &request,
+                &mut crate::http::BodyReader::new(&src, &request),
+                &mut resp,
+                &pi,
+            )
+            .unwrap();
         }
         let elapsed = started.elapsed().as_millis();
         let _ = fs::remove_dir_all(&dir);
@@ -721,7 +796,10 @@ mod tests {
     /// for a script that had already succeeded.
     #[test]
     fn direct_exit_with_a_descendant_on_stdout_is_not_a_timeout() {
-        let (out, ms) = run_script("sleep 5 &\nprintf 'Content-Type: text/plain\\r\\n\\r\\nok'\nexit 0\n", 1);
+        let (out, ms) = run_script(
+            "sleep 5 &\nprintf 'Content-Type: text/plain\\r\\n\\r\\nok'\nexit 0\n",
+            1,
+        );
         assert!(out.starts_with("HTTP/1.0 200 OK"), "{out:?}");
         assert!(out.ends_with("ok"), "{out:?}");
         assert!(ms < 900, "took {ms} ms, should end when the script exits");
@@ -734,7 +812,11 @@ mod tests {
             "i=0; while [ $i -lt 700 ]; do printf 'X-Pad-%s: %s\\r\\n' $i              aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;              i=$((i+1)); done\nprintf '\\r\\n'\nhead -c 16384 /dev/zero | tr '\\0' 'b'\n",
             5,
         );
-        assert!(out.starts_with("HTTP/1.0 200 OK"), "{}", &out[..out.len().min(120)]);
+        assert!(
+            out.starts_with("HTTP/1.0 200 OK"),
+            "{}",
+            &out[..out.len().min(120)]
+        );
         assert!(out.contains('b'), "body missing");
     }
 
@@ -751,15 +833,25 @@ mod tests {
             )
         };
         // "X-Pad: " (7) + pad + CRLF (2) + CRLF (2) == total header bytes
-        for (total, want_ok) in [(super::MAX_HEADER_BYTES - 1, true), (super::MAX_HEADER_BYTES, true), (super::MAX_HEADER_BYTES + 1, false)] {
+        for (total, want_ok) in [
+            (super::MAX_HEADER_BYTES - 1, true),
+            (super::MAX_HEADER_BYTES, true),
+            (super::MAX_HEADER_BYTES + 1, false),
+        ] {
             let pad = total - 11;
             let (out, _) = run_script(&build(pad, 16384), 5);
             let line = out.lines().next().unwrap_or("");
             if want_ok {
-                assert!(line.starts_with("HTTP/1.0 200"), "header total {total}: {line}");
+                assert!(
+                    line.starts_with("HTTP/1.0 200"),
+                    "header total {total}: {line}"
+                );
                 assert!(out.contains('b'), "header total {total}: body missing");
             } else {
-                assert!(line.starts_with("HTTP/1.0 500"), "header total {total}: {line}");
+                assert!(
+                    line.starts_with("HTTP/1.0 500"),
+                    "header total {total}: {line}"
+                );
             }
         }
     }
@@ -775,7 +867,8 @@ mod tests {
         // held open, never read from
         let _client = TcpStream::connect(addr).unwrap();
         let (sock, _) = listener.accept().unwrap();
-        sock.set_write_timeout(Some(Duration::from_secs(30))).unwrap();
+        sock.set_write_timeout(Some(Duration::from_secs(30)))
+            .unwrap();
         let fd = sock.as_raw_fd();
         let cell = std::cell::RefCell::new(io::BufReader::new(sock));
         let (dir, pi) = script_fixture(
@@ -799,11 +892,20 @@ mod tests {
         {
             let mut out = crate::http::Out::new(&cell, fd, 16 * 1024, Duration::from_secs(30));
             let mut resp = Response::new(&mut out, &request, 0);
-            let _ = run(&ctx, &request, &mut crate::http::BodyReader::new(&src, &request), &mut resp, &pi);
+            let _ = run(
+                &ctx,
+                &request,
+                &mut crate::http::BodyReader::new(&src, &request),
+                &mut resp,
+                &pi,
+            );
         }
         let ms = started.elapsed().as_millis();
         let _ = fs::remove_dir_all(&dir);
-        assert!(ms < 2500, "took {ms} ms with -t 1; the stalled client held the script");
+        assert!(
+            ms < 2500,
+            "took {ms} ms with -t 1; the stalled client held the script"
+        );
     }
 
     /// relay.c:101-104 + proc.c:195: a header line without a colon aborts the
@@ -823,9 +925,16 @@ mod tests {
     /// header block as its body.
     #[test]
     fn script_that_exits_without_headers_is_502() {
-        for script in ["exit 1\n", "exit 0\n", "printf 'Content-Type: text/plain\\r\\n'\nexit 0\n"] {
+        for script in [
+            "exit 1\n",
+            "exit 0\n",
+            "printf 'Content-Type: text/plain\\r\\n'\nexit 0\n",
+        ] {
             let (out, _) = run_script(script, 5);
-            assert!(out.starts_with("HTTP/1.0 502 Bad Gateway"), "{script:?}: {out:?}");
+            assert!(
+                out.starts_with("HTTP/1.0 502 Bad Gateway"),
+                "{script:?}: {out:?}"
+            );
             assert!(out.contains(NO_RESPONSE), "{script:?}: {out:?}");
         }
     }
@@ -846,10 +955,19 @@ mod tests {
     #[test]
     fn missing_interpreter_is_the_cgi_launch_failure_page() {
         let (out, _) = run_raw("#!/usr/bin/definitely-missing-interpreter\ntrue\n", 5);
-        assert!(out.starts_with("HTTP/1.0 500 Internal Server Error"), "{out:?}");
-        assert!(out.contains("Unable to launch the requested CGI program:\n  "), "{out:?}");
+        assert!(
+            out.starts_with("HTTP/1.0 500 Internal Server Error"),
+            "{out:?}"
+        );
+        assert!(
+            out.contains("Unable to launch the requested CGI program:\n  "),
+            "{out:?}"
+        );
         assert!(out.contains("No such file or directory"), "{out:?}");
-        assert!(!out.to_ascii_lowercase().contains("content-type"), "{out:?}");
+        assert!(
+            !out.to_ascii_lowercase().contains("content-type"),
+            "{out:?}"
+        );
         assert!(!out.contains("os error"), "strerror only: {out:?}");
     }
 
@@ -881,7 +999,14 @@ mod tests {
         let close;
         {
             let mut resp = Response::new(&mut out, &request, 20);
-            run(&ctx, &request, &mut crate::http::BodyReader::new(&src, &request), &mut resp, &pi).unwrap();
+            run(
+                &ctx,
+                &request,
+                &mut crate::http::BodyReader::new(&src, &request),
+                &mut resp,
+                &pi,
+            )
+            .unwrap();
             close = resp.connection_close();
         }
         let _ = fs::remove_dir_all(&dir);

@@ -259,7 +259,10 @@ mod tests {
     fn wireless_debug_redacts_options_and_cached_payloads() {
         let secret = "wpa-key-that-must-not-be-logged";
         let opts = vec![("key".into(), Val::Str(secret.into()))];
-        let sub = Sub { section: "station".into(), opts: opts.clone() };
+        let sub = Sub {
+            section: "station".into(),
+            opts: opts.clone(),
+        };
         let vif = Vif {
             section: "lan".into(),
             opts: opts.clone(),
@@ -274,15 +277,22 @@ mod tests {
             status_config: secret.as_bytes().to_vec(),
         };
         let encoded = format!("{:?}", secret.as_bytes());
-        for debug in [format!("{sub:?}"), format!("{vif:?}"), format!("{radio:?}"), format!("{radio:#?}")] {
+        for debug in [
+            format!("{sub:?}"),
+            format!("{vif:?}"),
+            format!("{radio:?}"),
+            format!("{radio:#?}"),
+        ] {
             assert!(!debug.contains(secret), "credential leaked: {debug}");
-            assert!(!debug.contains(&encoded), "encoded credential leaked: {debug}");
+            assert!(
+                !debug.contains(&encoded),
+                "encoded credential leaked: {debug}"
+            );
             assert!(!debug.contains("status_config"));
         }
         assert_eq!(radio.status_config, secret.as_bytes());
         assert_eq!(vif.opts[0].1, Val::Str(secret.into()));
     }
-
 
     fn h(dump: &str) -> Handler {
         handler_from(Path::new("/x.sh"), &json::parse(dump).unwrap()).unwrap()
@@ -868,9 +878,14 @@ pub fn status_json(
                                 ("section".into(), format!("\"{}\"", esc(&sub.section))),
                                 ("config".into(), attr_obj(&sub.opts, spec)),
                             ];
-                            let key = if vlan { format!("{}/{}", v.section, sub.section) }
-                                else { sub.section.clone() };
-                            if let Some((_, name)) = ifnames.iter().find(|(section, _)| *section == key) {
+                            let key = if vlan {
+                                format!("{}/{}", v.section, sub.section)
+                            } else {
+                                sub.section.clone()
+                            };
+                            if let Some((_, name)) =
+                                ifnames.iter().find(|(section, _)| *section == key)
+                            {
                                 fields.push(("ifname".into(), format!("\"{}\"", esc(name))));
                             }
                             obj(&fields)
@@ -949,8 +964,11 @@ pub fn status_into_blob(
                 let config = b.msg_open_table("config");
                 attrs_into_blob(b, &sub.opts, spec(kind), false);
                 b.msg_close(config);
-                let key = if kind == "vlan" { format!("{}/{}", v.section, sub.section) }
-                    else { sub.section.clone() };
+                let key = if kind == "vlan" {
+                    format!("{}/{}", v.section, sub.section)
+                } else {
+                    sub.section.clone()
+                };
                 if let Some((_, name)) = ifnames.iter().find(|(section, _)| *section == key) {
                     b.msg_string("ifname", name);
                 }
@@ -983,7 +1001,9 @@ fn config_into_blob(
 }
 
 pub fn cache_status_config(radio: &mut Radio, handlers: &[Handler]) {
-    let handler = radio.kind().and_then(|kind| handlers.iter().find(|h| h.name == kind));
+    let handler = radio
+        .kind()
+        .and_then(|kind| handlers.iter().find(|h| h.name == kind));
     let spec = |kind| handler.map(|h| h.attrs_of(kind)).unwrap_or(&[]);
     let mut b = owrt_ubus::blob::BlobBuf::new();
     config_into_blob(&mut b, &radio.opts, spec("device"), None);
@@ -1069,10 +1089,19 @@ mod status_blob_tests {
             let unencoded = load_config(&dir.to_string_lossy(), &handlers);
             assert!(unencoded.iter().all(|radio| radio.status_config.is_empty()
                 && radio.vifs.iter().all(|vif| vif.status_config.is_empty())));
-            assert!(radios.iter().zip(&unencoded).all(|(old, fresh)| same_config(old, fresh)));
+            assert!(radios
+                .iter()
+                .zip(&unencoded)
+                .all(|(old, fresh)| same_config(old, fresh)));
             let mut uncached_reply = BlobBuf::new();
             for radio in &unencoded {
-                status_into_blob(&mut uncached_reply, radio, &handlers, RadioState::default(), &[]);
+                status_into_blob(
+                    &mut uncached_reply,
+                    radio,
+                    &handlers,
+                    RadioState::default(),
+                    &[],
+                );
             }
             assert_eq!(radios[0].vifs[0].radios[0], index);
             let mut actual = BlobBuf::new();
@@ -1163,11 +1192,14 @@ mod status_blob_tests {
                             autostart: bits & 4 != 0,
                             retry_setup_failed: bits & 8 != 0,
                         };
-                        for ifnames in [vec![], vec![
-                            ("vif".into(), "phy0-ap0".into()),
-                            ("vif/sub".into(), "phy0-ap0.10".into()),
-                            ("sub".into(), "station0".into()),
-                        ]] {
+                        for ifnames in [
+                            vec![],
+                            vec![
+                                ("vif".into(), "phy0-ap0".into()),
+                                ("vif/sub".into(), "phy0-ap0.10".into()),
+                                ("sub".into(), "station0".into()),
+                            ],
+                        ] {
                             let mut expected = BlobBuf::new();
                             json_text_into_blob(
                                 &mut expected,

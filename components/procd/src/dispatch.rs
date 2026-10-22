@@ -23,8 +23,7 @@ const PREFIX: &str = "hotplug.";
 /// The gap between two scripts of one call (`uloop_timeout_set(.., 50)`).
 const STEP_MS: i64 = 50;
 
-pub const HOTPLUG_METHODS: &[(&str, &[(&str, MsgType)])] =
-    &[("call", &[("env", MsgType::Array)])];
+pub const HOTPLUG_METHODS: &[(&str, &[(&str, MsgType)])] = &[("call", &[("env", MsgType::Array)])];
 
 const IN_CREATE: u32 = 0x100;
 const IN_DELETE: u32 = 0x200;
@@ -83,11 +82,18 @@ impl Dispatch {
         let inotify = inotify::init(CreateFlags::NONBLOCK | CreateFlags::CLOEXEC)
             .ok()
             .and_then(|fd| {
-                let events = WatchFlags::CREATE | WatchFlags::DELETE
-                    | WatchFlags::MOVED_TO | WatchFlags::MOVED_FROM;
+                let events = WatchFlags::CREATE
+                    | WatchFlags::DELETE
+                    | WatchFlags::MOVED_TO
+                    | WatchFlags::MOVED_FROM;
                 inotify::add_watch(&fd, BASEDIR, events).ok().map(|_| fd)
             });
-        Dispatch { objects: BTreeMap::new(), inotify, jobs: Vec::new(), pending: VecDeque::new() }
+        Dispatch {
+            objects: BTreeMap::new(),
+            inotify,
+            jobs: Vec::new(),
+            pending: VecDeque::new(),
+        }
     }
 
     /// The /etc/hotplug.d inotify fd, for the main loop's poll set.
@@ -107,7 +113,9 @@ impl Dispatch {
 
     fn queue_change(&mut self, name: &str, present: bool) {
         // C's button object survives removal of its directory.
-        if !present && name == "button" { return; }
+        if !present && name == "button" {
+            return;
+        }
         if let Some((_, desired, _)) = self.pending.iter_mut().find(|(n, _, _)| n == name) {
             *desired = present;
         } else if self.objects.contains_key(name) != present {
@@ -119,22 +127,39 @@ impl Dispatch {
     /// desired state on failure; duplicate inotify does not reset backoff.
     pub fn pump_registration(&mut self, conn: &mut owrt_ubus::conn::Connection, now: i64) -> bool {
         use owrt_ubus::{conn::error_status, msg::status};
-        let Some(index) = self.pending.iter().position(|(_, _, at)| *at <= now) else { return false };
+        let Some(index) = self.pending.iter().position(|(_, _, at)| *at <= now) else {
+            return false;
+        };
         let (name, present, _) = self.pending.remove(index).unwrap();
         let result = if present {
-            if self.objects.contains_key(&name) { return true; }
+            if self.objects.contains_key(&name) {
+                return true;
+            }
             conn.add_object(&format!("{PREFIX}{name}"), HOTPLUG_METHODS, 1000)
-                .map(|id| { self.objects.insert(name.clone(), id); })
+                .map(|id| {
+                    self.objects.insert(name.clone(), id);
+                })
         } else {
-            let Some(&id) = self.objects.get(&name) else { return true };
+            let Some(&id) = self.objects.get(&name) else {
+                return true;
+            };
             let result = conn.remove_object(id, 1000);
-            if result.is_ok() || result.as_ref().is_err_and(|e| error_status(e) == Some(status::NOT_FOUND)) {
+            if result.is_ok()
+                || result
+                    .as_ref()
+                    .is_err_and(|e| error_status(e) == Some(status::NOT_FOUND))
+            {
                 self.objects.remove(&name);
                 Ok(())
-            } else { result }
+            } else {
+                result
+            }
         };
         if let Err(error) = result {
-            log!(crate::sys::LOG_ERR, "failed to update hotplug.{name}: {error}");
+            log!(
+                crate::sys::LOG_ERR,
+                "failed to update hotplug.{name}: {error}"
+            );
             // ADD_OBJECT may have succeeded even if its acknowledgement was
             // lost. Reconnect to release those connection-owned objects;
             // a blind retry could collide forever with our unknown old id.
@@ -147,7 +172,10 @@ impl Dispatch {
     }
 
     pub fn next_registration_ms(&self, now: i64) -> Option<i32> {
-        self.pending.iter().map(|(_, _, at)| *at).min()
+        self.pending
+            .iter()
+            .map(|(_, _, at)| *at)
+            .min()
             .map(|at| (at - now).clamp(0, i64::from(i32::MAX)) as i32)
     }
 
@@ -186,7 +214,9 @@ impl Dispatch {
             if e.starts_with("LD_") || e.starts_with("PATH=") || e.len() < 3 {
                 continue;
             }
-            let Some((k, v)) = e.split_once('=') else { continue };
+            let Some((k, v)) = e.split_once('=') else {
+                continue;
+            };
             if !valid_env_name(k) {
                 continue;
             }
@@ -219,7 +249,13 @@ impl Dispatch {
             // glob() failing is still UBUS_STATUS_OK in the C.
             return status::OK;
         }
-        self.jobs.push(Job { scripts, next: 0, envp, child: None, at: now + STEP_MS });
+        self.jobs.push(Job {
+            scripts,
+            next: 0,
+            envp,
+            child: None,
+            at: now + STEP_MS,
+        });
         status::OK
     }
 
@@ -260,7 +296,9 @@ impl Dispatch {
             for (k, v) in &j.envp {
                 c.env(k, v);
             }
-            c.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+            c.stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null());
             crate::proc::inherit_ignored_sigpipe(&mut c);
             match c.spawn() {
                 Ok(child) => {
@@ -270,20 +308,29 @@ impl Dispatch {
                 Err(e) => log!(crate::sys::LOG_ERR, "Failed to execute script: {e}"),
             }
         }
-        self.jobs.retain(|j| j.child.is_some() || j.next < j.scripts.len());
+        self.jobs
+            .retain(|j| j.child.is_some() || j.next < j.scripts.len());
 
-        if read_inotify { self.read_changes(); }
+        if read_inotify {
+            self.read_changes();
+        }
         self.pump_registration(conn, now);
     }
 
     fn read_changes(&mut self) {
         // inotify: directory create/remove tracks the object set.
-        let Some(fd) = self.inotify.as_ref() else { return };
+        let Some(fd) = self.inotify.as_ref() else {
+            return;
+        };
         let mut buf = [0u8; 4096];
         // One buffer per maintenance pass retains the existing fairness bound.
         {
-            let Ok(n) = rustix::io::read(fd, &mut buf) else { return };
-            if n == 0 { return; }
+            let Ok(n) = rustix::io::read(fd, &mut buf) else {
+                return;
+            };
+            if n == 0 {
+                return;
+            }
             let mut off = 0usize;
             // struct inotify_event: wd i32, mask u32, cookie u32, len u32, name[].
             while off + 16 <= n {
@@ -294,8 +341,13 @@ impl Dispatch {
                 if mask & IN_ISDIR == 0 {
                     continue;
                 }
-                let end = name_bytes.iter().position(|b| *b == 0).unwrap_or(name_bytes.len());
-                let Ok(name) = std::str::from_utf8(&name_bytes[..end]) else { continue };
+                let end = name_bytes
+                    .iter()
+                    .position(|b| *b == 0)
+                    .unwrap_or(name_bytes.len());
+                let Ok(name) = std::str::from_utf8(&name_bytes[..end]) else {
+                    continue;
+                };
                 let name = name.to_string();
                 if name.is_empty() || name.starts_with('.') {
                     continue;
@@ -326,25 +378,47 @@ mod tests {
     #[cfg(target_os = "linux")]
     mod recovery {
         use super::*;
+        use owrt_ubus::{
+            blob::BlobBuf,
+            conn::Connection,
+            msg::{attr, ty, Header},
+        };
         use std::io::{Read, Write};
-        use std::os::unix::{net::{UnixListener, UnixStream}, process::ExitStatusExt};
+        use std::os::unix::{
+            net::{UnixListener, UnixStream},
+            process::ExitStatusExt,
+        };
         use std::sync::{Arc, Mutex};
         use std::time::{Duration, Instant};
-        use owrt_ubus::{blob::BlobBuf, conn::Connection, msg::{attr, ty, Header}};
 
-        fn peer(mut stream: UnixStream, calls: Arc<Mutex<Vec<String>>>, delay: u64, mut fail: bool) {
-            stream.write_all(&[0, ty::HELLO, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4]).unwrap();
+        fn peer(
+            mut stream: UnixStream,
+            calls: Arc<Mutex<Vec<String>>>,
+            delay: u64,
+            mut fail: bool,
+        ) {
+            stream
+                .write_all(&[0, ty::HELLO, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4])
+                .unwrap();
             let mut id = 2000;
             loop {
                 let mut head = [0; 12];
-                if stream.read_exact(&mut head).is_err() { return; }
+                if stream.read_exact(&mut head).is_err() {
+                    return;
+                }
                 let header = Header::decode(head[..8].try_into().unwrap()).unwrap();
                 let len = (u32::from_be_bytes(head[8..].try_into().unwrap()) & 0xffffff) as usize;
                 let mut body = vec![0; len - 4];
                 stream.read_exact(&mut body).unwrap();
                 let attrs: Vec<_> = owrt_ubus::blob::iter(&body).collect();
                 let label = if header.ty == ty::ADD_OBJECT {
-                    attrs.iter().find(|a| a.id == attr::OBJPATH).unwrap().as_str().unwrap().to_owned()
+                    attrs
+                        .iter()
+                        .find(|a| a.id == attr::OBJPATH)
+                        .unwrap()
+                        .as_str()
+                        .unwrap()
+                        .to_owned()
                 } else {
                     assert_eq!(header.ty, ty::REMOVE_OBJECT);
                     "remove".to_owned()
@@ -359,21 +433,49 @@ mod tests {
                     let mut data = BlobBuf::new();
                     id += 1;
                     data.put_u32(attr::OBJID, id);
-                    stream.write_all(&Header { ty: ty::DATA, seq: header.seq, peer: header.peer }.encode()).unwrap();
+                    stream
+                        .write_all(
+                            &Header {
+                                ty: ty::DATA,
+                                seq: header.seq,
+                                peer: header.peer,
+                            }
+                            .encode(),
+                        )
+                        .unwrap();
                     stream.write_all(data.as_bytes()).unwrap();
                     status.put_u32(attr::STATUS, 0);
                 }
-                stream.write_all(&Header { ty: ty::STATUS, seq: header.seq, peer: header.peer }.encode()).unwrap();
+                stream
+                    .write_all(
+                        &Header {
+                            ty: ty::STATUS,
+                            seq: header.seq,
+                            peer: header.peer,
+                        }
+                        .encode(),
+                    )
+                    .unwrap();
                 stream.write_all(status.as_bytes()).unwrap();
             }
         }
 
-        fn connection(label: &str, delay: u64, fail: bool) -> (Connection, Arc<Mutex<Vec<String>>>, std::thread::JoinHandle<()>) {
+        fn connection(
+            label: &str,
+            delay: u64,
+            fail: bool,
+        ) -> (
+            Connection,
+            Arc<Mutex<Vec<String>>>,
+            std::thread::JoinHandle<()>,
+        ) {
             let path = format!("/tmp/procd-dispatch-{label}-{}.sock", std::process::id());
             let listener = UnixListener::bind(&path).unwrap();
             let calls = Arc::new(Mutex::new(Vec::new()));
             let peer_calls = Arc::clone(&calls);
-            let worker = std::thread::spawn(move || peer(listener.accept().unwrap().0, peer_calls, delay, fail));
+            let worker = std::thread::spawn(move || {
+                peer(listener.accept().unwrap().0, peer_calls, delay, fail)
+            });
             let conn = Connection::connect(Some(&path)).unwrap();
             std::fs::remove_file(path).unwrap();
             (conn, calls, worker)
@@ -391,7 +493,9 @@ mod tests {
                 inotify: Some(fd),
                 ..Default::default()
             };
-            for n in 0..6 { std::fs::create_dir(format!("{path}/test{n}")).unwrap(); }
+            for n in 0..6 {
+                std::fs::create_dir(format!("{path}/test{n}")).unwrap();
+            }
             let (conn, calls, worker) = connection("slow", 350, false);
             let mut p = crate::watch_tests::supervisor(conn);
             let mut child = Command::new("/bin/sleep").arg("10").spawn().unwrap();
@@ -415,20 +519,30 @@ mod tests {
                         stopped_at = Some(start.elapsed());
                     }
                 }
-                if stopped_at.is_some() && d.objects.len() == 6 { break; }
+                if stopped_at.is_some() && d.objects.len() == 6 {
+                    break;
+                }
                 std::thread::sleep(Duration::from_millis(10));
             }
-            if stopped_at.is_none() { let _ = child.kill(); }
+            if stopped_at.is_none() {
+                let _ = child.kill();
+            }
             child.wait().unwrap();
             let stopped_at = stopped_at.expect("owned child must be killed");
-            eprintln!("directory batch: child stopped at {stopped_at:?}, all objects at {:?}", start.elapsed());
+            eprintln!(
+                "directory batch: child stopped at {stopped_at:?}, all objects at {:?}",
+                start.elapsed()
+            );
             assert_eq!(d.objects.len(), 6);
             assert_eq!(calls.lock().unwrap().len(), 6);
             drop(p);
             worker.join().unwrap();
             drop(d);
             std::fs::remove_dir_all(path).unwrap();
-            assert!(stopped_at < Duration::from_millis(1400), "directory batch starved child: {stopped_at:?}");
+            assert!(
+                stopped_at < Duration::from_millis(1400),
+                "directory batch starved child: {stopped_at:?}"
+            );
         }
 
         #[test]
@@ -447,12 +561,17 @@ mod tests {
             let mut p = crate::watch_tests::supervisor(scheduler_conn);
             p.dispatch = d;
             assert_eq!(p.maintenance_delay_ms(1000, 5000), 1000);
-            assert_eq!(p.maintenance_delay_ms(2000, 5000), 0,
-                "a due retry must run maintenance even when the bus remains readable");
+            assert_eq!(
+                p.maintenance_delay_ms(2000, 5000),
+                0,
+                "a due retry must run maintenance even when the bus remains readable"
+            );
             d = std::mem::take(&mut p.dispatch);
             drop(p);
             scheduler_peer.join().unwrap();
-            for _ in 0..100 { d.queue_change("button", true); }
+            for _ in 0..100 {
+                d.queue_change("button", true);
+            }
             assert_eq!(d.pending.len(), 1);
             assert!(d.pump_registration(&mut conn, 2000));
             d.queue_change("button", false);
@@ -462,10 +581,17 @@ mod tests {
             d.queue_change("changing", false);
             d.pump_registration(&mut conn, 2000);
             assert_eq!(d.objects.keys().cloned().collect::<Vec<_>>(), ["button"]);
-            assert_eq!(*calls.lock().unwrap(), ["hotplug.button", "hotplug.button", "hotplug.changing", "remove"]);
+            assert_eq!(
+                *calls.lock().unwrap(),
+                [
+                    "hotplug.button",
+                    "hotplug.button",
+                    "hotplug.changing",
+                    "remove"
+                ]
+            );
             drop(conn);
             worker.join().unwrap();
         }
     }
-
 }

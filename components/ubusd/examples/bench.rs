@@ -110,13 +110,16 @@ fn main() -> std::io::Result<()> {
 /// rpcd objects have and what `serve_many` deliberately does not.
 fn serve_wide(sock: &str, methods: usize) -> std::io::Result<()> {
     let mut c = Connection::connect(Some(sock))?;
-    let names: Vec<String> = (0..methods).map(|i| format!("method_number_{i:04}")).collect();
+    let names: Vec<String> = (0..methods)
+        .map(|i| format!("method_number_{i:04}"))
+        .collect();
     let policy: &[(&str, MsgType)] = &[
         ("first_argument", MsgType::String),
         ("second_argument", MsgType::Int32),
         ("third_argument", MsgType::Table),
     ];
-    let spec: Vec<(&str, &[(&str, MsgType)])> = names.iter().map(|n| (n.as_str(), policy)).collect();
+    let spec: Vec<(&str, &[(&str, MsgType)])> =
+        names.iter().map(|n| (n.as_str(), policy)).collect();
     let objid = c.add_object("bench.target", &spec, 3000)?;
     println!("serving bench.target id={objid} methods={methods}");
     answer_forever(&mut c)
@@ -127,13 +130,16 @@ fn serve_wide(sock: &str, methods: usize) -> std::io::Result<()> {
 /// reach the daemon's silent-drop path.
 fn serve_wide_many(sock: &str, objs: usize, methods: usize) -> std::io::Result<()> {
     let mut c = Connection::connect(Some(sock))?;
-    let names: Vec<String> = (0..methods).map(|i| format!("method_number_{i:04}")).collect();
+    let names: Vec<String> = (0..methods)
+        .map(|i| format!("method_number_{i:04}"))
+        .collect();
     let policy: &[(&str, MsgType)] = &[
         ("first_argument", MsgType::String),
         ("second_argument", MsgType::Int32),
         ("third_argument", MsgType::Table),
     ];
-    let spec: Vec<(&str, &[(&str, MsgType)])> = names.iter().map(|n| (n.as_str(), policy)).collect();
+    let spec: Vec<(&str, &[(&str, MsgType)])> =
+        names.iter().map(|n| (n.as_str(), policy)).collect();
     c.add_object("bench.target", &spec, 3000)?;
     for i in 1..objs {
         let path = format!("bench.wide{i:04}");

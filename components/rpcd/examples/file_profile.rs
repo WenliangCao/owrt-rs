@@ -7,8 +7,6 @@
 
 #[path = "../src/file.rs"]
 mod file;
-#[path = "../src/util.rs"]
-mod util;
 #[path = "../src/glob.rs"]
 mod glob;
 #[path = "../src/iwinfo/mod.rs"]
@@ -18,19 +16,26 @@ mod procwait;
 mod profile_support;
 #[path = "../src/reply.rs"]
 mod reply;
+#[path = "../src/util.rs"]
+mod util;
 
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::Json;
 use owrt_ubus::Request;
-use std::hint::black_box;
 use profile_support::measure;
+use std::hint::black_box;
 
 // These adapters only satisfy the unused dispatch/worker interfaces. If the
 // profiler accidentally enters them, stop instead of measuring fake work.
-pub struct Ctx { pub exec_timeout_ms: i32 }
+pub struct Ctx {
+    pub exec_timeout_ms: i32,
+}
 impl Ctx {
     pub fn file_access_bytes(&self, sid: Option<&str>, _: &[u8], _: &str) -> bool {
-        assert!(sid.is_none(), "ACL checks are outside this profiler's scope");
+        assert!(
+            sid.is_none(),
+            "ACL checks are outside this profiler's scope"
+        );
         true // the daemon's local-root path also returns immediately
     }
 }
@@ -56,21 +61,35 @@ pub fn to_reply(_: Result<Option<Json>, i32>) -> session::Reply {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let n = args.get(1).map(|s| s.parse().expect("iterations")).unwrap_or(20000);
+    let n = args
+        .get(1)
+        .map(|s| s.parse().expect("iterations"))
+        .unwrap_or(20000);
     let filter = args.get(2).map(String::as_str).unwrap_or("");
     assert!(n > 0);
     println!("stage,iterations,ns_per_op,allocs,reallocs,requested_bytes");
-    let ctx = Ctx { exec_timeout_ms: 30000 };
+    let ctx = Ctx {
+        exec_timeout_ms: 30000,
+    };
     for (method, path) in [("stat", "/etc/config/network"), ("list", "/etc/config")] {
         let args = Json::Object(vec![("path".into(), Json::Str(path.into()))]);
         let mut req = Some(Request {
-            peer: 1, seq: 1, objid: 1, method: method.into(), user: None,
-            group: None, data: object_to_payload(&args), fd: None, no_reply: false,
+            peer: 1,
+            seq: 1,
+            objid: 1,
+            method: method.into(),
+            user: None,
+            group: None,
+            data: object_to_payload(&args),
+            fd: None,
+            no_reply: false,
         });
         // Reuse the owned request, as the daemon does after completing a reply.
         // Connection receive/send and ACLs are outside this measurement.
         let mut call = || {
-            let file::Outcome::Now(request, reply) = file::call(&ctx, req.take().unwrap(), &Deferrer) else {
+            let file::Outcome::Now(request, reply) =
+                file::call(&ctx, req.take().unwrap(), &Deferrer)
+            else {
                 panic!("stat/list must complete synchronously");
             };
             req = Some(request);
@@ -82,7 +101,9 @@ fn main() {
         if method == "stat" {
             assert_eq!(result.get("type").and_then(Json::as_str), Some("file"));
         } else {
-            assert!(matches!(result.get("entries"), Some(Json::Array(entries)) if !entries.is_empty()));
+            assert!(
+                matches!(result.get("entries"), Some(Json::Array(entries)) if !entries.is_empty())
+            );
         }
         measure(&format!("file_{method}_handler"), n, filter, || {
             black_box(call());

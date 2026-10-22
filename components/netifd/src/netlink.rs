@@ -8,9 +8,9 @@
 //! Netlink uses the host's native byte order. Our supported Linux targets
 //! (aarch64 and x86_64) are little-endian; these encoders preserve that ABI.
 
+use rustix::net::{AddressFamily, RecvFlags, SendFlags, SocketFlags, SocketType};
 use std::io;
 use std::os::fd::{AsRawFd, OwnedFd};
-use rustix::net::{AddressFamily, SocketType, SocketFlags, RecvFlags, SendFlags};
 
 const EVENT_BUFFER: i32 = 65535;
 // Growth is only a mitigation; correctness comes from a fresh link dump.
@@ -87,7 +87,9 @@ pub fn attr<'a>(attrs: &[(u16, &'a [u8])], ty: u16) -> Option<&'a [u8]> {
 }
 
 pub fn attr_u32(attrs: &[(u16, &[u8])], ty: u16) -> Option<u32> {
-    attr(attrs, ty).filter(|v| v.len() >= 4).map(|v| u32::from_le_bytes([v[0], v[1], v[2], v[3]]))
+    attr(attrs, ty)
+        .filter(|v| v.len() >= 4)
+        .map(|v| u32::from_le_bytes([v[0], v[1], v[2], v[3]]))
 }
 
 #[cfg(test)]
@@ -153,7 +155,8 @@ impl Attrs {
     pub fn nest_start(&mut self, ty: u16) -> usize {
         let at = self.buf.len();
         self.buf.extend_from_slice(&0u16.to_le_bytes());
-        self.buf.extend_from_slice(&(ty | NLA_F_NESTED).to_le_bytes());
+        self.buf
+            .extend_from_slice(&(ty | NLA_F_NESTED).to_le_bytes());
         at
     }
 
@@ -179,11 +182,24 @@ pub struct Netlink {
 impl Netlink {
     /// `groups` is the multicast bitmask; 0 for a command socket.
     pub fn open(groups: u32) -> io::Result<Self> {
-        let fd = rustix::net::socket_with(AddressFamily::NETLINK, SocketType::RAW, SocketFlags::CLOEXEC, None)?;
-        rustix::net::bind(&fd, &rustix::net::netlink::SocketAddrNetlink::new(0, groups))?;
+        let fd = rustix::net::socket_with(
+            AddressFamily::NETLINK,
+            SocketType::RAW,
+            SocketFlags::CLOEXEC,
+            None,
+        )?;
+        rustix::net::bind(
+            &fd,
+            &rustix::net::netlink::SocketAddrNetlink::new(0, groups),
+        )?;
         // Older kernels may refuse NETLINK_EXT_ACK; retain best-effort setup.
         let _ = owrt_platform::netifd::enable_netlink_ext_ack(&fd);
-        let mut socket = Self { fd, seq: 0, event_buffer: EVENT_BUFFER, reply: Vec::new() };
+        let mut socket = Self {
+            fd,
+            seq: 0,
+            event_buffer: EVENT_BUFFER,
+            reply: Vec::new(),
+        };
         if groups != 0 {
             socket.set_event_buffer(EVENT_BUFFER)?;
         }
@@ -209,7 +225,10 @@ impl Netlink {
     /// O_NONBLOCK, for the event socket read from the poll loop.
     pub fn set_nonblocking(&self) -> io::Result<()> {
         let flags = rustix::fs::fcntl_getfl(&self.fd)?;
-        Ok(rustix::fs::fcntl_setfl(&self.fd, flags | rustix::fs::OFlags::NONBLOCK)?)
+        Ok(rustix::fs::fcntl_setfl(
+            &self.fd,
+            flags | rustix::fs::OFlags::NONBLOCK,
+        )?)
     }
 
     fn next_seq(&mut self) -> u32 {
@@ -314,8 +333,11 @@ impl Netlink {
         self.reply.reserve(1 << 16);
         loop {
             self.reply.clear();
-            let (_, n) = rustix::net::recv(&self.fd,
-                rustix::buffer::spare_capacity(&mut self.reply), RecvFlags::empty())?;
+            let (_, n) = rustix::net::recv(
+                &self.fd,
+                rustix::buffer::spare_capacity(&mut self.reply),
+                RecvFlags::empty(),
+            )?;
             for m in split(&self.reply[..n]) {
                 if m.seq != seq {
                     continue;
@@ -355,15 +377,21 @@ impl Netlink {
 /// positive errno. Malformed status messages never complete a partial dump.
 fn check_error(payload: &[u8]) -> io::Result<()> {
     let Some(bytes) = payload.get(..4) else {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "short netlink error status"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "short netlink error status",
+        ));
     };
     let error = i32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
     if error == 0 {
         return Ok(());
     }
-    let errno = error.checked_neg().filter(|errno| *errno > 0).ok_or_else(|| {
-        io::Error::new(io::ErrorKind::InvalidData, "invalid netlink error status")
-    })?;
+    let errno = error
+        .checked_neg()
+        .filter(|errno| *errno > 0)
+        .ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidData, "invalid netlink error status")
+        })?;
     Err(io::Error::from_raw_os_error(errno))
 }
 
@@ -467,11 +495,8 @@ mod tests {
             &i32::MIN.to_le_bytes()[..],
             &1i32.to_le_bytes()[..],
         ] {
-            let error = simulated_dump(&[
-                (16, NLM_F_MULTI, &[1; 16]),
-                (NLMSG_ERROR, 0, payload),
-            ])
-            .expect_err("malformed status published the collected rows");
+            let error = simulated_dump(&[(16, NLM_F_MULTI, &[1; 16]), (NLMSG_ERROR, 0, payload)])
+                .expect_err("malformed status published the collected rows");
             assert_eq!(error.kind(), io::ErrorKind::InvalidData);
         }
     }
@@ -481,7 +506,9 @@ mod tests {
         let error = simulated_dump(&[(NLMSG_ERROR, 0, &(-22i32).to_le_bytes())])
             .expect_err("kernel EINVAL must be returned");
         assert_eq!(error.raw_os_error(), Some(22));
-        assert!(simulated_dump(&[(NLMSG_ERROR, 0, &[0; 4])]).unwrap().is_empty());
+        assert!(simulated_dump(&[(NLMSG_ERROR, 0, &[0; 4])])
+            .unwrap()
+            .is_empty());
     }
 
     #[test]

@@ -318,7 +318,10 @@ struct IpText {
 impl IpText {
     fn of(addr: &IpAddr) -> IpText {
         use std::io::Write;
-        let mut text = IpText { buf: [0u8; 48], len: 0 };
+        let mut text = IpText {
+            buf: [0u8; 48],
+            len: 0,
+        };
         let mut cursor = std::io::Cursor::new(&mut text.buf[..]);
         // Display of an IpAddr never exceeds 45 bytes.
         let _ = write!(cursor, "{addr}");
@@ -471,13 +474,18 @@ impl IpSettings {
 
 impl Interface {
     pub fn new(name: &str) -> Self {
-        Self { name: name.to_string(), ..Default::default() }
+        Self {
+            name: name.to_string(),
+            ..Default::default()
+        }
     }
 
     /// Read live elapsed time without searching a second name-keyed list.
     /// Standalone status probes supply uptime directly to the encoder.
     pub fn current_uptime(&self) -> u32 {
-        self.started_at.map(|t| crate::clock::now().saturating_sub(t) as u32).unwrap_or(0)
+        self.started_at
+            .map(|t| crate::clock::now().saturating_sub(t) as u32)
+            .unwrap_or(0)
     }
 
     /// The daemon supplies current uptime and its global delegated-prefix
@@ -663,8 +671,10 @@ mod tests {
             for n in 0..=count {
                 let name = format!("interface{n:03}");
                 let found = find_by_name(&interfaces, &name);
-                assert_eq!(found.map(|i| i.name.as_str()),
-                           (n < count).then_some(name.as_str()));
+                assert_eq!(
+                    found.map(|i| i.name.as_str()),
+                    (n < count).then_some(name.as_str())
+                );
             }
             for missing in ["", "Interface000", "interface", "interface000x", "z"] {
                 assert!(find_by_name(&interfaces, missing).is_none());
@@ -685,7 +695,9 @@ mod tests {
     fn json(i: &Interface) -> String {
         let mut b = BlobBuf::new();
         i.dump_status_with(&mut b, 5, &i.proto_ip.prefixes);
-        owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact()
+        owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact()
     }
 
     #[test]
@@ -780,8 +792,12 @@ mod tests {
     fn config_addresses_come_before_protocol_ones() {
         let mut i = Interface::new("lan");
         i.state = State::Up;
-        i.config_ip.addresses.push(Address::new("192.168.1.1".parse().unwrap(), 24));
-        i.proto_ip.addresses.push(Address::new("10.0.0.1".parse().unwrap(), 8));
+        i.config_ip
+            .addresses
+            .push(Address::new("192.168.1.1".parse().unwrap(), 24));
+        i.proto_ip
+            .addresses
+            .push(Address::new("10.0.0.1".parse().unwrap(), 8));
         let j = json(&i);
         let a = j.find("192.168.1.1").unwrap();
         let b = j.find("10.0.0.1").unwrap();
@@ -792,36 +808,56 @@ mod tests {
     fn daemon_status_overrides_uptime_and_protocol_prefixes_without_mutating_state() {
         use owrt_ubus::json::Json;
         let prefix = |address: &str| Prefix {
-            addr: address.parse().unwrap(), length: 64,
-            preferred_until: None, valid_until: None,
-            class: "wan6".into(), assigned: Vec::new(),
+            addr: address.parse().unwrap(),
+            length: 64,
+            preferred_until: None,
+            valid_until: None,
+            class: "wan6".into(),
+            assigned: Vec::new(),
         };
         let mut i = Interface::new("wan6");
         i.state = State::Up;
         i.started_at = Some(1);
         i.config_ip.prefixes.push(prefix("fd00:1::"));
         i.proto_ip.prefixes.push(prefix("2001:db8:1::"));
-        i.proto_ip.addresses.push(Address::new("2001:db8::1".parse().unwrap(), 64));
+        i.proto_ip
+            .addresses
+            .push(Address::new("2001:db8::1".parse().unwrap(), 64));
         let mut current = prefix("2001:db8:2::");
-        current.assigned.push(("lan".into(), "2001:db8:2::".parse().unwrap(), 64));
+        current
+            .assigned
+            .push(("lan".into(), "2001:db8:2::".parse().unwrap(), 64));
         let mut b = BlobBuf::new();
         i.dump_status_with(&mut b, 77, &[current]);
         let j = owrt_ubus::convert::fields_to_json(b.payload()).unwrap();
         assert_eq!(j.get("uptime"), Some(&Json::Int(77)));
-        let Some(Json::Array(prefixes)) = j.get("ipv6-prefix") else { panic!("missing prefixes") };
+        let Some(Json::Array(prefixes)) = j.get("ipv6-prefix") else {
+            panic!("missing prefixes")
+        };
         assert_eq!(prefixes.len(), 2);
-        assert_eq!(prefixes[0].get("address").and_then(Json::as_str), Some("fd00:1::"));
-        assert_eq!(prefixes[1].get("address").and_then(Json::as_str), Some("2001:db8:2::"));
+        assert_eq!(
+            prefixes[0].get("address").and_then(Json::as_str),
+            Some("fd00:1::")
+        );
+        assert_eq!(
+            prefixes[1].get("address").and_then(Json::as_str),
+            Some("2001:db8:2::")
+        );
         assert!(prefixes[1].get("assigned").unwrap().get("lan").is_some());
         assert_eq!(i.started_at, Some(1));
-        assert_eq!(i.proto_ip.prefixes[0].addr, "2001:db8:1::".parse::<Ipv6Addr>().unwrap());
+        assert_eq!(
+            i.proto_ip.prefixes[0].addr,
+            "2001:db8:1::".parse::<Ipv6Addr>().unwrap()
+        );
         assert_eq!(i.proto_ip.addresses.len(), 1);
         // An empty live prefix view removes stale delegated prefixes, while
         // configuration-owned prefixes and the base interface remain intact.
         b.reset();
         i.dump_status_with(&mut b, 78, &[]);
         let j = owrt_ubus::convert::fields_to_json(b.payload()).unwrap();
-        let Some(Json::Array(prefixes)) = j.get("ipv6-prefix") else { panic!("missing prefixes") };
+        let Some(Json::Array(prefixes)) = j.get("ipv6-prefix") else {
+            panic!("missing prefixes")
+        };
         assert_eq!(prefixes.len(), 1);
         i.state = State::Down;
         b.reset();
@@ -930,7 +966,10 @@ mod tests {
             data: vec![],
         });
         let j = json(&i);
-        assert!(j.find("\"data\"").unwrap() < j.find("\"errors\"").unwrap(), "{j}");
+        assert!(
+            j.find("\"data\"").unwrap() < j.find("\"errors\"").unwrap(),
+            "{j}"
+        );
         assert!(j.contains("\"code\":\"NO_DEVICE\""), "{j}");
         // no `data` array inside the error when there is none
         assert!(!j.contains("\"data\":[]"), "{j}");

@@ -20,7 +20,10 @@ struct Lcg(u64);
 
 impl Lcg {
     fn next_u32(&mut self) -> u32 {
-        self.0 = self.0.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        self.0 = self
+            .0
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (self.0 >> 33) as u32
     }
     fn byte(&mut self) -> u8 {
@@ -109,7 +112,14 @@ fn response(input: &mut impl Read) -> String {
     // whole write). "silent" is left for a daemon that keeps the connection
     // open without answering.
     match input.read_exact(&mut prefix) {
-        Err(e) if matches!(e.kind(), std::io::ErrorKind::ConnectionReset | std::io::ErrorKind::UnexpectedEof) => "disconnected".into(),
+        Err(e)
+            if matches!(
+                e.kind(),
+                std::io::ErrorKind::ConnectionReset | std::io::ErrorKind::UnexpectedEof
+            ) =>
+        {
+            "disconnected".into()
+        }
         Ok(()) => {
             // report only the type byte and the status when present: everything
             // else carries random ids
@@ -152,7 +162,10 @@ mod tests {
         let status = message(1, 7, 0, &u32_attr(1, 6));
         let data = message(2, 7, 0, &u32_attr(3, 0x1234));
         for chunk in 1..=20 {
-            assert_eq!(response(&mut Fragmented(&status, chunk)), "reply_type=1_status=6");
+            assert_eq!(
+                response(&mut Fragmented(&status, chunk)),
+                "reply_type=1_status=6"
+            );
             assert_eq!(response(&mut Fragmented(&data, chunk)), "reply_type=2");
         }
         assert_eq!(response(&mut &status[..12]), "incomplete_status");
@@ -197,7 +210,10 @@ fn main() {
     for over in [8u32, 64, 4096] {
         let mut attrs = attr_hdr(3, false, 8 + over).to_vec();
         attrs.extend_from_slice(&0u32.to_be_bytes());
-        fixed.push((format!("inner_overruns_by={over}"), message(4, 1, 0, &attrs)));
+        fixed.push((
+            format!("inner_overruns_by={over}"),
+            message(4, 1, 0, &attrs),
+        ));
     }
     // an inner attribute shorter than its own header
     for under in [0u32, 1, 3] {
@@ -205,7 +221,10 @@ fn main() {
         fixed.push((format!("inner_raw_len={under}"), message(4, 1, 0, &attrs)));
     }
     // wrong types where the policy expects something else
-    fixed.push(("objid_as_string".into(), message(5, 1, 0, &str_attr(3, b"not-a-number"))));
+    fixed.push((
+        "objid_as_string".into(),
+        message(5, 1, 0, &str_attr(3, b"not-a-number")),
+    ));
     fixed.push(("method_as_int".into(), message(5, 1, 0, &u32_attr(4, 7))));
     // invoke against every system object id, and against ids that cannot exist
     for id in [0u32, 1, 2, 3, 4, 1023, 1024, 0xffff_ffff] {
@@ -236,7 +255,10 @@ fn main() {
         sig.extend_from_slice(&sig_inner);
         let mut a = str_attr(2, b"fuzz.obj");
         a.extend_from_slice(&sig);
-        fixed.push((format!("add_object_namelen={namelen}"), message(6, 1, 0, &a)));
+        fixed.push((
+            format!("add_object_namelen={namelen}"),
+            message(6, 1, 0, &a),
+        ));
     }
     // a subscribe naming itself, and one naming nothing
     {

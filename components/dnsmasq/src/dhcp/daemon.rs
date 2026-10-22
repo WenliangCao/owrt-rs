@@ -866,7 +866,8 @@ impl LocalProvider {
     /// Check a caller's single clock sample without turning immediate startup
     /// or external alarm work into a newly sampled, apparently future deadline.
     pub fn maintenance_due(&self, now: Instant) -> bool {
-        !self.initialized || self.pending_alarms != 0
+        !self.initialized
+            || self.pending_alarms != 0
             || self.alarm_deadline.is_some_and(|deadline| deadline <= now)
     }
 
@@ -925,13 +926,16 @@ impl LocalProvider {
             self.config.fqdn_only,
             self.dns_publisher.as_deref_mut(),
         );
-        if matches!(dns.status, persistence::DnsStatus::Failed | persistence::DnsStatus::Pending) {
+        if matches!(
+            dns.status,
+            persistence::DnsStatus::Failed | persistence::DnsStatus::Pending
+        ) {
             // A clean, infinite lease set may have no expiry alarm. Retry a
             // failed forced publication without requiring another packet/HUP,
             // while preserving any earlier lease or file-retry deadline.
-            if let Some(retry) = Instant::now().checked_add(Duration::from_secs(
-                persistence::LEASE_RETRY_SECONDS as u64,
-            )) {
+            if let Some(retry) = Instant::now()
+                .checked_add(Duration::from_secs(persistence::LEASE_RETRY_SECONDS as u64))
+            {
                 self.alarm_deadline = Some(self.alarm_deadline.map_or(retry, |due| due.min(retry)));
             }
         }
@@ -1043,12 +1047,17 @@ impl LocalProvider {
     /// enables it only when the packet consumer's higher priority gates allow
     /// progress; an unread DHCP socket does not authorize an early receive.
     pub fn packet_interfaces_pending(&self) -> bool {
-        self.interface_owner.as_ref().is_some_and(|owner| owner.busy())
+        self.interface_owner
+            .as_ref()
+            .is_some_and(|owner| owner.busy())
     }
 
     pub fn packet_interfaces_runnable(&self) -> bool {
         !self.file_work_pending()
-            && self.interface_owner.as_ref().is_some_and(|owner| owner.runnable())
+            && self
+                .interface_owner
+                .as_ref()
+                .is_some_and(|owner| owner.runnable())
     }
 
     pub fn append_packet_interface_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
@@ -1060,7 +1069,9 @@ impl LocalProvider {
     }
 
     pub fn file_watch_fd(&self) -> Option<std::os::fd::RawFd> {
-        self.file_owner.as_ref().and_then(super::files_runtime::DhcpFiles::watch_fd)
+        self.file_owner
+            .as_ref()
+            .and_then(super::files_runtime::DhcpFiles::watch_fd)
     }
 
     /// At most one file/directory/event turn; packets and helper work run
@@ -1069,7 +1080,11 @@ impl LocalProvider {
         self.step_files_with_watch_readiness(now, true)
     }
 
-    pub fn step_files_with_watch_readiness(&mut self, now: i64, watch_ready: bool) -> Option<MaintenanceReport> {
+    pub fn step_files_with_watch_readiness(
+        &mut self,
+        now: i64,
+        watch_ready: bool,
+    ) -> Option<MaintenanceReport> {
         if self.file_work_pending()
             && self
                 .interface_owner
@@ -1575,8 +1590,9 @@ impl LocalProvider {
     /// Delivered external SIGALRM events use the same maintenance path as
     /// elapsed lease timers, even when the next scheduled timer is later.
     pub fn request_alarms(&mut self, count: usize) {
-        self.pending_alarms = self.pending_alarms.saturating_add(
-            count.min(u32::MAX as usize) as u32);
+        self.pending_alarms = self
+            .pending_alarms
+            .saturating_add(count.min(u32::MAX as usize) as u32);
     }
 
     /// Perform expiry and retry maintenance even when no DHCP packet arrives.
@@ -2206,7 +2222,9 @@ impl LocalProvider {
             // before hosts authority, ignore-names and generated-name policy.
             let mut name_tags: Vec<_> = self.request_tags.iter().map(Vec::as_slice).collect();
             if let Some(tag) = context.and_then(|index| {
-                self.config.ranges[self.selected[index].source_index].set_tag.as_deref()
+                self.config.ranges[self.selected[index].source_index]
+                    .set_tag
+                    .as_deref()
             }) {
                 name_tags.push(tag);
             }
@@ -2224,7 +2242,13 @@ impl LocalProvider {
             if name.is_none() && !self.config.ignore_client_name(&name_tags) {
                 name = packet.client_hostname();
             }
-            if name.is_none() && self.config.generate_names.iter().any(|rule| rule.matches(&name_tags)) {
+            if name.is_none()
+                && self
+                    .config
+                    .generate_names
+                    .iter()
+                    .any(|rule| rule.matches(&name_tags))
+            {
                 name = generated_name.clone();
             }
             Ok(name.map(|name| (name, authoritative)))
@@ -2232,13 +2256,16 @@ impl LocalProvider {
         let request_name = if packet.message_type() == 3 {
             // SELECTING consumes the server-ID suffix before narrowing.
             let first = if packet.requested_address().is_some() {
-                packet.server_identifier()
+                packet
+                    .server_identifier()
                     .and_then(|server| ranges.iter().position(|range| range.local == server))
                     .unwrap_or(0)
             } else {
                 0
             };
-            let address = packet.requested_address().unwrap_or(packet.effective_ciaddr());
+            let address = packet
+                .requested_address()
+                .unwrap_or(packet.effective_ciaddr());
             let context = super::allocation::narrow(&ranges[first..], address, &tags)
                 .map(|index| first + index);
             let name = ack_name(address, context)?;
@@ -2462,7 +2489,10 @@ impl LocalProvider {
         // The existing allocation refusal keeps DNS and existing renewals
         // running; callbacks are never discarded and resume without a timeout.
         self.leases.set_script_backlog(
-            self.config.script.as_ref().map(|_| self.scripts.pending_deletions()),
+            self.config
+                .script
+                .as_ref()
+                .map(|_| self.scripts.pending_deletions()),
         );
         let mut provider = StateProvider::new(
             &mut self.leases,
@@ -2495,12 +2525,14 @@ impl LocalProvider {
                 }
             },
         );
-        provider.configured_name = request_name.as_ref()
+        provider.configured_name = request_name
+            .as_ref()
             .filter(|(_, authoritative)| *authoritative)
             .map(|(name, _)| name.as_slice())
             .or(configured_name);
         provider.ignore_client_name = packet.message_type() == 3;
-        provider.generated_name = request_name.as_ref()
+        provider.generated_name = request_name
+            .as_ref()
             .filter(|(_, authoritative)| !authoritative)
             .map(|(name, _)| name.as_slice());
         provider.rapid_name = Some(&mut rapid_name);
@@ -2523,7 +2555,8 @@ impl LocalProvider {
         if let Ok(outcome) = &result {
             let lease_id = match outcome.reply {
                 Reply::Ack { address, .. } | Reply::Bootp { address, .. } => {
-                    let lease_identity = super::state::identity(packet, environment.ignore_client_id);
+                    let lease_identity =
+                        super::state::identity(packet, environment.ignore_client_id);
                     self.leases
                         .find_client(&lease_identity)
                         .filter(|lease| lease.address == address)
@@ -2553,13 +2586,7 @@ impl LocalProvider {
             self.select_boot(outcome);
             self.prepare_normal_pxe(packet, outcome);
             if self.config.script.is_some() {
-                if let Reply::Ack {
-                    context, ..
-                }
-                | Reply::Bootp {
-                    context, ..
-                } = outcome.reply
-                {
+                if let Reply::Ack { context, .. } | Reply::Bootp { context, .. } = outcome.reply {
                     // rfc2131.c refreshes one-shot helper metadata only for
                     // an actual allocation, or REQUEST with option 50. A
                     // multi-MAC handoff reuses the incumbent lease; DISCOVER
@@ -3587,11 +3614,22 @@ mod startup_tests {
 
     #[test]
     fn dispatch_maintenance_uses_the_supplied_clock_and_keeps_immediate_work() {
-        let mut provider = LocalProvider::new(DhcpConfig {
-            no_ping: true, lease_read_only: true, ..Default::default()
-        }, Vec::new(), 53, || false).unwrap();
+        let mut provider = LocalProvider::new(
+            DhcpConfig {
+                no_ping: true,
+                lease_read_only: true,
+                ..Default::default()
+            },
+            Vec::new(),
+            53,
+            || false,
+        )
+        .unwrap();
         let now = Instant::now();
-        assert!(provider.maintenance_due(now), "startup is due even if the caller clock is earlier");
+        assert!(
+            provider.maintenance_due(now),
+            "startup is due even if the caller clock is earlier"
+        );
         provider.initialize(100);
         let due = now + Duration::from_secs(60);
         provider.alarm_deadline = Some(due);
@@ -3599,8 +3637,14 @@ mod startup_tests {
         assert!(!provider.maintenance_due(now));
         assert!(provider.maintenance_due(due));
         provider.request_alarms(1);
-        assert!(provider.maintenance_due(now), "external alarm is not a future deadline");
-        assert_eq!(provider.pending_alarms, 1, "eligibility must not consume the alarm");
+        assert!(
+            provider.maintenance_due(now),
+            "external alarm is not a future deadline"
+        );
+        assert_eq!(
+            provider.pending_alarms, 1,
+            "eligibility must not consume the alarm"
+        );
     }
 
     #[test]
@@ -3614,26 +3658,44 @@ mod startup_tests {
         impl DnsPublisher for RetryPublisher {
             fn replace(&mut self, _: &[persistence::DnsLeaseRecord<'_>]) -> io::Result<()> {
                 self.calls.set(self.calls.get() + 1);
-                if self.fail.get() { Err(io::Error::other("temporary DNS publication failure")) }
-                else { Ok(()) }
+                if self.fail.get() {
+                    Err(io::Error::other("temporary DNS publication failure"))
+                } else {
+                    Ok(())
+                }
             }
         }
         for earlier_alarm in [false, true] {
-            let mut provider = LocalProvider::new(DhcpConfig {
-                no_ping: true, lease_read_only: true, ..Default::default()
-            }, Vec::new(), 53, || false).unwrap();
+            let mut provider = LocalProvider::new(
+                DhcpConfig {
+                    no_ping: true,
+                    lease_read_only: true,
+                    ..Default::default()
+                },
+                Vec::new(),
+                53,
+                || false,
+            )
+            .unwrap();
             let fail = Rc::new(Cell::new(false));
             let calls = Rc::new(Cell::new(0));
             provider.set_dns_publisher(Box::new(RetryPublisher {
-                fail: Rc::clone(&fail), calls: Rc::clone(&calls),
+                fail: Rc::clone(&fail),
+                calls: Rc::clone(&calls),
             }));
-            assert_eq!(provider.initialize(100).dns.status, persistence::DnsStatus::Published);
+            assert_eq!(
+                provider.initialize(100).dns.status,
+                persistence::DnsStatus::Published
+            );
             assert!(!provider.leases.changes().dns);
             let earlier = Instant::now() + Duration::from_secs(5);
             provider.alarm_deadline = earlier_alarm.then_some(earlier);
             fail.set(true);
             let before = Instant::now();
-            assert_eq!(provider.hosts_changed(100).dns.status, persistence::DnsStatus::Failed);
+            assert_eq!(
+                provider.hosts_changed(100).dns.status,
+                persistence::DnsStatus::Failed
+            );
             let deadline = provider.alarm_deadline.unwrap();
             if earlier_alarm {
                 assert_eq!(deadline, earlier);
@@ -3646,7 +3708,10 @@ mod startup_tests {
             // another forced publication. A successful retry consumes it.
             fail.set(false);
             provider.alarm_deadline = Some(Instant::now());
-            assert_eq!(provider.tick(160).unwrap().dns.status, persistence::DnsStatus::Published);
+            assert_eq!(
+                provider.tick(160).unwrap().dns.status,
+                persistence::DnsStatus::Published
+            );
             assert_eq!(calls.get(), 3);
             assert!(!provider.leases.changes().dns);
             assert!(provider.alarm_deadline.is_none());
@@ -3658,29 +3723,50 @@ mod startup_tests {
 
     impl RunnableFilesFixture {
         fn new(label: &str) -> Self {
-            let path = std::env::temp_dir().join(format!("dhcp-runnable-{label}-{}-{}",
-                std::process::id(), SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos()));
+            let path = std::env::temp_dir().join(format!(
+                "dhcp-runnable-{label}-{}-{}",
+                std::process::id(),
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
             std::fs::create_dir(&path).unwrap();
             Self(path)
         }
 
         fn fifo(&self) -> std::path::PathBuf {
             let path = self.0.join("input");
-            assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+            assert!(std::process::Command::new("mkfifo")
+                .arg(&path)
+                .status()
+                .unwrap()
+                .success());
             path
         }
 
         fn provider(&self, option_file: Option<&Path>) -> LocalProvider {
-            LocalProvider::new(DhcpConfig {
-                no_ping: true, lease_read_only: true,
-                option_files: option_file.map(|path| vec![path.as_os_str().as_encoded_bytes().to_vec()]).unwrap_or_default(),
-                ..Default::default()
-            }, Vec::new(), 0, || false).unwrap()
+            LocalProvider::new(
+                DhcpConfig {
+                    no_ping: true,
+                    lease_read_only: true,
+                    option_files: option_file
+                        .map(|path| vec![path.as_os_str().as_encoded_bytes().to_vec()])
+                        .unwrap_or_default(),
+                    ..Default::default()
+                },
+                Vec::new(),
+                0,
+                || false,
+            )
+            .unwrap()
         }
     }
 
     impl Drop for RunnableFilesFixture {
-        fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
     }
 
     #[test]
@@ -3692,38 +3778,68 @@ mod startup_tests {
         let mut provider = fixture.provider(Some(&fifo));
         provider.start_file_owner().unwrap();
         for _ in 0..16 {
-            if !provider.files_runnable() { break; }
-            assert!(provider.step_files_with_watch_readiness(epoch_seconds(), false).is_none());
+            if !provider.files_runnable() {
+                break;
+            }
+            assert!(provider
+                .step_files_with_watch_readiness(epoch_seconds(), false)
+                .is_none());
         }
         assert!(provider.file_work_pending());
         assert!(!provider.files_runnable());
         provider.reload_data_files(epoch_seconds());
         for _ in 0..3 {
-            assert!(!provider.files_runnable(), "queued reload cannot run ahead of its FIFO");
-            assert!(provider.step_files_with_watch_readiness(epoch_seconds(), false).is_none());
+            assert!(
+                !provider.files_runnable(),
+                "queued reload cannot run ahead of its FIFO"
+            );
+            assert!(provider
+                .step_files_with_watch_readiness(epoch_seconds(), false)
+                .is_none());
         }
-        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&fifo).unwrap();
+        let mut writer = std::fs::OpenOptions::new()
+            .write(true)
+            .custom_flags(0o4000)
+            .open(&fifo)
+            .unwrap();
         writer.write_all(b"option:domain-name,first\n").unwrap();
         provider.step_files_with_watch_readiness(epoch_seconds(), false);
-        assert!(!provider.files_runnable(), "a held writer still requires EOF before bank publication");
+        assert!(
+            !provider.files_runnable(),
+            "a held writer still requires EOF before bank publication"
+        );
         drop(writer);
-        let first = (0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false));
+        let first =
+            (0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false));
         assert!(first.is_some());
-        assert!(provider.files_runnable(), "the saved reload now has a real next turn");
+        assert!(
+            provider.files_runnable(),
+            "the saved reload now has a real next turn"
+        );
         for _ in 0..16 {
-            if !provider.files_runnable() { break; }
+            if !provider.files_runnable() {
+                break;
+            }
             provider.step_files_with_watch_readiness(epoch_seconds(), false);
         }
         assert!(!provider.files_runnable());
-        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&fifo).unwrap();
+        let mut writer = std::fs::OpenOptions::new()
+            .write(true)
+            .custom_flags(0o4000)
+            .open(&fifo)
+            .unwrap();
         writer.write_all(b"option:domain-name,second\n").unwrap();
         drop(writer);
-        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false)).is_some());
+        assert!((0..16)
+            .find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false))
+            .is_some());
         assert!(!provider.file_work_pending());
         assert!(!provider.files_runnable());
         assert_eq!(provider.config.options.len(), 1);
-        assert_eq!(provider.config.options[0].value,
-            crate::config::dhcp::OptionValue::String(b"second".to_vec()));
+        assert_eq!(
+            provider.config.options[0].value,
+            crate::config::dhcp::OptionValue::String(b"second".to_vec())
+        );
     }
 
     #[test]
@@ -3734,20 +3850,41 @@ mod startup_tests {
         let fifo = fixture.fifo();
         let mut provider = fixture.provider(None);
         provider.start_file_owner().unwrap();
-        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false)).is_some());
+        assert!((0..16)
+            .find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false))
+            .is_some());
         provider.ethers_read = Some(provider.ethers.begin_read(&fifo).unwrap());
         provider.reload_data_files(epoch_seconds());
         assert!(!provider.files_runnable());
-        assert!(provider.step_files_with_watch_readiness(epoch_seconds(), false).is_none());
-        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&fifo).unwrap();
+        assert!(provider
+            .step_files_with_watch_readiness(epoch_seconds(), false)
+            .is_none());
+        let mut writer = std::fs::OpenOptions::new()
+            .write(true)
+            .custom_flags(0o4000)
+            .open(&fifo)
+            .unwrap();
         writer.write_all(b"02:00:00:00:00:01 192.0.2.10\n").unwrap();
         drop(writer);
-        assert!((0..4).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false)).is_some());
-        assert!(provider.files_runnable(), "ethers published before starting the queued bank");
-        assert_eq!(provider.config.hosts[0].address, Some("192.0.2.10".parse().unwrap()));
-        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false)).is_some());
+        assert!((0..4)
+            .find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false))
+            .is_some());
+        assert!(
+            provider.files_runnable(),
+            "ethers published before starting the queued bank"
+        );
+        assert_eq!(
+            provider.config.hosts[0].address,
+            Some("192.0.2.10".parse().unwrap())
+        );
+        assert!((0..16)
+            .find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false))
+            .is_some());
         assert!(!provider.files_runnable());
-        assert_eq!(provider.config.hosts[0].address, Some("192.0.2.10".parse().unwrap()));
+        assert_eq!(
+            provider.config.hosts[0].address,
+            Some("192.0.2.10".parse().unwrap())
+        );
     }
 
     #[test]
@@ -3773,7 +3910,10 @@ mod startup_tests {
         assert!(!provider.packet_interfaces_runnable());
         assert!(!provider.packet_addresses().unwrap().is_empty());
         provider.finish_packet_interfaces();
-        assert!(provider.packet_addresses().is_err(), "one packet cannot lend its snapshot to the next");
+        assert!(
+            provider.packet_addresses().is_err(),
+            "one packet cannot lend its snapshot to the next"
+        );
         let ready = provider.prepare_packet_interfaces().unwrap();
         assert_eq!(provider.packet_interfaces_pending(), !ready);
         assert_eq!(provider.packet_addresses().is_ok(), ready);
@@ -3786,17 +3926,30 @@ mod startup_tests {
         let now = epoch_seconds();
         provider.initialize(now);
         let address = "192.0.2.10".parse().unwrap();
-        provider.leases.allocate(address, ClientIdentity {
-            hardware_type: 1, hardware_address: vec![2, 0, 0, 0, 0, 1], client_id: None,
-        }).unwrap();
+        provider
+            .leases
+            .allocate(
+                address,
+                ClientIdentity {
+                    hardware_type: 1,
+                    hardware_address: vec![2, 0, 0, 0, 0, 1],
+                    client_id: None,
+                },
+            )
+            .unwrap();
         provider.leases.set_expires(address, 1, now).unwrap();
         provider.maintain(now, Vec::new(), false);
         assert!(provider.next_maintenance().is_some());
         provider.alarm_deadline = Some(Instant::now());
         provider.start_file_owner().unwrap();
-        assert!(provider.tick(now + 1).is_none(), "expiry cannot pass an unpublished file generation");
+        assert!(
+            provider.tick(now + 1).is_none(),
+            "expiry cannot pass an unpublished file generation"
+        );
         assert!(provider.leases.get(address).is_some());
-        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(now + 1, false)).is_some());
+        assert!((0..16)
+            .find_map(|_| provider.step_files_with_watch_readiness(now + 1, false))
+            .is_some());
         let report = provider.tick(now + 1).unwrap();
         assert_eq!(report.removed.len(), 1);
         assert_eq!(report.removed[0].address, address);

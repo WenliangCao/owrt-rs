@@ -199,7 +199,9 @@ pub(crate) fn write_string(out: &mut Vec<u8>, s: &[u8]) {
             continue;
         }
         let index = block_index * 8;
-        if index != start { out.extend_from_slice(&s[start..index]); }
+        if index != start {
+            out.extend_from_slice(&s[start..index]);
+        }
         // Escaped blocks keep the original scalar encoder. This avoids
         // repeated empty-range copies for adjacent escape characters.
         for &c in block {
@@ -212,8 +214,14 @@ pub(crate) fn write_string(out: &mut Vec<u8>, s: &[u8]) {
                 8 => out.extend_from_slice(b"\\b"),
                 c if c < 0x20 => {
                     const HEX: &[u8; 16] = b"0123456789abcdef";
-                    out.extend_from_slice(&[b'\\', b'u', b'0', b'0',
-                        HEX[(c >> 4) as usize], HEX[(c & 15) as usize]]);
+                    out.extend_from_slice(&[
+                        b'\\',
+                        b'u',
+                        b'0',
+                        b'0',
+                        HEX[(c >> 4) as usize],
+                        HEX[(c & 15) as usize],
+                    ]);
                 }
                 c => out.push(c),
             }
@@ -425,8 +433,12 @@ impl<'a> Parser<'a> {
                                 }
                             }
                             let mut bytes = [0; 4];
-                            out.extend_from_slice(char::from_u32(code).unwrap_or('\u{fffd}')
-                                .encode_utf8(&mut bytes).as_bytes());
+                            out.extend_from_slice(
+                                char::from_u32(code)
+                                    .unwrap_or('\u{fffd}')
+                                    .encode_utf8(&mut bytes)
+                                    .as_bytes(),
+                            );
                         }
                         _ => return Err("bad escape".into()),
                     }
@@ -496,12 +508,21 @@ mod tests {
             Json::Int(value).append_to(&mut out);
             assert_eq!(out, format!("prefix{value}").as_bytes());
         };
-        for value in [i64::MIN, i64::MIN + 1, i64::MAX - 1, i64::MAX] { check(value); }
-        for value in -1000..=1000 { check(value); }
+        for value in [i64::MIN, i64::MIN + 1, i64::MAX - 1, i64::MAX] {
+            check(value);
+        }
+        for value in -1000..=1000 {
+            check(value);
+        }
         let mut power = 1i64;
         loop {
-            for value in [power - 1, power, power + 1] { check(value); check(-value); }
-            let Some(next) = power.checked_mul(10) else { break };
+            for value in [power - 1, power, power + 1] {
+                check(value);
+                check(-value);
+            }
+            let Some(next) = power.checked_mul(10) else {
+                break;
+            };
             power = next;
         }
         let mut random = 0x0123_4567_89ab_cdefu64;
@@ -515,9 +536,15 @@ mod tests {
     fn word_escape_detection_matches_scalar_bytes() {
         let check = |bytes: [u8; 8]| {
             let expected = bytes.iter().any(|&c| c < 0x20 || c == b'"' || c == b'\\');
-            assert_eq!(string_needs_escape(u64::from_ne_bytes(bytes)), expected, "{bytes:?}");
+            assert_eq!(
+                string_needs_escape(u64::from_ne_bytes(bytes)),
+                expected,
+                "{bytes:?}"
+            );
         };
-        for background in [0, 0x1f, 0x20, 0x21, 0x22, 0x23, 0x5b, 0x5c, 0x5d, 0x7f, 0x80, 0xff] {
+        for background in [
+            0, 0x1f, 0x20, 0x21, 0x22, 0x23, 0x5b, 0x5c, 0x5d, 0x7f, 0x80, 0xff,
+        ] {
             for lane in 0..8 {
                 for byte in 0..=255 {
                     let mut bytes = [background; 8];
@@ -560,14 +587,17 @@ mod tests {
                 assert_eq!(Json::Bytes(input).to_bytes(), expected);
             }
         }
-        for input in [vec![], (0..=255u8).collect(), vec![b'x'; 32768],
-                      b"\n\t\r\\\"\x08\x00\xff".repeat(100)] {
+        for input in [
+            vec![],
+            (0..=255u8).collect(),
+            vec![b'x'; 32768],
+            b"\n\t\r\\\"\x08\x00\xff".repeat(100),
+        ] {
             let mut expected = Vec::new();
             scalar_string(&mut expected, &input);
             assert_eq!(Json::Bytes(input).to_bytes(), expected);
         }
     }
-
 
     #[test]
     fn roundtrip() {
@@ -579,7 +609,10 @@ mod tests {
         );
         assert_eq!(parse("[1,]").unwrap(), Json::Array(vec![Json::Int(1)]));
         assert_eq!(parse("{\"a\":1,}").unwrap().get("a"), Some(&Json::Int(1)));
-        assert_eq!(parse("/* c */ [1, // x\n 2]").unwrap(), Json::Array(vec![Json::Int(1), Json::Int(2)]));
+        assert_eq!(
+            parse("/* c */ [1, // x\n 2]").unwrap(),
+            Json::Array(vec![Json::Int(1), Json::Int(2)])
+        );
         assert!(parse("[1,,]").is_err());
         assert_eq!(parse(r#""é😀""#).unwrap(), Json::Str("é😀".into()));
         // libubox emits \u000c for form feed, not \f

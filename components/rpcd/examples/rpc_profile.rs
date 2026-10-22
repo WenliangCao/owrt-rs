@@ -5,16 +5,16 @@
 #![cfg(not(test))]
 #![allow(dead_code)]
 
-#[path = "../src/session.rs"]
-mod session;
 #[path = "../src/glob.rs"]
 mod glob;
-#[path = "../src/util.rs"]
-#[allow(unused_imports)] // only the identity helpers are measured here
-mod util;
 mod profile_support;
 #[path = "../src/reply.rs"]
 mod reply;
+#[path = "../src/session.rs"]
+mod session;
+#[path = "../src/util.rs"]
+#[allow(unused_imports)] // only the identity helpers are measured here
+mod util;
 
 // The measured handlers never destroy sessions or touch UCI deltas. Fail if a
 // future profiling path reaches the unlinked destruction callback.
@@ -35,7 +35,11 @@ fn wire(n: u64, filter: &str) {
     let listener = UnixListener::bind(&path).unwrap();
     let peer = std::thread::spawn(move || {
         let (mut socket, _) = listener.accept().unwrap();
-        let hello = owrt_ubus::Header { ty: owrt_ubus::ty::HELLO, seq: 0, peer: 42 };
+        let hello = owrt_ubus::Header {
+            ty: owrt_ubus::ty::HELLO,
+            seq: 0,
+            peer: 42,
+        };
         socket.write_all(&hello.encode()).unwrap();
         socket.write_all(&[0, 0, 0, 4]).unwrap();
         // Fixed storage keeps the diagnostic peer out of allocation counts.
@@ -54,14 +58,25 @@ fn wire(n: u64, filter: &str) {
     });
     let mut conn = owrt_ubus::Connection::connect(path.to_str()).unwrap();
     let request = owrt_ubus::Request {
-        peer: 1729, seq: 11, objid: 9, method: "profile".into(),
-        user: None, group: None, data: vec![], fd: None, no_reply: false,
+        peer: 1729,
+        seq: 11,
+        objid: 9,
+        method: "profile".into(),
+        user: None,
+        group: None,
+        data: vec![],
+        fd: None,
+        no_reply: false,
     };
     let mut b = BlobBuf::new();
     b.msg_string("result", "fixed profile response");
     let fields = b.into_payload();
-    measure("reply_status_send", n, filter, || { conn.reply_status(&request, 0, None).unwrap(); });
-    measure("reply_data_send", n, filter, || { conn.reply_data(&request, &fields).unwrap(); });
+    measure("reply_status_send", n, filter, || {
+        conn.reply_status(&request, 0, None).unwrap();
+    });
+    measure("reply_data_send", n, filter, || {
+        conn.reply_data(&request, &fields).unwrap();
+    });
     measure("reply_pair_send", n, filter, || {
         conn.reply_data_status(&request, &fields, 0).unwrap();
     });
@@ -87,17 +102,26 @@ fn incoming(n: u64, filter: &str) {
     let listener = UnixListener::bind(&path).unwrap();
     let fields = access_args("00000000000000000000000000000000", "uci", "get");
     let mut request = BlobBuf::new();
-    request.put_u32(owrt_ubus::attr::OBJID, 9)
+    request
+        .put_u32(owrt_ubus::attr::OBJID, 9)
         .put_string(owrt_ubus::attr::METHOD, "access")
         .put_string(owrt_ubus::attr::USER, "root")
         .put_string(owrt_ubus::attr::GROUP, "root")
         .put(owrt_ubus::attr::DATA, &fields);
-    let header = owrt_ubus::Header { ty: owrt_ubus::ty::INVOKE, seq: 11, peer: 1729 };
+    let header = owrt_ubus::Header {
+        ty: owrt_ubus::ty::INVOKE,
+        seq: 11,
+        peer: 1729,
+    };
     let mut frame = header.encode().to_vec();
     frame.extend_from_slice(request.as_bytes());
     let peer = std::thread::spawn(move || {
         let (mut socket, _) = listener.accept().unwrap();
-        let hello = owrt_ubus::Header { ty: owrt_ubus::ty::HELLO, seq: 0, peer: 42 };
+        let hello = owrt_ubus::Header {
+            ty: owrt_ubus::ty::HELLO,
+            seq: 0,
+            peer: 42,
+        };
         socket.write_all(&hello.encode()).unwrap();
         socket.write_all(&[0, 0, 0, 4]).unwrap();
         let mut reply = [0u8; 28];
@@ -126,7 +150,10 @@ fn incoming(n: u64, filter: &str) {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let n: u64 = args.get(1).map(|s| s.parse().expect("iterations")).unwrap_or(20000);
+    let n: u64 = args
+        .get(1)
+        .map(|s| s.parse().expect("iterations"))
+        .unwrap_or(20000);
     let filter = args.get(2).map(String::as_str).unwrap_or("");
     assert!(n > 0);
     println!("stage,iterations,ns_per_op,allocs,reallocs,requested_bytes");
@@ -135,15 +162,22 @@ fn main() {
     let denied = access_args(&sid, "uci", "get");
     let reply = session::call(&mut store, "access", &denied);
     assert_eq!(reply.code, 0);
-    let result = owrt_ubus::blob::fields(&reply.data[0]).find(|f| f.name == "access").unwrap();
+    let result = owrt_ubus::blob::fields(&reply.data[0])
+        .find(|f| f.name == "access")
+        .unwrap();
     assert_eq!(result.as_bool(), Some(false));
     measure("session_access_denied", n, filter, || {
         black_box(session::call(&mut store, "access", &denied));
     });
-    store.get(&sid).unwrap().grant("ubus", Some("u*"), Some("g*"));
+    store
+        .get(&sid)
+        .unwrap()
+        .grant("ubus", Some("u*"), Some("g*"));
     let allowed = access_args(&sid, "uci", "get");
     let reply = session::call(&mut store, "access", &allowed);
-    let result = owrt_ubus::blob::fields(&reply.data[0]).find(|f| f.name == "access").unwrap();
+    let result = owrt_ubus::blob::fields(&reply.data[0])
+        .find(|f| f.name == "access")
+        .unwrap();
     assert_eq!(result.as_bool(), Some(true));
     measure("session_access_allowed", n, filter, || {
         black_box(session::call(&mut store, "access", &allowed));
@@ -159,11 +193,16 @@ fn main() {
         store.expire();
         black_box(store.next_expiry());
     });
-    measure("file_owner_name", n, filter, || { black_box(util::user_name(0)); });
-    measure("file_group_name", n, filter, || { black_box(util::group_name(0)); });
+    measure("file_owner_name", n, filter, || {
+        black_box(util::user_name(0));
+    });
+    measure("file_group_name", n, filter, || {
+        black_box(util::group_name(0));
+    });
     measure("blob_status_build", n, filter, || {
         let mut b = BlobBuf::new();
-        b.put_u32(owrt_ubus::attr::STATUS, 0).put_u32(owrt_ubus::attr::OBJID, 42);
+        b.put_u32(owrt_ubus::attr::STATUS, 0)
+            .put_u32(owrt_ubus::attr::OBJID, 42);
         black_box(b.as_bytes());
     });
     wire(n, filter);

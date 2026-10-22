@@ -34,17 +34,21 @@ pub struct ReadCache {
 
 impl std::fmt::Debug for ReadCache {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ReadCache").field("has_entry", &self.entry.is_some())
+        f.debug_struct("ReadCache")
+            .field("has_entry", &self.entry.is_some())
             .field("scratch_capacity", &self.scratch.capacity())
-            .field("has_spare", &self.spare.is_some()).finish_non_exhaustive()
+            .field("has_spare", &self.spare.is_some())
+            .finish_non_exhaustive()
     }
 }
 
 fn model_bytes(p: &Package) -> usize {
-    let mut bytes = std::mem::size_of::<Package>() + p.name.capacity()
+    let mut bytes = std::mem::size_of::<Package>()
+        + p.name.capacity()
         + p.sections.capacity() * std::mem::size_of::<crate::Section>();
     for s in &p.sections {
-        bytes += s.name.capacity() + s.ty.capacity()
+        bytes += s.name.capacity()
+            + s.ty.capacity()
             + s.options.capacity() * std::mem::size_of::<crate::Opt>();
         for o in &s.options {
             bytes += o.name.capacity();
@@ -52,7 +56,11 @@ fn model_bytes(p: &Package) -> usize {
                 OptionValue::Str(s) => bytes += if s.len() > 15 { s.len() } else { 0 },
                 OptionValue::List(items) => {
                     bytes += items.capacity() * std::mem::size_of::<crate::model::Bytes>();
-                    bytes += items.iter().filter(|s| s.len() > 15).map(|s| s.len()).sum::<usize>();
+                    bytes += items
+                        .iter()
+                        .filter(|s| s.len() > 15)
+                        .map(|s| s.len())
+                        .sum::<usize>();
                 }
             }
         }
@@ -70,15 +78,21 @@ fn reuse_model(target: &mut Package, source: &Package) {
     target.n_section = source.n_section;
     target.delta.clone_from(&source.delta);
     target.saved_delta.clone_from(&source.saved_delta);
-    target.sections.resize_with(source.sections.len(), || crate::Section {
-        name: String::new(), ty: String::new(), anonymous: false, options: Vec::new(),
-    });
+    target
+        .sections
+        .resize_with(source.sections.len(), || crate::Section {
+            name: String::new(),
+            ty: String::new(),
+            anonymous: false,
+            options: Vec::new(),
+        });
     for (dst, src) in target.sections.iter_mut().zip(&source.sections) {
         dst.name.clone_from(&src.name);
         dst.ty.clone_from(&src.ty);
         dst.anonymous = src.anonymous;
         dst.options.resize_with(src.options.len(), || crate::Opt {
-            name: String::new(), value: OptionValue::Str(Default::default()),
+            name: String::new(),
+            value: OptionValue::Str(Default::default()),
         });
         for (dst, src) in dst.options.iter_mut().zip(&src.options) {
             dst.name.clone_from(&src.name);
@@ -98,12 +112,13 @@ impl ReadCache {
     pub fn recycle(&mut self, mut package: Package) {
         self.spare = None;
         let Some(entry) = &self.entry else { return };
-        if entry.package.is_none() { return; }
+        if entry.package.is_none() {
+            return;
+        }
         package.path = None;
         package.delta = Vec::new();
         package.saved_delta = Vec::new();
-        if entry.retained_bytes + model_bytes(&package) <= ENTRY_LIMIT
-        {
+        if entry.retained_bytes + model_bytes(&package) <= ENTRY_LIMIT {
             self.spare = Some(package);
         }
     }
@@ -113,12 +128,21 @@ impl ReadCache {
     }
 
     fn retain_buffer(&mut self, input: Vec<u8>) {
-        self.scratch = if input.capacity() <= INPUT_LIMIT { input } else { Vec::new() };
+        self.scratch = if input.capacity() <= INPUT_LIMIT {
+            input
+        } else {
+            Vec::new()
+        };
     }
 
     // `file::load_impl` has already read through EOF under the file lock.
     // Move that buffer instead of copying its bytes into a second read buffer.
-    pub(crate) fn import(&mut self, ctx: &mut Context, input: Vec<u8>, name: &str) -> Result<Option<usize>> {
+    pub(crate) fn import(
+        &mut self,
+        ctx: &mut Context,
+        input: Vec<u8>,
+        name: &str,
+    ) -> Result<Option<usize>> {
         // Non-strict parsing may succeed after emitting errors. Preserve all
         // those side effects, and existing-package/duplicate handling too.
         if !ctx.root.is_empty() || ctx.flags & FLAG_STRICT == 0 {
@@ -134,7 +158,10 @@ impl ReadCache {
                 if let Some(package) = &entry.package {
                     ctx.cleanup();
                     let package = match self.spare.take() {
-                        Some(mut spare) => { reuse_model(&mut spare, package); spare }
+                        Some(mut spare) => {
+                            reuse_model(&mut spare, package);
+                            spare
+                        }
                         None => package.clone(),
                     };
                     ctx.root.push(package);
@@ -146,15 +173,25 @@ impl ReadCache {
         self.spare = None;
         let result = parse::import(ctx, &mut input.as_slice(), Some(name), None, true);
         // Only an unambiguous successful base parse can become an entry.
-        let success = input.len() <= INPUT_LIMIT && result == Ok(Some(0)) && ctx.err.is_none()
+        let success = input.len() <= INPUT_LIMIT
+            && result == Ok(Some(0))
+            && ctx.err.is_none()
             && input.capacity() + name.len() <= ENTRY_LIMIT;
-        let package = (success && repeated
+        let package = (success
+            && repeated
             && model_bytes(&ctx.root[0]) + input.capacity() + name.len() <= ENTRY_LIMIT)
             .then(|| ctx.root[0].clone());
         let spare = self.entry.take().map(|e| e.bytes).unwrap_or_default();
         if success {
-            let retained_bytes = input.capacity() + name.len() + package.as_ref().map_or(0, model_bytes);
-            self.entry = Some(Entry { bytes: input, flags: ctx.flags, name: name.to_owned(), package, retained_bytes });
+            let retained_bytes =
+                input.capacity() + name.len() + package.as_ref().map_or(0, model_bytes);
+            self.entry = Some(Entry {
+                bytes: input,
+                flags: ctx.flags,
+                name: name.to_owned(),
+                package,
+                retained_bytes,
+            });
             self.retain_buffer(spare);
         } else {
             self.retain_buffer(input);
@@ -166,11 +203,16 @@ impl ReadCache {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::{FLAG_PERROR, ParseInfo};
+    use crate::context::{ParseInfo, FLAG_PERROR};
     use crate::Error;
     use std::io::Cursor;
 
-    type Observation = (Result<Option<usize>>, Vec<Package>, Option<Error>, Option<ParseInfo>);
+    type Observation = (
+        Result<Option<usize>>,
+        Vec<Package>,
+        Option<Error>,
+        Option<ParseInfo>,
+    );
 
     fn observe(cache: Option<&mut ReadCache>, input: &[u8], name: &str, flags: u32) -> Observation {
         let mut ctx = Context::new();
@@ -195,20 +237,35 @@ mod tests {
             b"config example a\noption a one\\\n two\n".to_vec(),
             Vec::new(),
         ];
-        cases.push(format!("config example a\noption big '{}'\n", "v".repeat(INPUT_LIMIT + 1)).into_bytes());
+        cases.push(
+            format!(
+                "config example a\noption big '{}'\n",
+                "v".repeat(INPUT_LIMIT + 1)
+            )
+            .into_bytes(),
+        );
         for flags in [FLAG_STRICT, 0, FLAG_STRICT] {
             for name in ["one", "two", "bad/name"] {
                 for input in &cases {
                     let expected = observe(None, input, name, flags);
                     for _ in 0..3 {
                         let actual = observe(Some(&mut cache), input, name, flags);
-                        assert_eq!(actual, expected, "name={name} flags={flags} len={}", input.len());
+                        assert_eq!(
+                            actual,
+                            expected,
+                            "name={name} flags={flags} len={}",
+                            input.len()
+                        );
                     }
                     assert!(cache.scratch.capacity() <= INPUT_LIMIT);
                     if let Some(entry) = &cache.entry {
-                        assert!(entry.bytes.capacity() + entry.name.capacity()
-                            + entry.package.as_ref().map_or(0, model_bytes)
-                            + cache.spare.as_ref().map_or(0, model_bytes) <= ENTRY_LIMIT);
+                        assert!(
+                            entry.bytes.capacity()
+                                + entry.name.capacity()
+                                + entry.package.as_ref().map_or(0, model_bytes)
+                                + cache.spare.as_ref().map_or(0, model_bytes)
+                                <= ENTRY_LIMIT
+                        );
                     }
                 }
             }
@@ -222,16 +279,27 @@ mod tests {
         let expected = observe(None, bytes, "one", FLAG_STRICT);
         let mut first = observe(Some(&mut cache), bytes, "one", FLAG_STRICT);
         first.1[0].sections.clear();
-        assert_eq!(observe(Some(&mut cache), bytes, "one", FLAG_STRICT), expected);
+        assert_eq!(
+            observe(Some(&mut cache), bytes, "one", FLAG_STRICT),
+            expected
+        );
         assert!(cache.entry.as_ref().unwrap().package.is_some());
-        assert_eq!(observe(Some(&mut cache), bytes, "one", FLAG_STRICT), expected);
+        assert_eq!(
+            observe(Some(&mut cache), bytes, "one", FLAG_STRICT),
+            expected
+        );
     }
 
     #[test]
     fn recycled_models_are_bounded_and_overwritten_after_arbitrary_mutation() {
-        let bytes = b"config example a\noption value 'long base scalar value'\nlist x one\nlist x two\n";
+        let bytes =
+            b"config example a\noption value 'long base scalar value'\nlist x one\nlist x two\n";
         let mut cache = ReadCache::default();
-        for _ in 0..3 { observe(Some(&mut cache), bytes, "one", FLAG_STRICT).0.unwrap(); }
+        for _ in 0..3 {
+            observe(Some(&mut cache), bytes, "one", FLAG_STRICT)
+                .0
+                .unwrap();
+        }
         let expected = observe(None, bytes, "one", FLAG_STRICT);
         let mut working = expected.1[0].clone();
         working.name = "another".to_owned();
@@ -243,14 +311,21 @@ mod tests {
         working.path = Some("other/path".to_owned());
         cache.recycle(working);
         assert!(cache.spare.is_some());
-        assert_eq!(observe(Some(&mut cache), bytes, "one", FLAG_STRICT), expected);
+        assert_eq!(
+            observe(Some(&mut cache), bytes, "one", FLAG_STRICT),
+            expected
+        );
         let mut oversized = expected.1[0].clone();
         oversized.sections.reserve(ENTRY_LIMIT);
         cache.recycle(oversized);
         assert!(cache.spare.is_none());
         cache.recycle(expected.1[0].clone());
         assert!(cache.spare.is_some());
-        assert!(observe(Some(&mut cache), b"invalid command\n", "one", FLAG_STRICT).0.is_err());
+        assert!(
+            observe(Some(&mut cache), b"invalid command\n", "one", FLAG_STRICT)
+                .0
+                .is_err()
+        );
         assert!(cache.entry.is_none());
         assert!(cache.spare.is_none());
     }
@@ -261,8 +336,14 @@ mod tests {
         assert!(bytes.len() < INPUT_LIMIT);
         let mut cache = ReadCache::default();
         let expected = observe(None, &bytes, "one", FLAG_STRICT);
-        assert_eq!(observe(Some(&mut cache), &bytes, "one", FLAG_STRICT), expected);
-        assert_eq!(observe(Some(&mut cache), &bytes, "one", FLAG_STRICT), expected);
+        assert_eq!(
+            observe(Some(&mut cache), &bytes, "one", FLAG_STRICT),
+            expected
+        );
+        assert_eq!(
+            observe(Some(&mut cache), &bytes, "one", FLAG_STRICT),
+            expected
+        );
         assert!(cache.entry.as_ref().unwrap().package.is_none());
     }
 }

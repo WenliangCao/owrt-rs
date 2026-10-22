@@ -5,11 +5,13 @@
 
 use super::netlink::{self, nla_parse, nla_parse_nested, Attr, Msg, Nlmsg, Policy, Tb, NLM_F_DUMP};
 use super::sys::{self, ENOENT, ENOMEM, IFNAMSIZ};
-use std::os::fd::OwnedFd;
-use super::utils::{self, atoi, cstr, fgets_chunks, readdir, strtok, strtok_all, strtol16, strtoul16};
+use super::utils::{
+    self, atoi, cstr, fgets_chunks, readdir, strtok, strtok_all, strtol16, strtoul16,
+};
 use super::*;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::os::fd::OwnedFd;
 
 // ------------------------------------------------------ nl80211.h constants
 
@@ -471,9 +473,10 @@ fn nl80211_subscribe(family: &str, group: &str) -> i32 {
         };
         for mgrp in groups.nested() {
             let (mgrpinfo, _) = nla_parse(mgrp.data, netlink::CTRL_ATTR_MCAST_GRP_MAX, &[]);
-            let (Some(gid), Some(gname)) =
-                (at(&mgrpinfo, netlink::CTRL_ATTR_MCAST_GRP_ID), at(&mgrpinfo, netlink::CTRL_ATTR_MCAST_GRP_NAME))
-            else {
+            let (Some(gid), Some(gname)) = (
+                at(&mgrpinfo, netlink::CTRL_ATTR_MCAST_GRP_ID),
+                at(&mgrpinfo, netlink::CTRL_ATTR_MCAST_GRP_NAME),
+            ) else {
                 continue;
             };
             if strncmp_eq(gname.data, group.as_bytes(), gname.nla_len()) {
@@ -603,7 +606,9 @@ fn phy_string(buf: &[u8; 32]) -> Option<String> {
 /// nl80211_ifname2phy
 fn nl80211_ifname2phy(ifname: &str) -> Option<String> {
     let mut phy = [0u8; 32];
-    nl80211_request(ifname, NL80211_CMD_GET_WIPHY, 0, &mut |m: &Nlmsg| nl80211_phyname_cb(m, &mut phy));
+    nl80211_request(ifname, NL80211_CMD_GET_WIPHY, 0, &mut |m: &Nlmsg| {
+        nl80211_phyname_cb(m, &mut phy)
+    });
     phy_string(&phy)
 }
 
@@ -679,7 +684,10 @@ fn nl80211_get_mode_cb(msg: &Nlmsg, mode: &mut i32) {
     if let Some(a) = at(&nl80211_parse(msg), NL80211_ATTR_IFTYPE) {
         // DEVIATION: an iftype above NL80211_IFTYPE_MAX indexes past the C
         // array; here it maps to IWINFO_OPMODE_UNKNOWN.
-        *mode = IFMODES.get(a.get_u32() as usize).copied().unwrap_or(IWINFO_OPMODE_UNKNOWN);
+        *mode = IFMODES
+            .get(a.get_u32() as usize)
+            .copied()
+            .unwrap_or(IWINFO_OPMODE_UNKNOWN);
     }
 }
 
@@ -687,9 +695,12 @@ fn nl80211_get_mode_cb(msg: &Nlmsg, mode: &mut i32) {
 pub fn mode(ifname: &str) -> Result<i32, ()> {
     let mut buf = IWINFO_OPMODE_UNKNOWN;
     let res = nl80211_phy2ifname(ifname);
-    nl80211_request(res.as_deref().unwrap_or(ifname), NL80211_CMD_GET_INTERFACE, 0, &mut |m: &Nlmsg| {
-        nl80211_get_mode_cb(m, &mut buf)
-    });
+    nl80211_request(
+        res.as_deref().unwrap_or(ifname),
+        NL80211_CMD_GET_INTERFACE,
+        0,
+        &mut |m: &Nlmsg| nl80211_get_mode_cb(m, &mut buf),
+    );
     if buf == IWINFO_OPMODE_UNKNOWN {
         Err(())
     } else {
@@ -704,7 +715,11 @@ fn strncpy_val(val: &[u8], len: usize) -> Vec<u8> {
 
 /// The fgets()/strtok() line walk of __nl80211_hostapd_query over the
 /// hostapd config text: (found, values) with `keys` = (name, dest size).
-pub fn hostapd_conf_query(conf: &[u8], ifname: &str, keys: &[(&str, usize)]) -> (i32, Vec<Vec<u8>>) {
+pub fn hostapd_conf_query(
+    conf: &[u8],
+    ifname: &str,
+    keys: &[(&str, usize)],
+) -> (i32, Vec<Vec<u8>>) {
     let mut out = vec![Vec::new(); keys.len()];
     let mut found = 0;
     let mut matched = true;
@@ -760,7 +775,9 @@ fn nl80211_hostapd_query(ifname: &str, keys: &[(&str, usize)]) -> (i32, Vec<Vec<
 /// zeroed `buf[blen]` (at most blen - 1 bytes). Returns (result, buffer).
 fn nl80211_wpactl_recv(sock: &OwnedFd, blen: usize) -> (isize, Vec<u8>) {
     let mut buf = vec![0u8; blen];
-    if !owrt_platform::rpcd::select_readable(sock, 256000).unwrap_or(false) { return (-1, buf); }
+    if !owrt_platform::rpcd::select_readable(sock, 256000).unwrap_or(false) {
+        return (-1, buf);
+    }
     let n = rustix::net::recv(sock, &mut buf[..blen - 1], rustix::net::RecvFlags::empty())
         .map_or(-1, |(_, n)| n as isize);
     (n, buf)
@@ -768,7 +785,12 @@ fn nl80211_wpactl_recv(sock: &OwnedFd, blen: usize) -> (isize, Vec<u8>) {
 
 /// Preserve the C's connect-before-bind order, address lengths and ownership.
 fn nl80211_wpactl_connect(ifname: &str) -> Result<(OwnedFd, Vec<u8>), i32> {
-    let sock = rustix::net::socket(rustix::net::AddressFamily::UNIX, rustix::net::SocketType::DGRAM, None).map_err(|_| -1)?;
+    let sock = rustix::net::socket(
+        rustix::net::AddressFamily::UNIX,
+        rustix::net::SocketType::DGRAM,
+        None,
+    )
+    .map_err(|_| -1)?;
     let remote = format!("/var/run/wpa_supplicant/{ifname}");
     let _ = rustix::fs::fchmod(&sock, rustix::fs::Mode::from_raw_mode(0o660));
     let flags = rustix::io::fcntl_getfd(&sock).map_err(|_| -1)?;
@@ -777,8 +799,20 @@ fn nl80211_wpactl_connect(ifname: &str) -> Result<(OwnedFd, Vec<u8>), i32> {
     let path = format!("/var/run/iwinfo-{ifname}-{}", std::process::id());
     owrt_platform::rpcd::bind_unix_path(&sock, path.as_bytes()).map_err(|_| -1)?;
     let gid = rustix::process::Gid::from_raw(101);
-    let _ = rustix::fs::chownat(rustix::fs::CWD, path.as_str(), None, Some(gid), rustix::fs::AtFlags::SYMLINK_NOFOLLOW);
-    let _ = rustix::fs::chownat(rustix::fs::CWD, path.as_str(), Some(rustix::process::Uid::from_raw(101)), Some(gid), rustix::fs::AtFlags::SYMLINK_NOFOLLOW);
+    let _ = rustix::fs::chownat(
+        rustix::fs::CWD,
+        path.as_str(),
+        None,
+        Some(gid),
+        rustix::fs::AtFlags::SYMLINK_NOFOLLOW,
+    );
+    let _ = rustix::fs::chownat(
+        rustix::fs::CWD,
+        path.as_str(),
+        Some(rustix::process::Uid::from_raw(101)),
+        Some(gid),
+        rustix::fs::AtFlags::SYMLINK_NOFOLLOW,
+    );
     Ok((sock, path.into_bytes()))
 }
 
@@ -881,7 +915,10 @@ fn nl80211_hostapd_hup(ifname: &str) {
         }
     }
     if pid > 0 {
-        let _ = rustix::process::kill_process(rustix::process::Pid::from_raw(pid).unwrap(), rustix::process::Signal::HUP);
+        let _ = rustix::process::kill_process(
+            rustix::process::Pid::from_raw(pid).unwrap(),
+            rustix::process::Signal::HUP,
+        );
     }
 }
 
@@ -904,7 +941,11 @@ const SSID_BSS_POLICY: &Policy = &[(NL80211_BSS_STATUS, 4)];
 
 /// nl80211_get_ssid_bssid_cb: from the associated/joined BSS of a scan dump,
 /// copy the SSID IE (ssid mode) or the BSSID (bssid mode).
-fn nl80211_get_ssid_bssid_cb(msg: &Nlmsg, ssid: Option<&mut [u8; IWINFO_ESSID_MAX_SIZE + 1]>, bssid: &mut [u8; 7]) {
+fn nl80211_get_ssid_bssid_cb(
+    msg: &Nlmsg,
+    ssid: Option<&mut [u8; IWINFO_ESSID_MAX_SIZE + 1]>,
+    bssid: &mut [u8; 7],
+) {
     let tb = nl80211_parse(msg);
     let Some(bss_attr) = at(&tb, NL80211_ATTR_BSS) else {
         return;
@@ -913,13 +954,17 @@ fn nl80211_get_ssid_bssid_cb(msg: &Nlmsg, ssid: Option<&mut [u8; IWINFO_ESSID_MA
     if rc != 0 {
         return;
     }
-    let (Some(bssid_attr), Some(status), Some(ies)) =
-        (at(&bss, NL80211_BSS_BSSID), at(&bss, NL80211_BSS_STATUS), at(&bss, NL80211_BSS_INFORMATION_ELEMENTS))
-    else {
+    let (Some(bssid_attr), Some(status), Some(ies)) = (
+        at(&bss, NL80211_BSS_BSSID),
+        at(&bss, NL80211_BSS_STATUS),
+        at(&bss, NL80211_BSS_INFORMATION_ELEMENTS),
+    ) else {
         return;
     };
     match status.get_u32() {
-        NL80211_BSS_STATUS_ASSOCIATED | NL80211_BSS_STATUS_AUTHENTICATED | NL80211_BSS_STATUS_IBSS_JOINED => {
+        NL80211_BSS_STATUS_ASSOCIATED
+        | NL80211_BSS_STATUS_AUTHENTICATED
+        | NL80211_BSS_STATUS_IBSS_JOINED => {
             if let Some(ssid) = ssid {
                 let mut ie = ies.data;
                 while ie.len() >= 2 && ie.len() >= ie[1] as usize {
@@ -989,8 +1034,9 @@ pub fn parse_ssid2(value: &[u8], buf: &mut [u8]) -> i32 {
                     && (b'0'..=b'7').contains(&value[i + 1])
                     && (b'0'..=b'7').contains(&value[i + 2])
                 {
-                    buf[len] = (((c - b'0') as u32) << 6 | ((value[i + 1] - b'0') as u32) << 3 | (value[i + 2] - b'0') as u32)
-                        as u8;
+                    buf[len] = (((c - b'0') as u32) << 6
+                        | ((value[i + 1] - b'0') as u32) << 3
+                        | (value[i + 2] - b'0') as u32) as u8;
                     len += 1;
                     i += 3;
                 } else {
@@ -1044,9 +1090,12 @@ pub fn ssid(ifname: &str) -> Result<Vec<u8>, ()> {
     /* try to find ssid from scan dump results */
     let res = nl80211_phy2ifname(ifname);
     let target = res.as_deref().unwrap_or(ifname);
-    nl80211_request(target, NL80211_CMD_GET_SCAN, NLM_F_DUMP, &mut |m: &Nlmsg| {
-        nl80211_get_ssid_bssid_cb(m, Some(&mut sb_ssid), &mut sb_bssid)
-    });
+    nl80211_request(
+        target,
+        NL80211_CMD_GET_SCAN,
+        NLM_F_DUMP,
+        &mut |m: &Nlmsg| nl80211_get_ssid_bssid_cb(m, Some(&mut sb_ssid), &mut sb_bssid),
+    );
 
     /* failed, try to find from hostapd info */
     if sb_ssid[0] == 0 {
@@ -1080,7 +1129,10 @@ pub fn ssid(ifname: &str) -> Result<Vec<u8>, ()> {
 }
 
 fn format_mac(m: &[u8]) -> String {
-    format!("{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}", m[0], m[1], m[2], m[3], m[4], m[5])
+    format!(
+        "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+        m[0], m[1], m[2], m[3], m[4], m[5]
+    )
 }
 
 /// strtol(&s[off], NULL, 16) for the "xx:xx:xx:xx:xx:xx" walks; 0 past the
@@ -1100,18 +1152,24 @@ pub fn bssid(ifname: &str) -> Result<String, ()> {
     let target = res.as_deref().unwrap_or(ifname);
 
     /* try to obtain mac address via NL80211_CMD_GET_INTERFACE */
-    nl80211_request(target, NL80211_CMD_GET_INTERFACE, 0, &mut |m: &Nlmsg| nl80211_get_macaddr_cb(m, &mut sb_bssid));
+    nl80211_request(target, NL80211_CMD_GET_INTERFACE, 0, &mut |m: &Nlmsg| {
+        nl80211_get_macaddr_cb(m, &mut sb_bssid)
+    });
 
     /* failed, try to find bssid from scan dump results */
     if sb_bssid[0] == 0 {
-        nl80211_request(target, NL80211_CMD_GET_SCAN, NLM_F_DUMP, &mut |m: &Nlmsg| {
-            nl80211_get_ssid_bssid_cb(m, None, &mut sb_bssid)
-        });
+        nl80211_request(
+            target,
+            NL80211_CMD_GET_SCAN,
+            NLM_F_DUMP,
+            &mut |m: &Nlmsg| nl80211_get_ssid_bssid_cb(m, None, &mut sb_bssid),
+        );
     }
 
     /* failed, try to find mac from hostapd info */
     if sb_bssid[0] == 0 {
-        let (found, v) = nl80211_hostapd_query(ifname, &[("bssid", "FF:FF:FF:FF:FF:FF\0".len() + 1)]);
+        let (found, v) =
+            nl80211_hostapd_query(ifname, &[("bssid", "FF:FF:FF:FF:FF:FF\0".len() + 1)]);
         if found != 0 {
             let mut b = [0u8; 19];
             set_cstr(&mut b, &v[0]);
@@ -1138,7 +1196,10 @@ fn nl80211_get_frequency_scan_cb(msg: &Nlmsg, freq: &mut i32) {
     if let Some(bss) = at(&attr, NL80211_ATTR_BSS) {
         let (binfo, rc) = nla_parse_nested(bss, NL80211_BSS_MAX, FREQ_BSS_POLICY);
         if rc == 0 {
-            if let (Some(_), Some(f)) = (at(&binfo, NL80211_BSS_STATUS), at(&binfo, NL80211_BSS_FREQUENCY)) {
+            if let (Some(_), Some(f)) = (
+                at(&binfo, NL80211_BSS_STATUS),
+                at(&binfo, NL80211_BSS_FREQUENCY),
+            ) {
                 *freq = f.get_u32() as i32;
             }
         }
@@ -1158,13 +1219,17 @@ pub fn frequency(ifname: &str) -> Result<i32, ()> {
     let mut buf = 0;
     /* try to find frequency from interface info */
     let res = nl80211_phy2ifname(ifname);
-    nl80211_request(res.as_deref().unwrap_or(ifname), NL80211_CMD_GET_INTERFACE, 0, &mut |m: &Nlmsg| {
-        nl80211_get_u32_attr_cb(m, NL80211_ATTR_WIPHY_FREQ, &mut buf)
-    });
+    nl80211_request(
+        res.as_deref().unwrap_or(ifname),
+        NL80211_CMD_GET_INTERFACE,
+        0,
+        &mut |m: &Nlmsg| nl80211_get_u32_attr_cb(m, NL80211_ATTR_WIPHY_FREQ, &mut buf),
+    );
 
     /* failed, try to find frequency from hostapd info */
     if buf == 0 {
-        let (found, v) = nl80211_hostapd_query(ifname, &[("hw_mode", 3), ("channel", 4), ("op_class", 4)]);
+        let (found, v) =
+            nl80211_hostapd_query(ifname, &[("hw_mode", 3), ("channel", 4), ("op_class", 4)]);
         if found >= 2 {
             buf = nl80211_channel2freq(atoi(&v[1]), &v[0], atoi(&v[2]));
         }
@@ -1173,9 +1238,12 @@ pub fn frequency(ifname: &str) -> Result<i32, ()> {
     /* failed, try to find frequency from scan results */
     if buf == 0 {
         let res = nl80211_phy2ifname(ifname);
-        nl80211_request(res.as_deref().unwrap_or(ifname), NL80211_CMD_GET_SCAN, NLM_F_DUMP, &mut |m: &Nlmsg| {
-            nl80211_get_frequency_scan_cb(m, &mut buf)
-        });
+        nl80211_request(
+            res.as_deref().unwrap_or(ifname),
+            NL80211_CMD_GET_SCAN,
+            NLM_F_DUMP,
+            &mut |m: &Nlmsg| nl80211_get_frequency_scan_cb(m, &mut buf),
+        );
     }
 
     if buf == 0 {
@@ -1189,9 +1257,12 @@ pub fn frequency(ifname: &str) -> Result<i32, ()> {
 fn nl80211_get_center_freq1(ifname: &str) -> Result<i32, ()> {
     let mut buf = 0;
     let res = nl80211_phy2ifname(ifname);
-    nl80211_request(res.as_deref().unwrap_or(ifname), NL80211_CMD_GET_INTERFACE, 0, &mut |m: &Nlmsg| {
-        nl80211_get_u32_attr_cb(m, NL80211_ATTR_CENTER_FREQ1, &mut buf)
-    });
+    nl80211_request(
+        res.as_deref().unwrap_or(ifname),
+        NL80211_CMD_GET_INTERFACE,
+        0,
+        &mut |m: &Nlmsg| nl80211_get_u32_attr_cb(m, NL80211_ATTR_CENTER_FREQ1, &mut buf),
+    );
     if buf == 0 {
         Err(())
     } else {
@@ -1203,9 +1274,12 @@ fn nl80211_get_center_freq1(ifname: &str) -> Result<i32, ()> {
 fn nl80211_get_center_freq2(ifname: &str) -> Result<i32, ()> {
     let mut buf = 0;
     let res = nl80211_phy2ifname(ifname);
-    nl80211_request(res.as_deref().unwrap_or(ifname), NL80211_CMD_GET_INTERFACE, 0, &mut |m: &Nlmsg| {
-        nl80211_get_u32_attr_cb(m, NL80211_ATTR_CENTER_FREQ2, &mut buf)
-    });
+    nl80211_request(
+        res.as_deref().unwrap_or(ifname),
+        NL80211_CMD_GET_INTERFACE,
+        0,
+        &mut |m: &Nlmsg| nl80211_get_u32_attr_cb(m, NL80211_ATTR_CENTER_FREQ2, &mut buf),
+    );
     if buf == 0 {
         Err(())
     } else {
@@ -1233,11 +1307,16 @@ pub fn center_chan2(ifname: &str) -> Result<i32, ()> {
 pub fn txpower(ifname: &str) -> Result<i32, ()> {
     let mut buf = 0;
     let res = nl80211_phy2ifname(ifname);
-    let rc = nl80211_request(res.as_deref().unwrap_or(ifname), NL80211_CMD_GET_INTERFACE, 0, &mut |m: &Nlmsg| {
-        if let Some(a) = at(&nl80211_parse(m), NL80211_ATTR_WIPHY_TX_POWER_LEVEL) {
-            buf = utils::iwinfo_mbm2dbm(a.get_u32() as i32);
-        }
-    });
+    let rc = nl80211_request(
+        res.as_deref().unwrap_or(ifname),
+        NL80211_CMD_GET_INTERFACE,
+        0,
+        &mut |m: &Nlmsg| {
+            if let Some(a) = at(&nl80211_parse(m), NL80211_ATTR_WIPHY_TX_POWER_LEVEL) {
+                buf = utils::iwinfo_mbm2dbm(a.get_u32() as i32);
+            }
+        },
+    );
     if rc != 0 {
         return Err(());
     }
@@ -1290,7 +1369,8 @@ fn nl80211_fill_signal_cb(msg: &Nlmsg, rr: &mut RssiRate) {
         if rc == 0 {
             if let Some(a) = at(&rinfo, NL80211_RATE_INFO_BITRATE) {
                 let mbit = a.get_u16() as i16;
-                rr.rate = ((rr.rate as i32 * rr.rate_samples + mbit as i32) / (rr.rate_samples + 1)) as i16;
+                rr.rate = ((rr.rate as i32 * rr.rate_samples + mbit as i32) / (rr.rate_samples + 1))
+                    as i16;
                 rr.rate_samples += 1;
             }
         }
@@ -1310,7 +1390,12 @@ fn nl80211_fill_signal(ifname: &str) -> RssiRate {
     if let Some(entries) = readdir("/sys/class/net") {
         for de in entries {
             if sta_netdev_matches(&de, ifname) {
-                nl80211_request(&de, NL80211_CMD_GET_STATION, NLM_F_DUMP, &mut |m: &Nlmsg| nl80211_fill_signal_cb(m, &mut r));
+                nl80211_request(
+                    &de,
+                    NL80211_CMD_GET_STATION,
+                    NLM_F_DUMP,
+                    &mut |m: &Nlmsg| nl80211_fill_signal_cb(m, &mut r),
+                );
             }
         }
     }
@@ -1337,7 +1422,10 @@ pub fn signal(ifname: &str) -> Result<i32, ()> {
     }
 }
 
-const NOISE_SURVEY_POLICY: &Policy = &[(NL80211_SURVEY_INFO_FREQUENCY, 4), (NL80211_SURVEY_INFO_NOISE, 1)];
+const NOISE_SURVEY_POLICY: &Policy = &[
+    (NL80211_SURVEY_INFO_FREQUENCY, 4),
+    (NL80211_SURVEY_INFO_NOISE, 1),
+];
 
 /// nl80211_get_noise_cb: the noise of the survey entry on our frequency
 /// (an in-use entry overrides an earlier one).
@@ -1350,7 +1438,10 @@ fn nl80211_get_noise_cb(msg: &Nlmsg, frequency: u32, noise: &mut u8) {
     if rc != 0 {
         return;
     }
-    let (Some(n), Some(f)) = (at(&si, NL80211_SURVEY_INFO_NOISE), at(&si, NL80211_SURVEY_INFO_FREQUENCY)) else {
+    let (Some(n), Some(f)) = (
+        at(&si, NL80211_SURVEY_INFO_NOISE),
+        at(&si, NL80211_SURVEY_INFO_FREQUENCY),
+    ) else {
         return;
     };
     if f.get_u32() != frequency {
@@ -1368,9 +1459,12 @@ pub fn noise(ifname: &str) -> Result<i32, ()> {
     };
     let fn_frequency = freq as u32;
     let mut fn_noise = 0u8;
-    if nl80211_request(ifname, NL80211_CMD_GET_SURVEY, NLM_F_DUMP, &mut |m: &Nlmsg| {
-        nl80211_get_noise_cb(m, fn_frequency, &mut fn_noise)
-    }) != 0
+    if nl80211_request(
+        ifname,
+        NL80211_CMD_GET_SURVEY,
+        NLM_F_DUMP,
+        &mut |m: &Nlmsg| nl80211_get_noise_cb(m, fn_frequency, &mut fn_noise),
+    ) != 0
     {
         return Err(());
     }
@@ -1424,7 +1518,9 @@ const WPA_SEP: &[u8] = b" \t\n,-+/";
 
 /// strcspn / strspn over a byte set
 fn span(s: &[u8], set: &[u8], in_set: bool) -> usize {
-    s.iter().position(|c| set.contains(c) != in_set).unwrap_or(s.len())
+    s.iter()
+        .position(|c| set.contains(c) != in_set)
+        .unwrap_or(s.len())
 }
 
 /// parse_wpa_suites: token-wise key management parsing (separators
@@ -1484,7 +1580,12 @@ pub fn parse_wpa_ciphers(s: &[u8], ciphers: &mut u16) {
 }
 
 /// The wpa_supplicant STATUS branch of nl80211_get_encryption.
-pub fn encryption_from_wpactl(pairwise: &[u8], groupwise: &[u8], key_mgmt: &[u8], mode: &[u8]) -> CryptoEntry {
+pub fn encryption_from_wpactl(
+    pairwise: &[u8],
+    groupwise: &[u8],
+    key_mgmt: &[u8],
+    mode: &[u8],
+) -> CryptoEntry {
     let mut c = CryptoEntry::default();
     let key_mgmt = cstr(key_mgmt);
     /* WEP or Open */
@@ -1521,7 +1622,12 @@ pub fn encryption_from_wpactl(pairwise: &[u8], groupwise: &[u8], key_mgmt: &[u8]
             p = &p[4..];
             wpa_version = 1;
         }
-        parse_wpa_suites(p, wpa_version as i32, &mut c.wpa_version, &mut c.auth_suites);
+        parse_wpa_suites(
+            p,
+            wpa_version as i32,
+            &mut c.wpa_version,
+            &mut c.auth_suites,
+        );
         c.enabled = (c.wpa_version != 0 && c.auth_suites != 0) as u8;
     }
     c
@@ -1572,8 +1678,15 @@ pub fn encryption_from_hostapd(v: &[Vec<u8>]) -> CryptoEntry {
 /// open for ad-hoc / mesh; Err for anything else.
 pub fn encryption(ifname: &str) -> Result<CryptoEntry, ()> {
     /* WPA supplicant */
-    let (found, v) =
-        nl80211_wpactl_query(ifname, &[("pairwise_cipher", 16), ("group_cipher", 16), ("key_mgmt", 64), ("mode", 16)]);
+    let (found, v) = nl80211_wpactl_query(
+        ifname,
+        &[
+            ("pairwise_cipher", 16),
+            ("group_cipher", 16),
+            ("key_mgmt", 64),
+            ("mode", 16),
+        ],
+    );
     if found != 0 {
         return Ok(encryption_from_wpactl(&v[0], &v[1], &v[2], &v[3]));
     }
@@ -1665,7 +1778,9 @@ fn nl80211_parse_rateinfo(ri: &Tb, re: &mut RateEntry) {
         re.mhz = 40;
     } else if at(ri, NL80211_RATE_INFO_80_MHZ_WIDTH).is_some() {
         re.mhz = 80;
-    } else if at(ri, NL80211_RATE_INFO_80P80_MHZ_WIDTH).is_some() || at(ri, NL80211_RATE_INFO_160_MHZ_WIDTH).is_some() {
+    } else if at(ri, NL80211_RATE_INFO_80P80_MHZ_WIDTH).is_some()
+        || at(ri, NL80211_RATE_INFO_160_MHZ_WIDTH).is_some()
+    {
         re.mhz = 160;
     } else if at(ri, NL80211_RATE_INFO_320_MHZ_WIDTH).is_some() {
         re.mhz_hi = (320 / 256) as u8;
@@ -1905,7 +2020,12 @@ fn nl80211_get_assoclist_cb(msg: &Nlmsg, arr: &mut Vec<AssoclistEntry>) {
 /// nl80211_get_survey: always Ok; empty when the dump request failed.
 pub fn survey(ifname: &str) -> Result<Vec<SurveyEntry>, ()> {
     let mut arr = Vec::new();
-    let rc = nl80211_request(ifname, NL80211_CMD_GET_SURVEY, NLM_F_DUMP, &mut |m: &Nlmsg| nl80211_get_survey_cb(m, &mut arr));
+    let rc = nl80211_request(
+        ifname,
+        NL80211_CMD_GET_SURVEY,
+        NLM_F_DUMP,
+        &mut |m: &Nlmsg| nl80211_get_survey_cb(m, &mut arr),
+    );
     if rc != 0 {
         arr.clear();
     }
@@ -1921,7 +2041,12 @@ pub fn assoclist(ifname: &str) -> Result<Vec<AssoclistEntry>, ()> {
     let mut arr = Vec::new();
     for de in entries {
         if sta_netdev_matches(&de, ifname) {
-            nl80211_request(&de, NL80211_CMD_GET_STATION, NLM_F_DUMP, &mut |m: &Nlmsg| nl80211_get_assoclist_cb(m, &mut arr));
+            nl80211_request(
+                &de,
+                NL80211_CMD_GET_STATION,
+                NLM_F_DUMP,
+                &mut |m: &Nlmsg| nl80211_get_assoclist_cb(m, &mut arr),
+            );
         }
     }
     if let Ok(n) = noise(ifname) {
@@ -1932,7 +2057,10 @@ pub fn assoclist(ifname: &str) -> Result<Vec<AssoclistEntry>, ()> {
     Ok(arr)
 }
 
-const TXPWR_FREQ_POLICY: &Policy = &[(NL80211_FREQUENCY_ATTR_FREQ, 4), (NL80211_FREQUENCY_ATTR_MAX_TX_POWER, 4)];
+const TXPWR_FREQ_POLICY: &Policy = &[
+    (NL80211_FREQUENCY_ATTR_FREQ, 4),
+    (NL80211_FREQUENCY_ATTR_MAX_TX_POWER, 4),
+];
 
 /// nl80211_get_txpwrlist_cb: `dbm_max` holds the current channel on entry
 /// (0 = any) and the max tx power (dBm) of the matching frequency on exit.
@@ -1953,7 +2081,9 @@ fn nl80211_get_txpwrlist_cb(msg: &Nlmsg, dbm_max: &mut i32) {
         };
         for freq in freqs_attr.nested() {
             let (freqs, _) = nla_parse(freq.data, NL80211_FREQUENCY_ATTR_MAX, TXPWR_FREQ_POLICY);
-            let ch_cmp = nl80211_freq2channel(at(&freqs, NL80211_FREQUENCY_ATTR_FREQ).map_or(0, |a| a.get_u32()) as i32);
+            let ch_cmp = nl80211_freq2channel(
+                at(&freqs, NL80211_FREQUENCY_ATTR_FREQ).map_or(0, |a| a.get_u32()) as i32,
+            );
             if ch_cur == 0 || ch_cmp == ch_cur {
                 if let Some(p) = at(&freqs, NL80211_FREQUENCY_ATTR_MAX_TX_POWER) {
                     *dbm_max = (0.01 * p.get_u32() as f64) as i32;
@@ -1969,17 +2099,25 @@ pub fn txpwrlist(ifname: &str) -> Result<Vec<TxpwrlistEntry>, ()> {
     let ch_cur = channel(ifname).unwrap_or(0);
     /* initialize the value pointer with channel for callback */
     let mut dbm_max = ch_cur;
-    let err = nl80211_request(ifname, NL80211_CMD_GET_WIPHY, 0, &mut |m: &Nlmsg| nl80211_get_txpwrlist_cb(m, &mut dbm_max));
+    let err = nl80211_request(ifname, NL80211_CMD_GET_WIPHY, 0, &mut |m: &Nlmsg| {
+        nl80211_get_txpwrlist_cb(m, &mut dbm_max)
+    });
     if err != 0 {
         return Err(());
     }
     let mut list = Vec::new();
     let mut dbm_cur = 0;
     while dbm_cur < dbm_max {
-        list.push(TxpwrlistEntry { dbm: dbm_cur as u8, mw: utils::iwinfo_dbm2mw(dbm_cur) as u16 });
+        list.push(TxpwrlistEntry {
+            dbm: dbm_cur as u8,
+            mw: utils::iwinfo_dbm2mw(dbm_cur) as u16,
+        });
         dbm_cur += 1;
     }
-    list.push(TxpwrlistEntry { dbm: dbm_max as u8, mw: utils::iwinfo_dbm2mw(dbm_max) as u16 });
+    list.push(TxpwrlistEntry {
+        dbm: dbm_max as u8,
+        mw: utils::iwinfo_dbm2mw(dbm_max) as u16,
+    });
     Ok(list)
 }
 
@@ -2089,11 +2227,17 @@ pub fn nl80211_get_scanlist_ie(ies: &[u8], e: &mut ScanlistEntry) {
             }
             48 => {
                 /* RSN */
-                utils::iwinfo_parse_rsn(&mut e.crypto, body, IWINFO_CIPHER_CCMP as u16, IWINFO_KMGMT_8021X as u8);
+                utils::iwinfo_parse_rsn(
+                    &mut e.crypto,
+                    body,
+                    IWINFO_CIPHER_CCMP as u16,
+                    IWINFO_KMGMT_8021X as u8,
+                );
             }
             221 => {
                 /* Vendor */
-                if ielen >= 4 && body.get(0..3) == Some(&[0x00, 0x50, 0xf2]) && ie_at(body, 3) == 1 {
+                if ielen >= 4 && body.get(0..3) == Some(&[0x00, 0x50, 0xf2]) && ie_at(body, 3) == 1
+                {
                     utils::iwinfo_parse_rsn(
                         &mut e.crypto,
                         body.get(4..).unwrap_or(&[]),
@@ -2204,11 +2348,22 @@ fn nl80211_get_scanlist_nl(ifname: &str) -> Result<Vec<ScanlistEntry>, ()> {
     if nl80211_request(ifname, NL80211_CMD_TRIGGER_SCAN, 0, &mut |_: &Nlmsg| {}) != 0 {
         return Err(());
     }
-    if nl80211_wait("nl80211", "scan", &[NL80211_CMD_NEW_SCAN_RESULTS, NL80211_CMD_SCAN_ABORTED]) != 0 {
+    if nl80211_wait(
+        "nl80211",
+        "scan",
+        &[NL80211_CMD_NEW_SCAN_RESULTS, NL80211_CMD_SCAN_ABORTED],
+    ) != 0
+    {
         return Err(());
     }
     let mut sl = Vec::new();
-    if nl80211_request(ifname, NL80211_CMD_GET_SCAN, NLM_F_DUMP, &mut |m: &Nlmsg| nl80211_get_scanlist_cb(m, &mut sl)) != 0 {
+    if nl80211_request(
+        ifname,
+        NL80211_CMD_GET_SCAN,
+        NLM_F_DUMP,
+        &mut |m: &Nlmsg| nl80211_get_scanlist_cb(m, &mut sl),
+    ) != 0
+    {
         return Err(());
     }
     Ok(sl)
@@ -2456,7 +2611,10 @@ pub fn scanlist(ifname: &str) -> Result<Vec<ScanlistEntry>, ()> {
     /* station / ad-hoc / monitor scan */
     let m = mode(ifname);
     if let Ok(m) = m {
-        if (m == IWINFO_OPMODE_ADHOC || m == IWINFO_OPMODE_MASTER || m == IWINFO_OPMODE_CLIENT || m == IWINFO_OPMODE_MONITOR)
+        if (m == IWINFO_OPMODE_ADHOC
+            || m == IWINFO_OPMODE_MASTER
+            || m == IWINFO_OPMODE_CLIENT
+            || m == IWINFO_OPMODE_MONITOR)
             && utils::iwinfo_ifup(ifname)
         {
             return nl80211_get_scanlist_nl(ifname);
@@ -2550,7 +2708,9 @@ fn nl80211_get_freqlist_cb(msg: &Nlmsg, arr: &mut Vec<FreqlistEntry>) {
             if at(&freqs, NL80211_FREQUENCY_ATTR_NO_HE).is_some() {
                 e.flags |= IWINFO_FREQ_NO_HE;
             }
-            if at(&freqs, NL80211_FREQUENCY_ATTR_NO_IR).is_some() && at(&freqs, NL80211_FREQUENCY_ATTR_RADAR).is_none() {
+            if at(&freqs, NL80211_FREQUENCY_ATTR_NO_IR).is_some()
+                && at(&freqs, NL80211_FREQUENCY_ATTR_RADAR).is_none()
+            {
                 e.flags |= IWINFO_FREQ_NO_IR;
             }
             if at(&freqs, NL80211_FREQUENCY_ATTR_INDOOR_ONLY).is_some() {
@@ -2569,7 +2729,11 @@ fn nl80211_get_freqlist_cb(msg: &Nlmsg, arr: &mut Vec<FreqlistEntry>) {
 /// advertises split dumps), shared by freqlist / hwmodelist / htmodelist.
 fn nl80211_split_wiphy(ifname: &str, cb: &mut dyn FnMut(&Nlmsg)) -> Result<(), ()> {
     let features = nl80211_get_protocol_features(ifname);
-    let flags = if features & NL80211_PROTOCOL_FEATURE_SPLIT_WIPHY_DUMP != 0 { NLM_F_DUMP } else { 0 };
+    let flags = if features & NL80211_PROTOCOL_FEATURE_SPLIT_WIPHY_DUMP != 0 {
+        NLM_F_DUMP
+    } else {
+        0
+    };
     let Some(mut cv) = nl80211_msg(ifname, NL80211_CMD_GET_WIPHY, flags) else {
         return Err(());
     };
@@ -2583,7 +2747,9 @@ fn nl80211_split_wiphy(ifname: &str, cb: &mut dyn FnMut(&Nlmsg)) -> Result<(), (
 /// nl80211_get_freqlist
 pub fn freqlist(ifname: &str) -> Result<Vec<FreqlistEntry>, ()> {
     let mut arr = Vec::new();
-    nl80211_split_wiphy(ifname, &mut |m: &Nlmsg| nl80211_get_freqlist_cb(m, &mut arr))?;
+    nl80211_split_wiphy(ifname, &mut |m: &Nlmsg| {
+        nl80211_get_freqlist_cb(m, &mut arr)
+    })?;
     Ok(arr)
 }
 
@@ -2591,14 +2757,15 @@ pub fn freqlist(ifname: &str) -> Result<Vec<FreqlistEntry>, ()> {
 /// empty when the reply carries none); Err only on request failure.
 pub fn country(ifname: &str) -> Result<String, ()> {
     let mut buf = [0u8; 3];
-    let rc = nl80211_request(ifname, NL80211_CMD_GET_REG, 0, &mut |m: &Nlmsg| {
-        match at(&nl80211_parse(m), NL80211_ATTR_REG_ALPHA2) {
-            Some(a) => {
-                let n = a.nla_len().min(2);
-                buf[..n].copy_from_slice(&a.data[..n]);
-            }
-            None => buf[0] = 0,
+    let rc = nl80211_request(ifname, NL80211_CMD_GET_REG, 0, &mut |m: &Nlmsg| match at(
+        &nl80211_parse(m),
+        NL80211_ATTR_REG_ALPHA2,
+    ) {
+        Some(a) => {
+            let n = a.nla_len().min(2);
+            buf[..n].copy_from_slice(&a.data[..n]);
         }
+        None => buf[0] = 0,
     });
     if rc != 0 {
         return Err(());
@@ -2761,7 +2928,9 @@ fn nl80211_get_modelist_cb(msg: &Nlmsg, m: &mut Modes) {
 /// nl80211_get_hwmodelist
 pub fn hwmodelist(ifname: &str) -> Result<i32, ()> {
     let mut m = Modes::default();
-    nl80211_split_wiphy(ifname, &mut |msg: &Nlmsg| nl80211_get_modelist_cb(msg, &mut m))?;
+    nl80211_split_wiphy(ifname, &mut |msg: &Nlmsg| {
+        nl80211_get_modelist_cb(msg, &mut m)
+    })?;
     nl80211_eval_modelist(&mut m);
     Ok(m.hw as i32)
 }
@@ -2769,7 +2938,9 @@ pub fn hwmodelist(ifname: &str) -> Result<i32, ()> {
 /// nl80211_get_htmodelist
 pub fn htmodelist(ifname: &str) -> Result<i32, ()> {
     let mut m = Modes::default();
-    nl80211_split_wiphy(ifname, &mut |msg: &Nlmsg| nl80211_get_modelist_cb(msg, &mut m))?;
+    nl80211_split_wiphy(ifname, &mut |msg: &Nlmsg| {
+        nl80211_get_modelist_cb(msg, &mut m)
+    })?;
     nl80211_eval_modelist(&mut m);
     Ok(m.ht as i32)
 }
@@ -2863,7 +3034,9 @@ pub fn htmode(ifname: &str) -> Result<i32, ()> {
             }
         }
         NL80211_CHAN_WIDTH_320 => IWINFO_HTMODE_EHT320,
-        NL80211_CHAN_WIDTH_5 | NL80211_CHAN_WIDTH_10 | NL80211_CHAN_WIDTH_20_NOHT => IWINFO_HTMODE_NOHT,
+        NL80211_CHAN_WIDTH_5 | NL80211_CHAN_WIDTH_10 | NL80211_CHAN_WIDTH_20_NOHT => {
+            IWINFO_HTMODE_NOHT
+        }
         _ => return Err(()),
     };
     Ok(buf)
@@ -2886,9 +3059,12 @@ fn nl80211_get_ifcomb_cb(msg: &Nlmsg, ret: &mut i32) {
             continue;
         };
         for limit in limits.nested() {
-            let (tb_limit, _) = nla_parse_nested(limit, NUM_NL80211_IFACE_LIMIT, IFACE_LIMIT_POLICY);
-            let (Some(types), Some(max)) = (at(&tb_limit, NL80211_IFACE_LIMIT_TYPES), at(&tb_limit, NL80211_IFACE_LIMIT_MAX))
-            else {
+            let (tb_limit, _) =
+                nla_parse_nested(limit, NUM_NL80211_IFACE_LIMIT, IFACE_LIMIT_POLICY);
+            let (Some(types), Some(max)) = (
+                at(&tb_limit, NL80211_IFACE_LIMIT_TYPES),
+                at(&tb_limit, NL80211_IFACE_LIMIT_MAX),
+            ) else {
                 continue;
             };
             if max.get_u32() < 2 {
@@ -2906,7 +3082,10 @@ fn nl80211_get_ifcomb_cb(msg: &Nlmsg, ret: &mut i32) {
 /// nl80211_get_mbssid_support
 pub fn mbssid_support(ifname: &str) -> Result<i32, ()> {
     let mut buf = 0;
-    if nl80211_request(ifname, NL80211_CMD_GET_WIPHY, 0, &mut |m: &Nlmsg| nl80211_get_ifcomb_cb(m, &mut buf)) != 0 {
+    if nl80211_request(ifname, NL80211_CMD_GET_WIPHY, 0, &mut |m: &Nlmsg| {
+        nl80211_get_ifcomb_cb(m, &mut buf)
+    }) != 0
+    {
         return Err(());
     }
     Ok(buf)
@@ -2960,7 +3139,11 @@ pub fn hardware_id(ifname: &str) -> Result<HardwareId, ()> {
     }
 
     /* Failed to obtain hardware PCI/USB IDs... */
-    if id.vendor_id == 0 && id.device_id == 0 && id.subsystem_vendor_id == 0 && id.subsystem_device_id == 0 {
+    if id.vendor_id == 0
+        && id.device_id == 0
+        && id.subsystem_vendor_id == 0
+        && id.subsystem_device_id == 0
+    {
         /* ... first fallback to FDT ... */
         if nl80211_hardware_id_from_fdt(&mut id, ifname) == -1 {
             /* ... then board config */
@@ -3105,7 +3288,16 @@ wpa=0\n";
 
     #[test]
     fn hostapd_conf() {
-        let (found, v) = hostapd_conf_query(HOSTAPD_CONF, "phy0-ap0", &[("ssid", 33), ("hw_mode", 3), ("channel", 4), ("op_class", 4)]);
+        let (found, v) = hostapd_conf_query(
+            HOSTAPD_CONF,
+            "phy0-ap0",
+            &[
+                ("ssid", 33),
+                ("hw_mode", 3),
+                ("channel", 4),
+                ("op_class", 4),
+            ],
+        );
         assert_eq!(found, 3);
         assert_eq!(v[0], b"Home Net");
         assert_eq!(v[1], b"g");
@@ -3116,7 +3308,11 @@ wpa=0\n";
         assert_eq!(v[0], b"Home");
         assert_eq!(v[1], b"2");
         // a bss= line switches the match; global keys before interface= match everyone
-        let (found, v) = hostapd_conf_query(HOSTAPD_CONF, "phy0-ap1", &[("ssid", 33), ("wpa", 2), ("channel", 4), ("bssid", 19)]);
+        let (found, v) = hostapd_conf_query(
+            HOSTAPD_CONF,
+            "phy0-ap1",
+            &[("ssid", 33), ("wpa", 2), ("channel", 4), ("bssid", 19)],
+        );
         assert_eq!(found, 3);
         assert_eq!(v[0], b"Guest");
         assert_eq!(v[1], b"0");
@@ -3128,7 +3324,16 @@ wpa=0\n";
         let (_, v) = hostapd_conf_query(
             HOSTAPD_CONF,
             "phy0-ap0",
-            &[("wpa", 2), ("wpa_key_mgmt", 64), ("wpa_pairwise", 16), ("auth_algs", 2), ("wep_key0", 27), ("wep_key1", 27), ("wep_key2", 27), ("wep_key3", 27)],
+            &[
+                ("wpa", 2),
+                ("wpa_key_mgmt", 64),
+                ("wpa_pairwise", 16),
+                ("auth_algs", 2),
+                ("wep_key0", 27),
+                ("wep_key1", 27),
+                ("wep_key2", 27),
+                ("wep_key3", 27),
+            ],
         );
         let c = encryption_from_hostapd(&v);
         assert_eq!(c.enabled, 1);
@@ -3144,7 +3349,16 @@ wpa=0\n";
     #[test]
     fn wpactl_status() {
         let reply = b"bssid=00:11:22:33:44:55\nfreq=5180\nssid=Up\nkey_mgmt=WPA2-PSK\npairwise_cipher=CCMP\ngroup_cipher=CCMP\nmode=station\nwifi_generation=6\nempty=\n";
-        let (found, v) = wpactl_status_parse(reply, &[("pairwise_cipher", 16), ("group_cipher", 16), ("key_mgmt", 64), ("mode", 16), ("empty", 8)]);
+        let (found, v) = wpactl_status_parse(
+            reply,
+            &[
+                ("pairwise_cipher", 16),
+                ("group_cipher", 16),
+                ("key_mgmt", 64),
+                ("mode", 16),
+                ("empty", 8),
+            ],
+        );
         assert_eq!(found, 4);
         assert_eq!(v[2], b"WPA2-PSK");
         assert_eq!(v[3], b"station");
@@ -3186,7 +3400,10 @@ wpa=0\n";
         assert_eq!((ver, suites), (0, 0));
         let mut ciphers = 0u16;
         parse_wpa_ciphers(b"CCMP-256+GCMP TKIP", &mut ciphers);
-        assert_eq!(ciphers, (IWINFO_CIPHER_CCMP256 | IWINFO_CIPHER_GCMP | IWINFO_CIPHER_TKIP) as u16);
+        assert_eq!(
+            ciphers,
+            (IWINFO_CIPHER_CCMP256 | IWINFO_CIPHER_GCMP | IWINFO_CIPHER_TKIP) as u16
+        );
     }
 
     #[test]
@@ -3200,16 +3417,26 @@ wpa=0\n";
         let mut c = CryptoEntry::default();
         nl80211_get_scancrypto(b"[WPA-PSK-TKIP+CCMP][WPA2-PSK-CCMP][WPS][ESS]", &mut c);
         assert_eq!(c.wpa_version, 3);
-        assert_eq!(c.pair_ciphers, (IWINFO_CIPHER_TKIP | IWINFO_CIPHER_CCMP) as u16);
+        assert_eq!(
+            c.pair_ciphers,
+            (IWINFO_CIPHER_TKIP | IWINFO_CIPHER_CCMP) as u16
+        );
         let mut c = CryptoEntry::default();
         nl80211_get_scancrypto(b"[WEP][ESS]", &mut c);
         assert_eq!(c.enabled, 1);
-        assert_eq!(c.pair_ciphers, (IWINFO_CIPHER_WEP40 | IWINFO_CIPHER_WEP104) as u16);
+        assert_eq!(
+            c.pair_ciphers,
+            (IWINFO_CIPHER_WEP40 | IWINFO_CIPHER_WEP104) as u16
+        );
         let mut c = CryptoEntry::default();
         nl80211_get_scancrypto(b"[ESS]", &mut c);
         assert_eq!(c.enabled, 0);
 
-        let e = wpactl_scan_line(b"00:11:22:33:44:55\t2437\t-67\t[WPA2-PSK-CCMP][ESS]\tCaf\\xc3\\xa9 \\\"x\\\"", 70).unwrap();
+        let e = wpactl_scan_line(
+            b"00:11:22:33:44:55\t2437\t-67\t[WPA2-PSK-CCMP][ESS]\tCaf\\xc3\\xa9 \\\"x\\\"",
+            70,
+        )
+        .unwrap();
         assert_eq!(e.mac, [0x00, 0x11, 0x22, 0x33, 0x44, 0x55]);
         assert_eq!(e.mhz, 2437);
         assert_eq!(e.channel, 6);
@@ -3236,7 +3463,10 @@ wpa=0\n";
         assert_eq!(parse_ssid2(b"74657374", &mut buf), 0);
         assert_eq!(cstr(&buf), b"test");
         let mut buf = [0u8; 33];
-        assert_eq!(parse_ssid2(b"P\"hello\\nthere\\x41\\101\\\\\"", &mut buf), 0);
+        assert_eq!(
+            parse_ssid2(b"P\"hello\\nthere\\x41\\101\\\\\"", &mut buf),
+            0
+        );
         assert_eq!(cstr(&buf), b"hello\nthereAA\\");
         let mut buf = [0u8; 33];
         assert_eq!(parse_ssid2(b"\"unterminated", &mut buf), -1);
@@ -3263,7 +3493,8 @@ wpa=0\n";
             0x00, 0x04, b'O', b'p', b'e', b'n', // SSID
             0x3d, 0x03, 0x06, 0x05, 0x04, // HT operation: primary 6, offset below(1), width 1
             0xc0, 0x03, 0x01, 0x2a, 0x00, // VHT operation
-            0x30, 0x12, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x04, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x04, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x02, // RSN
+            0x30, 0x12, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x04, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x04,
+            0x01, 0x00, 0x00, 0x0f, 0xac, 0x02, // RSN
         ];
         nl80211_get_scanlist_ie(&ies, &mut e);
         assert_eq!(cstr(&e.ssid), b"Open");
@@ -3278,7 +3509,9 @@ wpa=0\n";
         // HE operation with 6 GHz info: ext id 36, params (3 bytes, byte 2 bit 1 =
         // 6 GHz info present), bss color, mcs set (2), [6ghz: prim, ctrl, ccfs0, ccfs1, min rate]
         let mut e = ScanlistEntry::default();
-        let he = [0xff, 0x0c, 36, 0x00, 0x00, 0x02, 0xff, 0xff, 0xff, 0x01, 0x02, 0x07, 0x00, 0x00];
+        let he = [
+            0xff, 0x0c, 36, 0x00, 0x00, 0x02, 0xff, 0xff, 0xff, 0x01, 0x02, 0x07, 0x00, 0x00,
+        ];
         nl80211_get_scanlist_ie(&he, &mut e);
         assert_eq!(e.he_chan_info.chan_width, 2);
         assert_eq!(e.he_chan_info.center_chan_1, 7);
@@ -3295,10 +3528,18 @@ wpa=0\n";
 
     #[test]
     fn eval_modelist() {
-        let mut m = Modes { bands: (IWINFO_BAND_24 | IWINFO_BAND_5) as u8, nl_ht: 0x1ff, nl_vht: 0x338001b2, ..Modes::default() };
+        let mut m = Modes {
+            bands: (IWINFO_BAND_24 | IWINFO_BAND_5) as u8,
+            nl_ht: 0x1ff,
+            nl_vht: 0x338001b2,
+            ..Modes::default()
+        };
         m.he_phy_cap[1] = 0x1c; // he_phy_cap[0] = 0x1c00 -> bits 10, 11, 12
         nl80211_eval_modelist(&mut m);
-        assert_eq!(m.hw as i32, IWINFO_80211_B | IWINFO_80211_G | IWINFO_80211_N | IWINFO_80211_AC | IWINFO_80211_AX);
+        assert_eq!(
+            m.hw as i32,
+            IWINFO_80211_B | IWINFO_80211_G | IWINFO_80211_N | IWINFO_80211_AC | IWINFO_80211_AX
+        );
         let ht = m.ht as i32;
         assert!(ht & IWINFO_HTMODE_HT40 != 0);
         assert!(ht & IWINFO_HTMODE_HE160 != 0 && ht & IWINFO_HTMODE_HE80_80 != 0);

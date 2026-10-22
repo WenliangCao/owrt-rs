@@ -5,10 +5,10 @@ use crate::input::Inputs;
 use crate::ip::{self};
 use crate::state::*;
 use crate::uci::Config;
-use std::rc::Rc;
 use crate::val::{loose_eq_str, to_array, to_num, to_str, trim, truthy, Num};
 use owrt_ubus::json::Json;
 use std::io::Write;
+use std::rc::Rc;
 
 pub const PARSE_LIST: u32 = 0x01;
 pub const FLATTEN_LIST: u32 = 0x02;
@@ -118,7 +118,11 @@ fn is_null(v: Option<&Json>) -> bool {
 
 impl<'a> Opts<'a> {
     pub fn new(fw: &'a Fw4, s: &'a Json) -> Opts<'a> {
-        Opts { fw, s, keys: Vec::new() }
+        Opts {
+            fw,
+            s,
+            keys: Vec::new(),
+        }
     }
 
     /// `parse_opt` + the per-option checks of `parse_options`.
@@ -134,14 +138,16 @@ impl<'a> Opts<'a> {
         let mut val = s.get(key);
         if is_null(val) {
             if flags & REQUIRED != 0 {
-                self.fw.warn_section(s, &format!("option '{key}' is mandatory but not set"));
+                self.fw
+                    .warn_section(s, &format!("option '{key}' is mandatory but not set"));
                 return Err(());
             }
             val = def.as_ref();
         }
         let val = match val {
             Some(Json::Array(_)) => {
-                self.fw.warn_section(s, &format!("option '{key}' must not be a list"));
+                self.fw
+                    .warn_section(s, &format!("option '{key}' must not be a list"));
                 return Err(());
             }
             None | Some(Json::Null) => return Ok(None),
@@ -155,7 +161,8 @@ impl<'a> Opts<'a> {
             return Err(());
         };
         if res.inverted() && flags & NO_INVERT != 0 {
-            self.fw.warn_section(s, &format!("option '{key}' must not be negated"));
+            self.fw
+                .warn_section(s, &format!("option '{key}' must not be negated"));
             return Err(());
         }
         self.dropped(key, flags, res)
@@ -183,7 +190,10 @@ impl<'a> Opts<'a> {
         let mut rv = Vec::new();
         let mut one = |item: &Json| -> Result<(), ()> {
             let Some(res) = f(fw, item) else {
-                fw.warn_section(s, &format!("option '{key}' specifies invalid value '{}'", to_str(item)));
+                fw.warn_section(
+                    s,
+                    &format!("option '{key}' specifies invalid value '{}'", to_str(item)),
+                );
                 return Err(());
             };
             rv.extend(res);
@@ -203,10 +213,12 @@ impl<'a> Opts<'a> {
 
     fn dropped<T>(&self, key: &str, flags: u32, res: T) -> Result<Option<T>, ()> {
         if flags & DEPRECATED != 0 {
-            self.fw.warn_section(self.s, &format!("option '{key}' is deprecated by fw4"));
+            self.fw
+                .warn_section(self.s, &format!("option '{key}' is deprecated by fw4"));
             Ok(None)
         } else if flags & UNSUPPORTED != 0 {
-            self.fw.warn_section(self.s, &format!("option '{key}' is not supported by fw4"));
+            self.fw
+                .warn_section(self.s, &format!("option '{key}' is not supported by fw4"));
             Ok(None)
         } else {
             Ok(Some(res))
@@ -218,7 +230,8 @@ impl<'a> Opts<'a> {
         if let Json::Object(items) = self.s {
             for (k, _) in items {
                 if !k.starts_with('.') && k != "type" && !self.keys.contains(&k.as_str()) {
-                    self.fw.warn_section(self.s, &format!("specifies unknown option '{k}'"));
+                    self.fw
+                        .warn_section(self.s, &format!("specifies unknown option '{k}'"));
                 }
             }
         }
@@ -455,7 +468,9 @@ impl Fw4 {
             // no lowercase copies: ASCII case folding is a byte comparison.
             return choices
                 .iter()
-                .find(|c| c.len() >= v.len() && c.as_bytes()[..v.len()].eq_ignore_ascii_case(v.as_bytes()))
+                .find(|c| {
+                    c.len() >= v.len() && c.as_bytes()[..v.len()].eq_ignore_ascii_case(v.as_bytes())
+                })
                 .map(|c| c.to_string());
         }
         let v = v.to_lowercase();
@@ -473,9 +488,15 @@ impl Fw4 {
     }
 
     pub fn parse_bool(&self, val: &Json) -> Option<bool> {
-        if ["1", "on", "true", "yes"].iter().any(|k| loose_eq_str(val, k)) {
+        if ["1", "on", "true", "yes"]
+            .iter()
+            .any(|k| loose_eq_str(val, k))
+        {
             Some(true)
-        } else if ["0", "off", "false", "no"].iter().any(|k| loose_eq_str(val, k)) {
+        } else if ["0", "off", "false", "no"]
+            .iter()
+            .any(|k| loose_eq_str(val, k))
+        {
             Some(false)
         } else {
             None
@@ -506,11 +527,17 @@ impl Fw4 {
             return None;
         }
         if loose_eq_str(val, "*") {
-            return Some(ZoneRef { any: true, zone: None });
+            return Some(ZoneRef {
+                any: true,
+                zone: None,
+            });
         }
         for (i, zone) in self.state.zones.iter().enumerate() {
             if loose_eq_str(val, &zone.name) {
-                return Some(ZoneRef { any: false, zone: Some(i) });
+                return Some(ZoneRef {
+                    any: false,
+                    zone: Some(i),
+                });
             }
         }
         None
@@ -519,9 +546,17 @@ impl Fw4 {
     pub fn parse_device(&self, val: &Json) -> Option<Device> {
         let rv = self.parse_invert(val)?;
         if rv.val == "*" {
-            Some(Device { invert: rv.invert, any: true, device: None })
+            Some(Device {
+                invert: rv.invert,
+                any: true,
+                device: None,
+            })
         } else {
-            Some(Device { invert: rv.invert, any: false, device: Some(rv.val) })
+            Some(Device {
+                invert: rv.invert,
+                any: false,
+                device: Some(rv.val),
+            })
         }
     }
 
@@ -561,13 +596,21 @@ impl Fw4 {
         if name.is_empty() {
             return None;
         }
-        Some(SetMatch { invert: rv.invert, name, dir, fields: None })
+        Some(SetMatch {
+            invert: rv.invert,
+            name,
+            dir,
+            fields: None,
+        })
     }
 
     pub fn parse_cthelper(&self, val: &Json) -> Option<CtHelper> {
         let rv = self.parse_invert(val)?;
         let helper = self.state.helpers.iter().find(|h| h.name == rv.val)?;
-        Some(CtHelper { invert: rv.invert, helper: helper.clone() })
+        Some(CtHelper {
+            invert: rv.invert,
+            helper: helper.clone(),
+        })
     }
 
     pub fn parse_protocol(&self, val: &Json) -> Option<Vec<Proto>> {
@@ -579,16 +622,32 @@ impl Fw4 {
         } else {
             p.val.to_lowercase()
         };
-        let proto = |name: &str| Proto { invert: p.invert, any: false, name: Some(name.to_owned()) };
+        let proto = |name: &str| Proto {
+            invert: p.invert,
+            any: false,
+            name: Some(name.to_owned()),
+        };
         let name = match v.as_str() {
-            "all" | "any" | "*" => return Some(vec![Proto { invert: p.invert, any: true, name: None }]),
+            "all" | "any" | "*" => {
+                return Some(vec![Proto {
+                    invert: p.invert,
+                    any: true,
+                    name: None,
+                }])
+            }
             "1" | "icmp" => "icmp",
             "58" | "icmpv6" | "ipv6-icmp" => "ipv6-icmp",
             "tcpudp" => return Some(vec![proto("tcp"), proto("udp")]),
             "6" => "tcp",
             "17" => "udp",
             // the lowercased value itself is the protocol name
-            _ => return Some(vec![Proto { invert: p.invert, any: false, name: Some(v) }]),
+            _ => {
+                return Some(vec![Proto {
+                    invert: p.invert,
+                    any: false,
+                    name: Some(v),
+                }])
+            }
         };
         Some(vec![proto(name)])
     }
@@ -596,14 +655,21 @@ impl Fw4 {
     pub fn parse_mac(&self, val: &Json) -> Option<Mac> {
         let mac = self.parse_invert(val)?;
         let parts: Vec<&str> = mac.val.split([':', '-']).collect();
-        if parts.len() != 6 || parts.iter().any(|p| p.is_empty() || p.len() > 2 || !hexdigits(p)) {
+        if parts.len() != 6
+            || parts
+                .iter()
+                .any(|p| p.is_empty() || p.len() > 2 || !hexdigits(p))
+        {
             return None;
         }
         let bytes: Vec<String> = parts
             .iter()
             .map(|p| format!("{:02x}", i64::from_str_radix(p, 16).unwrap_or(0)))
             .collect();
-        Some(Mac { invert: mac.invert, mac: bytes.join(":") })
+        Some(Mac {
+            invert: mac.invert,
+            mac: bytes.join(":"),
+        })
     }
 
     pub fn parse_port(&self, val: &Json) -> Option<Port> {
@@ -628,7 +694,11 @@ impl Fw4 {
         if min > max || min > 65535 || max > 65535 {
             return None;
         }
-        Some(Port { invert: port.invert, min, max })
+        Some(Port {
+            invert: port.invert,
+            min,
+            max,
+        })
     }
 
     pub fn parse_subnet(&self, subnet: &str) -> Option<Vec<Addr>> {
@@ -655,7 +725,9 @@ impl Fw4 {
                         (ip::arrtoip(&m), bits)
                     }
                     None => {
-                        let Num::Int(b) = num_of(parts[1]) else { return None };
+                        let Num::Int(b) = num_of(parts[1]) else {
+                            return None;
+                        };
                         (ip::to_mask(b, a.len() == 16), b.max(-1))
                     }
                 };
@@ -791,11 +863,18 @@ impl Fw4 {
                 if u.is_empty() || !u.bytes().all(|b| b.is_ascii_lowercase()) {
                     return None;
                 }
-                self.parse_enum(&Json::Str(u.to_owned()), &["second", "minute", "hour", "day"])?
+                self.parse_enum(
+                    &Json::Str(u.to_owned()),
+                    &["second", "minute", "hour", "day"],
+                )?
             }
             None => "second".to_owned(),
         };
-        Some(Limit { invert: rv.invert, rate: num_of(n), unit })
+        Some(Limit {
+            invert: rv.invert,
+            rate: num_of(n),
+            unit,
+        })
     }
 
     pub fn parse_int(&self, val: &Json) -> Option<Num> {
@@ -896,7 +975,15 @@ impl Fw4 {
         for day in to_array(&Json::Str(rv.val.clone())) {
             let d = self.parse_enum(
                 &day,
-                &["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                &[
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                ],
             )?;
             if !days.contains(&d) {
                 days.push(d);
@@ -905,7 +992,10 @@ impl Fw4 {
         if days.is_empty() {
             return None;
         }
-        Some(Weekdays { invert: rv.invert, days })
+        Some(Weekdays {
+            invert: rv.invert,
+            days,
+        })
     }
 
     pub fn parse_monthdays(&self, val: &Json) -> Option<()> {
@@ -938,7 +1028,9 @@ impl Fw4 {
             let t1 = s.strip_prefix('0');
             let t2 = s.strip_prefix(['x', 'X']);
             let t3 = t1.and_then(|t| t.strip_prefix(['x', 'X']));
-            [t1, t2, t3].iter().any(|t| t.map(hexdigits).unwrap_or(false))
+            [t1, t2, t3]
+                .iter()
+                .any(|t| t.map(hexdigits).unwrap_or(false))
         };
         if !markish(m1) || m3.map(|m| !markish(m)).unwrap_or(false) {
             return None;
@@ -947,7 +1039,11 @@ impl Fw4 {
         if n.is_nan() || n.as_f64() > 0xFFFF_FFFFu32 as f64 {
             return None;
         }
-        let mut mark = Mark { invert: rv.invert, mark: n.as_i64(), mask: 0xFFFF_FFFF };
+        let mut mark = Mark {
+            invert: rv.invert,
+            mark: n.as_i64(),
+            mask: 0xFFFF_FFFF,
+        };
         if let Some(m3) = m3 {
             let n = num_of(m3);
             if n.is_nan() || n.as_f64() > 0xFFFF_FFFFu32 as f64 {
@@ -962,21 +1058,38 @@ impl Fw4 {
         let rv = self.parse_invert(val)?;
         let v = rv.val.to_uppercase();
         if let Some(d) = dscp_class(&v) {
-            return Some(Dscp { invert: rv.invert, dscp: d });
+            return Some(Dscp {
+                invert: rv.invert,
+                dscp: d,
+            });
         }
         let n = num_of(&v);
         if n.is_nan() || n.as_f64() < 0.0 || n.as_f64() > 0x3F as f64 {
             return None;
         }
-        Some(Dscp { invert: rv.invert, dscp: n.as_i64() })
+        Some(Dscp {
+            invert: rv.invert,
+            dscp: n.as_i64(),
+        })
     }
 
     pub fn parse_target(&self, val: &Json) -> Option<String> {
         self.parse_enum(
             val,
             &[
-                "accept", "reject", "drop", "notrack", "helper", "mark", "dscp", "dnat", "snat",
-                "masquerade", "accept", "reject", "drop",
+                "accept",
+                "reject",
+                "drop",
+                "notrack",
+                "helper",
+                "mark",
+                "dscp",
+                "dnat",
+                "snat",
+                "masquerade",
+                "accept",
+                "reject",
+                "drop",
             ],
         )
     }
@@ -984,7 +1097,13 @@ impl Fw4 {
     pub fn parse_reject_code(&self, val: &Json) -> Option<String> {
         self.parse_enum(
             val,
-            &["tcp-reset", "port-unreachable", "admin-prohibited", "host-unreachable", "no-route"],
+            &[
+                "tcp-reset",
+                "port-unreachable",
+                "admin-prohibited",
+                "host-unreachable",
+                "no-route",
+            ],
         )
     }
 
@@ -1016,11 +1135,20 @@ impl Fw4 {
             let mut i = 0;
             loop {
                 let start = i;
-                while i < n && b[i] != b' ' && b[i] != b'\t' { i += 1; }
+                while i < n && b[i] != b' ' && b[i] != b'\t' {
+                    i += 1;
+                }
                 parts.push(&val[start..i]);
-                if i >= n { break; }
-                while i < n && (b[i] == b' ' || b[i] == b'\t') { i += 1; }
-                if i >= n { parts.push(""); break; }
+                if i >= n {
+                    break;
+                }
+                while i < n && (b[i] == b' ' || b[i] == b'\t') {
+                    i += 1;
+                }
+                if i >= n {
+                    parts.push("");
+                    break;
+                }
             }
             parts
         }
@@ -1056,7 +1184,13 @@ impl Fw4 {
                     }
                     let a = &ip[0];
                     rv.push(if set.fw4types.iter().any(|x| x == "net") {
-                        format!("{}/{}", a.addr, a.bits.map(|b| b.to_string()).unwrap_or_else(|| "null".into()))
+                        format!(
+                            "{}/{}",
+                            a.addr,
+                            a.bits
+                                .map(|b| b.to_string())
+                                .unwrap_or_else(|| "null".into())
+                        )
                     } else {
                         a.addr.clone()
                     });
@@ -1093,8 +1227,15 @@ impl Fw4 {
         let p = self.parse_enum(
             val,
             &[
-                "ruleset-prepend", "ruleset-postpend", "ruleset-append", "table-prepend",
-                "table-postpend", "table-append", "chain-prepend", "chain-postpend", "chain-append",
+                "ruleset-prepend",
+                "ruleset-postpend",
+                "ruleset-append",
+                "table-prepend",
+                "table-postpend",
+                "table-append",
+                "chain-prepend",
+                "chain-postpend",
+                "chain-append",
             ],
         )?;
         Some(p.replace("postpend", "append"))
@@ -1143,7 +1284,10 @@ mod tests {
     #[test]
     fn primitives() {
         let f = fw();
-        assert_eq!(f.parse_enum(&js("ACC"), &["accept", "reject"]), Some("accept".into()));
+        assert_eq!(
+            f.parse_enum(&js("ACC"), &["accept", "reject"]),
+            Some("accept".into())
+        );
         assert_eq!(f.parse_enum(&js("x"), &["accept"]), None);
         assert_eq!(f.parse_bool(&Json::Int(0)), Some(false));
         assert_eq!(f.parse_bool(&js("yes")), Some(true));
@@ -1152,7 +1296,10 @@ mod tests {
         let p = f.parse_port(&js("! 80-90")).unwrap();
         assert!(p.invert && p.min == 80 && p.max == 90);
         assert_eq!(f.parse_port(&js("70000")), None);
-        assert_eq!(f.parse_mac(&js("AA:b-1:2:3:4")).unwrap().mac, "aa:0b:01:02:03:04");
+        assert_eq!(
+            f.parse_mac(&js("AA:b-1:2:3:4")).unwrap().mac,
+            "aa:0b:01:02:03:04"
+        );
         let l = f.parse_limit(&js("25/s")).unwrap();
         assert_eq!(l.unit, "second");
         assert_eq!(f.parse_limit(&js("25/Second")), None);
@@ -1163,7 +1310,10 @@ mod tests {
         assert_eq!((m.mark, m.mask), (0, 0xffffff51));
         assert_eq!(f.parse_dscp(&js("af11")).unwrap().dscp, 0x0a);
         let d = f.parse_date(&js("2021-03-04T05:06")).unwrap();
-        assert_eq!((d.year, d.month, d.day, d.hour, d.min, d.sec), (2021, 3, 4, 5, 6, 0));
+        assert_eq!(
+            (d.year, d.month, d.day, d.hour, d.min, d.sec),
+            (2021, 3, 4, 5, 6, 0)
+        );
         let d = f.parse_date(&js("2021")).unwrap();
         assert_eq!((d.month, d.day, d.hour), (1, 1, 0));
         assert_eq!(f.parse_date(&js("1969")), None);
@@ -1176,20 +1326,36 @@ mod tests {
         assert_eq!((i.family, i.ty, i.ty6), (0, Some(8), Some(128)));
         let i = f.parse_icmptype(&js("3/4")).unwrap();
         assert_eq!((i.ty, i.code_min, i.code_max), (Some(3), Some(4), Some(4)));
-        assert_eq!(f.parse_ipsettype(&js("dest_ip")), Some(("dst".into(), "ip".into())));
-        assert_eq!(f.parse_ipsettype(&js("mac")), Some(("src".into(), "mac".into())));
-        assert_eq!(f.parse_includeposition(&js("table-postpend")), Some("table-append".into()));
+        assert_eq!(
+            f.parse_ipsettype(&js("dest_ip")),
+            Some(("dst".into(), "ip".into()))
+        );
+        assert_eq!(
+            f.parse_ipsettype(&js("mac")),
+            Some(("src".into(), "mac".into()))
+        );
+        assert_eq!(
+            f.parse_includeposition(&js("table-postpend")),
+            Some("table-append".into())
+        );
         assert_eq!(f.parse_identifier(&js("1abc")), None);
         assert_eq!(f.parse_identifier(&js("_a/b.c-d")), Some("_a/b.c-d".into()));
         let sm = f.parse_setmatch(&js("! myset dst,src")).unwrap();
-        assert!(sm.invert && sm.name == "myset" && sm.dir == vec![Some("dst".into()), Some("src".into())]);
+        assert!(
+            sm.invert
+                && sm.name == "myset"
+                && sm.dir == vec![Some("dst".into()), Some("src".into())]
+        );
     }
 
     #[test]
     fn subnets() {
         let f = fw();
         let a = &f.parse_subnet("10.0.0.5/24").unwrap()[0];
-        assert_eq!((a.addr.as_str(), a.bits, a.mask.as_deref()), ("10.0.0.5", Some(24), Some("255.255.255.0")));
+        assert_eq!(
+            (a.addr.as_str(), a.bits, a.mask.as_deref()),
+            ("10.0.0.5", Some(24), Some("255.255.255.0"))
+        );
         let a = &f.parse_subnet("10.0.0.5/255.0.255.0").unwrap()[0];
         assert_eq!((a.addr.as_str(), a.bits), ("10.0.0.0", Some(-1)));
         let a = &f.parse_subnet("10.0.0.1-10.0.0.9").unwrap()[0];

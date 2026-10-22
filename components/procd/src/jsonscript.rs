@@ -87,7 +87,9 @@ pub fn run_rule(block: Field<'_>, vars: &BTreeMap<String, String>, own_type: Opt
 /// written into `vars`, so an `exec`'s environment and the `hotplug.<subsys>`
 /// notification carry only what the kernel sent. (R81 F22.)
 pub fn run_hotplug_rule(
-    block: Field<'_>, vars: &BTreeMap<String, String>, root: &str,
+    block: Field<'_>,
+    vars: &BTreeMap<String, String>,
+    root: &str,
     files: &mut BTreeMap<String, Vec<u8>>,
 ) -> Run {
     let mut ctx = Ctx {
@@ -177,21 +179,31 @@ impl Ctx<'_> {
                 // missing or non-string one returns 0 with no error. A name
                 // the file handler cannot resolve is ALSO a silent 0 -- the
                 // C tests `if (!f) return 0` and never calls handle_error.
-                let Some(name) = cur.children().nth(1).and_then(|f| f.as_str()) else { return 0 };
+                let Some(name) = cur.children().nth(1).and_then(|f| f.as_str()) else {
+                    return 0;
+                };
                 if self.own_type == Some(name) || self.visited.contains(name) {
                     self.error("Recursive include");
                     return 0;
                 }
                 // Trigger contexts resolve only their own rule. Hotplug's
                 // rule_handle_file reads and retains each successful load.
-                let Some(files) = self.files.as_mut() else { return 0 };
+                let Some(files) = self.files.as_mut() else {
+                    return 0;
+                };
                 if !files.contains_key(name) {
-                    let Some(data) = crate::hotplug::load_rules(name) else { return 0 };
+                    let Some(data) = crate::hotplug::load_rules(name) else {
+                        return 0;
+                    };
                     files.insert(name.to_string(), data);
                 }
                 let data = files[name].clone();
                 self.visited.insert(name.to_string());
-                self.process_cmd(Field { name: "", ty: MsgType::Array as u32, data: &data });
+                self.process_cmd(Field {
+                    name: "",
+                    ty: MsgType::Array as u32,
+                    data: &data,
+                });
                 // A return ends this included file, not the caller's block.
                 self.abort = false;
                 return 0;
@@ -389,7 +401,9 @@ impl Ctx<'_> {
             return Err(());
         };
         let path = self.eval_string(pattern).map_err(|_| ())?;
-        Ok(std::fs::metadata(&path).map(|m| m.is_dir()).unwrap_or(false))
+        Ok(std::fs::metadata(&path)
+            .map(|m| m.is_dir())
+            .unwrap_or(false))
     }
 
     /// `eval_string()`. `%` toggles variable mode; an empty name (`%%`) is a
@@ -444,7 +458,11 @@ fn non_string_repr(f: Field<'_>) -> String {
 }
 
 fn eq_or_regex(s: &str, pattern: &str, regex: bool) -> bool {
-    if regex { owrt_platform::procd::compatibility::regex_matches(s, pattern) } else { s == pattern }
+    if regex {
+        owrt_platform::procd::compatibility::regex_matches(s, pattern)
+    } else {
+        s == pattern
+    }
 }
 
 #[cfg(test)]
@@ -453,7 +471,10 @@ mod tests {
     use owrt_ubus::blob::BlobBuf;
 
     fn vars(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     /// Build `[ [ "if", ["eq","ACT","go"], [ ["run_script","x","%WHO%"] ] ] ]`
@@ -487,7 +508,9 @@ mod tests {
     }
 
     fn run_script(b: &BlobBuf, v: &BTreeMap<String, String>) -> Run {
-        let f = owrt_ubus::blob::fields(b.payload()).next().expect("one field");
+        let f = owrt_ubus::blob::fields(b.payload())
+            .next()
+            .expect("one field");
         run_rule(f, v, None)
     }
 
@@ -503,7 +526,10 @@ mod tests {
             }
             let result = run_script(&blob, &BTreeMap::new());
             if depth <= 64 {
-                assert_eq!(result.commands, [("run_script".into(), vec!["/bin/true".into()])]);
+                assert_eq!(
+                    result.commands,
+                    [("run_script".into(), vec!["/bin/true".into()])]
+                );
                 assert!(result.errors.is_empty());
             } else {
                 assert!(result.commands.is_empty());
@@ -548,7 +574,10 @@ mod tests {
         assert_eq!(out.errors, Vec::<String>::new());
         assert_eq!(
             out.commands,
-            vec![("run_script".to_string(), vec!["x".to_string(), "first".to_string()])]
+            vec![(
+                "run_script".to_string(),
+                vec!["x".to_string(), "first".to_string()]
+            )]
         );
     }
 
@@ -565,15 +594,26 @@ mod tests {
         let out = run_script(&b, &vars(&[("ACT", "go")]));
         assert_eq!(
             out.commands,
-            vec![("run_script".to_string(), vec!["x".to_string(), String::new()])]
+            vec![(
+                "run_script".to_string(),
+                vec!["x".to_string(), String::new()]
+            )]
         );
     }
 
     #[test]
     fn percent_rules() {
         let v = vars(&[("A", "1")]);
-        let ctx = Ctx { vars: &v, out: Run::default(), abort: false, depth: 0, own_type: None,
-            devname_fallback: false, files: None, visited: BTreeSet::new() };
+        let ctx = Ctx {
+            vars: &v,
+            out: Run::default(),
+            abort: false,
+            depth: 0,
+            own_type: None,
+            devname_fallback: false,
+            files: None,
+            visited: BTreeSet::new(),
+        };
         assert_eq!(ctx.eval_string("plain").unwrap(), "plain");
         assert_eq!(ctx.eval_string("%A%").unwrap(), "1");
         assert_eq!(ctx.eval_string("x%A%y").unwrap(), "x1y");
@@ -630,7 +670,9 @@ mod include_tests {
     }
 
     fn run_it(b: &BlobBuf, own: Option<&str>) -> Run {
-        let f = owrt_ubus::blob::fields(b.payload()).next().expect("one field");
+        let f = owrt_ubus::blob::fields(b.payload())
+            .next()
+            .expect("one field");
         run_rule(f, &BTreeMap::new(), own)
     }
 
@@ -639,13 +681,19 @@ mod include_tests {
         let out = run_it(&script(Some("iface.up")), Some("iface.up"));
         assert_eq!(out.errors, vec!["Recursive include".to_string()]);
         // The include ran nothing; the command after it still runs once.
-        assert_eq!(out.commands, vec![("run_script".to_string(), vec!["x".to_string()])]);
+        assert_eq!(
+            out.commands,
+            vec![("run_script".to_string(), vec!["x".to_string()])]
+        );
     }
 
     #[test]
     fn including_any_other_name_is_a_silent_no_op() {
         let out = run_it(&script(Some("/etc/hotplug.json")), Some("iface.up"));
-        assert!(out.errors.is_empty(), "rule_load_script returns NULL and include returns 0");
+        assert!(
+            out.errors.is_empty(),
+            "rule_load_script returns NULL and include returns 0"
+        );
         assert_eq!(out.commands.len(), 1);
         // With no file handler registered at all, the same.
         let out = run_it(&script(Some("iface.up")), None);
@@ -661,16 +709,26 @@ mod include_tests {
     #[test]
     fn the_hotplug_context_derives_devname_from_devpath_without_storing_it() {
         let mut vars = BTreeMap::new();
-        vars.insert("DEVPATH".to_string(), "/devices/virtual/net/tun".to_string());
+        vars.insert(
+            "DEVPATH".to_string(),
+            "/devices/virtual/net/tun".to_string(),
+        );
         let rules = br#"[
             [ "if", [ "has", "DEVNAME" ], [ "exec", "/bin/echo", "%DEVNAME%", "%DEVICENAME%" ] ]
         ]"#;
         let blob = crate::hotplug::rules_blob(rules).expect("rules parse");
-        let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
+        let block = Field {
+            name: "",
+            ty: MsgType::Array as u32,
+            data: &blob,
+        };
         let out = run_hotplug_rule(block, &vars, "", &mut BTreeMap::new());
         assert_eq!(
             out.commands,
-            vec![("exec".to_string(), vec!["/bin/echo".into(), "tun".into(), "tun".into()])]
+            vec![(
+                "exec".to_string(),
+                vec!["/bin/echo".into(), "tun".into(), "tun".into()]
+            )]
         );
         // The trigger context has no such fallback (trigger.c rule_handle_var).
         let out = run_rule(block, &vars, None);
@@ -678,5 +736,4 @@ mod include_tests {
         // And the table itself is untouched: nothing for exec's env.
         assert!(!vars.contains_key("DEVNAME"));
     }
-
 }

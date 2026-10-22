@@ -393,10 +393,7 @@ impl ForwardDispatcher {
 }
 
 /// Capture original client flags and limits before upstream EDNS decoration.
-pub fn query_metadata(
-    packet: &[u8],
-    configured_max: u16,
-) -> Result<QueryMetadata, WireError> {
+pub fn query_metadata(packet: &[u8], configured_max: u16) -> Result<QueryMetadata, WireError> {
     let header = Header::parse(packet)?;
     let scan = find_pseudoheader(packet, true)?;
     let configured_max = configured_max.max(DNS_DEFAULT_UDP_SIZE);

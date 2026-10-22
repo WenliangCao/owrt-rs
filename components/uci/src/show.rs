@@ -35,7 +35,12 @@ pub fn print_value(out: &mut impl Write, v: &[u8]) {
 
 impl Show {
     pub fn new(extended: bool, delimiter: &[u8]) -> Show {
-        Show { extended, delimiter: delimiter.to_vec(), type_list: Vec::new(), cur_section_ref: None }
+        Show {
+            extended,
+            delimiter: delimiter.to_vec(),
+            type_list: Vec::new(),
+            cur_section_ref: None,
+        }
     }
 
     /// uci_reset_typelist
@@ -84,7 +89,9 @@ impl Show {
                     if sep {
                         let _ = out.write_all(&self.delimiter);
                     }
-                    let space = item.iter().any(|&b| matches!(b, b' ' | b'\t' | b'\r' | b'\n'));
+                    let space = item
+                        .iter()
+                        .any(|&b| matches!(b, b' ' | b'\t' | b'\r' | b'\n'));
                     if !space && !quote {
                         let _ = out.write_all(item);
                     } else {
@@ -170,11 +177,23 @@ mod tests {
         );
         // a dotted name that does not resolve leaves the output empty (C-03)
         let mut out = Vec::new();
-        assert!(tuple(&mut ctx, b"net.nosuch", &mut Show::new(true, b" "), &mut out).is_err());
+        assert!(tuple(
+            &mut ctx,
+            b"net.nosuch",
+            &mut Show::new(true, b" "),
+            &mut out
+        )
+        .is_err());
         assert!(out.is_empty());
         // one that resolves prints the element (C-03c)
         let mut out = Vec::new();
-        tuple(&mut ctx, b"net.lan.proto", &mut Show::new(true, b" "), &mut out).unwrap();
+        tuple(
+            &mut ctx,
+            b"net.lan.proto",
+            &mut Show::new(true, b" "),
+            &mut out,
+        )
+        .unwrap();
         assert_eq!(out, b"net.lan.proto='static'\n");
         let _ = std::fs::remove_dir_all(&dir);
     }

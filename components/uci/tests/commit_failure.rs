@@ -13,7 +13,8 @@ impl Drop for Fixture {
 
 #[test]
 fn failed_staging_keeps_delta_and_retry_applies_it_once() {
-    let f = Fixture(std::env::temp_dir().join(format!("uci-commit-failure-{}", std::process::id())));
+    let f =
+        Fixture(std::env::temp_dir().join(format!("uci-commit-failure-{}", std::process::id())));
     fs::create_dir_all(f.0.join("config")).unwrap();
     fs::create_dir_all(f.0.join("delta")).unwrap();
     let original = b"config x 's'\n list values 'old'\n";

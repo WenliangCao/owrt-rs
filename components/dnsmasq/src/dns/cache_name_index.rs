@@ -38,8 +38,12 @@ impl<'a> IntoIterator for &'a SlotIndices {
 impl FromIterator<usize> for SlotIndices {
     fn from_iter<T: IntoIterator<Item = usize>>(values: T) -> Self {
         let mut values = values.into_iter();
-        let Some(first) = values.next() else { return Self::Empty };
-        let Some(second) = values.next() else { return Self::One(first) };
+        let Some(first) = values.next() else {
+            return Self::Empty;
+        };
+        let Some(second) = values.next() else {
+            return Self::One(first);
+        };
         let mut many = vec![first, second];
         many.extend(values);
         Self::Many(Arc::new(many))
@@ -58,7 +62,9 @@ impl SlotIndices {
     }
 
     pub(super) fn remove(&mut self, slot: usize) {
-        let Some(position) = self.iter().position(|old| *old == slot) else { return };
+        let Some(position) = self.iter().position(|old| *old == slot) else {
+            return;
+        };
         match self {
             Self::Empty => (),
             Self::One(_) => *self = Self::Empty,
@@ -76,7 +82,9 @@ impl SlotIndices {
         if matches.len() < 2 {
             return;
         }
-        let Self::Many(slots) = self else { unreachable!("several matches require several indices") };
+        let Self::Many(slots) = self else {
+            unreachable!("several matches require several indices")
+        };
         let slots = Arc::make_mut(slots);
         for slot in &matches[1..] {
             let first = slots.iter().position(|old| *old == matches[0]).unwrap();
@@ -93,13 +101,24 @@ mod tests {
 
     #[test]
     fn collection_and_absent_removal_do_not_allocate_a_singleton_or_detach_many() {
-        assert!(matches!([].into_iter().collect::<SlotIndices>(), SlotIndices::Empty));
-        assert!(matches!([3].into_iter().collect::<SlotIndices>(), SlotIndices::One(3)));
+        assert!(matches!(
+            [].into_iter().collect::<SlotIndices>(),
+            SlotIndices::Empty
+        ));
+        assert!(matches!(
+            [3].into_iter().collect::<SlotIndices>(),
+            SlotIndices::One(3)
+        ));
         let parent: SlotIndices = [3, 5].into_iter().collect();
         let mut child = parent.clone();
         child.remove(8);
-        let (SlotIndices::Many(left), SlotIndices::Many(right)) = (&parent, &child) else { panic!() };
-        assert!(Arc::ptr_eq(left, right), "an absent removal must not detach");
+        let (SlotIndices::Many(left), SlotIndices::Many(right)) = (&parent, &child) else {
+            panic!()
+        };
+        assert!(
+            Arc::ptr_eq(left, right),
+            "an absent removal must not detach"
+        );
         child.remove(5);
         assert!(matches!(child, SlotIndices::One(3)));
         let mut child = parent.clone();
@@ -115,8 +134,13 @@ mod tests {
         parent.push(2);
         parent.push(9);
         let mut child = parent.clone();
-        let (SlotIndices::Many(left), SlotIndices::Many(right)) = (&parent, &child) else { panic!() };
-        assert!(Arc::ptr_eq(left, right), "cloning a shard must not clone this list");
+        let (SlotIndices::Many(left), SlotIndices::Many(right)) = (&parent, &child) else {
+            panic!()
+        };
+        assert!(
+            Arc::ptr_eq(left, right),
+            "cloning a shard must not clone this list"
+        );
         child.remove(2);
         assert_eq!(&*parent, &[7, 2, 9]);
         assert_eq!(&*child, &[7, 9]);
@@ -133,11 +157,19 @@ mod tests {
         child.rotate_matches(&[1, 3, 5]);
         assert_eq!(&*parent, &[0, 1, 2, 3, 4, 5]);
         assert_eq!(&*child, &[0, 3, 5, 1, 2, 4]);
-        let SlotIndices::Many(values) = &child else { panic!() };
+        let SlotIndices::Many(values) = &child else {
+            panic!()
+        };
         let unique = values.as_ptr();
         child.rotate_matches(&[3, 5, 1]);
-        let SlotIndices::Many(values) = &child else { panic!() };
-        assert_eq!(values.as_ptr(), unique, "ordinary unique rotation must not allocate another list");
+        let SlotIndices::Many(values) = &child else {
+            panic!()
+        };
+        assert_eq!(
+            values.as_ptr(),
+            unique,
+            "ordinary unique rotation must not allocate another list"
+        );
         assert_eq!(&*child, &[0, 5, 1, 3, 2, 4]);
     }
 }

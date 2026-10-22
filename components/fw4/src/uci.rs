@@ -22,7 +22,9 @@ fn set_key(obj: &mut Vec<(String, Json)>, key: &str, value: Json) {
 
 impl Config {
     pub fn empty() -> Config {
-        Config { sections: Vec::new() }
+        Config {
+            sections: Vec::new(),
+        }
     }
 
     /// Sections of one type in file order (ucode `cursor.foreach`).
@@ -56,7 +58,12 @@ impl Config {
                     let v = match &opt.value {
                         // libuci values are raw bytes; the ruleset is text (DEVIATION: non-UTF-8 -> U+FFFD)
                         OptionValue::Str(v) => Json::Str(String::from_utf8_lossy(v).into_owned()),
-                        OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(String::from_utf8_lossy(v).into_owned())).collect()),
+                        OptionValue::List(items) => Json::Array(
+                            items
+                                .iter()
+                                .map(|v| Json::Str(String::from_utf8_lossy(v).into_owned()))
+                                .collect(),
+                        ),
                     };
                     o.push((opt.name, v));
                 }
@@ -110,7 +117,10 @@ impl Config {
                     .map(str::to_owned);
                 let (sid, anonymous) = match named {
                     Some(n) => (n, false),
-                    None => (format!("cfg{}{:04x}", stype.len() % 10, sections.len() * 31 + idx), true),
+                    None => (
+                        format!("cfg{}{:04x}", stype.len() % 10, sections.len() * 31 + idx),
+                        true,
+                    ),
                 };
                 used.push(sid.clone());
                 let mut sec: Vec<(String, Json)> =
@@ -143,7 +153,10 @@ mod tests {
         assert_eq!(c.sections.len(), 2);
         let z = c.by_name("lan").unwrap();
         assert_eq!(z.get(".type").and_then(Json::as_str), Some("zone"));
-        assert_eq!(z.get("network").and_then(Json::as_array).map(|a| a.len()), Some(2));
+        assert_eq!(
+            z.get("network").and_then(Json::as_array).map(|a| a.len()),
+            Some(2)
+        );
         assert_eq!(z.get("x").and_then(Json::as_str), Some("a\"b c"));
         let d = &c.sections[0];
         assert_eq!(d.get(".anonymous"), Some(&Json::Bool(true)));
@@ -152,7 +165,9 @@ mod tests {
         assert_eq!(d.get(".index"), Some(&Json::Int(0)));
         assert_eq!(c.of_type("zone").count(), 1);
         // strict parser: a malformed line makes the whole load fail
-        assert!(Config::parse_text("x", "config zone\n\toption\n").sections.is_empty());
+        assert!(Config::parse_text("x", "config zone\n\toption\n")
+            .sections
+            .is_empty());
     }
 
     #[test]
@@ -163,9 +178,15 @@ mod tests {
         .unwrap();
         let c = Config::from_mock(&j);
         assert_eq!(c.sections.len(), 3);
-        assert_eq!(c.sections[1].get(".name").and_then(Json::as_str), Some("z2"));
+        assert_eq!(
+            c.sections[1].get(".name").and_then(Json::as_str),
+            Some("z2")
+        );
         assert_eq!(c.sections[1].get(".anonymous"), Some(&Json::Bool(false)));
-        assert_eq!(c.sections[2].get(".type").and_then(Json::as_str), Some("defaults"));
+        assert_eq!(
+            c.sections[2].get(".type").and_then(Json::as_str),
+            Some("defaults")
+        );
         assert_eq!(c.sections[2].get(".index"), Some(&Json::Int(2)));
     }
 }

@@ -28,7 +28,11 @@ impl InMsg<'_> {
     /// Only a parked command must outlive the current shared receive buffer.
     /// Large frames already own their bytes and move them without a copy.
     pub fn into_owned(self) -> InMsg<'static> {
-        InMsg { header: self.header, blob: Cow::Owned(self.blob.into_owned()), fd: self.fd }
+        InMsg {
+            header: self.header,
+            blob: Cow::Owned(self.blob.into_owned()),
+            fd: self.fd,
+        }
     }
 
     /// Top-level attribute payload -- the blob's contents past its header.
@@ -50,7 +54,11 @@ pub struct OutMsg {
 
 impl OutMsg {
     pub fn new(ty: u8, seq: u16, peer: u32, blob: Vec<u8>) -> Self {
-        OutMsg { header: Header { ty, seq, peer }, blob, fd: None }
+        OutMsg {
+            header: Header { ty, seq, peer },
+            blob,
+            fd: None,
+        }
     }
 
     fn total(&self) -> usize {
@@ -162,9 +170,11 @@ impl Client {
         if self.cmd_queue.len() >= MAX_PENDING_COMMANDS {
             return false;
         }
-        let queued: usize = self.cmd_queue.iter().map(|cmd| {
-            Header::LEN + cmd.msg.blob.len() + cmd.next.as_ref().map_or(0, Vec::len)
-        }).sum();
+        let queued: usize = self
+            .cmd_queue
+            .iter()
+            .map(|cmd| Header::LEN + cmd.msg.blob.len() + cmd.next.as_ref().map_or(0, Vec::len))
+            .sum();
         let needed = Header::LEN + msg.blob.len() + next.map_or(0, |path| path.len());
         needed <= MAX_PENDING_BYTES.saturating_sub(queued)
     }
@@ -201,7 +211,11 @@ impl Client {
             self.txq_ofs = written;
             self.txq_len = -(written as i64);
         }
-        self.enqueue(OutMsg { header, blob: blob.to_vec(), fd });
+        self.enqueue(OutMsg {
+            header,
+            blob: blob.to_vec(),
+            fd,
+        });
         true
     }
 
@@ -210,7 +224,10 @@ impl Client {
     /// Neither reply carries a descriptor. Monitor users keep the per-message
     /// path so each mirror remains at its original send boundary.
     pub fn send_data_status_reply(&mut self, header: Header, blob: &[u8]) {
-        let status_header = Header { ty: ty::STATUS, ..header };
+        let status_header = Header {
+            ty: ty::STATUS,
+            ..header
+        };
         let status_blob = [0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0];
         if !self.tx.is_empty() {
             self.send_borrowed(header, blob, None);
@@ -221,19 +238,27 @@ impl Client {
         status_frame[..Header::LEN].copy_from_slice(&status_header.encode());
         status_frame[Header::LEN..].copy_from_slice(&status_blob);
         let first_len = Header::LEN + blob.len();
-        let written = sys::sendmsg_three(self.fd(), [&header.encode(), blob, &status_frame])
-            .unwrap_or(0);
+        let written =
+            sys::sendmsg_three(self.fd(), [&header.encode(), blob, &status_frame]).unwrap_or(0);
         if written < first_len {
             self.txq_ofs = written;
             self.txq_len = -(written as i64);
-            self.enqueue(OutMsg { header, blob: blob.to_vec(), fd: None });
+            self.enqueue(OutMsg {
+                header,
+                blob: blob.to_vec(),
+                fd: None,
+            });
             // If DATA was silently dropped at the cap, STATUS can still go
             // directly, exactly as on the per-message path.
             self.send_borrowed(status_header, &status_blob, None);
         } else if written < first_len + status_frame.len() {
             self.txq_ofs = written - first_len;
             self.txq_len = -(self.txq_ofs as i64);
-            self.enqueue(OutMsg { header: status_header, blob: status_blob.to_vec(), fd: None });
+            self.enqueue(OutMsg {
+                header: status_header,
+                blob: status_blob.to_vec(),
+                fd: None,
+            });
         }
     }
 
@@ -263,7 +288,8 @@ impl Client {
         let mut pos = 0;
         let mut first_unsent = true;
         while pos < frames.len() {
-            let header = Header::decode(frames[pos..pos + Header::LEN].try_into().unwrap()).unwrap();
+            let header =
+                Header::decode(frames[pos..pos + Header::LEN].try_into().unwrap()).unwrap();
             let start = pos + Header::LEN;
             let end = start + blob_raw_len(&frames[start..]);
             if written < end {
@@ -279,7 +305,11 @@ impl Client {
                     // the earlier frame was rejected by the cap.
                     first_unsent = false;
                 }
-                self.enqueue(OutMsg { header, blob: blob.to_vec(), fd: None });
+                self.enqueue(OutMsg {
+                    header,
+                    blob: blob.to_vec(),
+                    fd: None,
+                });
             }
             pos = end;
         }
@@ -319,7 +349,11 @@ impl Client {
             let total = msg.total();
             // A descriptor only rides on the first byte of a message; a
             // resumed write must not attach it again.
-            let fd = if self.txq_ofs == 0 { msg.fd.as_ref().map(|f| f.as_raw_fd()) } else { None };
+            let fd = if self.txq_ofs == 0 {
+                msg.fd.as_ref().map(|f| f.as_raw_fd())
+            } else {
+                None
+            };
             let (a, b): (&[u8], &[u8]) = if self.txq_ofs < Header::LEN {
                 (&head[self.txq_ofs..], &msg.blob)
             } else {
@@ -395,7 +429,10 @@ impl Client {
             if let Some(large) = &mut self.large {
                 // Like C's body read: never past this frame, and ancillary
                 // data arriving here is discarded by the kernel.
-                let n = match owrt_platform::unix::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
+                let n = match owrt_platform::unix::read_fd(
+                    self.sock.as_raw_fd(),
+                    &mut large.blob[large.got..],
+                ) {
                     Ok(v) => v,
                     Err(e) if would_block(&e) => return Ok(None),
                     Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
@@ -410,13 +447,20 @@ impl Client {
                     return Ok(None);
                 }
                 let done = self.large.take().expect("checked above");
-                return Ok(Some(InMsg { header: done.header, blob: Cow::Owned(done.blob), fd: done.fd }));
+                return Ok(Some(InMsg {
+                    header: done.header,
+                    blob: Cow::Owned(done.blob),
+                    fd: done.fd,
+                }));
             }
             let s = self.rx_start;
             if self.rx_end - s >= PREFIX_LEN {
                 let raw_len = blob_raw_len(&rx[s + Header::LEN..s + PREFIX_LEN]);
                 if raw_len < 4 || pad4(raw_len) > MAX_MSGLEN {
-                    return Err(io::Error::new(io::ErrorKind::InvalidData, "bad message length"));
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "bad message length",
+                    ));
                 }
                 // The matching C daemon ignores hdr.version.
                 let header = Header {
@@ -433,7 +477,12 @@ impl Client {
                     blob[..have].copy_from_slice(&rx[s + Header::LEN..self.rx_end]);
                     self.rx_start = 0;
                     self.rx_end = 0;
-                    self.large = Some(LargeFrame { header, blob, got: have, fd: self.pending_fd.take() });
+                    self.large = Some(LargeFrame {
+                        header,
+                        blob,
+                        got: have,
+                        fd: self.pending_fd.take(),
+                    });
                     continue;
                 }
                 let e = s + total;
@@ -448,7 +497,11 @@ impl Client {
                     } else {
                         self.rx_start = e;
                     }
-                    return Ok(Some(InMsg { header, blob: Cow::Borrowed(&rx[s + Header::LEN..e]), fd }));
+                    return Ok(Some(InMsg {
+                        header,
+                        blob: Cow::Borrowed(&rx[s + Header::LEN..e]),
+                        fd,
+                    }));
                 }
             }
             if self.rx_drained {
@@ -524,12 +577,27 @@ mod tests {
     fn rx_pair() -> (Client, UnixStream) {
         let (sock, peer) = UnixStream::pair().unwrap();
         sock.set_nonblocking(true).unwrap();
-        peer.set_write_timeout(Some(Duration::from_secs(3))).unwrap();
-        (Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new()), peer)
+        peer.set_write_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        (
+            Client::new(
+                sock.into(),
+                sys::Ucred::default(),
+                String::new(),
+                String::new(),
+            ),
+            peer,
+        )
     }
 
     fn rx_frame(seq: u16, raw_len: usize) -> Vec<u8> {
-        let mut bytes = Header { ty: ty::DATA, seq, peer: 0x12345678 }.encode().to_vec();
+        let mut bytes = Header {
+            ty: ty::DATA,
+            seq,
+            peer: 0x12345678,
+        }
+        .encode()
+        .to_vec();
         bytes.extend_from_slice(&(raw_len as u32).to_be_bytes());
         bytes.resize(Header::LEN + raw_len, seq as u8);
         bytes
@@ -557,14 +625,20 @@ mod tests {
     fn stack_rx_fragments_survive_other_clients_and_drop_idle_capacity() {
         let mut rx = [0u8; RX_SIZE];
         for len in [4, 64, 4088, 4089, 8192] {
-            for cut in [1, 7, 8, 11, 12, 13, 27, 2048, 4096].into_iter()
-                .filter(|cut| *cut < len + Header::LEN) {
+            for cut in [1, 7, 8, 11, 12, 13, 27, 2048, 4096]
+                .into_iter()
+                .filter(|cut| *cut < len + Header::LEN)
+            {
                 let (mut c, mut peer) = rx_pair();
                 let (mut other, mut other_peer) = rx_pair();
                 let frame = rx_frame(17, len);
                 peer.write_all(&frame[..cut]).unwrap();
                 assert!(rx_round(&mut c, &mut rx).is_empty());
-                let expected = if len + Header::LEN > RX_SIZE && cut >= PREFIX_LEN { 0 } else { cut };
+                let expected = if len + Header::LEN > RX_SIZE && cut >= PREFIX_LEN {
+                    0
+                } else {
+                    cut
+                };
                 assert_eq!(c.rx.len(), expected);
                 assert_eq!(c.rx.capacity(), expected);
                 let other_frame = rx_frame(29, 36);
@@ -593,9 +667,17 @@ mod tests {
     #[test]
     fn stack_rx_batches_cross_buffer_boundaries_and_eof() {
         let mut rx = [0u8; RX_SIZE];
-        for lengths in [vec![4; 700], vec![4088, 4089, 4, 8192, 28], vec![4000, 192, 4]] {
+        for lengths in [
+            vec![4; 700],
+            vec![4088, 4089, 4, 8192, 28],
+            vec![4000, 192, 4],
+        ] {
             let (mut c, mut peer) = rx_pair();
-            let frames: Vec<_> = lengths.into_iter().enumerate().map(|(i, n)| rx_frame(i as u16, n)).collect();
+            let frames: Vec<_> = lengths
+                .into_iter()
+                .enumerate()
+                .map(|(i, n)| rx_frame(i as u16, n))
+                .collect();
             let stream = frames.concat();
             let writer = std::thread::spawn(move || {
                 peer.write_all(&stream).unwrap();
@@ -609,7 +691,9 @@ mod tests {
             }
             writer.join().unwrap();
             assert_eq!(got.len(), frames.len());
-            for (msg, frame) in got.iter().zip(&frames) { assert_frame(msg, frame); }
+            for (msg, frame) in got.iter().zip(&frames) {
+                assert_frame(msg, frame);
+            }
             assert_eq!(c.rx.capacity(), 0);
         }
     }
@@ -635,14 +719,22 @@ mod tests {
     fn stack_rx_rejects_bad_lengths_after_fragmented_prefix() {
         for raw_len in [0, 1, 3, MAX_MSGLEN + 1] {
             let (mut c, mut peer) = rx_pair();
-            let mut frame = Header { ty: ty::DATA, seq: 0, peer: 0 }.encode().to_vec();
+            let mut frame = Header {
+                ty: ty::DATA,
+                seq: 0,
+                peer: 0,
+            }
+            .encode()
+            .to_vec();
             frame.extend_from_slice(&(raw_len as u32).to_be_bytes());
             let mut rx = [0u8; RX_SIZE];
             peer.write_all(&frame[..7]).unwrap();
             assert!(rx_round(&mut c, &mut rx).is_empty());
             peer.write_all(&frame[7..]).unwrap();
             c.begin_read(&mut rx);
-            assert!(matches!(c.read_message(&mut rx), Err(e) if e.kind() == io::ErrorKind::InvalidData));
+            assert!(
+                matches!(c.read_message(&mut rx), Err(e) if e.kind() == io::ErrorKind::InvalidData)
+            );
         }
     }
 
@@ -659,9 +751,17 @@ mod tests {
             let (sent, mut witness) = UnixStream::pair().unwrap();
             if fd_on_second {
                 peer.write_all(&first).unwrap();
-                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &second, &[], Some(sent.as_raw_fd())).unwrap(), second.len());
+                assert_eq!(
+                    sys::sendmsg_two(peer.as_raw_fd(), &second, &[], Some(sent.as_raw_fd()))
+                        .unwrap(),
+                    second.len()
+                );
             } else {
-                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &first, &second, Some(sent.as_raw_fd())).unwrap(), first.len() + second.len());
+                assert_eq!(
+                    sys::sendmsg_two(peer.as_raw_fd(), &first, &second, Some(sent.as_raw_fd()))
+                        .unwrap(),
+                    first.len() + second.len()
+                );
             }
             drop(sent);
             let mut rx = [0; RX_SIZE];
@@ -672,12 +772,16 @@ mod tests {
             assert_eq!([got[0].fd.is_some(), got[1].fd.is_some()], [false, true]);
             let mut received = UnixStream::from(got[1].fd.take().unwrap());
             witness.write_all(b"x").unwrap();
-            received.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            received
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
             let mut byte = [0];
             received.read_exact(&mut byte).unwrap();
             assert_eq!(byte, *b"x");
             drop(received);
-            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            witness
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
             assert_eq!(witness.read(&mut byte).unwrap(), 0);
         }
     }
@@ -705,9 +809,20 @@ mod tests {
                 }
                 let (sent, mut witness) = UnixStream::pair().unwrap();
                 let tail = if bundle_next { second.as_slice() } else { &[] };
-                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &first[PREFIX_LEN..], tail, Some(sent.as_raw_fd())).unwrap(), first.len() - PREFIX_LEN + tail.len());
+                assert_eq!(
+                    sys::sendmsg_two(
+                        peer.as_raw_fd(),
+                        &first[PREFIX_LEN..],
+                        tail,
+                        Some(sent.as_raw_fd())
+                    )
+                    .unwrap(),
+                    first.len() - PREFIX_LEN + tail.len()
+                );
                 drop(sent);
-                if !bundle_next { peer.write_all(&second).unwrap(); }
+                if !bundle_next {
+                    peer.write_all(&second).unwrap();
+                }
                 got.extend(rx_round(&mut c, &mut rx));
                 assert_eq!(got.len(), 2);
                 assert_frame(&got[0], &first);
@@ -724,7 +839,9 @@ mod tests {
                     assert_eq!(msg.fd.is_some(), owner == Some(i));
                 }
                 drop(got);
-                witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+                witness
+                    .set_read_timeout(Some(Duration::from_secs(3)))
+                    .unwrap();
                 assert_eq!(witness.read(&mut [0]).unwrap(), 0);
             }
         }
@@ -737,25 +854,46 @@ mod tests {
         let frame = rx_frame(103, 24);
         let (first, mut first_witness) = UnixStream::pair().unwrap();
         let (second, mut second_witness) = UnixStream::pair().unwrap();
-        assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[..7], &[], Some(first.as_raw_fd())).unwrap(), 7);
-        assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[7..11], &[], Some(second.as_raw_fd())).unwrap(), 4);
-        assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[11..], &[], None).unwrap(), frame.len() - 11);
+        assert_eq!(
+            sys::sendmsg_two(peer.as_raw_fd(), &frame[..7], &[], Some(first.as_raw_fd())).unwrap(),
+            7
+        );
+        assert_eq!(
+            sys::sendmsg_two(
+                peer.as_raw_fd(),
+                &frame[7..11],
+                &[],
+                Some(second.as_raw_fd())
+            )
+            .unwrap(),
+            4
+        );
+        assert_eq!(
+            sys::sendmsg_two(peer.as_raw_fd(), &frame[11..], &[], None).unwrap(),
+            frame.len() - 11
+        );
         drop(first);
         drop(second);
         let mut rx = [0; RX_SIZE];
         let mut got = Vec::new();
-        for _ in 0..4 { got.extend(rx_round(&mut c, &mut rx)); }
+        for _ in 0..4 {
+            got.extend(rx_round(&mut c, &mut rx));
+        }
         assert_eq!(got.len(), 1);
         assert_frame(&got[0], &frame);
         let mut received = UnixStream::from(got[0].fd.take().unwrap());
         first_witness.write_all(b"y").unwrap();
-        received.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+        received
+            .set_read_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
         let mut byte = [0];
         received.read_exact(&mut byte).unwrap();
         assert_eq!(byte, *b"y");
         drop(received);
         for witness in [&mut first_witness, &mut second_witness] {
-            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            witness
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
             assert_eq!(witness.read(&mut byte).unwrap(), 0);
         }
     }
@@ -770,7 +908,11 @@ mod tests {
             let tail = rx_frame(2, 64);
             peer.write_all(&prefix).unwrap();
             let (sent, mut witness) = UnixStream::pair().unwrap();
-            assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &tail[..cut], &[], Some(sent.as_raw_fd())).unwrap(), cut);
+            assert_eq!(
+                sys::sendmsg_two(peer.as_raw_fd(), &tail[..cut], &[], Some(sent.as_raw_fd()))
+                    .unwrap(),
+                cut
+            );
             drop(sent);
             let got = rx_round(&mut c, &mut rx);
             assert_eq!(got.len(), 1);
@@ -784,12 +926,16 @@ mod tests {
             assert_frame(&got[0], &tail);
             let mut received = UnixStream::from(got[0].fd.take().unwrap());
             witness.write_all(b"x").unwrap();
-            received.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            received
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
             let mut byte = [0];
             received.read_exact(&mut byte).unwrap();
             assert_eq!(byte, *b"x");
             drop(received);
-            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            witness
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
             assert_eq!(witness.read(&mut byte).unwrap(), 0);
         }
     }
@@ -803,13 +949,23 @@ mod tests {
                 let (mut c, mut peer) = rx_pair();
                 let frame = rx_frame(8, 8192);
                 let (sent, mut witness) = UnixStream::pair().unwrap();
-                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[..cut], &[], Some(sent.as_raw_fd())).unwrap(), cut);
+                assert_eq!(
+                    sys::sendmsg_two(peer.as_raw_fd(), &frame[..cut], &[], Some(sent.as_raw_fd()))
+                        .unwrap(),
+                    cut
+                );
                 drop(sent);
                 assert!(rx_round(&mut c, &mut rx).is_empty());
-                if finish { peer.write_all(&frame[cut..]).unwrap(); }
+                if finish {
+                    peer.write_all(&frame[cut..]).unwrap();
+                }
                 drop(peer);
                 let mut got = Vec::new();
-                for _ in 0..5 { if !c.eof { got.extend(rx_round(&mut c, &mut rx)); } }
+                for _ in 0..5 {
+                    if !c.eof {
+                        got.extend(rx_round(&mut c, &mut rx));
+                    }
+                }
                 assert!(c.eof);
                 assert_eq!(got.len(), usize::from(finish));
                 if finish {
@@ -818,7 +974,9 @@ mod tests {
                 }
                 drop(got);
                 drop(c);
-                witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+                witness
+                    .set_read_timeout(Some(Duration::from_secs(3)))
+                    .unwrap();
                 assert_eq!(witness.read(&mut [0]).unwrap(), 0);
             }
         }
@@ -831,16 +989,34 @@ mod tests {
                 let (mut combined, _combined_peer) = rx_pair();
                 let (mut separate, _separate_peer) = rx_pair();
                 for client in [&mut combined, &mut separate] {
-                    client.enqueue(OutMsg::new(ty::DATA, 10, 20, vec![0; MAX_MSGLEN - room - Header::LEN]));
+                    client.enqueue(OutMsg::new(
+                        ty::DATA,
+                        10,
+                        20,
+                        vec![0; MAX_MSGLEN - room - Header::LEN],
+                    ));
                 }
-                let header = Header { ty: ty::DATA, seq: 11, peer: 21 };
+                let header = Header {
+                    ty: ty::DATA,
+                    seq: 11,
+                    peer: 21,
+                };
                 let mut blob = vec![0x5a; blob_len];
                 blob[..4].copy_from_slice(&(blob_len as u32).to_be_bytes());
                 combined.send_data_status_reply(header, &blob);
                 separate.send_borrowed(header, &blob, None);
-                separate.send_borrowed(Header { ty: ty::STATUS, ..header }, &[0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0], None);
-                assert_eq!((combined.txq_len, combined.txq_ofs, combined.tx.len()),
-                           (separate.txq_len, separate.txq_ofs, separate.tx.len()));
+                separate.send_borrowed(
+                    Header {
+                        ty: ty::STATUS,
+                        ..header
+                    },
+                    &[0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0],
+                    None,
+                );
+                assert_eq!(
+                    (combined.txq_len, combined.txq_ofs, combined.tx.len()),
+                    (separate.txq_len, separate.txq_ofs, separate.tx.len())
+                );
                 for (actual, wanted) in combined.tx.iter().zip(&separate.tx) {
                     assert_eq!(actual.header.encode(), wanted.header.encode());
                     assert_eq!(actual.blob, wanted.blob);
@@ -856,15 +1032,30 @@ mod tests {
             let (sock, mut peer) = UnixStream::pair().unwrap();
             sock.set_nonblocking(true).unwrap();
             peer.set_nonblocking(true).unwrap();
-            let mut c = Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new());
+            let mut c = Client::new(
+                sock.into(),
+                sys::Ucred::default(),
+                String::new(),
+                String::new(),
+            );
             let mut expected = Vec::new();
             for (seq, len) in [(0xfffe, size), (0xffff, 28)] {
-                let header = Header { ty: ty::DATA, seq, peer: 0x87654321 };
+                let header = Header {
+                    ty: ty::DATA,
+                    seq,
+                    peer: 0x87654321,
+                };
                 let mut blob = vec![0x5a; len];
                 blob[..4].copy_from_slice(&(len as u32).to_be_bytes());
                 expected.extend_from_slice(&header.encode());
                 expected.extend_from_slice(&blob);
-                expected.extend_from_slice(&Header { ty: ty::STATUS, ..header }.encode());
+                expected.extend_from_slice(
+                    &Header {
+                        ty: ty::STATUS,
+                        ..header
+                    }
+                    .encode(),
+                );
                 let mut status = BlobBuf::new();
                 status.put_u32(attr::STATUS, 0);
                 expected.extend_from_slice(status.as_bytes());
@@ -889,7 +1080,10 @@ mod tests {
                 }
                 assert!(c.flush());
             }
-            assert_eq!(got, expected, "DATA followed by STATUS, then the next reply");
+            assert_eq!(
+                got, expected,
+                "DATA followed by STATUS, then the next reply"
+            );
             assert_eq!(c.txq_len, 0);
             assert_eq!(c.txq_ofs, 0);
             assert!(matches!(peer.read(&mut buf), Err(e) if would_block(&e)));
@@ -902,7 +1096,12 @@ mod tests {
             let (sock, mut peer) = UnixStream::pair().unwrap();
             sock.set_nonblocking(true).unwrap();
             peer.set_nonblocking(true).unwrap();
-            let mut c = Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new());
+            let mut c = Client::new(
+                sock.into(),
+                sys::Ucred::default(),
+                String::new(),
+                String::new(),
+            );
             let mut expected = Vec::new();
             let mut got = Vec::new();
             if mode == 1 {
@@ -921,7 +1120,11 @@ mod tests {
                 let n = peer.read(&mut buf).unwrap();
                 got.extend_from_slice(&buf[..n]);
             } else if mode == 2 {
-                let header = Header { ty: ty::DATA, seq: 9, peer: 0 };
+                let header = Header {
+                    ty: ty::DATA,
+                    seq: 9,
+                    peer: 0,
+                };
                 let mut blob = vec![0x33; MAX_MSGLEN];
                 blob[..4].copy_from_slice(&(MAX_MSGLEN as u32).to_be_bytes());
                 expected.extend_from_slice(&header.encode());
@@ -931,7 +1134,11 @@ mod tests {
             }
             let mut batch = Vec::new();
             for i in 0..128 {
-                let header = Header { ty: ty::DATA, seq: 10, peer: 0 };
+                let header = Header {
+                    ty: ty::DATA,
+                    seq: 10,
+                    peer: 0,
+                };
                 let mut blob = BlobBuf::new();
                 blob.put_string(attr::OBJPATH, &format!("object{i:04}"));
                 blob.put_u32(attr::OBJID, i);
@@ -940,7 +1147,14 @@ mod tests {
             }
             let mut status = BlobBuf::new();
             status.put_u32(attr::STATUS, 0);
-            batch.extend_from_slice(&Header { ty: ty::STATUS, seq: 10, peer: 0 }.encode());
+            batch.extend_from_slice(
+                &Header {
+                    ty: ty::STATUS,
+                    seq: 10,
+                    peer: 0,
+                }
+                .encode(),
+            );
             batch.extend_from_slice(status.as_bytes());
             expected.extend_from_slice(&batch);
             c.send_lookup_batch(&batch);
@@ -986,7 +1200,10 @@ mod tests {
         sock.set_nonblocking(true).unwrap();
         peer.set_nonblocking(true).unwrap();
         let actual_buf = set_send_buffer(&sock, 4096) as usize;
-        assert!(actual_buf >= 1024, "unexpectedly small send buffer: {actual_buf}");
+        assert!(
+            actual_buf >= 1024,
+            "unexpectedly small send buffer: {actual_buf}"
+        );
 
         // Put one or two complete frames before the partial frame, followed
         // by another queued frame. Both cases must preserve the partial
@@ -998,7 +1215,13 @@ mod tests {
             let blob_len = total - Header::LEN;
             let mut blob = vec![seq as u8; blob_len];
             blob[..4].copy_from_slice(&(blob_len as u32).to_be_bytes());
-            let mut out = Header { ty: ty::DATA, seq, peer: 0xfeed_beef }.encode().to_vec();
+            let mut out = Header {
+                ty: ty::DATA,
+                seq,
+                peer: 0xfeed_beef,
+            }
+            .encode()
+            .to_vec();
             out.extend_from_slice(&blob);
             out
         };
@@ -1011,10 +1234,24 @@ mod tests {
         batch.extend_from_slice(&frame(partial_seq + 1, partial_total));
         let expected = batch.clone();
 
-        let mut c = Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new());
+        let mut c = Client::new(
+            sock.into(),
+            sys::Ucred::default(),
+            String::new(),
+            String::new(),
+        );
         c.send_borrowed_batch(&batch);
-        assert_eq!(c.tx.len(), 2, "the direct write must queue one partial frame and the next frame");
-        assert!(c.txq_ofs > 0 && c.txq_ofs < partial_total, "offset must point inside frame {}: {}", complete_frames + 1, c.txq_ofs);
+        assert_eq!(
+            c.tx.len(),
+            2,
+            "the direct write must queue one partial frame and the next frame"
+        );
+        assert!(
+            c.txq_ofs > 0 && c.txq_ofs < partial_total,
+            "offset must point inside frame {}: {}",
+            complete_frames + 1,
+            c.txq_ofs
+        );
         assert_eq!(c.tx.front().unwrap().header.seq, partial_seq);
         assert_eq!(c.tx.back().unwrap().header.seq, partial_seq + 1);
         // Queued bytes must be owned even if the batch scratch is reused.
@@ -1033,7 +1270,10 @@ mod tests {
             }
             assert!(c.flush());
         }
-        assert_eq!(got, expected, "partial frame must precede the following queued frame");
+        assert_eq!(
+            got, expected,
+            "partial frame must precede the following queued frame"
+        );
         assert_eq!((c.txq_len, c.txq_ofs), (0, 0));
     }
 }

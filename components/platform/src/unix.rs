@@ -8,7 +8,11 @@ use std::process::Command;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
-pub struct PollFd { pub fd: i32, pub events: i16, pub revents: i16 }
+pub struct PollFd {
+    pub fd: i32,
+    pub events: i16,
+    pub revents: i16,
+}
 
 #[cfg(target_os = "macos")]
 type Nfds = u32;
@@ -30,7 +34,11 @@ pub fn poll_once(fds: &mut [PollFd], timeout: i32) -> io::Result<usize> {
     // SAFETY: initialized pollfd storage covers count entries exclusively for
     // this call. The kernel defines ignored/invalid FD slots; no FD is owned.
     let result = unsafe { system_poll(fds.as_mut_ptr(), count, timeout) };
-    if result < 0 { Err(io::Error::last_os_error()) } else { Ok(result as usize) }
+    if result < 0 {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok(result as usize)
+    }
 }
 
 pub fn poll_fds(fds: &mut [PollFd], timeout: i32) -> io::Result<usize> {
@@ -46,7 +54,9 @@ pub fn set_nonblocking(fd: i32) -> io::Result<()> {
     // SAFETY: these fixed fcntl operations only read/set scalar flags. An
     // invalid numeric slot yields EBADF and does not create an FD owner.
     let flags = unsafe { fcntl(fd, 3) };
-    if flags < 0 { return Err(io::Error::last_os_error()); }
+    if flags < 0 {
+        return Err(io::Error::last_os_error());
+    }
     // SAFETY: flags came from F_GETFL; the only added bit is O_NONBLOCK.
     if unsafe { fcntl(fd, 4, flags | rustix::fs::OFlags::NONBLOCK.bits() as i32) } < 0 {
         return Err(io::Error::last_os_error());
@@ -62,9 +72,15 @@ fn disposition(number: i32, handler: usize) -> io::Result<SignalDisposition> {
     // SAFETY: private callers supply only SIG_IGN, a typed fixed handler, or a
     // prior successful libc disposition. libc validates the scalar signal.
     let old = unsafe { signal(number, handler) };
-    if old == usize::MAX { Err(io::Error::last_os_error()) } else { Ok(SignalDisposition(old)) }
+    if old == usize::MAX {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok(SignalDisposition(old))
+    }
 }
-pub fn ignore_signal(number: i32) -> io::Result<SignalDisposition> { disposition(number, 1) }
+pub fn ignore_signal(number: i32) -> io::Result<SignalDisposition> {
+    disposition(number, 1)
+}
 pub fn restore_signal(number: i32, previous: SignalDisposition) -> io::Result<()> {
     disposition(number, previous.0).map(|_| ())
 }
@@ -92,7 +108,9 @@ pub unsafe fn set_signal_handler(number: i32, handler: extern "C" fn(i32)) -> io
 pub fn inherit_signal(command: &mut Command, number: i32, previous: SignalDisposition) {
     // SAFETY: the fixed hook only calls signal(2), with a libc-provided
     // disposition. It neither allocates nor invokes business Rust before exec.
-    unsafe { command.pre_exec(move || restore_signal(number, previous)); }
+    unsafe {
+        command.pre_exec(move || restore_signal(number, previous));
+    }
 }
 
 /// libc changes credentials process-wide, unlike raw per-thread Linux syscalls.
@@ -104,15 +122,23 @@ pub fn error_text(code: i32) -> String {
     // SAFETY: target musl returns a static terminated string; supported glibc
     // keeps unknown-error storage thread-local. Copy before the next call.
     let text = unsafe { strerror(code) };
-    if text.is_null() { String::new() } else {
+    if text.is_null() {
+        String::new()
+    } else {
         // SAFETY: non-null successful strerror output is terminated libc data.
-        unsafe { CStr::from_ptr(text) }.to_string_lossy().into_owned()
+        unsafe { CStr::from_ptr(text) }
+            .to_string_lossy()
+            .into_owned()
     }
 }
 pub fn read_fd(fd: i32, bytes: &mut [u8]) -> io::Result<usize> {
     // SAFETY: the exclusive slice bounds every kernel write, including EBADF.
     let result = unsafe { read(fd, bytes.as_mut_ptr(), bytes.len()) };
-    if result < 0 { Err(io::Error::last_os_error()) } else { Ok(result as usize) }
+    if result < 0 {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok(result as usize)
+    }
 }
 pub fn write_fd(fd: i32, bytes: &[u8]) -> isize {
     // SAFETY: initialized shared bytes remain live throughout write(2); no
@@ -121,7 +147,9 @@ pub fn write_fd(fd: i32, bytes: &[u8]) -> isize {
 }
 
 #[cfg(target_os = "linux")]
-unsafe extern "C" { fn __errno_location() -> *mut i32; }
+unsafe extern "C" {
+    fn __errno_location() -> *mut i32;
+}
 
 #[cfg(target_os = "linux")]
 /// Synchronous errno observation used by signal regression tests.
@@ -149,4 +177,3 @@ pub fn with_errno<R>(value: i32, action: impl FnOnce() -> R) -> (R, i32) {
     drop(restore);
     (result, observed)
 }
-

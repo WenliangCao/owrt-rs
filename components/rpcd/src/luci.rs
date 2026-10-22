@@ -36,7 +36,10 @@ const METHODS: &[(&str, &[(&str, MsgType)])] = {
 };
 
 pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
-    METHODS.iter().map(|(method, policy)| (*method, policy.to_vec())).collect()
+    METHODS
+        .iter()
+        .map(|(method, policy)| (*method, policy.to_vec()))
+        .collect()
 }
 
 // ----------------------------------------------------------- helpers
@@ -79,13 +82,22 @@ fn access(path: &str) -> bool {
 }
 /// ucode `access()` returns true or null.
 fn access_or_null(path: &str) -> Json {
-    if access(path) { Json::Bool(true) } else { Json::Null }
+    if access(path) {
+        Json::Bool(true)
+    } else {
+        Json::Null
+    }
 }
 fn shellquote(v: &str) -> String {
     format!("'{}'", v.replace('\'', "'\\''"))
 }
 fn system(cmd: &str) -> i32 {
-    Command::new("/bin/sh").arg("-c").arg(cmd).status().map(|st| st.code().unwrap_or(-1)).unwrap_or(-1)
+    Command::new("/bin/sh")
+        .arg("-c")
+        .arg(cmd)
+        .status()
+        .map(|st| st.code().unwrap_or(-1))
+        .unwrap_or(-1)
 }
 fn popen(cmd: &str) -> String {
     Command::new("/bin/sh")
@@ -114,8 +126,13 @@ fn unescape_octal(v: &str) -> String {
     let mut out = Vec::new();
     let mut i = 0;
     while i < b.len() {
-        if b[i] == b'\\' && i + 3 < b.len() && b[i + 1..].len() >= 3 && b[i + 1..i + 4].iter().all(|c| (b'0'..=b'7').contains(c)) {
-            let n = u8::from_str_radix(std::str::from_utf8(&b[i + 1..i + 4]).unwrap(), 8).unwrap_or(b'\\');
+        if b[i] == b'\\'
+            && i + 3 < b.len()
+            && b[i + 1..].len() >= 3
+            && b[i + 1..i + 4].iter().all(|c| (b'0'..=b'7').contains(c))
+        {
+            let n = u8::from_str_radix(std::str::from_utf8(&b[i + 1..i + 4]).unwrap(), 8)
+                .unwrap_or(b'\\');
             out.push(n);
             i += 4;
         } else {
@@ -131,7 +148,9 @@ fn unescape_octal(v: &str) -> String {
 /// ucode.so argument validation: every field must be in the policy with the
 /// declared type, except `ubus_rpc_session` (string).
 fn validate(method: &str, raw: &[u8]) -> Result<(), i32> {
-    let Some((_, policy)) = METHODS.iter().find(|(n, _)| *n == method) else { return Err(status::METHOD_NOT_FOUND) };
+    let Some((_, policy)) = METHODS.iter().find(|(n, _)| *n == method) else {
+        return Err(status::METHOD_NOT_FOUND);
+    };
     for f in blob::fields(raw) {
         match policy.iter().find(|(n, _)| *n == f.name) {
             Some((_, ty)) => {
@@ -156,7 +175,10 @@ fn init_list() -> Vec<String> {
         .into_iter()
         .filter(|p| {
             std::fs::metadata(p)
-                .map(|m| m.is_file() && (std::os::unix::fs::PermissionsExt::mode(&m.permissions()) & 0o100) != 0)
+                .map(|m| {
+                    m.is_file()
+                        && (std::os::unix::fs::PermissionsExt::mode(&m.permissions()) & 0o100) != 0
+                })
                 .unwrap_or(false)
         })
         .map(|p| basename(&p).to_owned())
@@ -182,16 +204,28 @@ fn init_index(name: &str) -> Option<(Option<i64>, Option<i64>)> {
             }
         }
     }
-    if found { Some((start, stop)) } else { None }
+    if found {
+        Some((start, stop))
+    } else {
+        None
+    }
 }
 
 fn init_enabled(name: &str) -> bool {
     let name = basename(name);
-    let Ok(s2) = std::fs::metadata(format!("/etc/init.d/{name}")) else { return false };
+    let Ok(s2) = std::fs::metadata(format!("/etc/init.d/{name}")) else {
+        return false;
+    };
     for path in glob::glob(&format!("/etc/rc.d/[SK][0-9][0-9]{name}")) {
-        let Ok(ln) = std::fs::read_link(&path) else { continue };
+        let Ok(ln) = std::fs::read_link(&path) else {
+            continue;
+        };
         let ln = ln.to_string_lossy().into_owned();
-        let target = if ln.starts_with('/') { ln } else { format!("/etc/rc.d/{ln}") };
+        let target = if ln.starts_with('/') {
+            ln
+        } else {
+            format!("/etc/rc.d/{ln}")
+        };
         if let Ok(s1) = std::fs::metadata(&target) {
             use std::os::unix::fs::{MetadataExt, PermissionsExt};
             if s1.ino() == s2.ino() && s1.is_file() && (s1.permissions().mode() & 0o100) != 0 {
@@ -208,7 +242,9 @@ fn init_action(name: &str, action: &str) -> Option<i32> {
     if !m.is_file() {
         return None;
     }
-    Some(system(&format!("env -i /etc/init.d/{name} {action} >/dev/null")))
+    Some(system(&format!(
+        "env -i /etc/init.d/{name} {action} >/dev/null"
+    )))
 }
 
 fn conntrack_list() -> Vec<Json> {
@@ -217,7 +253,10 @@ fn conntrack_list() -> Vec<Json> {
         for line in text.lines() {
             let mut it = line.split([' ', '\t']).filter(|p| !p.is_empty());
             if let (Some(name), Some(num)) = (it.next(), it.next()) {
-                if !name.starts_with('#') && num.bytes().all(|b| b.is_ascii_digit()) && !num.is_empty() {
+                if !name.starts_with('#')
+                    && num.bytes().all(|b| b.is_ascii_digit())
+                    && !num.is_empty()
+                {
                     protos.push((num.to_owned(), name.to_owned()));
                 }
             }
@@ -228,7 +267,9 @@ fn conntrack_list() -> Vec<Json> {
     let mut out = Vec::new();
     for line in text.split_inclusive('\n') {
         // ^(ipv[46]) +([0-9]+) +\S+ +([0-9]+)( +.+)\n$
-        let Some(line) = line.strip_suffix('\n') else { continue };
+        let Some(line) = line.strip_suffix('\n') else {
+            continue;
+        };
         let mut rest = line;
         let take = |rest: &mut &str| -> Option<String> {
             let t = rest.trim_start_matches(' ');
@@ -246,9 +287,15 @@ fn conntrack_list() -> Vec<Json> {
         }
         let fam = fam.as_str();
         let Some(l3) = take(&mut rest) else { continue };
-        let Some(_name) = take(&mut rest) else { continue };
+        let Some(_name) = take(&mut rest) else {
+            continue;
+        };
         let Some(l4) = take(&mut rest) else { continue };
-        if !l3.bytes().all(|b| b.is_ascii_digit()) || !l4.bytes().all(|b| b.is_ascii_digit()) || !rest.starts_with(' ') || rest.trim().is_empty() {
+        if !l3.bytes().all(|b| b.is_ascii_digit())
+            || !l4.bytes().all(|b| b.is_ascii_digit())
+            || !rest.starts_with(' ')
+            || rest.trim().is_empty()
+        {
             continue;
         }
         let mut tuples = rest;
@@ -264,7 +311,11 @@ fn conntrack_list() -> Vec<Json> {
         if tuples.contains("TIME_WAIT") {
             continue;
         }
-        let layer4 = protos.iter().find(|(n, _)| *n == l4).map(|(_, p)| p.clone()).unwrap_or_else(|| "unknown".into());
+        let layer4 = protos
+            .iter()
+            .find(|(n, _)| *n == l4)
+            .map(|(_, p)| p.clone())
+            .unwrap_or_else(|| "unknown".into());
         let mut e: Vec<(String, Json)> = vec![
             ("bytes".into(), Json::Int(0)),
             ("packets".into(), Json::Int(0)),
@@ -280,13 +331,19 @@ fn conntrack_list() -> Vec<Json> {
             }
         };
         for tok in tuples.split(' ').filter(|t| !t.is_empty()) {
-            let Some((k, v)) = tok.split_once('=') else { continue };
+            let Some((k, v)) = tok.split_once('=') else {
+                continue;
+            };
             if k.is_empty() || !k.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_') {
                 continue;
             }
             match k {
                 "bytes" | "packets" => {
-                    let cur = e.iter().find(|(key, _)| key == k).and_then(|(_, v)| if let Json::Int(i) = v { Some(*i) } else { None }).unwrap_or(0);
+                    let cur = e
+                        .iter()
+                        .find(|(key, _)| key == k)
+                        .and_then(|(_, v)| if let Json::Int(i) = v { Some(*i) } else { None })
+                        .unwrap_or(0);
                     let add = v.parse::<i64>().unwrap_or(0);
                     set(&mut e, k, Json::Int(cur + add));
                 }
@@ -325,14 +382,22 @@ fn process_list() -> Vec<Json> {
             while *pos < b.len() && b[*pos] != b' ' {
                 *pos += 1;
             }
-            if start == *pos { None } else { Some((start, *pos)) }
+            if start == *pos {
+                None
+            } else {
+                Some((start, *pos))
+            }
         };
-        let Some((ps, pe)) = token(&mut pos) else { continue };
+        let Some((ps, pe)) = token(&mut pos) else {
+            continue;
+        };
         let pid = &line[ps..pe];
         if !pid.bytes().all(|c| c.is_ascii_digit()) {
             continue;
         }
-        let Some((qs, qe)) = token(&mut pos) else { continue };
+        let Some((qs, qe)) = token(&mut pos) else {
+            continue;
+        };
         let ppid = &line[qs..qe];
         if !ppid.bytes().all(|c| c.is_ascii_digit()) {
             continue;
@@ -342,10 +407,19 @@ fn process_list() -> Vec<Json> {
         let mut parsed = None;
         let mut i = pos;
         while i + 3 <= b.len() {
-            if b[i] != b' ' && i > 0 && b[i - 1] == b' ' && b"RSDZTWI".contains(&b[i]) && b"<NW ".contains(&b[i + 1]) && b"<N ".contains(&b[i + 2]) {
+            if b[i] != b' '
+                && i > 0
+                && b[i - 1] == b' '
+                && b"RSDZTWI".contains(&b[i])
+                && b"<NW ".contains(&b[i + 1])
+                && b"<N ".contains(&b[i + 2])
+            {
                 let stat = &line[i..i + 3];
                 let mut p2 = i + 3;
-                if p2 < b.len() && b[p2] != b' ' { i += 1; continue; }
+                if p2 < b.len() && b[p2] != b' ' {
+                    i += 1;
+                    continue;
+                }
                 let vsz = token(&mut p2);
                 let mem = token(&mut p2);
                 let cpu = token(&mut p2);
@@ -353,21 +427,39 @@ fn process_list() -> Vec<Json> {
                     let vsz = &line[a..a2];
                     let mem = &line[m..m2];
                     let cpu = &line[c..c2];
-                    let vsz_ok = vsz.strip_suffix('m').unwrap_or(vsz).bytes().all(|x| x.is_ascii_digit()) && !vsz.is_empty();
-                    let pct = |t: &str| t.strip_suffix('%').map(|d| !d.is_empty() && d.bytes().all(|x| x.is_ascii_digit())).unwrap_or(false);
+                    let vsz_ok = vsz
+                        .strip_suffix('m')
+                        .unwrap_or(vsz)
+                        .bytes()
+                        .all(|x| x.is_ascii_digit())
+                        && !vsz.is_empty();
+                    let pct = |t: &str| {
+                        t.strip_suffix('%')
+                            .map(|d| !d.is_empty() && d.bytes().all(|x| x.is_ascii_digit()))
+                            .unwrap_or(false)
+                    };
                     while p2 < b.len() && b[p2] == b' ' {
                         p2 += 1;
                     }
                     if vsz_ok && pct(mem) && pct(cpu) && p2 < b.len() {
                         let user = trim(&line[pos..i]);
-                        parsed = Some((user.to_owned(), stat.to_owned(), vsz.to_owned(), mem.to_owned(), cpu.to_owned(), line[p2..].to_owned()));
+                        parsed = Some((
+                            user.to_owned(),
+                            stat.to_owned(),
+                            vsz.to_owned(),
+                            mem.to_owned(),
+                            cpu.to_owned(),
+                            line[p2..].to_owned(),
+                        ));
                         break;
                     }
                 }
             }
             i += 1;
         }
-        let Some((user, stat, vsz, mem, cpu, command)) = parsed else { continue };
+        let Some((user, stat, vsz, mem, cpu, command)) = parsed else {
+            continue;
+        };
         if command == "/bin/busybox top -bn1" {
             continue;
         }
@@ -390,11 +482,16 @@ fn process_list() -> Vec<Json> {
 fn get_version() -> Json {
     let text = readfile("/usr/share/ucode/luci/version.uc").unwrap_or_default();
     let grab = |key: &str| -> Json {
-        let Some(i) = text.find(&format!("{key} = '")) else { return Json::Null };
+        let Some(i) = text.find(&format!("{key} = '")) else {
+            return Json::Null;
+        };
         let rest = &text[i + key.len() + 4..];
         rest.find('\'').map(|e| s(&rest[..e])).unwrap_or(Json::Null)
     };
-    obj(vec![("revision", grab("revision")), ("branch", grab("branch"))])
+    obj(vec![
+        ("revision", grab("revision")),
+        ("branch", grab("branch")),
+    ])
 }
 
 fn get_init_list(args: &Json) -> Json {
@@ -411,13 +508,27 @@ fn get_init_list(args: &Json) -> Json {
         scripts.push((
             name,
             obj(vec![
-                ("index", idx.and_then(|(a, _)| a).map(Json::Int).unwrap_or(Json::Null)),
-                ("stop", idx.and_then(|(_, b)| b).map(Json::Int).unwrap_or(Json::Null)),
+                (
+                    "index",
+                    idx.and_then(|(a, _)| a)
+                        .map(Json::Int)
+                        .unwrap_or(Json::Null),
+                ),
+                (
+                    "stop",
+                    idx.and_then(|(_, b)| b)
+                        .map(Json::Int)
+                        .unwrap_or(Json::Null),
+                ),
                 ("enabled", Json::Bool(enabled)),
             ]),
         ));
     }
-    if scripts.is_empty() { error("No such init script") } else { Json::Object(scripts) }
+    if scripts.is_empty() {
+        error("No such init script")
+    } else {
+        Json::Object(scripts)
+    }
 }
 
 fn set_init_action(args: &Json) -> Json {
@@ -451,7 +562,12 @@ fn set_localtime(args: &Json) -> Json {
     if let Some(tm) = owrt_platform::rpcd::localtime(provided) {
         system(&format!(
             "date -s \"{:04}-{:02}-{:02} {:02}:{:02}:{:02}\" >/dev/null",
-            tm.year + 1900, tm.mon + 1, tm.mday, tm.hour, tm.min, tm.sec
+            tm.year + 1900,
+            tm.mon + 1,
+            tm.mday,
+            tm.hour,
+            tm.min,
+            tm.sec
         ));
         system("/etc/init.d/sysfixtime restart >/dev/null");
     }
@@ -470,7 +586,9 @@ fn get_timezones() -> Json {
     let mut out: Vec<(String, Json)> = Vec::new();
     for line in text.lines() {
         let t = trim(line);
-        let Some(rest) = t.strip_prefix('\'') else { continue };
+        let Some(rest) = t.strip_prefix('\'') else {
+            continue;
+        };
         let Some(q) = rest.find('\'') else { continue };
         let zone = &rest[..q];
         let after = &rest[q + 1..];
@@ -489,7 +607,11 @@ fn get_timezones() -> Json {
 
 fn lsdir(path: &str) -> Vec<String> {
     let mut v: Vec<String> = std::fs::read_dir(path)
-        .map(|rd| rd.flatten().map(|e| e.file_name().to_string_lossy().into_owned()).collect())
+        .map(|rd| {
+            rd.flatten()
+                .map(|e| e.file_name().to_string_lossy().into_owned())
+                .collect()
+        })
         .unwrap_or_default();
     v.sort();
     v
@@ -515,8 +637,14 @@ fn get_leds() -> Json {
         if let Some(a) = active {
             o.push(("active_trigger", Json::Str(a)));
         }
-        o.push(("brightness", num(readfile(&format!("/sys/class/leds/{led}/brightness")).as_deref())));
-        o.push(("max_brightness", num(readfile(&format!("/sys/class/leds/{led}/max_brightness")).as_deref())));
+        o.push((
+            "brightness",
+            num(readfile(&format!("/sys/class/leds/{led}/brightness")).as_deref()),
+        ));
+        o.push((
+            "max_brightness",
+            num(readfile(&format!("/sys/class/leds/{led}/max_brightness")).as_deref()),
+        ));
         out.push((led, obj(o)));
     }
     Json::Object(out)
@@ -529,23 +657,43 @@ fn get_usb_devices() -> Json {
         let rf = |f: &str| readfile(&format!("/sys/bus/usb/devices/{id}/{f}"));
         devices.push(obj(vec![
             ("id", s(&id)),
-            ("vid", rf("idVendor").map(|v| s(trim(&v))).unwrap_or(Json::Null)),
-            ("pid", rf("idProduct").map(|v| s(trim(&v))).unwrap_or(Json::Null)),
-            ("vendor", readfile(&path).map(|v| s(trim(&v))).unwrap_or(Json::Null)),
-            ("product", rf("product").map(|v| s(trim(&v))).unwrap_or(Json::Null)),
+            (
+                "vid",
+                rf("idVendor").map(|v| s(trim(&v))).unwrap_or(Json::Null),
+            ),
+            (
+                "pid",
+                rf("idProduct").map(|v| s(trim(&v))).unwrap_or(Json::Null),
+            ),
+            (
+                "vendor",
+                readfile(&path).map(|v| s(trim(&v))).unwrap_or(Json::Null),
+            ),
+            (
+                "product",
+                rf("product").map(|v| s(trim(&v))).unwrap_or(Json::Null),
+            ),
             ("speed", num(rf("speed").as_deref())),
         ]));
     }
     let mut ports = Vec::new();
     for path in glob::glob("/sys/bus/usb/devices/*/*-port[0-9]*") {
         let port = basename(&path).to_owned();
-        let link = std::fs::read_link(format!("{path}/device")).ok().map(|l| l.to_string_lossy().into_owned());
+        let link = std::fs::read_link(format!("{path}/device"))
+            .ok()
+            .map(|l| l.to_string_lossy().into_owned());
         ports.push(obj(vec![
             ("port", Json::Str(port)),
-            ("device", link.map(|l| s(basename(&l))).unwrap_or(Json::Null)),
+            (
+                "device",
+                link.map(|l| s(basename(&l))).unwrap_or(Json::Null),
+            ),
         ]));
     }
-    obj(vec![("devices", Json::Array(devices)), ("ports", Json::Array(ports))])
+    obj(vec![
+        ("devices", Json::Array(devices)),
+        ("ports", Json::Array(ports)),
+    ])
 }
 
 fn get_conntrack_helpers() -> Json {
@@ -562,8 +710,15 @@ fn get_conntrack_helpers() -> Json {
         for sec in ctx.root[pidx].sections.iter().filter(|s| s.ty == "helper") {
             let g = |k: &str| match sec.find_option(k) {
                 Some(i) => match &sec.options[i].value {
-                    owrt_uci::OptionValue::Str(v) => Json::Str(String::from_utf8_lossy(v).into_owned()),
-                    owrt_uci::OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(String::from_utf8_lossy(v).into_owned())).collect()),
+                    owrt_uci::OptionValue::Str(v) => {
+                        Json::Str(String::from_utf8_lossy(v).into_owned())
+                    }
+                    owrt_uci::OptionValue::List(items) => Json::Array(
+                        items
+                            .iter()
+                            .map(|v| Json::Str(String::from_utf8_lossy(v).into_owned()))
+                            .collect(),
+                    ),
                 },
                 None => Json::Null,
             };
@@ -587,34 +742,79 @@ fn get_features() -> Json {
         ("opkg".into(), Json::Bool(access("/bin/opkg"))),
         ("bonding".into(), access_or_null("/sys/module/bonding")),
         ("mii_tool".into(), access_or_null("/usr/sbin/mii-tool")),
-        ("offloading".into(), Json::Bool(access("/sys/module/xt_FLOWOFFLOAD/refcnt") || access("/sys/module/nft_flow_offload/refcnt"))),
-        ("br2684ctl".into(), Json::Bool(access("/usr/sbin/br2684ctl"))),
+        (
+            "offloading".into(),
+            Json::Bool(
+                access("/sys/module/xt_FLOWOFFLOAD/refcnt")
+                    || access("/sys/module/nft_flow_offload/refcnt"),
+            ),
+        ),
+        (
+            "br2684ctl".into(),
+            Json::Bool(access("/usr/sbin/br2684ctl")),
+        ),
         ("swconfig".into(), Json::Bool(access("/sbin/swconfig"))),
         ("zram".into(), Json::Bool(access("/sys/class/zram-control"))),
-        ("sysntpd".into(), Json::Bool(std::fs::read_link("/usr/sbin/ntpd").is_ok())),
+        (
+            "sysntpd".into(),
+            Json::Bool(std::fs::read_link("/usr/sbin/ntpd").is_ok()),
+        ),
         ("ipv6".into(), Json::Bool(access("/proc/net/ipv6_route"))),
         ("dropbear".into(), Json::Bool(access("/usr/sbin/dropbear"))),
-        ("cabundle".into(), Json::Bool(access("/etc/ssl/certs/ca-certificates.crt"))),
+        (
+            "cabundle".into(),
+            Json::Bool(access("/etc/ssl/certs/ca-certificates.crt")),
+        ),
         ("relayd".into(), Json::Bool(access("/usr/sbin/relayd"))),
         ("apk".into(), Json::Bool(access("/usr/bin/apk"))),
         ("wifi".into(), Json::Bool(access("/sbin/wifi"))),
         ("ufpd".into(), Json::Bool(access("/usr/sbin/ufpd"))),
         ("vrf".into(), Json::Bool(access("/sys/module/vrf/refcnt"))),
         ("netifd_vrf".into(), Json::Bool(false)),
-        ("mptcp".into(), access_or_null("/proc/sys/net/mptcp/enabled")),
+        (
+            "mptcp".into(),
+            access_or_null("/proc/sys/net/mptcp/enabled"),
+        ),
     ];
-    let wifi_features = ["11ac", "11ax", "11be", "11r", "acs", "eap", "mesh", "ocv", "owe", "sae", "suiteb192", "wep", "wps"];
-    for (key, bin, cli) in [("hostapd", "/usr/sbin/hostapd", "/usr/sbin/hostapd_cli"), ("wpasupplicant", "/usr/sbin/wpa_supplicant", "/usr/sbin/wpa_cli")] {
+    let wifi_features = [
+        "11ac",
+        "11ax",
+        "11be",
+        "11r",
+        "acs",
+        "eap",
+        "mesh",
+        "ocv",
+        "owe",
+        "sae",
+        "suiteb192",
+        "wep",
+        "wps",
+    ];
+    for (key, bin, cli) in [
+        ("hostapd", "/usr/sbin/hostapd", "/usr/sbin/hostapd_cli"),
+        (
+            "wpasupplicant",
+            "/usr/sbin/wpa_supplicant",
+            "/usr/sbin/wpa_cli",
+        ),
+    ] {
         if access(bin) {
             let mut o = vec![("cli".to_owned(), Json::Bool(access(cli)))];
             for f in wifi_features {
-                o.push((f.to_owned(), Json::Bool(system(&format!("{bin} -v{f} >/dev/null 2>/dev/null")) == 0)));
+                o.push((
+                    f.to_owned(),
+                    Json::Bool(system(&format!("{bin} -v{f} >/dev/null 2>/dev/null")) == 0),
+                ));
             }
             r.push((key.into(), Json::Object(o)));
         }
     }
     let dns = popen("dnsmasq --version 2>/dev/null");
-    if let Some(line) = dns.lines().find_map(|l| l.strip_prefix("Compile time options: ")) {
+    if let Some(line) = dns
+        .lines()
+        .find_map(|l| l.strip_prefix("Compile time options: "))
+    {
         let mut o: Vec<(String, Json)> = Vec::new();
         for opt in line.split(' ').filter(|o| !o.is_empty()) {
             let f = opt.strip_prefix("no-").unwrap_or(opt);
@@ -641,10 +841,15 @@ fn get_features() -> Json {
     // Check bytes before slicing: a malformed year such as "20中" must
     // return false without splitting a character and panicking. The exact
     // ucode regexp also finds a package line after a preceding notice.
-    let vrf = apk.lines().find_map(|line| line.strip_prefix("netifd-"))
+    let vrf = apk
+        .lines()
+        .find_map(|line| line.strip_prefix("netifd-"))
         .and_then(|v| v.as_bytes().get(..4))
-        .is_some_and(|year| year.starts_with(b"20") && year.iter().all(u8::is_ascii_digit)
-            && year >= b"2025".as_slice());
+        .is_some_and(|year| {
+            year.starts_with(b"20")
+                && year.iter().all(u8::is_ascii_digit)
+                && year >= b"2025".as_slice()
+        });
     if let Some(slot) = r.iter_mut().find(|(k, _)| k == "netifd_vrf") {
         slot.1 = Json::Bool(vrf);
     }
@@ -660,8 +865,14 @@ fn get_features() -> Json {
             if t.len() == line.len() {
                 continue;
             }
-            let Some((name, rest)) = t.split_once('\t') else { continue };
-            if name.is_empty() || !name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b':' || b == b',') {
+            let Some((name, rest)) = t.split_once('\t') else {
+                continue;
+            };
+            if name.is_empty()
+                || !name
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b':' || b == b',')
+            {
                 continue;
             }
             let rest = rest.trim_start_matches('\t');
@@ -684,7 +895,11 @@ fn first_group<'a>(line: &'a str, prefix: &str, stop: &[char]) -> Option<&'a str
     let i = line.find(prefix)?;
     let rest = &line[i + prefix.len()..];
     let end = rest.find(|c: char| stop.contains(&c)).unwrap_or(rest.len());
-    if end == 0 { None } else { Some(&rest[..end]) }
+    if end == 0 {
+        None
+    } else {
+        Some(&rest[..end])
+    }
 }
 
 fn get_swconfig_features(args: &Json) -> Json {
@@ -692,7 +907,11 @@ fn get_swconfig_features(args: &Json) -> Json {
     let out = popen(&format!("swconfig dev {sw} help 2>/dev/null"));
     let (mut is_vlan_attr, mut r): (bool, Vec<(String, Json)>) = (false, Vec::new());
     let set = |r: &mut Vec<(String, Json)>, k: &str, v: Json| {
-        if let Some(slot) = r.iter_mut().find(|(key, _)| key == k) { slot.1 = v } else { r.push((k.to_owned(), v)) }
+        if let Some(slot) = r.iter_mut().find(|(key, _)| key == k) {
+            slot.1 = v
+        } else {
+            r.push((k.to_owned(), v))
+        }
     };
     for line in out.lines() {
         let t = line.trim_start_matches([' ', '\t']);
@@ -707,15 +926,31 @@ fn get_swconfig_features(args: &Json) -> Json {
                 let rest = rest.strip_prefix(": ")?;
                 let i = rest.find('(')?;
                 let j = rest.rfind(')')?;
-                if j > i { Some(rest[i + 1..j].to_owned()) } else { None }
+                if j > i {
+                    Some(rest[i + 1..j].to_owned())
+                } else {
+                    None
+                }
             });
-            set(&mut r, "switch_title", title.map(Json::Str).unwrap_or(Json::Null));
-            let vlans = first_group(line, "vlans: ", &[' ', ',', ')', '\n']).filter(|v| v.bytes().all(|b| b.is_ascii_digit()));
+            set(
+                &mut r,
+                "switch_title",
+                title.map(Json::Str).unwrap_or(Json::Null),
+            );
+            let vlans = first_group(line, "vlans: ", &[' ', ',', ')', '\n'])
+                .filter(|v| v.bytes().all(|b| b.is_ascii_digit()));
             set(&mut r, "num_vlans", vlans.map(s).unwrap_or(Json::Int(16)));
             set(&mut r, "min_vid", Json::Int(1));
-        } else if [": pvid", ": tag", ": vid"].iter().any(|p| line.contains(p)) {
+        } else if [": pvid", ": tag", ": vid"]
+            .iter()
+            .any(|p| line.contains(p))
+        {
             if is_vlan_attr {
-                let v = first_group(line, ": ", &[' ', '\t', ':', '\n']).map(|w| w.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '_').collect::<String>());
+                let v = first_group(line, ": ", &[' ', '\t', ':', '\n']).map(|w| {
+                    w.chars()
+                        .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                        .collect::<String>()
+                });
                 set(&mut r, "vid_option", v.map(Json::Str).unwrap_or(Json::Null));
             }
         } else if line.contains(": enable_vlan4k") {
@@ -730,7 +965,11 @@ fn get_swconfig_features(args: &Json) -> Json {
             set(&mut r, "jumbo_option", s("max_length"));
         }
     }
-    if r.is_empty() { error("No such switch") } else { Json::Object(r) }
+    if r.is_empty() {
+        error("No such switch")
+    } else {
+        Json::Object(r)
+    }
 }
 
 fn get_swconfig_port_state(args: &Json) -> Json {
@@ -757,30 +996,51 @@ fn get_swconfig_port_state(args: &Json) -> Json {
         }
         if let Some(port) = ports.last_mut() {
             let set = |port: &mut Vec<(String, Json)>, k: &str, v: Json| {
-                if let Some(slot) = port.iter_mut().find(|(key, _)| key == k) { slot.1 = v }
+                if let Some(slot) = port.iter_mut().find(|(key, _)| key == k) {
+                    slot.1 = v
+                }
             };
-            let speed_is_zero = |port: &Vec<(String, Json)>| port.iter().any(|(k, v)| k == "speed" && *v == Json::Int(0));
+            let speed_is_zero = |port: &Vec<(String, Json)>| {
+                port.iter().any(|(k, v)| k == "speed" && *v == Json::Int(0))
+            };
             if line.contains("full duplex") || line.contains("full-duplex") {
                 set(port, "duplex", Json::Bool(true));
             }
-            if let Some(v) = first_group(line, " speed:", &[' ', '\n']).and_then(|v| v.parse::<i64>().ok()) {
+            if let Some(v) =
+                first_group(line, " speed:", &[' ', '\n']).and_then(|v| v.parse::<i64>().ok())
+            {
                 set(port, "speed", Json::Int(v));
             }
             if let Some(i) = line.find(" Mbps") {
-                let digits: String = line[..i].chars().rev().take_while(|c| c.is_ascii_digit()).collect::<String>().chars().rev().collect();
+                let digits: String = line[..i]
+                    .chars()
+                    .rev()
+                    .take_while(|c| c.is_ascii_digit())
+                    .collect::<String>()
+                    .chars()
+                    .rev()
+                    .collect();
                 if !digits.is_empty() && speed_is_zero(port) {
                     set(port, "speed", Json::Int(digits.parse().unwrap_or(0)));
                 }
             }
-            if let Some(v) = first_group(line, "link: ", &[' ', '\n']).and_then(|v| v.parse::<i64>().ok()) {
+            if let Some(v) =
+                first_group(line, "link: ", &[' ', '\n']).and_then(|v| v.parse::<i64>().ok())
+            {
                 if speed_is_zero(port) {
                     set(port, "speed", Json::Int(v));
                 }
             }
-            if line.contains("link:up") || line.contains("link: up") || line.contains("status:up") || line.contains("status: up") {
+            if line.contains("link:up")
+                || line.contains("link: up")
+                || line.contains("status:up")
+                || line.contains("status: up")
+            {
                 set(port, "link", Json::Bool(true));
             }
-            if line.contains("auto-negotiate") || (line.contains("link:") && line[line.find("link:").unwrap()..].contains("auto")) {
+            if line.contains("auto-negotiate")
+                || (line.contains("link:") && line[line.find("link:").unwrap()..].contains("auto"))
+            {
                 set(port, "auto", Json::Bool(true));
             }
             if line.contains("link:") && line[line.find("link:").unwrap()..].contains("rxflow") {
@@ -801,15 +1061,23 @@ fn get_swconfig_port_state(args: &Json) -> Json {
 fn set_password(args: &Json) -> Json {
     let u = shellquote(arg_str(args, "username").unwrap_or("root"));
     let p = shellquote(arg_str(args, "password").unwrap_or("password"));
-    result(Json::Bool(system(&format!("(echo {p}; sleep 1; echo {p}) | /bin/busybox passwd {u} >/dev/null 2>&1")) == 0))
+    result(Json::Bool(
+        system(&format!(
+            "(echo {p}; sleep 1; echo {p}) | /bin/busybox passwd {u} >/dev/null 2>&1"
+        )) == 0,
+    ))
 }
 
 fn get_block_devices() -> Json {
     let out = popen("/sbin/block info 2>/dev/null");
     let mut r: Vec<(String, Json)> = Vec::new();
     for line in out.lines() {
-        let Some(rest) = line.strip_prefix("/dev/") else { continue };
-        let Some(colon) = rest.find(':') else { continue };
+        let Some(rest) = line.strip_prefix("/dev/") else {
+            continue;
+        };
+        let Some(colon) = rest.find(':') else {
+            continue;
+        };
         let dev = &rest[..colon];
         if dev.is_empty() {
             continue;
@@ -818,14 +1086,20 @@ fn get_block_devices() -> Json {
             Json::Int(n) => Json::Int(n * 512),
             other => other,
         };
-        let mut e = vec![("dev".to_owned(), Json::Str(format!("/dev/{dev}"))), ("size".to_owned(), size)];
+        let mut e = vec![
+            ("dev".to_owned(), Json::Str(format!("/dev/{dev}"))),
+            ("size".to_owned(), size),
+        ];
         let mut tail = &rest[colon + 1..];
         while let Some(i) = tail.find("=\"") {
             let key_start = tail[..i].rfind(' ').map(|p| p + 1).unwrap_or(0);
             let key = &tail[key_start..i];
             let after = &tail[i + 2..];
             let Some(end) = after.find('"') else { break };
-            if !key.is_empty() && key.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_') && key_start > 0 {
+            if !key.is_empty()
+                && key.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
+                && key_start > 0
+            {
                 e.push((key.to_lowercase(), s(&after[..end])));
             }
             tail = &after[end + 1..];
@@ -835,7 +1109,9 @@ fn get_block_devices() -> Json {
     if let Some(swaps) = readfile("/proc/swaps") {
         for line in swaps.lines() {
             let mut it = line.split_whitespace();
-            let (Some(name), Some(_ty), Some(size)) = (it.next(), it.next(), it.next()) else { continue };
+            let (Some(name), Some(_ty), Some(size)) = (it.next(), it.next(), it.next()) else {
+                continue;
+            };
             if !name.starts_with('/') || !size.bytes().all(|b| b.is_ascii_digit()) {
                 continue;
             }
@@ -853,11 +1129,15 @@ fn get_block_devices() -> Json {
 }
 
 fn set_block_detect() -> Json {
-    result(Json::Bool(system("/sbin/block detect > /etc/config/fstab") == 0))
+    result(Json::Bool(
+        system("/sbin/block detect > /etc/config/fstab") == 0,
+    ))
 }
 
 fn get_mount_points() -> Json {
-    let Some(text) = readfile("/proc/mounts") else { return error("No such file or directory") };
+    let Some(text) = readfile("/proc/mounts") else {
+        return error("No such file or directory");
+    };
     let mut out = Vec::new();
     for line in text.lines() {
         let m: Vec<&str> = line.split(' ').collect();
@@ -898,10 +1178,14 @@ fn get_realtime_stats(args: &Json) -> Json {
 }
 
 fn get_builtin_ethernet_ports() -> Json {
-    let board = readfile("/etc/board.json").and_then(|t| json::parse(&t).ok()).unwrap_or(Json::Object(vec![]));
+    let board = readfile("/etc/board.json")
+        .and_then(|t| json::parse(&t).ok())
+        .unwrap_or(Json::Object(vec![]));
     let mut ports = Vec::new();
     for k in ["lan", "wan"] {
-        let Some(net) = board.get("network").and_then(|n| n.get(k)) else { continue };
+        let Some(net) = board.get("network").and_then(|n| n.get(k)) else {
+            continue;
+        };
         match net.get("ports") {
             Some(Json::Array(list)) => {
                 for ifname in list {
@@ -916,20 +1200,38 @@ fn get_builtin_ethernet_ports() -> Json {
         }
     }
     if util::machine() == "x86_64" {
-        let first = ports.first().and_then(|p| p.get("device")).and_then(Json::as_str).map(str::to_owned);
-        if let Some(first) = first.filter(|d| d.starts_with("eth") && d[3..].bytes().all(|b| b.is_ascii_digit()) && d.len() > 3) {
-            let bus = std::fs::canonicalize(format!("/sys/class/net/{first}/device/subsystem")).ok();
+        let first = ports
+            .first()
+            .and_then(|p| p.get("device"))
+            .and_then(Json::as_str)
+            .map(str::to_owned);
+        if let Some(first) = first.filter(|d| {
+            d.starts_with("eth") && d[3..].bytes().all(|b| b.is_ascii_digit()) && d.len() > 3
+        }) {
+            let bus =
+                std::fs::canonicalize(format!("/sys/class/net/{first}/device/subsystem")).ok();
             for netdev in lsdir("/sys/class/net") {
-                if !(netdev.starts_with("eth") && netdev.len() > 3 && netdev[3..].bytes().all(|b| b.is_ascii_digit())) {
+                if !(netdev.starts_with("eth")
+                    && netdev.len() > 3
+                    && netdev[3..].bytes().all(|b| b.is_ascii_digit()))
+                {
                     continue;
                 }
-                if ports.iter().any(|p| p.get("device").and_then(Json::as_str) == Some(netdev.as_str())) {
+                if ports
+                    .iter()
+                    .any(|p| p.get("device").and_then(Json::as_str) == Some(netdev.as_str()))
+                {
                     continue;
                 }
-                if std::fs::canonicalize(format!("/sys/class/net/{netdev}/device/subsystem")).ok() != bus {
+                if std::fs::canonicalize(format!("/sys/class/net/{netdev}/device/subsystem")).ok()
+                    != bus
+                {
                     continue;
                 }
-                ports.push(obj(vec![("role", s("unknown")), ("device", Json::Str(netdev))]));
+                ports.push(obj(vec![
+                    ("role", s("unknown")),
+                    ("device", Json::Str(netdev)),
+                ]));
             }
         }
     }
@@ -937,7 +1239,9 @@ fn get_builtin_ethernet_ports() -> Json {
 }
 
 fn get_odhcp6c_stats(ctx: &Ctx) -> Result<Json, i32> {
-    let Some(Json::Object(devs)) = ctx.ubus_call("network.device", "status", None) else { return Err(status::NO_DATA) };
+    let Some(Json::Object(devs)) = ctx.ubus_call("network.device", "status", None) else {
+        return Err(status::NO_DATA);
+    };
     let mut stats: Vec<(String, Json)> = Vec::new();
     for (dev, _) in devs {
         if let Some(m) = ctx.ubus_call(&format!("odhcp6c.{dev}"), "get_statistics", None) {
@@ -996,16 +1300,28 @@ mod tests {
 
             let mut args = BlobBuf::new();
             args.msg_u32("ubus_rpc_session", 1);
-            assert_eq!(validate(method, &args.into_payload()), Err(status::INVALID_ARGUMENT), "{method}");
+            assert_eq!(
+                validate(method, &args.into_payload()),
+                Err(status::INVALID_ARGUMENT),
+                "{method}"
+            );
             let mut args = BlobBuf::new();
             args.msg_string("unexpected", "value");
-            assert_eq!(validate(method, &args.into_payload()), Err(status::INVALID_ARGUMENT), "{method}");
+            assert_eq!(
+                validate(method, &args.into_payload()),
+                Err(status::INVALID_ARGUMENT),
+                "{method}"
+            );
 
             for (name, ty) in policy {
                 let mut args = BlobBuf::new();
                 args.msg_field(ty as u32, name, &[0; 4]);
                 args.msg_bool(name, true);
-                assert_eq!(validate(method, &args.into_payload()), Err(status::INVALID_ARGUMENT), "{method}.{name}");
+                assert_eq!(
+                    validate(method, &args.into_payload()),
+                    Err(status::INVALID_ARGUMENT),
+                    "{method}.{name}"
+                );
             }
         }
         assert_eq!(validate("not-a-method", &[]), Err(status::METHOD_NOT_FOUND));

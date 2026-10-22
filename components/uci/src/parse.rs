@@ -51,9 +51,14 @@ pub struct Pctx<'r> {
 
 impl std::fmt::Debug for Pctx<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Pctx").field("buffer_bytes", &self.buf.len())
-            .field("pos", &self.pos).field("line", &self.line).field("byte", &self.byte)
-            .field("reason", &self.reason).field("eof", &self.eof).finish_non_exhaustive()
+        f.debug_struct("Pctx")
+            .field("buffer_bytes", &self.buf.len())
+            .field("pos", &self.pos)
+            .field("line", &self.line)
+            .field("byte", &self.byte)
+            .field("reason", &self.reason)
+            .field("eof", &self.eof)
+            .finish_non_exhaustive()
     }
 }
 
@@ -62,7 +67,10 @@ fn isspace(c: u8) -> bool {
 }
 
 fn skip_space(input: &[u8]) -> &[u8] {
-    &input[input.iter().position(|&c| !isspace(c)).unwrap_or(input.len())..]
+    &input[input
+        .iter()
+        .position(|&c| !isspace(c))
+        .unwrap_or(input.len())..]
 }
 
 /// Borrow one complete literal without editing the input. Anything requiring
@@ -76,9 +84,10 @@ fn literal_word(input: &[u8]) -> Option<(&[u8], &[u8])> {
         }
         Some((&input[1..end], &input[end + 1..]))
     } else {
-        let end = input.iter().position(|&c| {
-            isspace(c) || matches!(c, 0 | b'\'' | b'"' | b'\\' | b'#' | b';')
-        }).unwrap_or(input.len());
+        let end = input
+            .iter()
+            .position(|&c| isspace(c) || matches!(c, 0 | b'\'' | b'"' | b'\\' | b'#' | b';'))
+            .unwrap_or(input.len());
         if end == 0 || input.get(end).is_some_and(|&c| !isspace(c)) {
             return None;
         }
@@ -135,7 +144,11 @@ impl<'r> Pctx<'r> {
     }
     fn bytes_view(&self, i: usize) -> &[u8] {
         let start = i.min(self.buf.len());
-        let end = self.buf[start..].iter().position(|&b| b == 0).map(|p| start + p).unwrap_or(self.buf.len());
+        let end = self.buf[start..]
+            .iter()
+            .position(|&b| b == 0)
+            .map(|p| start + p)
+            .unwrap_or(self.buf.len());
         &self.buf[start..end]
     }
     /// strlen(pctx_cur_str(pctx))
@@ -201,7 +214,10 @@ impl<'r> Pctx<'r> {
                 self.eof = true;
                 return;
             }
-            let len = self.buf[ofs..].iter().position(|&b| b == 0).unwrap_or(consumed);
+            let len = self.buf[ofs..]
+                .iter()
+                .position(|&b| b == 0)
+                .unwrap_or(consumed);
             self.buf.truncate(ofs + len);
             if len == 0 {
                 return;
@@ -255,7 +271,9 @@ impl<'r> Pctx<'r> {
         let c = self.cur();
         if c == 0
             || c == b'\n'
-            || (c == b'\r' && self.char_at(self.pos + 1) == b'\n' && self.char_at(self.pos + 2) == 0)
+            || (c == b'\r'
+                && self.char_at(self.pos + 1) == b'\n'
+                && self.char_at(self.pos + 2) == 0)
         {
             let p = self.pos;
             self.getln(p);
@@ -377,9 +395,12 @@ impl<'r> Pctx<'r> {
         if self.cur() != b'\'' {
             let start = self.pos;
             let rest = self.buf.get(start..)?;
-            let len = rest.iter().position(|&c| {
-                c == 0 || isspace(c) || matches!(c, b'\'' | b'"' | b'\\' | b'#' | b';')
-            }).unwrap_or(rest.len());
+            let len = rest
+                .iter()
+                .position(|&c| {
+                    c == 0 || isspace(c) || matches!(c, b'\'' | b'"' | b'\\' | b'#' | b';')
+                })
+                .unwrap_or(rest.len());
             let end = start + len;
             let delimiter = self.char_at(end);
             if delimiter != 0 && !isspace(delimiter) {
@@ -390,7 +411,12 @@ impl<'r> Pctx<'r> {
             return Some(start);
         }
         let start = self.pos + 1;
-        let end = start + self.buf.get(start..)?.iter().position(|&c| c == b'\'' || c == 0)?;
+        let end = start
+            + self
+                .buf
+                .get(start..)?
+                .iter()
+                .position(|&c| c == b'\'' || c == 0)?;
         if self.buf[end] != b'\'' {
             return None;
         }
@@ -423,7 +449,10 @@ impl<'r> Pctx<'r> {
             }
             return Ok(val);
         }
-        if name && !std::str::from_utf8(self.bytes_view(val)).is_ok_and(|s| ops::validate_str(s, name, package)) {
+        if name
+            && !std::str::from_utf8(self.bytes_view(val))
+                .is_ok_and(|s| ops::validate_str(s, name, package))
+        {
             return self.parse_error("invalid character in name field");
         }
         Ok(val)
@@ -520,7 +549,12 @@ impl<'r> Pctx<'r> {
             // A fresh non-merge section needs no lookup object or delta.
             // Validation already ran before assert_eol, in the usual order.
             if internal && existing.is_none() {
-                self.section = Some(ops::alloc_section(&mut ctx.root[pidx], ty, Some(name), None));
+                self.section = Some(ops::alloc_section(
+                    &mut ctx.root[pidx],
+                    ty,
+                    Some(name),
+                    None,
+                ));
                 return Ok(());
             }
             if let Some(sidx) = existing {
@@ -599,36 +633,61 @@ impl<'r> Pctx<'r> {
     /// insertion/append operations as the general parser. Merge, updates and
     /// all syntax needing decoding retain their existing error/side-effect path.
     fn try_literal_line(&mut self, ctx: &mut Context) -> bool {
-        let Some(pidx) = self.package.filter(|_| !self.merge) else { return false };
+        let Some(pidx) = self.package.filter(|_| !self.merge) else {
+            return false;
+        };
         let line = skip_space(&self.buf[self.pos.min(self.buf.len())..]);
         // strtok_word only accepts space/tab after the command itself.
-        let Some(end) = line.iter().position(|&c| matches!(c, b' ' | b'\t')) else { return false };
+        let Some(end) = line.iter().position(|&c| matches!(c, b' ' | b'\t')) else {
+            return false;
+        };
         let command = &line[..end];
         if !matches!(command, b"config" | b"option" | b"list") {
             return false;
         }
-        let Some((first, rest)) = literal_word(&line[end..]) else { return false };
+        let Some((first, rest)) = literal_word(&line[end..]) else {
+            return false;
+        };
         let rest = skip_space(rest);
         let (second, rest) = if rest.is_empty() {
             (&[][..], rest)
         } else {
-            let Some(word) = literal_word(rest) else { return false };
+            let Some(word) = literal_word(rest) else {
+                return false;
+            };
             word
         };
         if !skip_space(rest).is_empty() {
             return false;
         }
         if command == b"config" {
-            let Some(ty) = std::str::from_utf8(first).ok().filter(|s| ops::validate_type(s)) else { return false };
-            let Some(name) = std::str::from_utf8(second).ok().filter(|s| !s.is_empty() && ops::validate_name(s)) else { return false };
+            let Some(ty) = std::str::from_utf8(first)
+                .ok()
+                .filter(|s| ops::validate_type(s))
+            else {
+                return false;
+            };
+            let Some(name) = std::str::from_utf8(second)
+                .ok()
+                .filter(|s| !s.is_empty() && ops::validate_name(s))
+            else {
+                return false;
+            };
             let p = &mut ctx.root[pidx];
             if p.find_section(name).is_some() {
                 return false;
             }
             self.section = Some(ops::alloc_section(p, ty, Some(name), None));
         } else {
-            let Some(sidx) = self.section else { return false };
-            let Some(name) = std::str::from_utf8(first).ok().filter(|s| !s.is_empty() && ops::validate_name(s)) else { return false };
+            let Some(sidx) = self.section else {
+                return false;
+            };
+            let Some(name) = std::str::from_utf8(first)
+                .ok()
+                .filter(|s| !s.is_empty() && ops::validate_name(s))
+            else {
+                return false;
+            };
             let section = &mut ctx.root[pidx].sections[sidx];
             let existing = section.find_option(name);
             if command == b"list" {
@@ -758,7 +817,9 @@ static ERROR_INFO: Mutex<String> = Mutex::new(String::new());
 
 /// uci_perror(ctx, prefix): prints `prefix: <errstr><error_info>` to stderr.
 pub fn perror(ctx: &Context, prefix: Option<&str>) {
-    let mut info = ERROR_INFO.lock().expect("UCI error formatting panicked while holding error state");
+    let mut info = ERROR_INFO
+        .lock()
+        .expect("UCI error formatting panicked while holding error state");
     if let Some(s) = ctx.parse_error_info() {
         let mut s = s;
         s.truncate(126);
@@ -766,7 +827,8 @@ pub fn perror(ctx: &Context, prefix: Option<&str>) {
     }
     info.push('\n');
     let err = ctx.err.map(Error::strerror).unwrap_or("Success");
-    let _ = write!(std::io::stderr(),
+    let _ = write!(
+        std::io::stderr(),
         "{}{}{}{}",
         prefix.unwrap_or(""),
         if prefix.is_some() { ": " } else { "" },
@@ -783,7 +845,9 @@ mod tests {
     fn load(text: &str) -> (Context<'static>, usize) {
         let mut ctx = Context::new();
         let mut r = Cursor::new(text.as_bytes().to_vec());
-        let idx = import(&mut ctx, &mut r, Some("t"), None, true).unwrap().unwrap();
+        let idx = import(&mut ctx, &mut r, Some("t"), None, true)
+            .unwrap()
+            .unwrap();
         (ctx, idx)
     }
 
@@ -797,33 +861,58 @@ mod tests {
         assert_eq!(p.sections[0].ty, "type");
         let o = &p.sections[0].options;
         assert_eq!(o[0].value, crate::model::OptionValue::Str("val".into()));
-        assert_eq!(o[1].value, crate::model::OptionValue::Str("\"Hello, World.'\n".into()));
-        assert_eq!(o[2].value, crate::model::OptionValue::List(vec!["a b".into(), "c".into()]));
+        assert_eq!(
+            o[1].value,
+            crate::model::OptionValue::Str("\"Hello, World.'\n".into())
+        );
+        assert_eq!(
+            o[2].value,
+            crate::model::OptionValue::List(vec!["a b".into(), "c".into()])
+        );
     }
 
     #[test]
     fn plain_runs_preserve_joined_quotes_escapes_and_raw_bytes() {
         let mut ctx = Context::new();
         let mut input = Cursor::new(b"config t s\noption joined pre' middle '\"end\"tail\noption escaped a\\ b\noption multiline 'first\nsecond'\noption raw '\xff\xfe'\noption semi before; option after next\n".to_vec());
-        let i = import(&mut ctx, &mut input, Some("t"), None, true).unwrap().unwrap();
-        let values: Vec<&OptionValue> = ctx.root[i].sections[0].options.iter().map(|o| &o.value).collect();
+        let i = import(&mut ctx, &mut input, Some("t"), None, true)
+            .unwrap()
+            .unwrap();
+        let values: Vec<&OptionValue> = ctx.root[i].sections[0]
+            .options
+            .iter()
+            .map(|o| &o.value)
+            .collect();
         let expected: Vec<OptionValue> = [
-            &b"pre middle endtail"[..], &b"a b"[..], &b"first\nsecond"[..],
+            &b"pre middle endtail"[..],
+            &b"a b"[..],
+            &b"first\nsecond"[..],
             // The exact C parser terminates this unquoted value at ';' and
             // consumes the rest of this line; the following option is absent.
-            &b"\xff\xfe"[..], &b"before"[..],
-        ].into_iter().map(|v| OptionValue::Str(v.into())).collect();
+            &b"\xff\xfe"[..],
+            &b"before"[..],
+        ]
+        .into_iter()
+        .map(|v| OptionValue::Str(v.into()))
+        .collect();
         assert_eq!(values, expected.iter().collect::<Vec<_>>());
     }
 
     #[test]
     fn quoted_words_keep_empty_literals_joins_and_following_arguments() {
-        let mut input = Cursor::new(b"'first'\t'with # ; \\ literal' '' 'joined'after 'before'\"after\" '\xff'".to_vec());
+        let mut input = Cursor::new(
+            b"'first'\t'with # ; \\ literal' '' 'joined'after 'before'\"after\" '\xff'".to_vec(),
+        );
         let mut pctx = Pctx::new(&mut input);
         pctx.getln(0);
         for expected in [
-            &b"first"[..], &b"with # ; \\ literal"[..], &b""[..],
-            &b"joinedafter"[..], &b"beforeafter"[..], &b"\xff"[..], &b""[..],
+            &b"first"[..],
+            &b"with # ; \\ literal"[..],
+            &b""[..],
+            &b"joinedafter"[..],
+            &b"beforeafter"[..],
+            &b"\xff"[..],
+            &b""[..],
         ] {
             assert_eq!(parse_argument_bytes(&mut pctx).unwrap(), expected);
         }
@@ -843,7 +932,13 @@ mod tests {
         let mut input = Cursor::new(b"\xff\xfe raw\\ word pre'fix' tail#comment".to_vec());
         let mut pctx = Pctx::new(&mut input);
         pctx.getln(0);
-        for expected in [&b"\xff\xfe"[..], &b"raw word"[..], &b"prefix"[..], &b"tail"[..], &b""[..]] {
+        for expected in [
+            &b"\xff\xfe"[..],
+            &b"raw word"[..],
+            &b"prefix"[..],
+            &b"tail"[..],
+            &b""[..],
+        ] {
             assert_eq!(parse_argument_bytes(&mut pctx).unwrap(), expected);
         }
     }
@@ -851,14 +946,31 @@ mod tests {
     #[test]
     fn literal_lines_match_general_parser_and_preserve_fallback_errors() {
         let lines: &[&[u8]] = &[
-            b" config type second\n", b"config 'type' 'second'\n", b"config other initial\n",
-            b"config type\n", b"config type ''\n", b"config type second extra\n",
-            b"config\rtype second\n", b"config type bad-name\n", b"config type 'incomplete\n",
-            b"option fresh value\n", b"option fresh '\xff # ; \\ bytes'\n", b"option fresh\n",
-            b"option old value\n", b"option fresh 'joined'after\n", b"option fresh pre\\ fix\n",
-            b"option fresh value # comment\n", b"option fresh value; option later ignored\n",
-            b"list old first\n", b"list old\n", b"list fresh ''\n", b"list fresh raw\xff\n",
-            b"o fresh value\n", b"option fresh value", b"list fresh 'value'", b"# ignored\n",
+            b" config type second\n",
+            b"config 'type' 'second'\n",
+            b"config other initial\n",
+            b"config type\n",
+            b"config type ''\n",
+            b"config type second extra\n",
+            b"config\rtype second\n",
+            b"config type bad-name\n",
+            b"config type 'incomplete\n",
+            b"option fresh value\n",
+            b"option fresh '\xff # ; \\ bytes'\n",
+            b"option fresh\n",
+            b"option old value\n",
+            b"option fresh 'joined'after\n",
+            b"option fresh pre\\ fix\n",
+            b"option fresh value # comment\n",
+            b"option fresh value; option later ignored\n",
+            b"list old first\n",
+            b"list old\n",
+            b"list fresh ''\n",
+            b"list fresh raw\xff\n",
+            b"o fresh value\n",
+            b"option fresh value",
+            b"list fresh 'value'",
+            b"# ignored\n",
         ];
         for &line in lines {
             for strict in [false, true] {
@@ -866,7 +978,9 @@ mod tests {
                     for section in [None, Some(0)] {
                         let run = |fast: bool| {
                             let (mut ctx, pidx) = load("config base initial\noption old base\n");
-                            if !strict { ctx.flags &= !FLAG_STRICT; }
+                            if !strict {
+                                ctx.flags &= !FLAG_STRICT;
+                            }
                             let mut reader = Cursor::new(line);
                             let mut pctx = Pctx::new(&mut reader);
                             pctx.package = Some(pidx);
@@ -881,7 +995,11 @@ mod tests {
                             let error = result.err().map(|e| (e, pctx.info()));
                             (ctx.root, pctx.section, error)
                         };
-                        assert_eq!(run(true), run(false), "line={line:?}, strict={strict}, merge={merge}, section={section:?}");
+                        assert_eq!(
+                            run(true),
+                            run(false),
+                            "line={line:?}, strict={strict}, merge={merge}, section={section:?}"
+                        );
                     }
                 }
             }
@@ -894,14 +1012,23 @@ mod tests {
         for i in (0..40).rev() {
             text.push_str(&format!("config type section{i}\noption value old{i}\n"));
         }
-        text.push_str("config type section21\noption value replaced\nconfig type\noption anon yes\n");
+        text.push_str(
+            "config type section21\noption value replaced\nconfig type\noption anon yes\n",
+        );
         text.push_str("config type section0\nlist members one\nlist members two\npackage second\n");
         for i in 0..35 {
             text.push_str(&format!("config other section{i}\noption value new{i}\n"));
         }
         text.push_str("config other section21\noption value second\n");
         let mut ctx = Context::new();
-        import(&mut ctx, &mut Cursor::new(text.as_bytes()), None, None, false).unwrap();
+        import(
+            &mut ctx,
+            &mut Cursor::new(text.as_bytes()),
+            None,
+            None,
+            false,
+        )
+        .unwrap();
         assert_eq!(ctx.root.len(), 2);
         let first = &ctx.root[0];
         assert_eq!(first.sections.len(), 41);
@@ -909,14 +1036,22 @@ mod tests {
             assert_eq!(section.name, format!("section{}", 39 - i));
             assert!(!section.anonymous);
         }
-        assert_eq!(first.sections[18].options[0].value, OptionValue::Str("replaced".into()));
+        assert_eq!(
+            first.sections[18].options[0].value,
+            OptionValue::Str("replaced".into())
+        );
         assert!(first.sections[40].anonymous);
-        assert_eq!(first.sections[39].options[1].value,
-                   OptionValue::List(vec!["one".into(), "two".into()]));
+        assert_eq!(
+            first.sections[39].options[1].value,
+            OptionValue::List(vec!["one".into(), "two".into()])
+        );
         let second = &ctx.root[1];
         assert_eq!(second.sections.len(), 35);
         assert_eq!(second.sections[21].ty, "other");
-        assert_eq!(second.sections[21].options[0].value, OptionValue::Str("second".into()));
+        assert_eq!(
+            second.sections[21].options[0].value,
+            OptionValue::Str("second".into())
+        );
     }
 
     #[test]
@@ -927,17 +1062,30 @@ mod tests {
         }
         let mut strict = Context::new();
         let conflict = format!("{text}config other s20\n");
-        assert_eq!(import(&mut strict, &mut Cursor::new(conflict.as_bytes()), Some("t"), None, true),
-                   Err(Error::Parse));
+        assert_eq!(
+            import(
+                &mut strict,
+                &mut Cursor::new(conflict.as_bytes()),
+                Some("t"),
+                None,
+                true
+            ),
+            Err(Error::Parse)
+        );
         assert!(strict.root.is_empty());
-        assert_eq!(strict.pctx.unwrap().reason,
-                   Some("section of different type overwrites prior section with same name"));
+        assert_eq!(
+            strict.pctx.unwrap().reason,
+            Some("section of different type overwrites prior section with same name")
+        );
 
         let (mut ctx, pidx) = load(&text);
         let mut merge = Cursor::new(b"config type s20\noption value updated\nconfig type added\n");
         import(&mut ctx, &mut merge, Some("t"), Some(pidx), true).unwrap();
         assert_eq!(ctx.root[pidx].sections.len(), 41);
-        assert_eq!(ctx.root[pidx].sections[20].options[0].value, OptionValue::Str("updated".into()));
+        assert_eq!(
+            ctx.root[pidx].sections[20].options[0].value,
+            OptionValue::Str("updated".into())
+        );
         assert_eq!(ctx.root[pidx].sections[40].name, "added");
     }
 
@@ -950,19 +1098,31 @@ mod tests {
 
         let mut ctx = Context::new();
         let mut r = Cursor::new(b"config\n".to_vec());
-        assert_eq!(import(&mut ctx, &mut r, Some("t"), None, true), Err(Error::Parse));
+        assert_eq!(
+            import(&mut ctx, &mut r, Some("t"), None, true),
+            Err(Error::Parse)
+        );
         assert_eq!(ctx.pctx.as_ref().unwrap().reason, Some("invalid command"));
         assert!(ctx.root.is_empty());
 
         let mut r = Cursor::new(b"option a b\n".to_vec());
-        assert_eq!(import(&mut ctx, &mut r, Some("t"), None, true), Err(Error::Parse));
+        assert_eq!(
+            import(&mut ctx, &mut r, Some("t"), None, true),
+            Err(Error::Parse)
+        );
         assert_eq!(
             ctx.pctx.as_ref().unwrap().reason,
             Some("option/list command found before the first section")
         );
         let mut r = Cursor::new(b"config a b c\n".to_vec());
-        assert_eq!(import(&mut ctx, &mut r, Some("t"), None, true), Err(Error::Parse));
-        assert_eq!(ctx.pctx.as_ref().unwrap().reason, Some("too many arguments"));
+        assert_eq!(
+            import(&mut ctx, &mut r, Some("t"), None, true),
+            Err(Error::Parse)
+        );
+        assert_eq!(
+            ctx.pctx.as_ref().unwrap().reason,
+            Some("too many arguments")
+        );
         assert_eq!(ctx.pctx.as_ref().unwrap().line, 1);
     }
 }

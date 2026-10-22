@@ -759,18 +759,16 @@ impl HashOrder {
         if count == 0 {
             return;
         }
-        assert!(
-            self.heads
-                .pages
-                .iter_mut()
-                .all(|page| page.get_mut().is_some())
-        );
-        assert!(
-            self.next
-                .pages
-                .iter_mut()
-                .all(|page| page.get_mut().is_some())
-        );
+        assert!(self
+            .heads
+            .pages
+            .iter_mut()
+            .all(|page| page.get_mut().is_some()));
+        assert!(self
+            .next
+            .pages
+            .iter_mut()
+            .all(|page| page.get_mut().is_some()));
         let skip = |mut id: usize, links: &LinkPages| {
             while id != CHAIN_END && id < count {
                 id = links.get(id);
@@ -1037,15 +1035,14 @@ impl Hosts {
         source: u32,
     ) -> Result<bool, IngestionError> {
         let mut allocation_failed = false;
-        let inserted = self
-            .try_insert(
-                name,
-                address,
-                ttl,
-                source,
-                source == 1,
-                &mut allocation_failed,
-            )?;
+        let inserted = self.try_insert(
+            name,
+            address,
+            ttl,
+            source,
+            source == 1,
+            &mut allocation_failed,
+        )?;
         if allocation_failed {
             Err(IngestionError)
         } else {
@@ -1194,7 +1191,8 @@ impl Hosts {
         let id = records.entries.len();
         *records.forward.entry(key).or_insert(0) += 1;
         if reverse {
-            if let std::collections::hash_map::Entry::Vacant(entry) = records.reverse.entry(address) {
+            if let std::collections::hash_map::Entry::Vacant(entry) = records.reverse.entry(address)
+            {
                 entry.insert(id);
             } else {
                 records
@@ -1306,19 +1304,16 @@ impl Hosts {
                 });
             }
             if !retained.is_empty() {
-                let mut order = replacement
-                    .order
-                    .with_lease_prefix(retained.len())?;
+                let mut order = replacement.order.with_lease_prefix(retained.len())?;
                 for id in 0..retained.len() {
                     let record = hash_record(id, &replacement.records.entries, &retained);
-                    let plan = order
-                        .prepare_insert_at(
-                            id,
-                            record,
-                            &replacement.records.entries,
-                            &retained,
-                            replacement.records.name_hash_capacity,
-                        )?;
+                    let plan = order.prepare_insert_at(
+                        id,
+                        record,
+                        &replacement.records.entries,
+                        &retained,
+                        replacement.records.name_hash_capacity,
+                    )?;
                     order.commit_insert(id, plan);
                 }
                 replacement.order = order;
@@ -1346,21 +1341,19 @@ impl Hosts {
                 return Err(IngestionError);
             }
             let mut allocation_failed = false;
-            replacement
-                .try_insert(
-                    name,
-                    address,
-                    ttl,
-                    source,
-                    source == 1,
-                    &mut allocation_failed,
-                )?;
+            replacement.try_insert(
+                name,
+                address,
+                ttl,
+                source,
+                source == 1,
+                &mut allocation_failed,
+            )?;
             if allocation_failed {
                 return Err(IngestionError);
             }
             if line_ends.peek() == Some(&accepted) {
-                replacement
-                    .advance_bulk_names(accepted - previous_end, false)?;
+                replacement.advance_bulk_names(accepted - previous_end, false)?;
                 previous_end = accepted;
                 line_ends.next();
             }
@@ -1444,18 +1437,25 @@ impl Hosts {
             .map(|bulk| bulk.try_remap(&relocated))
             .transpose()?;
         let lease_count = self.retained_leases().len();
-        let order = self
-            .order
-            .remapped(&relocated, lease_count)?;
+        let order = self.order.remapped(&relocated, lease_count)?;
         let mut canonical = Vec::new();
-        let capacity = self.records.entries.iter()
+        let capacity = self
+            .records
+            .entries
+            .iter()
             .filter(|entry| entry.source == source && entry.name.iter().any(u8::is_ascii_uppercase))
-            .map(|entry| entry.name.len()).max().unwrap_or(0);
+            .map(|entry| entry.name.len())
+            .max()
+            .unwrap_or(0);
         canonical.try_reserve_exact(capacity)?;
         let records = self.writable_records()?;
         // Touch each removed name once; no record-index remap or surviving
         // name search is needed. Scratch growth precedes every state change.
-        for entry in records.entries.iter().filter(|entry| entry.source == source) {
+        for entry in records
+            .entries
+            .iter()
+            .filter(|entry| entry.source == source)
+        {
             let key = if entry.name.iter().any(u8::is_ascii_uppercase) {
                 canonical.clear();
                 canonical.extend_from_slice(&entry.name);
@@ -1904,11 +1904,9 @@ mod tests {
             .insert_checked(b"same.test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 2)
             .unwrap();
         hosts.seal_bulk();
-        assert!(
-            hosts
-                .provider_reverse("192.0.2.1".parse().unwrap())
-                .is_none()
-        );
+        assert!(hosts
+            .provider_reverse("192.0.2.1".parse().unwrap())
+            .is_none());
         assert_eq!(hosts.reverse_all("192.0.2.1".parse().unwrap()).count(), 1);
         // Sealed ingestion uses actual reverse ownership, not the discarded
         // temporary address chain. Retained leases never become static hosts.
@@ -2138,8 +2136,11 @@ mod tests {
         );
         assert_eq!(finite.entries().len(), 6);
         assert_eq!(immortal.entries().len(), 6);
-        assert!(finite.entries().iter().all(|entry| entry.name != lease.as_bytes()
-            || entry.address != "192.0.2.1".parse::<IpAddr>().unwrap()));
+        assert!(finite
+            .entries()
+            .iter()
+            .all(|entry| entry.name != lease.as_bytes()
+                || entry.address != "192.0.2.1".parse::<IpAddr>().unwrap()));
     }
 
     #[test]
@@ -2148,11 +2149,9 @@ mod tests {
             let mut hosts = bulk_fixture(None, REPEATED_ADDRESS_FIXTURE);
             hosts.set_round_robin(!no_rr);
             let before = hosts.len();
-            assert!(
-                !hosts
-                    .insert_checked(b"a.test".to_vec(), "192.0.3.185".parse().unwrap(), 37, 2)
-                    .unwrap()
-            );
+            assert!(!hosts
+                .insert_checked(b"a.test".to_vec(), "192.0.3.185".parse().unwrap(), 37, 2)
+                .unwrap());
             assert_eq!(hosts.len(), before);
             hosts
                 .insert_checked(b"y.test".to_vec(), "192.0.3.184".parse().unwrap(), 37, 2)
@@ -2477,10 +2476,16 @@ mod tests {
             let mut hosts = Hosts::new();
             hosts.begin_bulk(1497, 1000, 1000).unwrap();
             if retained_lease {
-                hosts.add_bulk_lease(b"same.test", "192.0.2.9".parse().unwrap(), true, false).unwrap();
+                hosts
+                    .add_bulk_lease(b"same.test", "192.0.2.9".parse().unwrap(), true, false)
+                    .unwrap();
             }
-            hosts.insert_checked(b"same.test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 2).unwrap();
-            hosts.insert_checked(b"same.test".to_vec(), "192.0.2.2".parse().unwrap(), 37, 3).unwrap();
+            hosts
+                .insert_checked(b"same.test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 2)
+                .unwrap();
+            hosts
+                .insert_checked(b"same.test".to_vec(), "192.0.2.2".parse().unwrap(), 37, 3)
+                .unwrap();
             hosts.seal_bulk();
             assert_eq!(hosts.try_remove_uid(2).unwrap(), 1);
             assert!(hosts.name_exists(b"same.test") && hosts.name_exists(b"SAME.TEST"));

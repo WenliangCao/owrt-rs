@@ -10,11 +10,11 @@
 pub mod allocation;
 pub mod context;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-mod filewatch;
+pub mod daemon;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod files_runtime;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-pub mod daemon;
+mod filewatch;
 // The matcher is shared with the portable relay engine; the policy adapter
 // itself has production consumers only in the Linux daemon.
 #[cfg_attr(

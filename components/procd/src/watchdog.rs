@@ -41,7 +41,10 @@ impl Default for Wdt {
 impl Wdt {
     /// Keep an already owned startup handover for the first watchdog open.
     pub fn with_inherited(inherited: Option<std::io::Result<OwnedFd>>) -> Self {
-        Self { inherited, ..Self::default() }
+        Self {
+            inherited,
+            ..Self::default()
+        }
     }
 
     fn raw_fd(&self) -> i32 {

@@ -239,7 +239,6 @@ mod tests {
         assert_eq!(triggers.pending[0].argv[1], secret);
     }
 
-
     #[test]
     fn a_dot_star_suffix_is_a_prefix_match_and_nothing_else() {
         assert!(matches("interface.up", "interface.*"));

@@ -8,8 +8,8 @@
 #![forbid(unsafe_code)]
 
 pub mod blob;
-mod connect;
 pub mod conn;
+mod connect;
 pub mod convert;
 pub mod digest;
 pub mod json;

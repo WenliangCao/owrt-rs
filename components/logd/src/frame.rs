@@ -19,8 +19,12 @@ const STRING: u32 = 3;
 // padding; the four fixed-size fields carry their whole header verbatim.
 const MSG_NAME: [u8; 8] = [0, 3, b'm', b's', b'g', 0, 0, 0];
 const ID_FIELD: [u8; 12] = [0x85, 0, 0, 16, 0, 2, b'i', b'd', 0, 0, 0, 0];
-const PRIORITY_FIELD: [u8; 16] = [0x85, 0, 0, 20, 0, 8, b'p', b'r', b'i', b'o', b'r', b'i', b't', b'y', 0, 0];
-const SOURCE_FIELD: [u8; 16] = [0x85, 0, 0, 20, 0, 6, b's', b'o', b'u', b'r', b'c', b'e', 0, 0, 0, 0];
+const PRIORITY_FIELD: [u8; 16] = [
+    0x85, 0, 0, 20, 0, 8, b'p', b'r', b'i', b'o', b'r', b'i', b't', b'y', 0, 0,
+];
+const SOURCE_FIELD: [u8; 16] = [
+    0x85, 0, 0, 20, 0, 6, b's', b'o', b'u', b'r', b'c', b'e', 0, 0, 0, 0,
+];
 const TIME_FIELD: [u8; 12] = [0x84, 0, 0, 20, 0, 4, b't', b'i', b'm', b'e', 0, 0];
 const TABLE_NAME: [u8; 4] = [0, 0, 0, 0];
 const ARRAY_NAME: [u8; 8] = [0, 3, b'l', b'o', b'g', 0, 0, 0];
@@ -45,7 +49,9 @@ pub const REPLY_HEADER_LEN: usize = 4 + ARRAY_NAME.len();
 
 fn push_fields(out: &mut Vec<u8>, record: &Record) {
     let size = record.size();
-    out.extend_from_slice(&(EXTENDED | STRING << 24 | (4 + MSG_NAME.len() + size) as u32).to_be_bytes());
+    out.extend_from_slice(
+        &(EXTENDED | STRING << 24 | (4 + MSG_NAME.len() + size) as u32).to_be_bytes(),
+    );
     out.extend_from_slice(&MSG_NAME);
     out.extend_from_slice(record.text);
     out.resize(out.len() + pad4(size) - size, 0);
@@ -73,7 +79,9 @@ pub fn push_reply_header(out: &mut Vec<u8>, total: usize) {
 
 /// Append one `{...}` table entry of a reply.
 pub fn push_table(out: &mut Vec<u8>, record: &Record) {
-    out.extend_from_slice(&(EXTENDED | TABLE << 24 | table_len(record.size()) as u32).to_be_bytes());
+    out.extend_from_slice(
+        &(EXTENDED | TABLE << 24 | table_len(record.size()) as u32).to_be_bytes(),
+    );
     out.extend_from_slice(&TABLE_NAME);
     push_fields(out, record);
 }
@@ -95,7 +103,12 @@ mod tests {
 
     fn sample(len: usize, seed: u8) -> Vec<u8> {
         // arbitrary bytes, no NUL, no LF (normalize/ring handle those)
-        (0..len).map(|i| match (i as u8).wrapping_mul(31).wrapping_add(seed) { 0 | b'\n' => 0xff, b => b }).collect()
+        (0..len)
+            .map(|i| match (i as u8).wrapping_mul(31).wrapping_add(seed) {
+                0 | b'\n' => 0xff,
+                b => b,
+            })
+            .collect()
     }
 
     #[test]
@@ -105,7 +118,12 @@ mod tests {
         let lengths = (0..=1100).chain([1500, 4095, 4096, 4097, 65_000]);
         for (i, len) in lengths.enumerate() {
             let text = sample(len, i as u8);
-            let record = ring.add(&text, u32::MAX - i as u32, i as u32 % 3, u64::MAX - i as u64);
+            let record = ring.add(
+                &text,
+                u32::MAX - i as u32,
+                i as u32 % 3,
+                u64::MAX - i as u64,
+            );
             let mut b = BlobBuf::new();
             entry_fields(&mut b, &record);
             let expected = b.as_bytes().to_vec();
@@ -115,7 +133,10 @@ mod tests {
             assert_eq!(out.len(), frame_len(record.size()), "frame_len for {len}");
             // and the frame parses back to the same five fields
             let fields: Vec<_> = blob::fields(&out[4..]).collect();
-            assert_eq!(fields.iter().map(|f| f.name).collect::<Vec<_>>(), ["msg", "id", "priority", "source", "time"]);
+            assert_eq!(
+                fields.iter().map(|f| f.name).collect::<Vec<_>>(),
+                ["msg", "id", "priority", "source", "time"]
+            );
             assert_eq!(fields[0].as_bytes(), Some(record.msg()));
             assert_eq!(fields[1].as_u32(), Some(record.id));
             assert_eq!(fields[2].as_u32(), Some(record.priority));
@@ -143,7 +164,8 @@ mod tests {
             b.msg_close(array);
             let expected = b.payload().to_vec();
 
-            let total = REPLY_HEADER_LEN + ring.list(count).map(|r| table_len(r.size())).sum::<usize>();
+            let total =
+                REPLY_HEADER_LEN + ring.list(count).map(|r| table_len(r.size())).sum::<usize>();
             let mut out = Vec::with_capacity(total);
             push_reply_header(&mut out, total);
             for record in ring.list(count) {

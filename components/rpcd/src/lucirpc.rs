@@ -4,9 +4,9 @@
 
 use crate::session::{arg, Reply};
 use crate::{rrdns, rtnl, Ctx, Deferrer};
+use owrt_ubus::blob;
 use owrt_ubus::blob::MsgType;
 use owrt_ubus::json::Json;
-use owrt_ubus::blob;
 use owrt_ubus::{status, BlobBuf, Connection, Request};
 use std::collections::BTreeMap;
 use std::fs;
@@ -103,7 +103,10 @@ fn strtoull10(s: &str) -> u64 {
     let mut v: u64 = 0;
     let mut overflow = false;
     while i < b.len() && b[i].is_ascii_digit() {
-        match v.checked_mul(10).and_then(|x| x.checked_add((b[i] - b'0') as u64)) {
+        match v
+            .checked_mul(10)
+            .and_then(|x| x.checked_add((b[i] - b'0') as u64))
+        {
             Some(x) => v = x,
             None => overflow = true,
         }
@@ -112,7 +115,11 @@ fn strtoull10(s: &str) -> u64 {
     if overflow {
         return u64::MAX;
     }
-    if neg { v.wrapping_neg() } else { v }
+    if neg {
+        v.wrapping_neg()
+    } else {
+        v
+    }
 }
 
 /// ether_aton(): six ':'-separated hex numbers (strtoul base 16), each <= 0xff.
@@ -134,7 +141,9 @@ pub fn ether_aton(s: &str) -> Option<[u8; 6]> {
         let start = i;
         let mut v: u64 = 0;
         while i < b.len() && b[i].is_ascii_hexdigit() {
-            v = v.saturating_mul(16).saturating_add((b[i] as char).to_digit(16).unwrap() as u64);
+            v = v
+                .saturating_mul(16)
+                .saturating_add((b[i] as char).to_digit(16).unwrap() as u64);
             i += 1;
         }
         if i == start || v > 0xff {
@@ -174,7 +183,8 @@ fn ea_empty(ea: &[u8; 6]) -> bool {
 
 /// strtok(s, delims) as an iterator over tokens (delimiter runs skipped).
 fn strtok<'a>(s: &'a str, delims: &'a str) -> impl Iterator<Item = &'a str> + 'a {
-    s.split(move |c| delims.contains(c)).filter(|t| !t.is_empty())
+    s.split(move |c| delims.contains(c))
+        .filter(|t| !t.is_empty())
 }
 
 // ------------------------------------------------------------ leases
@@ -218,7 +228,10 @@ fn lease_files() -> Vec<(String, bool)> {
     let mut files = Vec::new();
     let mut ctx = owrt_uci::Context::new();
     let pkg = owrt_uci::file::load(&mut ctx, "dhcp").ok();
-    for (ty, odhcpd, fallback) in [("dnsmasq", false, "/tmp/dhcp.leases"), ("odhcpd", true, "/tmp/odhcpd.leases")] {
+    for (ty, odhcpd, fallback) in [
+        ("dnsmasq", false, "/tmp/dhcp.leases"),
+        ("odhcpd", true, "/tmp/odhcpd.leases"),
+    ] {
         let mut found = false;
         if let Some(pidx) = pkg {
             for s in ctx.root[pidx].sections.iter().filter(|s| s.ty == ty) {
@@ -241,7 +254,10 @@ fn lease_files() -> Vec<(String, bool)> {
 }
 
 fn now() -> i64 {
-    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0)
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
 }
 
 /// lease_open() + lease_next() until exhaustion.
@@ -288,7 +304,13 @@ pub fn leases() -> Vec<Lease> {
                 let Some(hostname) = t.next() else { continue };
                 let Some(ts) = t.next() else { continue };
                 let n = strtol10(ts) as i64;
-                e.expire = if n > now { (n - now) as i32 } else if n >= 0 { 0 } else { -1 };
+                e.expire = if n > now {
+                    (n - now) as i32
+                } else if n >= 0 {
+                    0
+                } else {
+                    -1
+                };
                 t.next(); // id
                 let Some(len) = t.next() else { continue };
                 let n = atoi(len);
@@ -313,7 +335,11 @@ pub fn leases() -> Vec<Lease> {
                 if let Some(ea) = ea {
                     e.mac = ea;
                 }
-                e.hostname = if hostname == "-" { None } else { Some(hostname.to_owned()) };
+                e.hostname = if hostname == "-" {
+                    None
+                } else {
+                    Some(hostname.to_owned())
+                };
                 if e.duid.as_deref() == Some("-") {
                     e.duid = None;
                 }
@@ -321,7 +347,13 @@ pub fn leases() -> Vec<Lease> {
                 let mut t = strtok(&line, " \t\n");
                 let Some(ts) = t.next() else { continue };
                 let n = strtol10(ts) as i64;
-                e.expire = if n > now { (n - now) as i32 } else if n > 0 { 0 } else { -1 };
+                e.expire = if n > now {
+                    (n - now) as i32
+                } else if n > 0 {
+                    0
+                } else {
+                    -1
+                };
                 let Some(mac) = t.next() else { continue };
                 let mut ea = ether_aton(mac);
                 let addr = t.next();
@@ -341,16 +373,26 @@ pub fn leases() -> Vec<Lease> {
                 if ea.is_none() && !e.v6 {
                     continue;
                 }
-                let (Some(hostname), Some(duid)) = (t.next(), t.next()) else { continue };
-                e.hostname = if hostname == "*" { None } else { Some(hostname.to_owned()) };
+                let (Some(hostname), Some(duid)) = (t.next(), t.next()) else {
+                    continue;
+                };
+                e.hostname = if hostname == "*" {
+                    None
+                } else {
+                    Some(hostname.to_owned())
+                };
                 let strip_colon = |s: &str| s.replace(':', "");
                 if !e.v6 && duid.len() > 15 && duid.starts_with("ff:") {
                     // ff:<iaid-4-bytes>:<duid-x-bytes...>
                     // C splits bytes at fixed offsets. A malformed client ID
                     // can split a UTF-8 character; retain this module's lossy
                     // display policy without indexing inside a Rust string.
-                    e.iaid = Some(strip_colon(&String::from_utf8_lossy(&duid.as_bytes()[3..14])));
-                    e.duid = Some(strip_colon(&String::from_utf8_lossy(&duid.as_bytes()[15..])));
+                    e.iaid = Some(strip_colon(&String::from_utf8_lossy(
+                        &duid.as_bytes()[3..14],
+                    )));
+                    e.duid = Some(strip_colon(&String::from_utf8_lossy(
+                        &duid.as_bytes()[15..],
+                    )));
                 } else if !e.v6 && duid.len() == 20 && duid.starts_with("01:") {
                     // 01:<mac-addr-6-bytes>
                     if ea.is_none() {
@@ -395,7 +437,10 @@ fn network_device(b: &mut BlobBuf, name: &str, ifaddr: &[rtnl::IfAddr]) {
         b.msg_bool("stp", readstr(&sys("bridge/stp_state")) != "0");
     }
     if let Ok(link) = fs::read_link(sys("master")) {
-        let base = link.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        let base = link
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
         b.msg_string("master", &base);
     }
     b.msg_bool("wireless", !readstr(&sys("phy80211/index")).is_empty());
@@ -423,14 +468,25 @@ fn network_device(b: &mut BlobBuf, name: &str, ifaddr: &[rtnl::IfAddr]) {
     }
     let mut ifa_flags: u32 = 0;
     for af in [rtnl::AF_INET, rtnl::AF_INET6] {
-        let a = b.msg_open_array(if af == rtnl::AF_INET { "ipaddrs" } else { "ip6addrs" });
+        let a = b.msg_open_array(if af == rtnl::AF_INET {
+            "ipaddrs"
+        } else {
+            "ip6addrs"
+        });
         for ifa in ifaddr.iter().filter(|i| i.family == af && i.name == name) {
             let t = b.msg_open_table("");
             b.msg_string("address", &rtnl::ntop(af, &ifa.addr));
-            b.msg_string("netmask", &ifa.netmask.as_deref().map(|m| rtnl::ntop(af, m)).unwrap_or_default());
+            b.msg_string(
+                "netmask",
+                &ifa.netmask
+                    .as_deref()
+                    .map(|m| rtnl::ntop(af, m))
+                    .unwrap_or_default(),
+            );
             if let (Some(dst), true) = (&ifa.dst, ifa.flags & rtnl::IFF_POINTOPOINT != 0) {
                 b.msg_string("remote", &rtnl::ntop(af, dst));
-            } else if let (Some(bc), true) = (&ifa.broadcast, ifa.flags & rtnl::IFF_BROADCAST != 0) {
+            } else if let (Some(bc), true) = (&ifa.broadcast, ifa.flags & rtnl::IFF_BROADCAST != 0)
+            {
                 b.msg_string("broadcast", &rtnl::ntop(af, bc));
             }
             b.msg_close(t);
@@ -438,7 +494,10 @@ fn network_device(b: &mut BlobBuf, name: &str, ifaddr: &[rtnl::IfAddr]) {
         }
         b.msg_close(a);
     }
-    if let Some(ll) = ifaddr.iter().find(|i| i.family == rtnl::AF_PACKET && i.name == name) {
+    if let Some(ll) = ifaddr
+        .iter()
+        .find(|i| i.family == rtnl::AF_PACKET && i.name == name)
+    {
         if ll.hatype == 1 {
             b.msg_string("mac", &rtnl::ea2str(&ll.addr));
         }
@@ -447,13 +506,27 @@ fn network_device(b: &mut BlobBuf, name: &str, ifaddr: &[rtnl::IfAddr]) {
         ifa_flags |= ll.flags;
         let n = atoi(&readstr(&sys("iflink")));
         if n != ll.ifindex {
-            if let Some(parent) = ifaddr.iter().find(|i| i.family == rtnl::AF_PACKET && i.ifindex == n) {
+            if let Some(parent) = ifaddr
+                .iter()
+                .find(|i| i.family == rtnl::AF_PACKET && i.ifindex == n)
+            {
                 b.msg_string("parent", &parent.name);
             }
         }
     }
     let t = b.msg_open_table("stats");
-    for st in ["rx_bytes", "tx_bytes", "tx_errors", "rx_errors", "tx_packets", "rx_packets", "multicast", "collisions", "rx_dropped", "tx_dropped"] {
+    for st in [
+        "rx_bytes",
+        "tx_bytes",
+        "tx_errors",
+        "rx_errors",
+        "tx_packets",
+        "rx_packets",
+        "multicast",
+        "collisions",
+        "rx_dropped",
+        "tx_dropped",
+    ] {
         b.msg_u64(st, strtoull10(&readstr(&sys(&format!("statistics/{st}")))));
     }
     b.msg_close(t);
@@ -478,7 +551,10 @@ fn network_device(b: &mut BlobBuf, name: &str, ifaddr: &[rtnl::IfAddr]) {
     b.msg_bool("carrier", atoi(&readstr(&sys("carrier"))) == 1);
     b.msg_u32("changes", atoi(&readstr(&sys("carrier_changes"))) as u32);
     b.msg_u32("up_count", atoi(&readstr(&sys("carrier_up_count"))) as u32);
-    b.msg_u32("down_count", atoi(&readstr(&sys("carrier_down_count"))) as u32);
+    b.msg_u32(
+        "down_count",
+        atoi(&readstr(&sys("carrier_down_count"))) as u32,
+    );
     b.msg_close(t);
     b.msg_close(o);
 }
@@ -523,7 +599,10 @@ fn add_sorted<const N: usize>(list: &mut Vec<(i32, [u8; N])>, prio: i32, addr: [
         list.remove(pos);
     }
     // host_hint_addr_avl_cmp: larger prio sorts first, then memcmp of the address
-    let pos = list.iter().position(|(p, a)| *p < prio || (*p == prio && *a > addr)).unwrap_or(list.len());
+    let pos = list
+        .iter()
+        .position(|(p, a)| *p < prio || (*p == prio && *a > addr))
+        .unwrap_or(list.len());
     list.insert(pos, (prio, addr));
 }
 
@@ -534,7 +613,9 @@ fn hint_for<'a>(hints: &'a mut Hints, ea: &[u8; 6]) -> &'a mut Hint {
 }
 
 fn hints_nl(hints: &mut Hints) {
-    let Ok(neigh) = rtnl::neighbours() else { return };
+    let Ok(neigh) = rtnl::neighbours() else {
+        return;
+    };
     for n in neigh {
         if n.family != rtnl::AF_INET && n.family != rtnl::AF_INET6 {
             continue;
@@ -542,7 +623,9 @@ fn hints_nl(hints: &mut Hints) {
         if n.state & (0xff & !rtnl::NUD_NOARP) == 0 {
             continue;
         }
-        let (Some(mac), Some(dst)) = (n.lladdr, n.dst) else { continue };
+        let (Some(mac), Some(dst)) = (n.lladdr, n.dst) else {
+            continue;
+        };
         let mut ea = [0u8; 6];
         for (i, v) in mac.iter().take(6).enumerate() {
             ea[i] = *v;
@@ -559,10 +642,14 @@ fn hints_nl(hints: &mut Hints) {
 }
 
 fn hints_ether(hints: &mut Hints) {
-    let Ok(text) = crate::util::read_lossy("/etc/ethers") else { return };
+    let Ok(text) = crate::util::read_lossy("/etc/ethers") else {
+        return;
+    };
     for line in text.split_inclusive('\n') {
         let mut t = strtok(line, " \t\n");
-        let Some(ea) = t.next().and_then(ether_aton) else { continue };
+        let Some(ea) = t.next().and_then(ether_aton) else {
+            continue;
+        };
         let h = hint_for(hints, &ea);
         let Some(p) = t.next() else { continue };
         if let Ok(v4) = p.parse::<Ipv4Addr>() {
@@ -580,17 +667,24 @@ fn hints_uci(hints: &mut Hints) {
             // luci-rpc.c reads `ip` only when the option is NOT a string
             // (`ptr.o->type != UCI_TYPE_STRING`), so a static lease never
             // contributes its address; the name still does.
-            let name = s.find_option("name").and_then(|i| match &s.options[i].value {
-                owrt_uci::OptionValue::Str(v) => Some(String::from_utf8_lossy(v).into_owned()),
-                _ => None,
-            });
-            let Some(mi) = s.find_option("mac") else { continue };
+            let name = s
+                .find_option("name")
+                .and_then(|i| match &s.options[i].value {
+                    owrt_uci::OptionValue::Str(v) => Some(String::from_utf8_lossy(v).into_owned()),
+                    _ => None,
+                });
+            let Some(mi) = s.find_option("mac") else {
+                continue;
+            };
             let macs: Vec<String> = match &s.options[mi].value {
                 owrt_uci::OptionValue::Str(v) => {
                     let text = String::from_utf8_lossy(v);
                     strtok(&text, " \t").map(str::to_owned).collect()
                 }
-                owrt_uci::OptionValue::List(items) => items.iter().map(|v| String::from_utf8_lossy(v).into_owned()).collect(),
+                owrt_uci::OptionValue::List(items) => items
+                    .iter()
+                    .map(|v| String::from_utf8_lossy(v).into_owned())
+                    .collect(),
             };
             for m in macs {
                 let Some(ea) = ether_aton(&m) else { continue };
@@ -624,12 +718,16 @@ fn hints_uci(hints: &mut Hints) {
 }
 
 fn hints_ifaddrs(hints: &mut Hints) {
-    let Ok(ifaddr) = rtnl::getifaddrs() else { return };
+    let Ok(ifaddr) = rtnl::getifaddrs() else {
+        return;
+    };
     // per device name (avl strcmp order): mac, last IPv4, last IPv6 seen
     #[allow(clippy::type_complexity)]
     let mut devices: BTreeMap<String, ([u8; 6], [u8; 4], [u8; 16])> = BTreeMap::new();
     for ifa in &ifaddr {
-        let d = devices.entry(ifa.name.clone()).or_insert(([0; 6], [0; 4], [0; 16]));
+        let d = devices
+            .entry(ifa.name.clone())
+            .or_insert(([0; 6], [0; 4], [0; 16]));
         match ifa.family {
             rtnl::AF_PACKET => {
                 if ifa.addr.len() == 6 {
@@ -685,7 +783,9 @@ fn hints_rrdns(hints: &mut Hints) {
         return;
     }
     let n = addrs.len() as i32;
-    let Some(pairs) = rrdns::resolve(&addrs, 250, n) else { return };
+    let Some(pairs) = rrdns::resolve(&addrs, 250, n) else {
+        return;
+    };
     for (name, value) in pairs {
         if let Ok(v6) = name.parse::<Ipv6Addr>() {
             let o = v6.octets();
@@ -783,13 +883,17 @@ pub fn get_board_json() -> Reply {
         return Reply::empty(status::UNKNOWN_ERROR);
     };
     match owrt_ubus::json::parse(&text) {
-        Ok(Json::Object(o)) => Reply::one(0, owrt_ubus::convert::object_to_payload(&Json::Object(o))),
+        Ok(Json::Object(o)) => {
+            Reply::one(0, owrt_ubus::convert::object_to_payload(&Json::Object(o)))
+        }
         _ => Reply::empty(status::UNKNOWN_ERROR),
     }
 }
 
 pub fn get_dhcp_leases(raw: &[u8]) -> Reply {
-    let family = arg(raw, "family", MsgType::Int32).and_then(|f| f.as_u32()).unwrap_or(0);
+    let family = arg(raw, "family", MsgType::Int32)
+        .and_then(|f| f.as_u32())
+        .unwrap_or(0);
     let fams: Vec<bool> = match family {
         0 => vec![false, true],
         4 => vec![false],
@@ -848,13 +952,23 @@ pub fn get_dhcp_leases(raw: &[u8]) -> Reply {
 /// invoke context clears its callback after one message); a failed lookup is
 /// NOT_FOUND, a missing/late reply an empty table.
 pub fn get_wireless_devices(socket: Option<&str>) -> Reply {
-    let Ok(mut conn) = Connection::connect(socket) else { return Reply::empty(status::NOT_FOUND) };
-    let Ok(id) = conn.lookup_id("network.wireless", 2000) else { return Reply::empty(status::NOT_FOUND) };
+    let Ok(mut conn) = Connection::connect(socket) else {
+        return Reply::empty(status::NOT_FOUND);
+    };
+    let Ok(id) = conn.lookup_id("network.wireless", 2000) else {
+        return Reply::empty(status::NOT_FOUND);
+    };
     let msg: Vec<u8> = match conn.invoke_status(id, "status", &[], 2000) {
         Ok(reply) => reply
             .data
             .first()
-            .map(|payload| blob::iter(payload).filter(|a| a.id == owrt_ubus::attr::DATA).map(|a| a.payload.to_vec()).next().unwrap_or_default())
+            .map(|payload| {
+                blob::iter(payload)
+                    .filter(|a| a.id == owrt_ubus::attr::DATA)
+                    .map(|a| a.payload.to_vec())
+                    .next()
+                    .unwrap_or_default()
+            })
             .unwrap_or_default(),
         Err(_) => Vec::new(),
     };
@@ -888,7 +1002,8 @@ pub fn get_wireless_devices(socket: Option<&str>) -> Reply {
                         b.msg_field(cur2.ty, cur2.name, cur2.data);
                     }
                     if let Some(n) = &name {
-                        if crate::iwinfoobj::luci_iwinfo(&mut b, n, false) && first_ifname.is_none() {
+                        if crate::iwinfoobj::luci_iwinfo(&mut b, n, false) && first_ifname.is_none()
+                        {
                             first_ifname = Some(n.clone());
                         }
                     }
@@ -953,7 +1068,10 @@ mod tests {
         for (bytes, expected) in [
             (b"".as_slice(), ""),
             (b" \t\r\n", ""),
-            (b" leading and internal\nspace \t\r\n", " leading and internal\nspace"),
+            (
+                b" leading and internal\nspace \t\r\n",
+                " leading and internal\nspace",
+            ),
             (b"raw-\xff\n", "raw-\u{fffd}"),
             (b"nul\0byte\n", "nul\0byte"),
         ] {
@@ -972,12 +1090,24 @@ mod tests {
     #[test]
     fn mac_and_duid() {
         assert_eq!(ether_aton("0:1:2:a:b:ff"), Some([0, 1, 2, 10, 11, 255]));
-        assert_eq!(ether_aton("00:11:22:33:44:55"), Some([0, 0x11, 0x22, 0x33, 0x44, 0x55]));
+        assert_eq!(
+            ether_aton("00:11:22:33:44:55"),
+            Some([0, 0x11, 0x22, 0x33, 0x44, 0x55])
+        );
         assert!(ether_aton("00:11:22:33:44").is_none());
         assert!(ether_aton("00:11:22:33:44:555").is_none());
-        assert_eq!(duid2ea("000100011234567800112233aabb"), Some([0, 0x11, 0x22, 0x33, 0xaa, 0xbb]));
-        assert_eq!(duid2ea("00030001aabbccddeeff"), Some([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]));
-        assert_eq!(duid2ea("aabbccddeeff"), Some([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]));
+        assert_eq!(
+            duid2ea("000100011234567800112233aabb"),
+            Some([0, 0x11, 0x22, 0x33, 0xaa, 0xbb])
+        );
+        assert_eq!(
+            duid2ea("00030001aabbccddeeff"),
+            Some([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff])
+        );
+        assert_eq!(
+            duid2ea("aabbccddeeff"),
+            Some([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff])
+        );
         assert!(duid2ea("zz").is_none());
     }
 
@@ -988,6 +1118,13 @@ mod tests {
         add_sorted(&mut v, 100, [10, 0, 0, 9]);
         add_sorted(&mut v, 10, [10, 0, 0, 1]);
         add_sorted(&mut v, 200, [10, 0, 0, 2]); // upgrade
-        assert_eq!(v, vec![(200, [10, 0, 0, 2]), (100, [10, 0, 0, 9]), (10, [10, 0, 0, 1])]);
+        assert_eq!(
+            v,
+            vec![
+                (200, [10, 0, 0, 2]),
+                (100, [10, 0, 0, 9]),
+                (10, [10, 0, 0, 1])
+            ]
+        );
     }
 }

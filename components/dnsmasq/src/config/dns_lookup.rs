@@ -36,7 +36,10 @@ impl EndpointLookup {
     /// Inherited signal handlers and panic hooks must not access copied parent
     /// descriptor owners, shared state or held locks, as required by
     /// [`dnsmasq_platform::process::spawn_lookup`].
-    #[expect(unsafe_code, reason = "audited owned resolver snapshot at the fork boundary")]
+    #[expect(
+        unsafe_code,
+        reason = "audited owned resolver snapshot at the fork boundary"
+    )]
     pub unsafe fn start(rules: Vec<ServerRule>, reverse: bool) -> io::Result<Self> {
         // All fields are owned names/IPs/scalars, not references or FD owners.
         // The poll turn holds no lock/stdio guard and worker_entry never
@@ -44,9 +47,8 @@ impl EndpointLookup {
         // SAFETY: the caller guarantees the process prerequisites. ServerRule
         // owns only byte buffers, addresses and scalars, with no descriptors;
         // worker_entry only resolves those rules and writes the provided pipe.
-        let ((rules, _), pid, reader) = unsafe {
-            dnsmasq_platform::process::spawn_lookup((rules, reverse), worker_entry)
-        }?;
+        let ((rules, _), pid, reader) =
+            unsafe { dnsmasq_platform::process::spawn_lookup((rules, reverse), worker_entry) }?;
         Ok(Self {
             pid: Some(pid.as_raw_nonzero().get()),
             reader,
@@ -230,7 +232,10 @@ fn decode(original: &[ServerRule], bytes: &[u8]) -> Result<LookupResult, ()> {
 
 #[cfg(feature = "process-test-support")]
 #[path = "dns_lookup_process_tests.rs"]
-#[expect(unsafe_code, reason = "standalone process tests establish the fork prerequisites")]
+#[expect(
+    unsafe_code,
+    reason = "standalone process tests establish the fork prerequisites"
+)]
 mod process_tests;
 
 #[cfg(feature = "process-test-support")]
@@ -238,7 +243,10 @@ mod process_tests;
 /// Run only on a standalone process main thread, without shared writable
 /// mappings, application atfork hooks or held locks.
 #[doc(hidden)]
-#[expect(unsafe_code, reason = "test runner must preserve the explicit fork contract")]
+#[expect(
+    unsafe_code,
+    reason = "test runner must preserve the explicit fork contract"
+)]
 pub unsafe fn run_process_tests() {
     process_tests::run();
 }

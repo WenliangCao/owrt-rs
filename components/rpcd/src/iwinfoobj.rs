@@ -29,7 +29,9 @@ fn code(c: i32) -> Reply {
 
 /// rpc_iwinfo_open: device argument + iwinfo_backend() probe.
 fn open(raw: &[u8]) -> Result<String, i32> {
-    let Some(dev) = arg_str(raw, "device") else { return Err(status::INVALID_ARGUMENT) };
+    let Some(dev) = arg_str(raw, "device") else {
+        return Err(status::INVALID_ARGUMENT);
+    };
     if iw::iwinfo_type(dev).is_none() {
         return Err(status::NOT_FOUND);
     }
@@ -49,7 +51,10 @@ fn add_bytes(b: &mut BlobBuf, name: &str, s: &[u8]) {
 }
 
 fn mac_str(m: &[u8; 6]) -> String {
-    format!("{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}", m[0], m[1], m[2], m[3], m[4], m[5])
+    format!(
+        "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+        m[0], m[1], m[2], m[3], m[4], m[5]
+    )
 }
 
 /// rpc_iwinfo_call_int: u32 of the int, or map[rv] when a name table is given.
@@ -74,7 +79,14 @@ fn call_str(b: &mut BlobBuf, name: &str, r: Result<String, ()>) {
 }
 
 /// rpc_iwinfo_add_bit_array
-fn add_bit_array(b: &mut BlobBuf, name: &str, mut bits: u32, values: &[&str], lower: bool, zero: u32) {
+fn add_bit_array(
+    b: &mut BlobBuf,
+    name: &str,
+    mut bits: u32,
+    values: &[&str],
+    lower: bool,
+    zero: u32,
+) {
     if bits == 0 {
         bits = zero;
     }
@@ -97,7 +109,14 @@ pub fn add_encryption(b: &mut BlobBuf, name: &str, e: &CryptoEntry) {
     b.msg_bool("enabled", e.enabled != 0);
     if e.enabled != 0 {
         if e.wpa_version == 0 {
-            add_bit_array(b, "wep", e.auth_algs as u32, &iw::IWINFO_AUTH_NAMES, true, 0);
+            add_bit_array(
+                b,
+                "wep",
+                e.auth_algs as u32,
+                &iw::IWINFO_AUTH_NAMES,
+                true,
+                0,
+            );
         } else {
             let d = b.msg_open_array("wpa");
             for v in 1..=3u32 {
@@ -106,9 +125,23 @@ pub fn add_encryption(b: &mut BlobBuf, name: &str, e: &CryptoEntry) {
                 }
             }
             b.msg_close(d);
-            add_bit_array(b, "authentication", e.auth_suites as u32, &iw::IWINFO_KMGMT_NAMES, true, iw::IWINFO_KMGMT_NONE as u32);
+            add_bit_array(
+                b,
+                "authentication",
+                e.auth_suites as u32,
+                &iw::IWINFO_KMGMT_NAMES,
+                true,
+                iw::IWINFO_KMGMT_NONE as u32,
+            );
         }
-        add_bit_array(b, "ciphers", (e.pair_ciphers | e.group_ciphers) as u32, &iw::IWINFO_CIPHER_NAMES, true, iw::IWINFO_CIPHER_NONE as u32);
+        add_bit_array(
+            b,
+            "ciphers",
+            (e.pair_ciphers | e.group_ciphers) as u32,
+            &iw::IWINFO_CIPHER_NAMES,
+            true,
+            iw::IWINFO_CIPHER_NONE as u32,
+        );
     }
     b.msg_close(c);
 }
@@ -123,7 +156,9 @@ fn hw_ht_mode(b: &mut BlobBuf, dev: &str, hwmodelist: i32) {
         b.msg_string("hwmode", "ad");
         return;
     }
-    let Ok(htmode) = nl80211::htmode(dev) else { return };
+    let Ok(htmode) = nl80211::htmode(dev) else {
+        return;
+    };
     let (hwmode_str, htmode_str) = match utils::iwinfo_htmode_name(htmode) {
         Some(hs) => {
             let hw = if utils::iwinfo_htmode_is_ht(htmode) {
@@ -165,14 +200,29 @@ fn info(raw: &[u8]) -> Reply {
     }
     call_str(&mut b, "bssid", nl80211::bssid(&dev));
     call_str(&mut b, "country", nl80211::country(&dev));
-    call_int(&mut b, "mode", nl80211::mode(&dev), Some(&iw::IWINFO_OPMODE_NAMES));
+    call_int(
+        &mut b,
+        "mode",
+        nl80211::mode(&dev),
+        Some(&iw::IWINFO_OPMODE_NAMES),
+    );
     call_int(&mut b, "channel", nl80211::channel(&dev), None);
     call_int(&mut b, "center_chan1", nl80211::center_chan1(&dev), None);
     call_int(&mut b, "center_chan2", nl80211::center_chan2(&dev), None);
     call_int(&mut b, "frequency", nl80211::frequency(&dev), None);
-    call_int(&mut b, "frequency_offset", nl80211::frequency_offset(&dev), None);
+    call_int(
+        &mut b,
+        "frequency_offset",
+        nl80211::frequency_offset(&dev),
+        None,
+    );
     call_int(&mut b, "txpower", nl80211::txpower(&dev), None);
-    call_int(&mut b, "txpower_offset", nl80211::txpower_offset(&dev), None);
+    call_int(
+        &mut b,
+        "txpower_offset",
+        nl80211::txpower_offset(&dev),
+        None,
+    );
     call_int(&mut b, "quality", nl80211::quality(&dev), None);
     call_int(&mut b, "quality_max", nl80211::quality_max(&dev), None);
     call_int(&mut b, "signal", nl80211::signal(&dev), None);
@@ -182,11 +232,25 @@ fn info(raw: &[u8]) -> Reply {
         add_encryption(&mut b, "encryption", &crypto);
     }
     if let Ok(modes) = nl80211::htmodelist(&dev) {
-        add_bit_array(&mut b, "htmodes", (modes & !iw::IWINFO_HTMODE_NOHT) as u32, &iw::IWINFO_HTMODE_NAMES, false, 0);
+        add_bit_array(
+            &mut b,
+            "htmodes",
+            (modes & !iw::IWINFO_HTMODE_NOHT) as u32,
+            &iw::IWINFO_HTMODE_NAMES,
+            false,
+            0,
+        );
     }
     let hwmodes = match nl80211::hwmodelist(&dev) {
         Ok(modes) => {
-            add_bit_array(&mut b, "hwmodes", modes as u32, &iw::IWINFO_80211_NAMES, false, 0);
+            add_bit_array(
+                &mut b,
+                "hwmodes",
+                modes as u32,
+                &iw::IWINFO_80211_NAMES,
+                false,
+                0,
+            );
             modes
         }
         Err(()) => -1,
@@ -230,7 +294,13 @@ fn scan(raw: &[u8]) -> Reply {
                 add_bytes(&mut b, "ssid", ssid);
             }
             b.msg_string("bssid", &mac_str(&e.mac));
-            b.msg_string("mode", iw::IWINFO_OPMODE_NAMES.get(e.mode as usize).copied().unwrap_or(""));
+            b.msg_string(
+                "mode",
+                iw::IWINFO_OPMODE_NAMES
+                    .get(e.mode as usize)
+                    .copied()
+                    .unwrap_or(""),
+            );
             let band = utils::iwinfo_band2ghz(e.band);
             if band > 0 {
                 b.msg_u32("band", band);
@@ -243,27 +313,45 @@ fn scan(raw: &[u8]) -> Reply {
             if e.ht_chan_info.primary_chan != 0 {
                 let t = b.msg_open_table("ht_operation");
                 b.msg_u32("primary_channel", e.ht_chan_info.primary_chan as u32);
-                b.msg_string("secondary_channel_offset", iw::HT_SECONDARY_OFFSET.get(e.ht_chan_info.secondary_chan_off as usize).copied().unwrap_or(""));
-                b.msg_u32("channel_width", tbl_u16(&iw::HT_CHAN_WIDTH, e.ht_chan_info.chan_width));
+                b.msg_string(
+                    "secondary_channel_offset",
+                    iw::HT_SECONDARY_OFFSET
+                        .get(e.ht_chan_info.secondary_chan_off as usize)
+                        .copied()
+                        .unwrap_or(""),
+                );
+                b.msg_u32(
+                    "channel_width",
+                    tbl_u16(&iw::HT_CHAN_WIDTH, e.ht_chan_info.chan_width),
+                );
                 b.msg_close(t);
             }
             if e.vht_chan_info.center_chan_1 != 0 {
                 let t = b.msg_open_table("vht_operation");
-                b.msg_u32("channel_width", tbl_u16(&iw::VHT_CHAN_WIDTH, e.vht_chan_info.chan_width));
+                b.msg_u32(
+                    "channel_width",
+                    tbl_u16(&iw::VHT_CHAN_WIDTH, e.vht_chan_info.chan_width),
+                );
                 b.msg_u32("center_freq_1", e.vht_chan_info.center_chan_1 as u32);
                 b.msg_u32("center_freq_2", e.vht_chan_info.center_chan_2 as u32);
                 b.msg_close(t);
             }
             if e.he_chan_info.center_chan_1 != 0 {
                 let t = b.msg_open_table("he_operation");
-                b.msg_u32("channel_width", tbl_u16(&iw::EHT_CHAN_WIDTH, e.he_chan_info.chan_width));
+                b.msg_u32(
+                    "channel_width",
+                    tbl_u16(&iw::EHT_CHAN_WIDTH, e.he_chan_info.chan_width),
+                );
                 b.msg_u32("center_freq_1", e.he_chan_info.center_chan_1 as u32);
                 b.msg_u32("center_freq_2", e.he_chan_info.center_chan_2 as u32);
                 b.msg_close(t);
             }
             if e.eht_chan_info.center_chan_1 != 0 {
                 let t = b.msg_open_table("eht_operation");
-                b.msg_u32("channel_width", tbl_u16(&iw::EHT_CHAN_WIDTH, e.eht_chan_info.chan_width));
+                b.msg_u32(
+                    "channel_width",
+                    tbl_u16(&iw::EHT_CHAN_WIDTH, e.eht_chan_info.chan_width),
+                );
                 b.msg_u32("center_freq_1", e.eht_chan_info.center_chan_1 as u32);
                 b.msg_u32("center_freq_2", e.eht_chan_info.center_chan_2 as u32);
                 b.msg_close(t);
@@ -312,7 +400,11 @@ fn assoclist(raw: &[u8]) -> Reply {
     };
     let macaddr = arg_str(raw, "mac").and_then(crate::lucirpc::ether_aton);
     let mut b = BlobBuf::new();
-    let c = if macaddr.is_none() { Some(b.msg_open_array("results")) } else { None };
+    let c = if macaddr.is_none() {
+        Some(b.msg_open_array("results"))
+    } else {
+        None
+    };
     let mut found = false;
     if let Ok(list) = nl80211::assoclist(&dev) {
         for a in &list {
@@ -334,7 +426,10 @@ fn assoclist(raw: &[u8]) -> Reply {
             b.msg_u32("thr", a.thr);
             b.msg_bool("authorized", a.is_authorized);
             b.msg_bool("authenticated", a.is_authenticated);
-            b.msg_string("preamble", if a.is_preamble_short { "short" } else { "long" });
+            b.msg_string(
+                "preamble",
+                if a.is_preamble_short { "short" } else { "long" },
+            );
             b.msg_bool("wme", a.is_wme);
             b.msg_bool("mfp", a.is_mfp);
             b.msg_bool("tdls", a.is_tdls);
@@ -420,7 +515,14 @@ fn freqlist(raw: &[u8]) -> Reply {
             b.msg_u32("channel", f.channel as u32);
             b.msg_u32("mhz", f.mhz);
             b.msg_bool("restricted", f.restricted != 0);
-            add_bit_array(&mut b, "flags", f.flags, &iw::IWINFO_FREQ_FLAG_NAMES, true, 0);
+            add_bit_array(
+                &mut b,
+                "flags",
+                f.flags,
+                &iw::IWINFO_FREQ_FLAG_NAMES,
+                true,
+                0,
+            );
             if ch > -1 {
                 b.msg_bool("active", f.channel as i32 == ch);
             }
@@ -467,7 +569,9 @@ fn countrylist(raw: &[u8]) -> Reply {
     if let Ok(list) = nl80211::countrylist(&dev) {
         let cur = nl80211::country(&dev).unwrap_or_default();
         for l in iw::IWINFO_ISO3166_NAMES.iter() {
-            let Some(entry) = list.iter().find(|e| e.iso3166 == l.iso3166) else { continue };
+            let Some(entry) = list.iter().find(|e| e.iso3166 == l.iso3166) else {
+                continue;
+            };
             let ccode = iw::cstr(&entry.ccode);
             let d = b.msg_open_table("");
             add_bytes(&mut b, "code", ccode);
@@ -489,7 +593,9 @@ fn countrylist(raw: &[u8]) -> Reply {
 }
 
 fn phyname(raw: &[u8]) -> Reply {
-    let Some(section) = arg_str(raw, "section") else { return code(status::INVALID_ARGUMENT) };
+    let Some(section) = arg_str(raw, "section") else {
+        return code(status::INVALID_ARGUMENT);
+    };
     // backends nl80211 / madwifi / wl: only nl80211 is compiled in
     let r = nl80211::lookup_phy(section);
     close();
@@ -504,7 +610,9 @@ fn phyname(raw: &[u8]) -> Reply {
 }
 
 fn devices() -> Reply {
-    let Ok(rd) = std::fs::read_dir("/sys/class/net") else { return code(status::UNKNOWN_ERROR) };
+    let Ok(rd) = std::fs::read_dir("/sys/class/net") else {
+        return code(status::UNKNOWN_ERROR);
+    };
     let mut b = BlobBuf::new();
     let c = b.msg_open_array("devices");
     for e in rd.flatten() {
@@ -560,7 +668,14 @@ pub fn luci_iwinfo(b: &mut BlobBuf, dev: &str, phy_only: bool) -> bool {
         }
     }
     if let Ok(modes) = nl80211::htmodelist(dev) {
-        add_bit_array(b, "htmodes", (modes & !iw::IWINFO_HTMODE_NOHT) as u32, &iw::IWINFO_HTMODE_NAMES, false, 0);
+        add_bit_array(
+            b,
+            "htmodes",
+            (modes & !iw::IWINFO_HTMODE_NOHT) as u32,
+            &iw::IWINFO_HTMODE_NAMES,
+            false,
+            0,
+        );
     }
     if let Ok(ids) = nl80211::hardware_id(dev) {
         let o2 = b.msg_open_table("hardware");
@@ -578,7 +693,13 @@ pub fn luci_iwinfo(b: &mut BlobBuf, dev: &str, phy_only: bool) -> bool {
         call_int(b, "quality_max", nl80211::quality_max(dev), None);
         call_int(b, "bitrate", nl80211::bitrate(dev), None);
         if let Ok(m) = nl80211::mode(dev) {
-            b.msg_string("mode", iw::IWINFO_OPMODE_NAMES.get(m as usize).copied().unwrap_or(""));
+            b.msg_string(
+                "mode",
+                iw::IWINFO_OPMODE_NAMES
+                    .get(m as usize)
+                    .copied()
+                    .unwrap_or(""),
+            );
         }
         if let Ok(ssid) = nl80211::ssid(dev) {
             add_bytes(b, "ssid", &ssid);
@@ -597,8 +718,8 @@ pub fn luci_iwinfo(b: &mut BlobBuf, dev: &str, phy_only: bool) -> bool {
 /// `rpcd-rs --iwinfo-bench <ifname>`: run the `info` op sequence once per op,
 /// print wall time and the number of nl80211 requests each op issued.
 pub fn bench(dev: &str) {
-    use std::io::Write;
     use crate::iwinfo::netlink::SENDS;
+    use std::io::Write;
     use std::sync::atomic::Ordering;
     use std::time::Instant;
     if iw::iwinfo_type(dev).is_none() {
@@ -610,7 +731,8 @@ pub fn bench(dev: &str) {
             let s0 = SENDS.load(Ordering::Relaxed);
             let t = Instant::now();
             let ok = $e.is_ok();
-            let _ = writeln!(std::io::stdout(),
+            let _ = writeln!(
+                std::io::stdout(),
                 "{:<18} {:>8.2} ms  nl_sends={:<3} {}",
                 $name,
                 t.elapsed().as_secs_f64() * 1000.0,
@@ -645,7 +767,8 @@ pub fn bench(dev: &str) {
     op!("hardware_id", nl80211::hardware_id(dev));
     op!("hardware_name", nl80211::hardware_name(dev));
     op!("assoclist", nl80211::assoclist(dev));
-    let _ = writeln!(std::io::stdout(),
+    let _ = writeln!(
+        std::io::stdout(),
         "total              {:>8.2} ms  nl_sends={}",
         t_all.elapsed().as_secs_f64() * 1000.0,
         SENDS.load(Ordering::Relaxed) - s_all

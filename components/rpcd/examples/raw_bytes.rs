@@ -7,12 +7,15 @@ use std::os::unix::fs::PermissionsExt;
 
 fn call(conn: &mut Connection, object: &str, method: &str, data: &BlobBuf) -> Reply {
     let id = conn.lookup_id(object, 2000).expect("object registered");
-    conn.invoke_status(id, method, data.payload(), 5000).expect("complete RPC")
+    conn.invoke_status(id, method, data.payload(), 5000)
+        .expect("complete RPC")
 }
 
 fn string(reply: &Reply, name: &str) -> Vec<u8> {
     let fields = reply.fields();
-    let field = blob::fields(&fields).find(|f| f.name == name).expect("string field");
+    let field = blob::fields(&fields)
+        .find(|f| f.name == name)
+        .expect("string field");
     field.as_bytes().expect("string value").to_vec()
 }
 
@@ -22,7 +25,8 @@ fn main() {
     let data = b"payload-\xff\xfe\x80\n";
     std::fs::create_dir_all("/tmp/r83-raw").unwrap();
     let mut b = BlobBuf::new();
-    b.msg_string_bytes("path", path).msg_string_bytes("data", data);
+    b.msg_string_bytes("path", path)
+        .msg_string_bytes("data", data);
     assert_eq!(call(&mut conn, "file", "write", &b).status, 0);
     assert_eq!(std::fs::read(OsStr::from_bytes(path)).unwrap(), data);
     println!("write: non-UTF8 path and data preserved");
@@ -41,8 +45,9 @@ fn main() {
     assert_eq!(reply.status, 0);
     let fields = reply.fields();
     let entries = blob::fields(&fields).find(|f| f.name == "entries").unwrap();
-    assert!(entries.children().any(|entry| entry.children().any(|f|
-        f.name == "name" && f.as_bytes() == Some(b"file-\xff".as_slice()))));
+    assert!(entries.children().any(|entry| entry
+        .children()
+        .any(|f| f.name == "name" && f.as_bytes() == Some(b"file-\xff".as_slice()))));
     println!("list: raw filename preserved");
 
     let mut b = BlobBuf::new();
@@ -56,7 +61,11 @@ fn main() {
     println!("exec: raw argv and stdout preserved");
 
     let executable = OsStr::from_bytes(b"/tmp/r83-raw/run-\xfe");
-    std::fs::write(executable, b"#!/bin/sh\nprintf '%s' \"$R83_BYTES\"\nprintf '\\377' >&2\n").unwrap();
+    std::fs::write(
+        executable,
+        b"#!/bin/sh\nprintf '%s' \"$R83_BYTES\"\nprintf '\\377' >&2\n",
+    )
+    .unwrap();
     std::fs::set_permissions(executable, std::fs::Permissions::from_mode(0o755)).unwrap();
     let mut b = BlobBuf::new();
     b.msg_string_bytes("command", executable.as_bytes());
@@ -73,7 +82,8 @@ fn main() {
     assert_eq!(reply.status, 0);
     let sid = string(&reply, "ubus_rpc_session");
     let mut b = BlobBuf::new();
-    b.msg_string_bytes("ubus_rpc_session", &sid).msg_string("scope", "file");
+    b.msg_string_bytes("ubus_rpc_session", &sid)
+        .msg_string("scope", "file");
     let objects = b.msg_open_array("objects");
     let grant = b.msg_open_array("");
     b.msg_string_bytes("", path).msg_string("", "read");
@@ -81,12 +91,15 @@ fn main() {
     b.msg_close(objects);
     assert_eq!(call(&mut conn, "session", "grant", &b).status, 0);
     let mut b = BlobBuf::new();
-    b.msg_string_bytes("ubus_rpc_session", &sid).msg_string_bytes("path", path);
+    b.msg_string_bytes("ubus_rpc_session", &sid)
+        .msg_string_bytes("path", path);
     let reply = call(&mut conn, "file", "read", &b);
     assert_eq!(reply.status, 0);
     assert_eq!(string(&reply, "data"), data);
     let mut denied = BlobBuf::new();
-    denied.msg_string_bytes("ubus_rpc_session", &sid).msg_string_bytes("path", b"/tmp/r83-raw/file-\xfe");
+    denied
+        .msg_string_bytes("ubus_rpc_session", &sid)
+        .msg_string_bytes("path", b"/tmp/r83-raw/file-\xfe");
     assert_eq!(call(&mut conn, "file", "read", &denied).status, 6);
     assert_eq!(call(&mut conn, "file", "remove", &b).status, 6);
     println!("ACL: raw path allowed, distinct path and ungranted write denied");

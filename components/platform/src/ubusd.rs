@@ -23,7 +23,11 @@ pub fn wake(fd: i32) {
 /// embeds a NonZero PID and cannot represent it (upstream rustix#1698).
 #[repr(C)]
 #[derive(Default, Clone, Copy, Debug)]
-pub struct Ucred { pub pid: i32, pub uid: u32, pub gid: u32 }
+pub struct Ucred {
+    pub pid: i32,
+    pub uid: u32,
+    pub gid: u32,
+}
 
 unsafe extern "C" {
     fn getsockopt(fd: i32, level: i32, option: i32, value: *mut Ucred, length: *mut u32) -> i32;

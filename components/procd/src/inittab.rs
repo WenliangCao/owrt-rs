@@ -169,11 +169,19 @@ mod tests {
     fn the_device_inittab_shape_parses() {
         assert_eq!(
             parse_line("::sysinit:/etc/init.d/rcS S boot"),
-            Some((String::new(), "sysinit".into(), vec!["/etc/init.d/rcS".into(), "S".into(), "boot".into()]))
+            Some((
+                String::new(),
+                "sysinit".into(),
+                vec!["/etc/init.d/rcS".into(), "S".into(), "boot".into()]
+            ))
         );
         assert_eq!(
             parse_line("tty1::askfirst:/usr/libexec/login.sh"),
-            Some(("tty1".into(), "askfirst".into(), vec!["/usr/libexec/login.sh".into()]))
+            Some((
+                "tty1".into(),
+                "askfirst".into(),
+                vec!["/usr/libexec/login.sh".into()]
+            ))
         );
     }
 
@@ -204,7 +212,10 @@ mod tests {
         let mut v = vec!["/usr/libexec/login.sh".to_string()];
         prepend_ask(&mut v);
         prepend_ask(&mut v);
-        assert_eq!(v, vec![ASK.to_string(), "/usr/libexec/login.sh".to_string()]);
+        assert_eq!(
+            v,
+            vec![ASK.to_string(), "/usr/libexec/login.sh".to_string()]
+        );
     }
 
     #[test]
@@ -212,7 +223,11 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("inittab-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let p = dir.join("inittab");
-        std::fs::write(&p, "::sysinit:/bin/true\n::bogus:/bin/false\ntty1::respawn:/bin/sh\n").unwrap();
+        std::fs::write(
+            &p,
+            "::sysinit:/bin/true\n::bogus:/bin/false\ntty1::respawn:/bin/sh\n",
+        )
+        .unwrap();
         let acts = parse(p.to_str().unwrap());
         assert_eq!(acts.len(), 2);
         assert_eq!(acts[0].kind, Kind::Sysinit);

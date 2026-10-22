@@ -4,8 +4,8 @@
 #[path = "tftp_policy.rs"]
 mod policy;
 use crate::config::{dns::DnsConfig, tftp::TftpConfig};
-use crate::neighbors::MacLookup;
 use crate::interfaces::DnsInterface;
+use crate::neighbors::MacLookup;
 use crate::net::{Datagram, DatagramSocket};
 use crate::tftp_runtime::{
     Completion, FileOpener, RealFileOpener, RequestPolicy, RuntimeConfig, RuntimeEvent,
@@ -179,7 +179,9 @@ impl<O: FileOpener> TftpListener<O> {
     }
     /// Pending MAC lookups need owner wakeups even before a transfer exists.
     pub fn has_pending_work(&self) -> bool {
-        self.runtime.active_len() != 0 || !self.pending.is_empty() || self.pending_admission.is_some()
+        self.runtime.active_len() != 0
+            || !self.pending.is_empty()
+            || self.pending_admission.is_some()
     }
     pub fn needs_interface_admission(&self) -> bool {
         self.pending_admission.is_some()
@@ -187,11 +189,13 @@ impl<O: FileOpener> TftpListener<O> {
     /// Resume the saved datagram after the existing shared owner's collection.
     /// It now tests only C's published-list exceptions, never the old name.
     pub fn resume_interface_admission(&mut self, interfaces: &[DnsInterface], now: u64) {
-        let Some((mut pending, loopback)) = self.pending_admission.take() else { return };
+        let Some((mut pending, loopback)) = self.pending_admission.take() else {
+            return;
+        };
         self.refresh_listener_interfaces(interfaces);
-        if self.policy.as_ref().is_some_and(|policy|
-            policy.admitted_exception(&pending.datagram, &pending.name, loopback))
-        {
+        if self.policy.as_ref().is_some_and(|policy| {
+            policy.admitted_exception(&pending.datagram, &pending.name, loopback)
+        }) {
             pending.deadline = now.saturating_add(2);
             self.pending.push_back(pending);
         }
@@ -269,7 +273,9 @@ impl<O: FileOpener> TftpListener<O> {
         policy.interfaces = interfaces.to_vec();
         let dynamic = policy.dns.bind_dynamic;
         if dynamic {
-            self.pending_bind = policy.addresses().into_iter()
+            self.pending_bind = policy
+                .addresses()
+                .into_iter()
                 .filter(|address| policy.tentative(*address))
                 .collect();
             let addresses = self.listener_addresses();
@@ -360,7 +366,11 @@ impl<O: FileOpener> TftpListener<O> {
 
     pub fn append_poll_fds(&self, fds: &mut Vec<dnsmasq_platform::poll::PollFd>) {
         use dnsmasq_platform::poll::{PollFd, POLLIN};
-        for server in self.servers.iter().filter(|_| self.pending_admission.is_none()) {
+        for server in self
+            .servers
+            .iter()
+            .filter(|_| self.pending_admission.is_none())
+        {
             if self.single_port || self.accepting && server.accepting && self.has_capacity() {
                 fds.push(PollFd {
                     fd: server.socket.as_raw_fd(),
@@ -405,7 +415,10 @@ impl<O: FileOpener> TftpListener<O> {
                 break;
             };
             let need_mac = matches!(pending.bytes.get(..2), Some([0, 1] | [0, 2]))
-                && self.policy.as_ref().is_some_and(|policy| policy.needs_mac(&pending.name));
+                && self
+                    .policy
+                    .as_ref()
+                    .is_some_and(|policy| policy.needs_mac(&pending.name));
             let found = if need_mac {
                 match mac(pending.datagram.peer.ip(), pending.datagram.interface, now) {
                     MacLookup::Ready(found) => found,
@@ -596,7 +609,9 @@ impl<O: FileOpener> TftpListener<O> {
                 }
                 return Ok(());
             }
-            let Some(policy) = &mut self.policy else { return Ok(()) };
+            let Some(policy) = &mut self.policy else {
+                return Ok(());
+            };
             policy.refresh()?;
             if !policy.admitted_exception(&datagram, &pending.name, loopback) {
                 return Ok(());
@@ -832,7 +847,8 @@ fn bind_transfer_address(
                 // exceeding the path MTU, including IPv4 on a dual-family fd.
 
                 rustix::net::sockopt::set_ip_mtu_discover(
-                    &socket, rustix::net::sockopt::Ipv4PathMtuDiscovery::DONT,
+                    &socket,
+                    rustix::net::sockopt::Ipv4PathMtuDiscovery::DONT,
                 )?;
                 socket.set_nonblocking(true)?;
                 return Ok(socket);
@@ -877,7 +893,11 @@ fn bound_interface(policy: &Policy, address: SocketAddr, fd: &impl AsFd) -> Opti
     })
 }
 fn descriptor_limit() -> io::Result<u64> {
-    Ok(rustix::process::getrlimit(rustix::process::Resource::Nofile).current.unwrap_or(u64::MAX))
+    Ok(
+        rustix::process::getrlimit(rustix::process::Resource::Nofile)
+            .current
+            .unwrap_or(u64::MAX),
+    )
 }
 
 #[cfg(test)]
@@ -1037,7 +1057,10 @@ mod tests {
             .is_empty());
         assert_eq!(listener.pending.len(), 1);
         assert_eq!(listener.active_transfers(), 0);
-        assert!(listener.has_pending_work(), "MAC waiter still needs owner wakeups");
+        assert!(
+            listener.has_pending_work(),
+            "MAC waiter still needs owner wakeups"
+        );
         let mut bytes = [0; 512];
         assert!(v4.recv_from(&mut bytes).is_err());
         listener

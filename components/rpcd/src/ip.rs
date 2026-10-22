@@ -135,7 +135,9 @@ pub fn arrtoip(a: &[u8]) -> Option<String> {
 }
 
 fn format_v6(a: &[u8]) -> String {
-    let words: Vec<u16> = (0..8).map(|i| ((a[2 * i] as u16) << 8) | a[2 * i + 1] as u16).collect();
+    let words: Vec<u16> = (0..8)
+        .map(|i| ((a[2 * i] as u16) << 8) | a[2 * i + 1] as u16)
+        .collect();
     // longest run of zero words (len >= 2), leftmost on tie
     let (mut best_base, mut best_len) = (-1i32, 0i32);
     let (mut cur_base, mut cur_len) = (-1i32, 0i32);
@@ -175,10 +177,7 @@ fn format_v6(a: &[u8]) -> String {
         if i != 0 {
             out.push(':');
         }
-        if i == 6
-            && best_base == 0
-            && (best_len == 6 || (best_len == 5 && words[5] == 0xffff))
-        {
+        if i == 6 && best_base == 0 && (best_len == 6 || (best_len == 5 && words[5] == 0xffff)) {
             out.push_str(&format!("{}.{}.{}.{}", a[12], a[13], a[14], a[15]));
             break;
         }

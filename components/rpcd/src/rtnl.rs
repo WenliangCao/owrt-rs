@@ -67,8 +67,12 @@ pub fn attrs(data: &[u8]) -> Vec<(u16, &[u8])> {
 /// header `hdr` (ifinfomsg/ifaddrmsg/ndmsg, zero-filled by the callers);
 /// returns every multipart message until NLMSG_DONE.
 pub fn dump(ty: u16, hdr: &[u8]) -> io::Result<Vec<Msg>> {
-    let fd = rustix::net::socket_with(rustix::net::AddressFamily::NETLINK,
-        rustix::net::SocketType::RAW, rustix::net::SocketFlags::CLOEXEC, None)?;
+    let fd = rustix::net::socket_with(
+        rustix::net::AddressFamily::NETLINK,
+        rustix::net::SocketType::RAW,
+        rustix::net::SocketFlags::CLOEXEC,
+        None,
+    )?;
     rustix::net::bind(&fd, &rustix::net::netlink::SocketAddrNetlink::new(0, 0))?;
     let seq: u32 = 1;
     let total = (16 + hdr.len() + 3) & !3;
@@ -108,7 +112,11 @@ pub fn dump(ty: u16, hdr: &[u8]) -> io::Result<Vec<Msg>> {
                     done = true;
                     break;
                 }
-                _ => out.push(Msg { ty: mty, flags, payload: buf[off + 16..off + len].to_vec() }),
+                _ => out.push(Msg {
+                    ty: mty,
+                    flags,
+                    payload: buf[off + 16..off + len].to_vec(),
+                }),
             }
             if flags & NLM_F_MULTI == 0 {
                 done = true;
@@ -168,10 +176,19 @@ pub fn getifaddrs() -> io::Result<Vec<IfAddr>> {
         let ifi_type = u16::from_le_bytes([p[2], p[3]]);
         let index = i32::from_le_bytes(p[4..8].try_into().unwrap());
         let flags = u32::from_le_bytes(p[8..12].try_into().unwrap());
-        let mut e = IfAddr { family: AF_PACKET, flags, hatype: ifi_type, ifindex: index, ..Default::default() };
+        let mut e = IfAddr {
+            family: AF_PACKET,
+            flags,
+            hatype: ifi_type,
+            ifindex: index,
+            ..Default::default()
+        };
         for (t, v) in attrs(&p[16..]) {
             match t {
-                IFLA_IFNAME => e.name = String::from_utf8_lossy(v.split(|&b| b == 0).next().unwrap_or(&[])).into_owned(),
+                IFLA_IFNAME => {
+                    e.name = String::from_utf8_lossy(v.split(|&b| b == 0).next().unwrap_or(&[]))
+                        .into_owned()
+                }
                 IFLA_ADDRESS => e.addr = v.to_vec(),
                 _ => {}
             }
@@ -188,8 +205,16 @@ pub fn getifaddrs() -> io::Result<Vec<IfAddr>> {
         let family = p[0];
         let prefix = p[1];
         let index = u32::from_le_bytes(p[4..8].try_into().unwrap()) as i32;
-        let Some(link) = list[..nlinks].iter().find(|l| l.ifindex == index) else { continue };
-        let mut e = IfAddr { name: link.name.clone(), family, flags: link.flags, ifindex: index, ..Default::default() };
+        let Some(link) = list[..nlinks].iter().find(|l| l.ifindex == index) else {
+            continue;
+        };
+        let mut e = IfAddr {
+            name: link.name.clone(),
+            family,
+            flags: link.flags,
+            ifindex: index,
+            ..Default::default()
+        };
         for (t, v) in attrs(&p[8..]) {
             match t {
                 IFA_ADDRESS => {
@@ -206,7 +231,10 @@ pub fn getifaddrs() -> io::Result<Vec<IfAddr>> {
                     e.addr = v.to_vec();
                 }
                 IFA_BROADCAST => e.broadcast = Some(v.to_vec()),
-                IFA_LABEL => e.name = String::from_utf8_lossy(v.split(|&b| b == 0).next().unwrap_or(&[])).into_owned(),
+                IFA_LABEL => {
+                    e.name = String::from_utf8_lossy(v.split(|&b| b == 0).next().unwrap_or(&[]))
+                        .into_owned()
+                }
                 _ => {}
             }
         }
@@ -234,7 +262,10 @@ pub fn ea2str(b: &[u8]) -> String {
     for (i, v) in b.iter().take(6).enumerate() {
         o[i] = *v;
     }
-    format!("{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}", o[0], o[1], o[2], o[3], o[4], o[5])
+    format!(
+        "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+        o[0], o[1], o[2], o[3], o[4], o[5]
+    )
 }
 
 pub struct Neigh {
@@ -253,7 +284,12 @@ pub fn neighbours() -> io::Result<Vec<Neigh>> {
             continue;
         }
         let p = &m.payload;
-        let mut n = Neigh { family: p[0], state: u16::from_le_bytes([p[8], p[9]]), lladdr: None, dst: None };
+        let mut n = Neigh {
+            family: p[0],
+            state: u16::from_le_bytes([p[8], p[9]]),
+            lladdr: None,
+            dst: None,
+        };
         for (t, v) in attrs(&p[12..]) {
             match t {
                 NDA_LLADDR => n.lladdr = Some(v.to_vec()),
@@ -274,7 +310,10 @@ mod tests {
     fn netmask() {
         assert_eq!(ntop(AF_INET, &gen_netmask(AF_INET, 24)), "255.255.255.0");
         assert_eq!(ntop(AF_INET, &gen_netmask(AF_INET, 19)), "255.255.224.0");
-        assert_eq!(ntop(AF_INET6, &gen_netmask(AF_INET6, 64)), "ffff:ffff:ffff:ffff::");
+        assert_eq!(
+            ntop(AF_INET6, &gen_netmask(AF_INET6, 64)),
+            "ffff:ffff:ffff:ffff::"
+        );
         assert_eq!(ea2str(&[0xde, 0xad, 0xbe, 0xef, 0, 1]), "DE:AD:BE:EF:00:01");
     }
 }

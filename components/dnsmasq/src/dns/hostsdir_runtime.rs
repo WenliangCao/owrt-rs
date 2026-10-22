@@ -139,8 +139,10 @@ impl HostsRead {
             },
         );
         self.loaded.stats = self.parser.stats;
-        self.loaded.allocation_failed |=
-            allocation_failed || diagnostics_failed || line_metadata_failed || self.parser.allocation_failed;
+        self.loaded.allocation_failed |= allocation_failed
+            || diagnostics_failed
+            || line_metadata_failed
+            || self.parser.allocation_failed;
         if self.loaded.allocation_failed {
             // The owner polls and serves other work between chunks. Release
             // incomplete staging now, before that work needs memory too.
@@ -233,28 +235,46 @@ mod tests {
     fn staged_line_ends_survive_chunk_boundaries_and_count_expanded_duplicates() {
         use crate::config::lex_line;
         use std::io::Write;
-        let directory = std::env::temp_dir().join(format!("dnsmasq-hostsdir-lines-{}", std::process::id()));
+        let directory =
+            std::env::temp_dir().join(format!("dnsmasq-hostsdir-lines-{}", std::process::id()));
         std::fs::create_dir(&directory).unwrap();
         let path = directory.join("hosts");
         let mut input = b"\n# ignored\nbad ignored\n192.0.2.1 ".to_vec();
-        for i in 0..1002 { write!(input, "name{i}.test ").unwrap(); }
+        for i in 0..1002 {
+            write!(input, "name{i}.test ").unwrap();
+        }
         input.extend_from_slice(b"\n192.0.2.2 short short");
         std::fs::write(&path, &input).unwrap();
         let mut config = DnsConfig::default();
         config.expand_hosts = true;
-        config.apply(&lex_line(b"domain=example.test").unwrap().unwrap()).unwrap();
+        config
+            .apply(&lex_line(b"domain=example.test").unwrap().unwrap())
+            .unwrap();
         let mut reader = HostsRead::open(HostSource { path, uid: 100 }, 37).unwrap();
         assert!(!reader.step(&config).unwrap());
         assert!(!reader.loaded.records.is_empty());
-        assert!(reader.loaded.line_ends.is_empty(), "a read chunk is not a source-line boundary");
+        assert!(
+            reader.loaded.line_ends.is_empty(),
+            "a read chunk is not a source-line boundary"
+        );
         while !reader.step(&config).unwrap() {}
         let loaded = reader.finish();
         assert!(!loaded.allocation_failed);
         assert_eq!(loaded.stats.bad_addresses, 1);
         assert_eq!(loaded.records.len(), 1006);
         assert_eq!(loaded.line_ends, [1002, 1006]);
-        assert_eq!(loaded.records[1002..].iter().map(|(name, _)| name.as_slice()).collect::<Vec<_>>(),
-            [b"short.example.test".as_slice(), b"short", b"short.example.test", b"short"]);
+        assert_eq!(
+            loaded.records[1002..]
+                .iter()
+                .map(|(name, _)| name.as_slice())
+                .collect::<Vec<_>>(),
+            [
+                b"short.example.test".as_slice(),
+                b"short",
+                b"short.example.test",
+                b"short"
+            ]
+        );
         std::fs::remove_dir_all(directory).unwrap();
     }
 }

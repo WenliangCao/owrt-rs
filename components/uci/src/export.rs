@@ -47,7 +47,9 @@ pub fn size_hint(p: &Package) -> usize {
         for opt in &sec.options {
             n += match &opt.value {
                 OptionValue::Str(v) => 14 + opt.name.len() + v.len(),
-                OptionValue::List(items) => items.iter().map(|i| 12 + opt.name.len() + i.len()).sum(),
+                OptionValue::List(items) => {
+                    items.iter().map(|i| 12 + opt.name.len() + i.len()).sum()
+                }
             };
         }
     }
@@ -55,7 +57,12 @@ pub fn size_hint(p: &Package) -> usize {
 }
 
 /// uci_export_package
-pub fn export_package<W: Write>(w: &mut W, flags: u32, p: &Package, header: bool) -> io::Result<()> {
+pub fn export_package<W: Write>(
+    w: &mut W,
+    flags: u32,
+    p: &Package,
+    header: bool,
+) -> io::Result<()> {
     if header {
         w.write_all(b"package ")?;
         write_escaped(w, p.name.as_bytes())?;

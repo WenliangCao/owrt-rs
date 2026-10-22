@@ -7,8 +7,8 @@
 
 use super::doctor::{self, Alias, DoctorOutcome};
 use super::wire::{
-    decode_name, find_pseudoheader, skip_name, skip_questions, validate_name, Header, Question, RecordRef,
-    WireError, HEADER_LEN,
+    decode_name, find_pseudoheader, skip_name, skip_questions, validate_name, Header, Question,
+    RecordRef, WireError, HEADER_LEN,
 };
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 

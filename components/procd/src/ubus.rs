@@ -37,10 +37,7 @@ const NAME_ONLY: &[(&str, MsgType)] = &[("name", MsgType::String)];
 pub const SERVICE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("set", SET_ATTRS),
     ("add", SET_ATTRS),
-    (
-        "list",
-        &[("name", MsgType::String), ("verbose", BOOL)],
-    ),
+    ("list", &[("name", MsgType::String), ("verbose", BOOL)]),
     (
         "delete",
         &[("name", MsgType::String), ("instance", MsgType::String)],
@@ -83,10 +80,7 @@ pub const SERVICE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
             ("data", MsgType::Table),
         ],
     ),
-    (
-        "state",
-        &[("spawn", BOOL), ("name", MsgType::String)],
-    ),
+    ("state", &[("spawn", BOOL), ("name", MsgType::String)]),
     (
         // Designated initialisers do not reorder the array: the enum does.
         // SERVICE_WATCHDOG_{MODE,TIMEOUT,NAME,INSTANCE} is the order the
@@ -108,18 +102,12 @@ pub const SERVICE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
 pub const CONTAINER_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("set", SET_ATTRS),
     ("add", SET_ATTRS),
-    (
-        "list",
-        &[("name", MsgType::String), ("verbose", BOOL)],
-    ),
+    ("list", &[("name", MsgType::String), ("verbose", BOOL)]),
     (
         "delete",
         &[("name", MsgType::String), ("instance", MsgType::String)],
     ),
-    (
-        "state",
-        &[("spawn", BOOL), ("name", MsgType::String)],
-    ),
+    ("state", &[("spawn", BOOL), ("name", MsgType::String)]),
     ("get_features", &[]),
     (
         "console_set",

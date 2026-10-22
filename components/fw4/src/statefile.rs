@@ -55,7 +55,11 @@ fn oaddrs(v: &Option<Vec<Addr>>) -> Json {
 }
 fn limit(l: &Option<Limit>) -> Json {
     match l {
-        Some(l) => obj(vec![("invert", Json::Bool(l.invert)), ("rate", num(l.rate)), ("unit", s(&l.unit))]),
+        Some(l) => obj(vec![
+            ("invert", Json::Bool(l.invert)),
+            ("rate", num(l.rate)),
+            ("unit", s(&l.unit)),
+        ]),
         None => Json::Null,
     }
 }
@@ -72,7 +76,14 @@ fn groups(v: &[SubnetGroup]) -> Json {
 fn zone(z: &Zone) -> Json {
     obj(vec![
         ("name", s(&z.name)),
-        ("family", if z.family == 0 { Json::Null } else { Json::Int(z.family) }),
+        (
+            "family",
+            if z.family == 0 {
+                Json::Null
+            } else {
+                Json::Int(z.family)
+            },
+        ),
         ("input", s(&z.input)),
         ("output", s(&z.output)),
         ("forward", s(&z.forward)),
@@ -89,7 +100,12 @@ fn zone(z: &Zone) -> Json {
             Json::Array(
                 z.network
                     .iter()
-                    .map(|d| obj(vec![("invert", Json::Bool(d.invert)), ("device", os(&d.device))]))
+                    .map(|d| {
+                        obj(vec![
+                            ("invert", Json::Bool(d.invert)),
+                            ("device", os(&d.device)),
+                        ])
+                    })
                     .collect(),
             ),
         ),
@@ -139,7 +155,10 @@ fn ipset(i: &Ipset) -> Json {
         ("directions", strs(&i.directions)),
         ("interval", Json::Bool(i.interval)),
         ("flags", ostrs(&i.flags)),
-        ("entries", Json::Array(i.entries.iter().map(|e| strs(e)).collect())),
+        (
+            "entries",
+            Json::Array(i.entries.iter().map(|e| strs(e)).collect()),
+        ),
     ])
 }
 
@@ -173,10 +192,18 @@ pub fn to_json(st: &State) -> Json {
         ("ipsets", Json::Array(st.ipsets.iter().map(ipset).collect())),
         (
             "networks",
-            Json::Object(st.networks.iter().map(|(k, v)| (k.clone(), net(v))).collect()),
+            Json::Object(
+                st.networks
+                    .iter()
+                    .map(|(k, v)| (k.clone(), net(v)))
+                    .collect(),
+            ),
         ),
         ("ubus_rules", Json::Array(st.ubus_rules.clone())),
-        ("includes", Json::Array(st.includes.iter().map(include).collect())),
+        (
+            "includes",
+            Json::Array(st.includes.iter().map(include).collect()),
+        ),
     ])
 }
 
@@ -196,16 +223,28 @@ fn jstrs(v: Option<&Json>) -> Vec<String> {
 
 pub fn parse(j: &Json) -> Saved {
     let arr = |k: &str| -> Vec<Json> {
-        j.get(k).and_then(Json::as_array).map(|a| a.to_vec()).unwrap_or_default()
+        j.get(k)
+            .and_then(Json::as_array)
+            .map(|a| a.to_vec())
+            .unwrap_or_default()
     };
     let ipsets = arr("ipsets")
         .iter()
         .map(|i| Ipset {
             name: i.get("name").map(crate::val::to_str).unwrap_or_default(),
-            family: i.get("family").map(|f| crate::val::to_num(f).as_i64()).unwrap_or(4),
+            family: i
+                .get("family")
+                .map(|f| crate::val::to_num(f).as_i64())
+                .unwrap_or(4),
             comment: i.get("comment").and_then(Json::as_str).map(str::to_owned),
-            maxelem: i.get("maxelem").filter(|v| !matches!(v, Json::Null)).map(crate::val::to_num),
-            timeout: i.get("timeout").map(crate::val::to_num).unwrap_or(Num::Int(-1)),
+            maxelem: i
+                .get("maxelem")
+                .filter(|v| !matches!(v, Json::Null))
+                .map(crate::val::to_num),
+            timeout: i
+                .get("timeout")
+                .map(crate::val::to_num)
+                .unwrap_or(Num::Int(-1)),
             entries: match i.get("entries") {
                 Some(Json::Array(a)) => a.iter().map(|e| jstrs(Some(e))).collect(),
                 _ => Vec::new(),
@@ -215,7 +254,10 @@ pub fn parse(j: &Json) -> Saved {
             types: jstrs(i.get("types")),
             directions: jstrs(i.get("directions")),
             interval: i.get("interval").map(crate::val::truthy).unwrap_or(false),
-            flags: i.get("flags").and_then(Json::as_array).map(|_| jstrs(i.get("flags"))),
+            flags: i
+                .get("flags")
+                .and_then(Json::as_array)
+                .map(|_| jstrs(i.get("flags"))),
         })
         .collect();
     let includes = arr("includes")
@@ -224,10 +266,20 @@ pub fn parse(j: &Json) -> Saved {
             enabled: i.get("enabled").map(crate::val::truthy).unwrap_or(true),
             path: i.get("path").map(crate::val::to_str).unwrap_or_default(),
             ty: i.get("type").map(crate::val::to_str).unwrap_or_default(),
-            fw4_compatible: i.get("fw4_compatible").map(crate::val::truthy).unwrap_or(true),
-            position: i.get("position").map(crate::val::to_str).unwrap_or_default(),
+            fw4_compatible: i
+                .get("fw4_compatible")
+                .map(crate::val::truthy)
+                .unwrap_or(true),
+            position: i
+                .get("position")
+                .map(crate::val::to_str)
+                .unwrap_or_default(),
             chain: i.get("chain").and_then(Json::as_str).map(str::to_owned),
         })
         .collect();
-    Saved { zones: arr("zones"), ipsets, includes }
+    Saved {
+        zones: arr("zones"),
+        ipsets,
+        includes,
+    }
 }

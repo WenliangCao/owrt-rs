@@ -12,7 +12,13 @@ unsafe extern "C" {
     fn openlog(ident: *const c_char, option: c_int, facility: c_int);
     fn syslog(priority: c_int, format: *const c_char, ...);
     fn ioctl(fd: c_int, request: c_ulong, ...) -> c_int;
-    fn setsockopt(fd: c_int, level: c_int, name: c_int, value: *const std::ffi::c_void, len: u32) -> c_int;
+    fn setsockopt(
+        fd: c_int,
+        level: c_int,
+        name: c_int,
+        value: *const std::ffi::c_void,
+        len: u32,
+    ) -> c_int;
     fn kill(pid: c_int, signal: c_int) -> c_int;
 }
 
@@ -53,7 +59,16 @@ pub fn enable_netlink_ext_ack(fd: impl AsFd) -> io::Result<()> {
     let value = 1;
     // SAFETY: fixed SOL_NETLINK/NETLINK_EXT_ACK reads exactly one live int.
     // rustix 1.1.5 does not expose this socket option.
-    if unsafe { setsockopt(fd.as_fd().as_raw_fd(), 270, 11, (&value as *const i32).cast(), 4) } < 0 {
+    if unsafe {
+        setsockopt(
+            fd.as_fd().as_raw_fd(),
+            270,
+            11,
+            (&value as *const i32).cast(),
+            4,
+        )
+    } < 0
+    {
         Err(io::Error::last_os_error())
     } else {
         Ok(())
@@ -133,7 +148,8 @@ pub fn ethtool_query(fd: impl AsFd, name: &str, buffer: &mut [u8]) -> io::Result
             info[8..16].copy_from_slice(&(1u64 << 4).to_ne_bytes());
             ethtool_query(fd.as_fd(), name, &mut info)?;
             let count = u32::from_ne_bytes(info[16..20].try_into().unwrap()) as usize;
-            12usize.checked_add(count.checked_mul(32).ok_or_else(invalid)?)
+            12usize
+                .checked_add(count.checked_mul(32).ok_or_else(invalid)?)
                 .ok_or_else(invalid)?
         }
         0x3a => 8usize

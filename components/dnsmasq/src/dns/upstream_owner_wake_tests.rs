@@ -32,7 +32,10 @@ fn long_pending_deadline_is_never_reported_as_idle() {
     assert_eq!(transport.append_poll_fds(&mut fds, bounded), Some(bounded));
     assert_eq!(fds.len(), 1);
     fds.clear();
-    assert_eq!(transport.append_poll_fds(&mut fds, now + Duration::from_secs(10800)), Some(actual));
+    assert_eq!(
+        transport.append_poll_fds(&mut fds, now + Duration::from_secs(10800)),
+        Some(actual)
+    );
     assert_eq!(fds.len(), 1);
 }
 
@@ -47,7 +50,9 @@ fn queued_real_completion_wakes_owner_after_its_last_socket_is_released() {
     // Produce the completion with a real readable FD and the real receiver,
     // leaving its terminal event queued as a caller between owner phases can.
     let mut fds = Vec::new();
-    let due = transport.append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1)).unwrap();
+    let due = transport
+        .append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1))
+        .unwrap();
     assert_eq!(owner_wait(&mut fds, due), 1);
     assert_ne!(fds[0].revents & POLLIN, 0);
     transport.receive_ready(token, fds[0].revents, &|_, _| false);
@@ -58,7 +63,9 @@ fn queued_real_completion_wakes_owner_after_its_last_socket_is_released() {
 
     fds.clear();
     let before = Instant::now();
-    let due = transport.append_poll_fds(&mut fds, before + Duration::from_secs(1)).unwrap();
+    let due = transport
+        .append_poll_fds(&mut fds, before + Duration::from_secs(1))
+        .unwrap();
     assert!(
         fds.is_empty(),
         "a queued completion owns no remaining network FD"
@@ -105,7 +112,9 @@ fn queued_terminal_error_wakes_without_an_fd_and_is_consumed_only_once() {
         (0, 0)
     );
     let mut fds = Vec::new();
-    let due = transport.append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1)).unwrap();
+    let due = transport
+        .append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1))
+        .unwrap();
     assert!(fds.is_empty());
     assert!(due <= Instant::now());
     assert_eq!(owner_wait(&mut fds, due), 0);
@@ -142,7 +151,9 @@ fn fast_retry_deadline_wakes_quiet_owner_and_retransmits_the_same_request() {
     let initial = packet[..length].to_vec();
     let mut fds = Vec::new();
     let before = Instant::now();
-    let due = transport.append_poll_fds(&mut fds, before + Duration::from_secs(1)).unwrap();
+    let due = transport
+        .append_poll_fds(&mut fds, before + Duration::from_secs(1))
+        .unwrap();
     assert!(due <= before + Duration::from_millis(45));
     assert_eq!(owner_wait(&mut fds, due), 0, "no upstream reply was sent");
     assert!(transport.poll(Duration::ZERO).unwrap().is_empty());
@@ -154,13 +165,20 @@ fn fast_retry_deadline_wakes_quiet_owner_and_retransmits_the_same_request() {
     // Once sent, the next retry is future work rather than an immediate loop.
     fds.clear();
     let after = Instant::now();
-    assert!(transport.append_poll_fds(&mut fds, after + Duration::from_secs(1)).unwrap() > after);
+    assert!(
+        transport
+            .append_poll_fds(&mut fds, after + Duration::from_secs(1))
+            .unwrap()
+            > after
+    );
     assert_eq!(owner_wait(&mut fds, after), 0);
     server
         .send_to(&response(&initial, 0x8180, true), peer)
         .unwrap();
     fds.clear();
-    let due = transport.append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1)).unwrap();
+    let due = transport
+        .append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1))
+        .unwrap();
     assert_eq!(owner_wait(&mut fds, due), 1);
     let events = transport.poll(Duration::ZERO).unwrap();
     assert_eq!(events.len(), 1);
@@ -211,7 +229,9 @@ fn empty_error_retry_timer_reenables_fd_and_consumes_a_real_queued_datagram() {
     assert_eq!(transport.transactions[&id].deadline, transaction_deadline);
     server.send_to(&reply, peer).unwrap();
     let mut fds = Vec::new();
-    let due = transport.append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1)).unwrap();
+    let due = transport
+        .append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1))
+        .unwrap();
     assert!(
         fds.is_empty(),
         "even a real datagram waits while this FD is excluded"
@@ -219,7 +239,9 @@ fn empty_error_retry_timer_reenables_fd_and_consumes_a_real_queued_datagram() {
     assert_eq!(due, observed + EMPTY_ERROR_RETRY);
     assert_eq!(owner_wait(&mut fds, due), 0);
     fds.clear();
-    let due = transport.append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1)).unwrap();
+    let due = transport
+        .append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1))
+        .unwrap();
     assert_eq!(
         fds.len(),
         1,
@@ -267,7 +289,9 @@ fn owner_retry_send_failure_releases_fds_and_counts_its_fallback_once() {
         "127.0.0.1:0".parse().unwrap();
     let mut fds = Vec::new();
     let before = Instant::now();
-    let due = transport.append_poll_fds(&mut fds, before + Duration::from_secs(1)).unwrap();
+    let due = transport
+        .append_poll_fds(&mut fds, before + Duration::from_secs(1))
+        .unwrap();
     assert!(due <= before + Duration::from_millis(45));
     assert_eq!(owner_wait(&mut fds, due), 0);
     let events = transport.poll(Duration::ZERO).unwrap();

@@ -545,7 +545,9 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     pub(crate) fn retained_servers(&self) -> impl Iterator<Item = (ServerId, SocketAddr)> + '_ {
-        self.reply_servers.iter().map(|(&id, &address)| (id, address))
+        self.reply_servers
+            .iter()
+            .map(|(&id, &address)| (id, address))
     }
 
     pub(crate) fn server_counters(&self, id: ServerId) -> ServerCounters {
@@ -560,9 +562,18 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     fn note_retry(&mut self, id: QueryId, failed: bool) {
-        if let Some(server) = self.dispatcher.table().get(id).and_then(|query| query.sent_to) {
+        if let Some(server) = self
+            .dispatcher
+            .table()
+            .get(id)
+            .and_then(|query| query.sent_to)
+        {
             let counters = self.server_counters.entry(server).or_default();
-            let value = if failed { &mut counters.failed } else { &mut counters.retries };
+            let value = if failed {
+                &mut counters.failed
+            } else {
+                &mut counters.retries
+            };
             *value = value.wrapping_add(1);
         }
     }
@@ -609,7 +620,9 @@ impl<R: Random> UpstreamResolver<R> {
         mut send: impl FnMut(&UdpSocket, &[u8], SocketAddr) -> io::Result<usize>,
         wait: impl FnMut() -> io::Result<()>,
     ) {
-        let Some(saved) = self.saved_udp else { return; };
+        let Some(saved) = self.saved_udp else {
+            return;
+        };
         let Some(owned) = self.sockets.get(&saved.socket) else {
             self.invalidate_udp_resend();
             return;
@@ -618,7 +631,8 @@ impl<R: Random> UpstreamResolver<R> {
         // existing exact retry_send contract (including its bounded EAGAIN
         // nanosleep boundary); do not add an independent owner send queue.
         let _ = send_udp_with_retry(
-            || send(&owned.socket, &self.saved_udp_packet, saved.destination), wait,
+            || send(&owned.socket, &self.saved_udp_packet, saved.destination),
+            wait,
         );
     }
 
@@ -874,7 +888,10 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     pub fn replace_server_groups(&mut self, groups: Vec<ServerGroup>, removed: &[ServerId]) {
-        if self.saved_udp.is_some_and(|saved| removed.contains(&saved.server)) {
+        if self
+            .saved_udp
+            .is_some_and(|saved| removed.contains(&saved.server))
+        {
             // server_gone invalidates only the actual retired server record,
             // not another server or a merely excluded routing rule.
             self.invalidate_udp_resend();
@@ -1306,7 +1323,10 @@ impl<R: Random> UpstreamResolver<R> {
                 || (owned.persistent
                     && (owned.pinned || self.server_sockets.values().any(|used| used == token)))
         });
-        if self.saved_udp.is_some_and(|saved| !self.sockets.contains_key(&saved.socket)) {
+        if self
+            .saved_udp
+            .is_some_and(|saved| !self.sockets.contains_key(&saved.socket))
+        {
             self.invalidate_udp_resend();
         }
     }
@@ -1406,7 +1426,11 @@ impl<R: Random> UpstreamResolver<R> {
                     counters.queries = counters.queries.wrapping_add(1);
                     self.saved_udp_packet.clear();
                     self.saved_udp_packet.extend_from_slice(packet);
-                    self.saved_udp = Some(SavedUdpQuery { server, socket: token, destination: address });
+                    self.saved_udp = Some(SavedUdpQuery {
+                        server,
+                        socket: token,
+                        destination: address,
+                    });
                     let pending = self
                         .dispatcher
                         .table()
@@ -1416,9 +1440,10 @@ impl<R: Random> UpstreamResolver<R> {
                     // forward.c:472,556: a stale-cache refresh has udpfd=-1
                     // and no client prefix, while retaining its display ID.
                     if !include_client
-                        || pending.recipients.first().is_some_and(|recipient| {
-                            !recipient.client.reply_requested
-                        })
+                        || pending
+                            .recipients
+                            .first()
+                            .is_some_and(|recipient| !recipient.client.reply_requested)
                     {
                         context.client = None;
                     }
@@ -1674,13 +1699,17 @@ impl<R: Random> UpstreamResolver<R> {
                     }
                 }
                 Some(ReplyAction::Deliver) => {
-                    let elapsed = self.milliseconds().wrapping_sub(
-                        self.dispatcher.table().get(id).unwrap().last_sent_ms);
+                    let elapsed = self
+                        .milliseconds()
+                        .wrapping_sub(self.dispatcher.table().get(id).unwrap().last_sent_ms);
                     let counters = self.server_counters.entry(matched.server).or_default();
                     counters.moving_latency = if counters.latency == 0 {
                         elapsed.wrapping_mul(128)
                     } else {
-                        counters.moving_latency.wrapping_add(elapsed).wrapping_sub(counters.latency)
+                        counters
+                            .moving_latency
+                            .wrapping_add(elapsed)
+                            .wrapping_sub(counters.latency)
                     };
                     counters.latency = counters.moving_latency / 128;
                     let packet = self.receive_buffer[..length].to_vec();
@@ -1782,7 +1811,10 @@ fn send_udp_with_retry(
 
 fn wait_udp_retry() -> io::Result<()> {
     use rustix::thread::NanosleepRelativeResult;
-    match rustix::thread::nanosleep(&rustix::time::Timespec { tv_sec: 0, tv_nsec: 10_000 }) {
+    match rustix::thread::nanosleep(&rustix::time::Timespec {
+        tv_sec: 0,
+        tv_nsec: 10_000,
+    }) {
         NanosleepRelativeResult::Ok => Ok(()),
         NanosleepRelativeResult::Interrupted(_) => Err(rustix::io::Errno::INTR.into()),
         NanosleepRelativeResult::Err(error) => Err(error.into()),

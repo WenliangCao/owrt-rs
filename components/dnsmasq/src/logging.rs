@@ -726,7 +726,6 @@ impl Logger {
     }
 }
 
-
 fn drain_echo(fd: impl AsFd, records: &mut VecDeque<Record>) {
     for _ in 0..128 {
         let Some(record) = records.front_mut() else {

@@ -122,11 +122,7 @@ impl Service {
     /// `service_stopped()`: a deleted service stays around until nothing of
     /// it is still running.
     pub fn can_be_freed(&self) -> bool {
-        self.deleted
-            && self
-                .instances
-                .values()
-                .all(|i| i.state == Run::Stopped)
+        self.deleted && self.instances.values().all(|i| i.state == Run::Stopped)
     }
 
     /// The vlist diff `set` performs: old names not in `fresh` stop, shared
@@ -218,7 +214,6 @@ mod tests {
         assert_eq!(service.trigger.as_deref(), Some(secret.as_slice()));
     }
 
-
     #[test]
     fn filtered_lists_keep_order_last_field_rules_and_current_services() {
         let mut services = BTreeMap::new();
@@ -226,8 +221,11 @@ mod tests {
         services.insert("a".into(), Service::new("a"));
         let mut request = BlobBuf::new();
         let mut reply = BlobBuf::new();
-        let names = |b: &BlobBuf| owrt_ubus::blob::fields(b.payload())
-            .map(|f| f.name.to_owned()).collect::<Vec<_>>();
+        let names = |b: &BlobBuf| {
+            owrt_ubus::blob::fields(b.payload())
+                .map(|f| f.name.to_owned())
+                .collect::<Vec<_>>()
+        };
         dump_list(&services, request.payload(), &mut reply);
         assert_eq!(names(&reply), ["a", "z"]);
         request.msg_string("name", "z");
@@ -237,7 +235,10 @@ mod tests {
         services.remove("z");
         reply.reset_bounded(16 * 1024);
         dump_list(&services, request.payload(), &mut reply);
-        assert!(reply.payload().is_empty(), "deleted service is visible immediately");
+        assert!(
+            reply.payload().is_empty(),
+            "deleted service is visible immediately"
+        );
         request.msg_u32("name", 0);
         reply.reset_bounded(16 * 1024);
         dump_list(&services, request.payload(), &mut reply);
@@ -245,7 +246,10 @@ mod tests {
         request.msg_string("name", "");
         reply.reset_bounded(16 * 1024);
         dump_list(&services, request.payload(), &mut reply);
-        assert!(reply.payload().is_empty(), "an empty name is still an exact filter");
+        assert!(
+            reply.payload().is_empty(),
+            "an empty name is still an exact filter"
+        );
     }
 
     fn inst(name: &str) -> Instance {

@@ -12,7 +12,6 @@ use crate::ethtool_modes::{
     ETHTOOL_LINK_MODE_ASYM_PAUSE_BIT, ETHTOOL_LINK_MODE_PAUSE_BIT, ETHTOOL_MODES,
 };
 
-
 const ETHTOOL_GPAUSEPARAM: u32 = 0x12;
 const ETHTOOL_GSTRINGS: u32 = 0x1b;
 const ETHTOOL_GSSET_INFO: u32 = 0x37;
@@ -58,7 +57,9 @@ pub struct LinkInfo {
 
 impl Ethtool {
     pub fn open() -> io::Result<Self> {
-        Ok(Self { ioctl: crate::sys::IfIoctl::open()? })
+        Ok(Self {
+            ioctl: crate::sys::IfIoctl::open()?,
+        })
     }
 
     /// SIOCGIF* and SIOCETHTOOL use the same unbound datagram socket.
@@ -93,8 +94,7 @@ impl Ethtool {
         if u32_at(&b, 0) != ETHTOOL_GLINKSETTINGS {
             return Err(io::Error::from_raw_os_error(95)); // EOPNOTSUPP
         }
-        b[15] = requested_words(b[15] as i8)
-            .ok_or_else(|| io::Error::from_raw_os_error(95))?;
+        b[15] = requested_words(b[15] as i8).ok_or_else(|| io::Error::from_raw_os_error(95))?;
         self.call(name, &mut b)?;
         let nwords = b[15] as i8;
         if nwords <= 0 || u32_at(&b, 0) != ETHTOOL_GLINKSETTINGS {
@@ -103,7 +103,9 @@ impl Ethtool {
         let nw = nwords as usize;
 
         let words = |base: usize| -> Vec<u32> {
-            (0..nw).map(|i| u32_at(&b, 48 + 4 * (base * nw + i))).collect()
+            (0..nw)
+                .map(|i| u32_at(&b, 48 + 4 * (base * nw + i)))
+                .collect()
         };
         let supported = words(0);
         let advertising = words(1);
@@ -127,8 +129,11 @@ impl Ethtool {
             pause_negotiated: None,
         };
         if speed != SPEED_UNKNOWN && speed != 0 {
-            info.speed =
-                Some(format!("{}{}", speed, if duplex == DUPLEX_HALF { 'H' } else { 'F' }));
+            info.speed = Some(format!(
+                "{}{}",
+                speed,
+                if duplex == DUPLEX_HALF { 'H' } else { 'F' }
+            ));
         }
         if pause_autoneg {
             info.pause_advertising = pause_modes(&advertising);
@@ -211,7 +216,10 @@ impl Ethtool {
 /// The first GLINKSETTINGS reply negates a 1..=127 word count. Reject -128
 /// before negation: it cannot fit the signed count used by the second call.
 fn requested_words(reply: i8) -> Option<u8> {
-    reply.checked_neg().filter(|words| *words > 0).map(|words| words as u8)
+    reply
+        .checked_neg()
+        .filter(|words| *words > 0)
+        .map(|words| words as u8)
 }
 
 /// Test one bit of a link-mode mask, mirroring
@@ -308,7 +316,12 @@ pub fn devtype(ifname: &str) -> Option<String> {
     }
     let n: u16 = dev_sysfs_n(ifname, "type", 100)?.trim().parse().ok()?;
     let t = crate::netdev_types::NETDEV_TYPES;
-    Some(t.iter().find(|(id, _)| *id == n).map_or(t[t.len() - 1].1, |(_, name)| name).to_string())
+    Some(
+        t.iter()
+            .find(|(id, _)| *id == n)
+            .map_or(t[t.len() - 1].1, |(_, name)| name)
+            .to_string(),
+    )
 }
 
 /// The 23 counters `system_if_dump_stats` reports, in its own order — which is
@@ -348,7 +361,9 @@ pub const STAT_COUNTERS: &[&str] = &[
 /// The sysfs `statistics/*` files print exactly these fields, so the IFLA_STATS64
 /// attribute of one RTM_GETLINK reply carries the same 23 values as 23
 /// open/read/close triples.
-const STATS64_INDEX: [usize; 23] = [9, 13, 22, 8, 10, 7, 2, 15, 5, 21, 11, 18, 12, 0, 19, 6, 16, 1, 4, 3, 20, 14, 17];
+const STATS64_INDEX: [usize; 23] = [
+    9, 13, 22, 8, 10, 7, 2, 15, 5, 21, 11, 18, 12, 0, 19, 6, 16, 1, 4, 3, 20, 14, 17,
+];
 
 /// The 23 counters from an IFLA_STATS64 payload, in `STAT_COUNTERS` order.
 /// None when the payload is too short for the fields used here.
@@ -374,12 +389,19 @@ pub fn statistics(ifname: &str) -> Vec<(&'static str, u64)> {
 }
 
 fn open_readonly_at(dir: impl AsFd, path: &CStr) -> Option<OwnedFd> {
-    rustix::fs::openat(dir, path, rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::CLOEXEC,
-        rustix::fs::Mode::empty()).ok()
+    rustix::fs::openat(
+        dir,
+        path,
+        rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::CLOEXEC,
+        rustix::fs::Mode::empty(),
+    )
+    .ok()
 }
 
 fn statistics_at(path: &CStr) -> Vec<(&'static str, u64)> {
-    let Some(dir) = open_readonly_at(rustix::fs::CWD, path) else { return Vec::new() };
+    let Some(dir) = open_readonly_at(rustix::fs::CWD, path) else {
+        return Vec::new();
+    };
     let mut values = Vec::with_capacity(STAT_COUNTERS.len());
     for &name in STAT_COUNTERS {
         // Kernel counter names are fixed and fit here. Reuse stack storage
@@ -387,7 +409,9 @@ fn statistics_at(path: &CStr) -> Vec<(&'static str, u64)> {
         let mut name_buf = [0u8; 32];
         name_buf[..name.len()].copy_from_slice(name.as_bytes());
         let path = CStr::from_bytes_with_nul(&name_buf[..name.len() + 1]).unwrap();
-        let Some(fd) = open_readonly_at(&dir, path) else { continue };
+        let Some(fd) = open_readonly_at(&dir, path) else {
+            continue;
+        };
         let mut file = std::fs::File::from(fd);
         // sysfs emits at most 20 decimal digits plus a newline for u64.
         // Reading that bounded value needs neither fstat nor an EOF probe.
@@ -422,7 +446,6 @@ mod tests {
         }
     }
 
-
     #[test]
     fn link_modes_use_the_generated_order_and_suffixes() {
         // 10baseT half (bit 0) and 1000baseT full (bit 5)
@@ -446,10 +469,14 @@ mod tests {
 
     #[test]
     fn pause_modes_read_the_two_named_bits() {
-        assert_eq!(pause_modes(&[1 << ETHTOOL_LINK_MODE_PAUSE_BIT]), vec!["pause"]);
         assert_eq!(
-            pause_modes(&[(1 << ETHTOOL_LINK_MODE_PAUSE_BIT)
-                | (1 << ETHTOOL_LINK_MODE_ASYM_PAUSE_BIT)]),
+            pause_modes(&[1 << ETHTOOL_LINK_MODE_PAUSE_BIT]),
+            vec!["pause"]
+        );
+        assert_eq!(
+            pause_modes(&[
+                (1 << ETHTOOL_LINK_MODE_PAUSE_BIT) | (1 << ETHTOOL_LINK_MODE_ASYM_PAUSE_BIT)
+            ]),
             vec!["pause", "asym_pause"]
         );
         assert!(pause_modes(&[0]).is_empty());
@@ -486,8 +513,12 @@ mod tests {
     #[test]
     fn counters_keep_order_and_observe_changes_missing_files_and_full_u64() {
         let dir = std::env::temp_dir().join(format!(
-            "netifd-statistics-{}-{}", std::process::id(),
-            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
+            "netifd-statistics-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
         ));
         std::fs::create_dir(&dir).unwrap();
         let path = CString::new(dir.as_os_str().as_encoded_bytes()).unwrap();
@@ -496,7 +527,10 @@ mod tests {
         std::fs::write(dir.join("collisions"), b"0\n").unwrap();
         std::fs::write(dir.join("tx_bytes"), b"18446744073709551616\n").unwrap();
         std::fs::write(dir.join("rx_packets"), b"invalid\n").unwrap();
-        assert_eq!(statistics_at(&path), [("collisions", 0), ("rx_bytes", u64::MAX)]);
+        assert_eq!(
+            statistics_at(&path),
+            [("collisions", 0), ("rx_bytes", u64::MAX)]
+        );
         std::fs::write(dir.join("rx_bytes"), b"12345\n").unwrap();
         std::fs::remove_file(dir.join("collisions")).unwrap();
         assert_eq!(statistics_at(&path), [("rx_bytes", 12345)]);

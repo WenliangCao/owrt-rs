@@ -82,7 +82,9 @@ impl Conn {
         loop {
             let (h, blob) = self.recv().expect("reply before timeout");
             if h.ty == ty::STATUS && h.seq == seq {
-                let code = attrs(&blob)[attr::STATUS as usize].and_then(|a| a.as_u32()).unwrap_or(u32::MAX);
+                let code = attrs(&blob)[attr::STATUS as usize]
+                    .and_then(|a| a.as_u32())
+                    .unwrap_or(u32::MAX);
                 return (code as i32, got);
             }
             got.push((h, blob));
@@ -125,7 +127,8 @@ impl Conn {
     fn event_register(&mut self, pattern: &str, objid: u32) -> i32 {
         let mut d = BlobBuf::new();
         d.msg_string("pattern", pattern).msg_u32("object", objid);
-        self.invoke(EVENT_OBJ, "register", Some(&d.into_payload())).0
+        self.invoke(EVENT_OBJ, "register", Some(&d.into_payload()))
+            .0
     }
 
     fn event_send(&mut self, id: &str, data_fields: &[u8]) -> i32 {
@@ -199,7 +202,9 @@ fn describe<'a>(fields: impl Iterator<Item = Field<'a>>) -> String {
 }
 
 fn data_fields(blob: &[u8]) -> &[u8] {
-    attrs(blob)[attr::DATA as usize].map(|a| a.payload).unwrap_or(&[])
+    attrs(blob)[attr::DATA as usize]
+        .map(|a| a.payload)
+        .unwrap_or(&[])
 }
 
 fn pathless(sock: &str) {
@@ -210,8 +215,14 @@ fn pathless(sock: &str) {
     println!("acl.bogus={}", c.invoke(ACL_OBJ, "bogus", None).0);
     println!("event.bogus={}", c.invoke(EVENT_OBJ, "bogus", None).0);
     // an id >= 1024 that no object has: the ACL passed, the lookup failed
-    println!("event.register(no-such-object)={}", c.event_register("r83.x", 5000));
-    println!("event.send(unlisted id)={}", c.event_send("r83.unlisted", &[]));
+    println!(
+        "event.register(no-such-object)={}",
+        c.event_register("r83.x", 5000)
+    );
+    println!(
+        "event.send(unlisted id)={}",
+        c.event_send("r83.unlisted", &[])
+    );
     println!("monitor.add={}", c.invoke(MONITOR_OBJ, "add", None).0);
     println!("monitor.bogus={}", c.invoke(MONITOR_OBJ, "bogus", None).0);
 }
@@ -221,7 +232,11 @@ fn events(sock: &str) {
     let mut b = Conn::open(sock);
     let o1 = a.add_object(None, &[]);
     let o2 = a.add_object(None, &[]);
-    println!("register={},{}", a.event_register("r83.ev.*", o1), a.event_register("r83.ev.*", o2));
+    println!(
+        "register={},{}",
+        a.event_register("r83.ev.*", o1),
+        a.event_register("r83.ev.*", o2)
+    );
     let mut fields = BlobBuf::new();
     fields.msg_u32("n", 1);
     let payload = fields.into_payload();
@@ -231,7 +246,9 @@ fn events(sock: &str) {
         let (h2, b2) = a.recv().expect("second copy");
         let id1 = attrs(&b1)[attr::OBJID as usize].and_then(|x| x.as_u32());
         let id2 = attrs(&b2)[attr::OBJID as usize].and_then(|x| x.as_u32());
-        let method = attrs(&b1)[attr::METHOD as usize].and_then(|x| x.as_str()).unwrap_or("?");
+        let method = attrs(&b1)[attr::METHOD as usize]
+            .and_then(|x| x.as_str())
+            .unwrap_or("?");
         println!(
             "round{round}: types={},{} peers={},{} method={method} seq_delta={} objids={}",
             type_name(h1.ty),
@@ -239,7 +256,11 @@ fn events(sock: &str) {
             h1.peer,
             h2.peer,
             h2.seq.wrapping_sub(h1.seq),
-            if id1 == Some(o1) && id2 == Some(o2) { "o1,o2" } else { "other" },
+            if id1 == Some(o1) && id2 == Some(o2) {
+                "o1,o2"
+            } else {
+                "other"
+            },
         );
     }
 }
@@ -256,21 +277,45 @@ fn object_events(sock: &str) {
     remove(&mut owner, unseen);
     let first = listener.add_object(None, &[]);
     let second = listener.add_object(None, &[]);
-    for (id, pattern) in [(first, "ubus.object.*"), (first, "ubus.object.add"),
-                          (second, "ubus.object.*")] {
+    for (id, pattern) in [
+        (first, "ubus.object.*"),
+        (first, "ubus.object.add"),
+        (second, "ubus.object.*"),
+    ] {
         assert_eq!(listener.event_register(pattern, id), 0);
     }
     let mut sequence = 0u16;
     for round in 0..2 {
         let path = format!("r98.visible.{round}");
         let id = owner.add_object(Some(&path), &["method"]);
-        for (kind, receivers) in [("add", if round == 0 { vec![first, second] } else { vec![second] }),
-                                  ("remove", if round == 0 { vec![first, second] } else { vec![second] })] {
-            if kind == "remove" { remove(&mut owner, id); }
+        for (kind, receivers) in [
+            (
+                "add",
+                if round == 0 {
+                    vec![first, second]
+                } else {
+                    vec![second]
+                },
+            ),
+            (
+                "remove",
+                if round == 0 {
+                    vec![first, second]
+                } else {
+                    vec![second]
+                },
+            ),
+        ] {
+            if kind == "remove" {
+                remove(&mut owner, id);
+            }
             for receiver in receivers {
                 sequence += 1;
                 let (header, actual) = listener.recv().expect("object event");
-                assert_eq!((header.ty, header.seq, header.peer), (ty::INVOKE, sequence, 0));
+                assert_eq!(
+                    (header.ty, header.seq, header.peer),
+                    (ty::INVOKE, sequence, 0)
+                );
                 let mut expected = BlobBuf::new();
                 expected.put_u32(attr::OBJID, receiver);
                 expected.put_string(attr::METHOD, &format!("ubus.object.{kind}"));
@@ -282,7 +327,9 @@ fn object_events(sock: &str) {
                 println!("round={round} kind={kind} sequence={sequence} canonical=true");
             }
         }
-        if round == 0 { remove(&mut listener, first); }
+        if round == 0 {
+            remove(&mut listener, first);
+        }
     }
 }
 
@@ -306,7 +353,10 @@ fn monitor(sock: &str) {
             Vec::new()
         };
         let at = attrs(blob);
-        let mirrored_ty = at[4].and_then(|x| x.as_u32()).map(|t| type_name(t as u8)).unwrap_or("?");
+        let mirrored_ty = at[4]
+            .and_then(|x| x.as_u32())
+            .map(|t| type_name(t as u8))
+            .unwrap_or("?");
         let send = at[2].and_then(|x| x.as_u32()).unwrap_or(9);
         println!(
             "m{i}: type={} seq={} attr_ids={} mirrored_type={mirrored_ty} send={send}",
@@ -328,7 +378,11 @@ fn release(sock: &str) {
     println!("subscribe={}", b.request(ty::SUBSCRIBE, 0, &mut s).0);
     let (h, blob) = a.recv().expect("NOTIFY after subscribe");
     let active = attrs(&blob)[attr::ACTIVE as usize].and_then(|x| x.as_u32());
-    println!("owner_got={} active={active:?} seq={}", type_name(h.ty), h.seq);
+    println!(
+        "owner_got={} active={active:?} seq={}",
+        type_name(h.ty),
+        h.seq
+    );
 
     let mut r = BlobBuf::new();
     r.put_u32(attr::OBJID, target);
@@ -340,7 +394,9 @@ fn release(sock: &str) {
             match h.ty {
                 ty::NOTIFY => format!(
                     "NOTIFY(active={},seq={})",
-                    at[attr::ACTIVE as usize].and_then(|x| x.as_u32()).unwrap_or(9),
+                    at[attr::ACTIVE as usize]
+                        .and_then(|x| x.as_u32())
+                        .unwrap_or(9),
                     h.seq
                 ),
                 t => type_name(t).to_owned(),
@@ -363,25 +419,53 @@ fn release(sock: &str) {
 fn remove_reply(sock: &str) {
     fn expect(c: &mut Conn, header: Header, bytes: &[u8]) {
         let (actual, blob) = c.recv().expect("remove reply before timeout");
-        assert_eq!(actual.encode(), header.encode(), "remove reply header/order");
+        assert_eq!(
+            actual.encode(),
+            header.encode(),
+            "remove reply header/order"
+        );
         assert_eq!(blob, bytes, "remove reply attributes/order");
     }
     fn start(c: &mut Conn, id: u32, type_id: Option<u32>) -> (Header, Vec<u8>, Vec<u8>) {
-        let header = Header { ty: ty::REMOVE_OBJECT, seq: c.next_seq, peer: 0x12345678 };
+        let header = Header {
+            ty: ty::REMOVE_OBJECT,
+            seq: c.next_seq,
+            peer: 0x12345678,
+        };
         c.next_seq += 1;
         let mut request = BlobBuf::new();
         request.put_u32(attr::OBJID, id);
         c.send(header.ty, header.seq, header.peer, &mut request);
         let mut data = BlobBuf::new();
         data.put_u32(attr::OBJID, id);
-        if let Some(type_id) = type_id { data.put_u32(attr::OBJTYPE, type_id); }
-        expect(c, Header { ty: ty::DATA, ..header }, data.as_bytes());
-        (header, request.as_bytes().to_vec(), data.as_bytes().to_vec())
+        if let Some(type_id) = type_id {
+            data.put_u32(attr::OBJTYPE, type_id);
+        }
+        expect(
+            c,
+            Header {
+                ty: ty::DATA,
+                ..header
+            },
+            data.as_bytes(),
+        );
+        (
+            header,
+            request.as_bytes().to_vec(),
+            data.as_bytes().to_vec(),
+        )
     }
     fn finish(c: &mut Conn, header: Header) -> Vec<u8> {
         let mut status = BlobBuf::new();
         status.put_u32(attr::STATUS, 0);
-        expect(c, Header { ty: ty::STATUS, ..header }, status.as_bytes());
+        expect(
+            c,
+            Header {
+                ty: ty::STATUS,
+                ..header
+            },
+            status.as_bytes(),
+        );
         status.as_bytes().to_vec()
     }
     fn add_typed(c: &mut Conn, path: &str, existing: Option<u32>) -> (u32, u32) {
@@ -401,7 +485,8 @@ fn remove_reply(sock: &str) {
         assert_eq!(frames[0].0.ty, ty::DATA);
         let at = attrs(&frames[0].1);
         let id = at[attr::OBJID as usize].unwrap().as_u32().unwrap();
-        let type_id = existing.unwrap_or_else(|| at[attr::OBJTYPE as usize].unwrap().as_u32().unwrap());
+        let type_id =
+            existing.unwrap_or_else(|| at[attr::OBJTYPE as usize].unwrap().as_u32().unwrap());
         (id, type_id)
     }
 
@@ -439,7 +524,9 @@ fn remove_reply(sock: &str) {
     let (event_header, event_blob) = owner.recv().expect("named removal event");
     assert_eq!((event_header.ty, event_header.peer), (ty::INVOKE, 0));
     let mut event = BlobBuf::new();
-    event.put_u32(attr::OBJID, listener).put_string(attr::METHOD, "ubus.object.remove");
+    event
+        .put_u32(attr::OBJID, listener)
+        .put_string(attr::METHOD, "ubus.object.remove");
     let data = event.nest_start(attr::DATA);
     event.msg_u32("id", target).msg_string("path", path);
     event.nest_end(data);
@@ -457,12 +544,19 @@ fn remove_reply(sock: &str) {
     let mut last_seq = initial[0].0.seq;
     let (header, request, data) = start(&mut owner, target, Some(type_id));
     let status = finish(&mut owner, header);
-    for (kind, send, blob) in [(ty::REMOVE_OBJECT, false, request), (ty::DATA, true, data), (ty::STATUS, true, status)] {
+    for (kind, send, blob) in [
+        (ty::REMOVE_OBJECT, false, request),
+        (ty::DATA, true, data),
+        (ty::STATUS, true, status),
+    ] {
         let (h, mirror) = monitor.recv().expect("remove mirror");
         last_seq = last_seq.wrapping_add(1);
         assert_eq!((h.ty, h.seq), (ty::MONITOR, last_seq));
         let at = attrs(&mirror);
-        assert_eq!(blob::iter(&mirror[4..]).map(|a| a.id).collect::<Vec<_>>(), [0, 1, 3, 4, 2, 5]);
+        assert_eq!(
+            blob::iter(&mirror[4..]).map(|a| a.id).collect::<Vec<_>>(),
+            [0, 1, 3, 4, 2, 5]
+        );
         assert_eq!(at[1].unwrap().as_u32(), Some(header.peer));
         assert_eq!(at[3].unwrap().as_u32(), Some(header.seq as u32));
         assert_eq!(at[4].unwrap().as_u32(), Some(kind as u32));
@@ -471,7 +565,11 @@ fn remove_reply(sock: &str) {
     }
     let (status, final_mirrors) = monitor.invoke(MONITOR_OBJ, "remove", None);
     assert_eq!(status, 0);
-    assert_eq!(final_mirrors.len(), 1, "only monitor.remove request remains");
+    assert_eq!(
+        final_mirrors.len(),
+        1,
+        "only monitor.remove request remains"
+    );
     println!("remove_monitor_order=request,DATA,STATUS exact_payloads=true sequences=true");
 
     // Existing `release` covers removal of a target with subscribers. Here
@@ -480,7 +578,9 @@ fn remove_reply(sock: &str) {
     let mut subscriber = Conn::open(sock);
     let sub = subscriber.add_object(None, &[]);
     let mut request = BlobBuf::new();
-    request.put_u32(attr::OBJID, sub).put_u32(attr::TARGET, target);
+    request
+        .put_u32(attr::OBJID, sub)
+        .put_u32(attr::TARGET, target);
     assert_eq!(subscriber.request(ty::SUBSCRIBE, 0, &mut request).0, 0);
     for active in [true, false] {
         if !active {
@@ -488,8 +588,18 @@ fn remove_reply(sock: &str) {
             finish(&mut subscriber, header);
         }
         let mut notify = BlobBuf::new();
-        notify.put_u32(attr::OBJID, target).put_u8(attr::ACTIVE, u8::from(active));
-        expect(&mut owner, Header { ty: ty::NOTIFY, seq: if active { 1 } else { 2 }, peer: 0 }, notify.as_bytes());
+        notify
+            .put_u32(attr::OBJID, target)
+            .put_u8(attr::ACTIVE, u8::from(active));
+        expect(
+            &mut owner,
+            Header {
+                ty: ty::NOTIFY,
+                seq: if active { 1 } else { 2 },
+                peer: 0,
+            },
+            notify.as_bytes(),
+        );
     }
     let (header, _, _) = start(&mut owner, target, None);
     finish(&mut owner, header);
@@ -545,13 +655,19 @@ fn utf8(sock: &str) {
         .and_then(|f| f.as_bytes())
         .map(|bytes| bytes.iter().map(|x| format!("{x:02x}")).collect())
         .unwrap_or_default();
-    println!("got={} s_hex={hex} s_is_utf8={}", type_name(h.ty), s.is_some_and(|f| f.as_str().is_some()));
+    println!(
+        "got={} s_hex={hex} s_is_utf8={}",
+        type_name(h.ty),
+        s.is_some_and(|f| f.as_str().is_some())
+    );
 }
 
 fn slowlookup(sock: &str) {
     let mut owner = Conn::open(sock);
     let mut reader = Conn::open(sock);
-    let names: Vec<String> = (0..64).map(|i| format!("method_{i:04}_{}", "x".repeat(88))).collect();
+    let names: Vec<String> = (0..64)
+        .map(|i| format!("method_{i:04}_{}", "x".repeat(88)))
+        .collect();
     let methods: Vec<&str> = names.iter().map(String::as_str).collect();
     let mut expected = Vec::new();
     for i in 0..200 {
@@ -567,9 +683,14 @@ fn slowlookup(sock: &str) {
     }
     let total: usize = expected.iter().map(|blob| 8 + blob.len()).sum();
     let socket_budget: usize = std::fs::read_to_string("/proc/sys/net/core/wmem_default")
-        .expect("socket send-buffer budget").trim().parse().unwrap();
-    assert!(total > 1_048_576 && total > socket_budget * 2,
-            "fixture must exceed both the transmit cap and kernel send buffer");
+        .expect("socket send-buffer budget")
+        .trim()
+        .parse()
+        .unwrap();
+    assert!(
+        total > 1_048_576 && total > socket_budget * 2,
+        "fixture must exceed both the transmit cap and kernel send buffer"
+    );
 
     reader.send(ty::LOOKUP, 700, 0, &mut BlobBuf::new());
     std::thread::sleep(Duration::from_millis(200));
@@ -589,7 +710,10 @@ fn slowlookup(sock: &str) {
     }
     let (h, got) = reader.recv().expect("resumed LOOKUP STATUS");
     assert_eq!((h.ty, h.seq, h.peer), (ty::STATUS, 700, 0));
-    assert_eq!(attrs(&got)[attr::STATUS as usize].and_then(|a| a.as_u32()), Some(0));
+    assert_eq!(
+        attrs(&got)[attr::STATUS as usize].and_then(|a| a.as_u32()),
+        Some(0)
+    );
     let (code, frames) = reader.request(ty::PING, 0, &mut BlobBuf::new());
     assert_eq!(code, 0);
     assert_eq!(frames.len(), 1, "no extra or duplicate LOOKUP replies");
@@ -628,7 +752,10 @@ fn monitor_lookup(sock: &str) {
             last_seq = last_seq.wrapping_add(1);
             assert_eq!((h.ty, h.seq), (ty::MONITOR, last_seq));
             let at = attrs(&mirror);
-            assert_eq!(blob::iter(&mirror[4..]).map(|a| a.id).collect::<Vec<_>>(), [0, 1, 3, 4, 2, 5]);
+            assert_eq!(
+                blob::iter(&mirror[4..]).map(|a| a.id).collect::<Vec<_>>(),
+                [0, 1, 3, 4, 2, 5]
+            );
             assert_eq!(at[4].and_then(|a| a.as_u32()), Some(kind as u32));
             assert_eq!(at[3].and_then(|a| a.as_u32()), Some(seq as u32));
             assert_eq!(at[2].unwrap().payload, &[u8::from(send)]);
@@ -638,7 +765,9 @@ fn monitor_lookup(sock: &str) {
     let (code, final_mirrors) = monitor.invoke(MONITOR_OBJ, "remove", None);
     assert_eq!(code, 0);
     assert_eq!(final_mirrors.len(), 1, "only the remove request remains");
-    println!("exact_data=1 prefix_data=4 mirror_order=true mirror_payloads=true mirror_sequences=true");
+    println!(
+        "exact_data=1 prefix_data=4 mirror_order=true mirror_payloads=true mirror_sequences=true"
+    );
 }
 
 // Fixture ACL grants are supplied by r97_ubusd_method_acl.sh in its private
@@ -662,7 +791,9 @@ fn method_acl(sock: &str) {
         raw.msg_u32("policy", 5);
         raw.msg_close(t);
         let mut field = raw.payload().to_vec();
-        if path == "r97.padding" { field[9..12].fill(0xa5); }
+        if path == "r97.padding" {
+            field[9..12].fill(0xa5);
+        }
         let mut b = BlobBuf::new();
         b.put_string(attr::OBJPATH, path);
         let t = b.nest_start(attr::SIGNATURE);
@@ -676,7 +807,9 @@ fn method_acl(sock: &str) {
         let (code, frames) = owner.request(ty::LOOKUP, 0, &mut b);
         assert_eq!(code, 0);
         assert_eq!(frames.len(), 1);
-        let signature = attrs(&frames[0].1)[attr::SIGNATURE as usize].unwrap().payload;
+        let signature = attrs(&frames[0].1)[attr::SIGNATURE as usize]
+            .unwrap()
+            .payload;
         let mut expected = BlobBuf::new();
         let t = expected.msg_open_table(name.split('\0').next().unwrap());
         expected.msg_u32("policy", 5);
@@ -698,7 +831,10 @@ fn method_acl(sock: &str) {
             assert_eq!(h.ty, ty::DATA);
             attrs(reply)[attr::SIGNATURE as usize].unwrap().payload == signature
         });
-        println!("nobody {path} visible={} expected={expected} canonical={canonical}", !frames.is_empty());
+        println!(
+            "nobody {path} visible={} expected={expected} canonical={canonical}",
+            !frames.is_empty()
+        );
     }
 }
 
@@ -739,8 +875,15 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
     }
     fn frame(object: u32, seq: u16, method: &str) -> Vec<u8> {
         let mut blob = BlobBuf::new();
-        blob.put_u32(attr::OBJID, object).put_string(attr::METHOD, method);
-        let mut bytes = Header { ty: ty::INVOKE, seq, peer: 0 }.encode().to_vec();
+        blob.put_u32(attr::OBJID, object)
+            .put_string(attr::METHOD, method);
+        let mut bytes = Header {
+            ty: ty::INVOKE,
+            seq,
+            peer: 0,
+        }
+        .encode()
+        .to_vec();
         bytes.extend_from_slice(blob.as_bytes());
         bytes
     }
@@ -750,8 +893,10 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
         assert_eq!(sent, first.len() + second.len(), "partial FD fixture send");
     }
     fn fd_count() -> usize {
-        std::fs::read_dir("/proc/self/fd").expect("probe fd directory")
-            .map(|entry| entry.expect("probe fd entry")).count()
+        std::fs::read_dir("/proc/self/fd")
+            .expect("probe fd directory")
+            .map(|entry| entry.expect("probe fd entry"))
+            .count()
     }
     fn run_case(sock: &str, mode: &str) -> [usize; 2] {
         let mut provider = Conn::open(sock);
@@ -761,7 +906,10 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
         let second = frame(object, 102, "second");
         let (read_fd, write_fd) = owrt_ubus::sys::nonblocking_pipe().expect("witness pipe");
         let witness = b"r113-fd-boundary-witness";
-        assert_eq!(owrt_platform::unix::write_fd(write_fd.as_raw_fd(), witness), witness.len() as isize);
+        assert_eq!(
+            owrt_platform::unix::write_fd(write_fd.as_raw_fd(), witness),
+            witness.len() as isize
+        );
         let mut received = Vec::new();
         match mode {
             "separate_waited" => {
@@ -797,19 +945,28 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
         let peer = received[0].0.peer;
         for (index, (header, blob, fds)) in received.into_iter().enumerate() {
             assert_eq!((header.ty, header.seq), (ty::INVOKE, 101 + index as u16));
-            assert!(peer != 0 && header.peer == peer, "FD probe caller identity changed");
+            assert!(
+                peer != 0 && header.peer == peer,
+                "FD probe caller identity changed"
+            );
             let attributes = attrs(&blob);
             assert!(attributes[attr::OBJID as usize].and_then(|a| a.as_u32()) == Some(object));
-            assert_eq!(attributes[attr::METHOD as usize].and_then(|a| a.as_str()),
-                       Some(if index == 0 { "first" } else { "second" }));
+            assert_eq!(
+                attributes[attr::METHOD as usize].and_then(|a| a.as_str()),
+                Some(if index == 0 { "first" } else { "second" })
+            );
             counts[index] = fds.len();
             for fd in fds {
                 let mut file = File::from(fd);
                 let mut bytes = [0; 24];
-                file.read_exact(&mut bytes[..witness.len()]).expect("FD witness bytes");
+                file.read_exact(&mut bytes[..witness.len()])
+                    .expect("FD witness bytes");
                 assert_eq!(&bytes[..witness.len()], witness);
-                assert_eq!(file.read(&mut bytes[..1]).unwrap_err().kind(), ErrorKind::WouldBlock,
-                           "unexpected extra witness data");
+                assert_eq!(
+                    file.read(&mut bytes[..1]).unwrap_err().kind(),
+                    ErrorKind::WouldBlock,
+                    "unexpected extra witness data"
+                );
             }
         }
         assert!(counts.iter().sum::<usize>() <= 1, "duplicate received FD");
@@ -854,7 +1011,14 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
         assert_eq!(fd_count(), baseline, "probe leaked descriptors");
         let c_matches = counts == c_expected;
         let (matches, expectation) = if !read_ahead_contract || sender_framed {
-            (c_matches, match c_expected { [1, 0] => "1,0", [0, 1] => "0,1", _ => "0,0" })
+            (
+                c_matches,
+                match c_expected {
+                    [1, 0] => "1,0",
+                    [0, 1] => "0,1",
+                    _ => "0,0",
+                },
+            )
         } else {
             match mode {
                 "bundled" | "fd_on_first_body_plus_second_frame" => (counts == [0, 1], "0,1"),
@@ -872,7 +1036,11 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
             println!("case={mode} invoke_order=first,second seq=101,102 fds={},{} witness=true no_leak=true compatible={matches}",
                      counts[0], counts[1]);
         } else {
-            let contract = if read_ahead_contract { "read_ahead" } else { "c" };
+            let contract = if read_ahead_contract {
+                "read_ahead"
+            } else {
+                "c"
+            };
             println!("case={mode} invoke_order=first,second seq=101,102 fds={},{} witness=true no_leak=true handcrafted contract={contract} expected={expectation} contract_match={matches} c_placement={c_matches}",
                      counts[0], counts[1]);
         }

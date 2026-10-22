@@ -212,7 +212,8 @@ impl<S: super::runtime::DatagramSender> super::runtime::DatagramSender for Owner
     }
     fn send(&mut self, bytes: &[u8], destination: &super::runtime::Destination) -> io::Result<()> {
         if let Some(source) = self.dump_source {
-            self.dump.udp(crate::dump::DHCP, bytes, source, destination.address);
+            self.dump
+                .udp(crate::dump::DHCP, bytes, source, destination.address);
         }
         match super::runtime::DatagramSender::send(self.socket, bytes, destination) {
             Err(error)
@@ -459,15 +460,23 @@ impl SocketListener {
         let pending_listener = self.pending_reply.as_ref().map(|reply| reply.listener);
         fds.push(PollFd {
             fd: self.socket.as_raw_fd(),
-            events: POLLIN | if pending_listener == Some(self.listener) { POLLOUT } else { 0 },
+            events: POLLIN
+                | if pending_listener == Some(self.listener) {
+                    POLLOUT
+                } else {
+                    0
+                },
             revents: 0,
         });
         if let Some(socket) = &self.pxe_socket {
             fds.push(PollFd {
                 fd: socket.as_raw_fd(),
-                events: POLLIN | if pending_listener.is_some_and(|kind| kind != self.listener) {
-                    POLLOUT
-                } else { 0 },
+                events: POLLIN
+                    | if pending_listener.is_some_and(|kind| kind != self.listener) {
+                        POLLOUT
+                    } else {
+                        0
+                    },
                 revents: 0,
             });
         }
@@ -667,8 +676,11 @@ impl SocketListener {
         };
         let mut sender = OwnerSender {
             dump: self.dump.clone(),
-            dump_source: self.dump.enabled(crate::dump::DHCP)
-                .then(|| socket.local_addr()).transpose()?,
+            dump_source: self
+                .dump
+                .enabled(crate::dump::DHCP)
+                .then(|| socket.local_addr())
+                .transpose()?,
             socket,
             pending: &mut self.pending_reply,
             listener,
@@ -950,14 +962,35 @@ mod tests {
         let mut binding = device_binding(true);
         binding.did_bind = true;
         let mut attempts = 0;
-        assert!(binding.retry(false, |_, _| { attempts += 1; Ok(()) }).is_none());
-        assert!(binding.retry(false, |_, _| {
-            attempts += 1;
-            Err(io::Error::from_raw_os_error(19))
-        }).is_some(), "a removed interface must still be detected after startup success");
-        assert!(binding.retry(false, |_, _| { attempts += 1; Ok(()) }).is_none());
-        assert_eq!(attempts, 3, "D2 must retain binding retry on every owner turn");
-        assert!(binding.did_bind, "the startup notice bit is not current binding state");
+        assert!(binding
+            .retry(false, |_, _| {
+                attempts += 1;
+                Ok(())
+            })
+            .is_none());
+        assert!(
+            binding
+                .retry(false, |_, _| {
+                    attempts += 1;
+                    Err(io::Error::from_raw_os_error(19))
+                })
+                .is_some(),
+            "a removed interface must still be detected after startup success"
+        );
+        assert!(binding
+            .retry(false, |_, _| {
+                attempts += 1;
+                Ok(())
+            })
+            .is_none());
+        assert_eq!(
+            attempts, 3,
+            "D2 must retain binding retry on every owner turn"
+        );
+        assert!(
+            binding.did_bind,
+            "the startup notice bit is not current binding state"
+        );
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -973,7 +1006,6 @@ mod tests {
                 .success());
         }
         fn bound_device(socket: &crate::net::DatagramSocket) -> Vec<u8> {
-
             let mut name = [0u8; 16];
             dnsmasq_platform::socket_options::bound_device(socket, &mut name).unwrap();
             name[..name
@@ -1065,25 +1097,32 @@ mod tests {
         use dnsmasq_platform::poll::{poll_fds, POLLOUT};
         use std::net::UdpSocket;
         let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
-        peer.set_read_timeout(Some(std::time::Duration::from_secs(1))).unwrap();
-        let mut listener = SocketListener::bind(
-            "127.0.0.1:0".parse().unwrap(), Listener::Dhcp, &[],
-        ).unwrap();
+        peer.set_read_timeout(Some(std::time::Duration::from_secs(1)))
+            .unwrap();
+        let mut listener =
+            SocketListener::bind("127.0.0.1:0".parse().unwrap(), Listener::Dhcp, &[]).unwrap();
         let destination = Destination {
-            address: peer.local_addr().unwrap(), interface: 0,
-            kind: DestinationKind::Peer, arp: None,
+            address: peer.local_addr().unwrap(),
+            interface: 0,
+            kind: DestinationKind::Peer,
+            arp: None,
         };
         // This is the exact state produced by OwnerSender on EAGAIN, above.
         listener.pending_reply = Some(PendingReply {
-            bytes: b"deferred reply".to_vec(), destination,
-            listener: Listener::Dhcp, would_block_count: 1,
+            bytes: b"deferred reply".to_vec(),
+            destination,
+            listener: Listener::Dhcp,
+            would_block_count: 1,
         });
         assert!(listener.has_pending_reply());
         let mut fds = Vec::new();
         listener.append_poll_fds(&mut fds);
         assert_eq!(poll_fds(&mut fds, 1000).unwrap(), 1);
-        assert_ne!(fds[0].revents & POLLOUT, 0,
-            "an unread packet cannot be the wakeup for a deferred send");
+        assert_ne!(
+            fds[0].revents & POLLOUT,
+            0,
+            "an unread packet cannot be the wakeup for a deferred send"
+        );
         assert!(listener.flush_pending_reply().unwrap());
         assert!(!listener.has_pending_reply());
         let mut bytes = [0; 64];
@@ -1091,8 +1130,11 @@ mod tests {
         assert_eq!(&bytes[..length], b"deferred reply");
         fds.clear();
         listener.append_poll_fds(&mut fds);
-        assert_eq!(poll_fds(&mut fds, 0).unwrap(), 0,
-            "drained output must not leave an always-writable interest");
+        assert_eq!(
+            poll_fds(&mut fds, 0).unwrap(),
+            0,
+            "drained output must not leave an always-writable interest"
+        );
     }
 
     #[test]
@@ -1238,7 +1280,10 @@ mod tests {
         let mut output = vec![0; 548];
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
         let report = loop {
-            assert!(std::time::Instant::now() < deadline, "DHCP loopback reply did not become ready");
+            assert!(
+                std::time::Instant::now() < deadline,
+                "DHCP loopback reply did not become ready"
+            );
             match listener
                 .process_once_local(&mut provider, &[], &mut output, || false)
                 .unwrap()
@@ -1305,7 +1350,10 @@ mod tests {
         let mut buffer = vec![0; MAX_PACKET_LEN];
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
         let received = loop {
-            assert!(std::time::Instant::now() < deadline, "DHCP loopback input did not become ready");
+            assert!(
+                std::time::Instant::now() < deadline,
+                "DHCP loopback input did not become ready"
+            );
             match receive_once(&listener, &mut buffer, Listener::Dhcp, &[]) {
                 Ok(Some(Ok(received))) => break received,
                 Ok(Some(Err(error))) => panic!("unexpected DHCP parse error: {error:?}"),
@@ -1346,7 +1394,10 @@ mod tests {
         let mut buffer = vec![0; MAX_PACKET_LEN];
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
         loop {
-            assert!(std::time::Instant::now() < deadline, "IPv6 loopback input did not become ready");
+            assert!(
+                std::time::Instant::now() < deadline,
+                "IPv6 loopback input did not become ready"
+            );
             match receive_once(&listener, &mut buffer, Listener::Dhcp, &[]) {
                 Ok(None) => break,
                 Ok(Some(Ok(received))) => {

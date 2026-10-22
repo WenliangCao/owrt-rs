@@ -409,7 +409,8 @@ impl Session {
             let data = match owrt_ubus::convert::fields_to_json(&request.data) {
                 Ok(data) => data,
                 Err(_) => {
-                    self.connection.reply_status(&request, status::INVALID_ARGUMENT, None)?;
+                    self.connection
+                        .reply_status(&request, status::INVALID_ARGUMENT, None)?;
                     self.connection.recycle_request(request);
                     return Ok(None);
                 }

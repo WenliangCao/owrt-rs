@@ -298,7 +298,8 @@ where
     }
 }
 
-type RapidName<'a> = dyn FnMut(Ipv4Addr, usize) -> Result<Option<(Vec<u8>, bool)>, RuntimeError> + 'a;
+type RapidName<'a> =
+    dyn FnMut(Ipv4Addr, usize) -> Result<Option<(Vec<u8>, bool)>, RuntimeError> + 'a;
 
 /// A small state adapter for the local DHCP/BOOTP path.  It owns no socket or
 /// event loop; callers configure contexts/tags and pass it to
@@ -444,8 +445,12 @@ where
                 )
                 .map_err(|error| RuntimeError::State(format!("{error:?}")))?;
                 let rapid_name = if environment.rapid_commit && packet.option(80, 0).is_some() {
-                    if let (Some(resolve), Reply::Offer { address, context, .. }) =
-                        (self.rapid_name.as_deref_mut(), offer.reply)
+                    if let (
+                        Some(resolve),
+                        Reply::Offer {
+                            address, context, ..
+                        },
+                    ) = (self.rapid_name.as_deref_mut(), offer.reply)
                     {
                         Some(resolve(address, context)?)
                     } else {
@@ -462,7 +467,12 @@ where
                     })
                 });
                 state::finish_discover_counted(
-                    self.store, self.ranges, request(name), offer, counters, events,
+                    self.store,
+                    self.ranges,
+                    request(name),
+                    offer,
+                    counters,
+                    events,
                 )
             }
             3 => state::request_counted(self.store, self.ranges, request(name), counters, events),
@@ -3049,8 +3059,12 @@ mod tests {
         let dispatch = dispatch_for(&bytes);
         for expired in [false, true] {
             let mut store = LeaseStore::new(1);
-            store.allocate(old, state::identity(dispatch.packet, false)).unwrap();
-            store.set_expires(old, if expired { 1 } else { 600 }, 1).unwrap();
+            store
+                .allocate(old, state::identity(dispatch.packet, false))
+                .unwrap();
+            store
+                .set_expires(old, if expired { 1 } else { 600 }, 1)
+                .unwrap();
             store.set_script_backlog(Some(63));
             let mut ranges = [AddressRange {
                 start: old,
@@ -3079,11 +3093,22 @@ mod tests {
                 server_aliases: &[],
             };
             let mut provider = StateProvider::new(
-                &mut store, &mut ranges, &[], None, &[], environment,
+                &mut store,
+                &mut ranges,
+                &[],
+                None,
+                &[],
+                environment,
                 |_, _, _| ProbeResult::Available { offer_hash: 1 },
             );
             let outcome = provider.resolve(&dispatch).unwrap();
-            assert!(matches!(outcome.reply, Reply::Nak { reason: state::Refusal::NoLeasesLeft, .. }));
+            assert!(matches!(
+                outcome.reply,
+                Reply::Nak {
+                    reason: state::Refusal::NoLeasesLeft,
+                    ..
+                }
+            ));
             assert_eq!(outcome.removed.len(), 1);
             assert_eq!(outcome.removed[0].address, old);
             assert!(provider.store.is_empty());

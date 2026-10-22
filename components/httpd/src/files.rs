@@ -3,8 +3,8 @@
 
 use crate::http::{self, Method, Request, Response};
 use std::borrow::Cow;
-use std::fs;
 use std::cell::RefCell;
+use std::fs;
 use std::io::{self, Read, Write};
 use std::os::unix::fs::{FileExt, MetadataExt, PermissionsExt};
 use std::path::Path;
@@ -30,7 +30,11 @@ impl PathInfo {
             return dir;
         }
         let name = &self.phys[self.name_start..];
-        if name.is_empty() { "/" } else { name }
+        if name.is_empty() {
+            "/"
+        } else {
+            name
+        }
     }
 
     pub fn path(&self) -> &Path {
@@ -40,7 +44,14 @@ impl PathInfo {
     /// A regular file whose name starts `name_start` bytes into `phys`.
     #[cfg(test)]
     pub fn for_test(phys: String, name_start: usize, meta: fs::Metadata) -> Self {
-        PathInfo { phys, name_start, dir_name: None, info: None, query: None, meta }
+        PathInfo {
+            phys,
+            name_start,
+            dir_name: None,
+            info: None,
+            query: None,
+            meta,
+        }
     }
 }
 
@@ -67,7 +78,10 @@ fn canonpath_in_place(path: &mut String) {
     let n = bytes.len();
     let (mut r, mut w) = (0usize, 0usize);
     while r < n {
-        let e = bytes[r..].iter().position(|&b| b == b'/').map_or(n, |p| r + p);
+        let e = bytes[r..]
+            .iter()
+            .position(|&b| b == b'/')
+            .map_or(n, |p| r + p);
         match &bytes[r..e] {
             b"" | b"." => {}
             b".." => {
@@ -92,7 +106,8 @@ fn canonpath_in_place(path: &mut String) {
     }
     bytes.truncate(w);
     // Segments were moved whole, so the bytes are still the input's UTF-8.
-    *path = String::from_utf8(bytes).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned());
+    *path = String::from_utf8(bytes)
+        .unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned());
 }
 
 fn canonpath(path: &str) -> String {
@@ -168,7 +183,9 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         loop {
             if i == bytes.len() || bytes[i] == b'/' {
                 let candidate = if no_symlinks {
-                    fs::canonicalize(&full[..i]).ok().map(|p| p.to_string_lossy().into_owned())
+                    fs::canonicalize(&full[..i])
+                        .ok()
+                        .map(|p| p.to_string_lossy().into_owned())
                 } else if i == bytes.len() {
                     // Already tried above.
                     None
@@ -191,7 +208,11 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
     let Some((phys, info, meta)) = found else {
         return Lookup::NotFound;
     };
-    if !(phys == docroot || phys.strip_prefix(docroot).is_some_and(|tail| tail.starts_with('/'))) {
+    if !(phys == docroot
+        || phys
+            .strip_prefix(docroot)
+            .is_some_and(|tail| tail.starts_with('/')))
+    {
         return Lookup::NotFound;
     }
     let name_start = docroot.len();
@@ -357,8 +378,18 @@ mod tests {
     #[test]
     fn in_place_canonpath_matches_canonpath_for_rooted_paths() {
         for path in [
-            "/", "////", "/a//b/./c/", "/a/b/../c", "/../../a/../..", "/doc/../doc-other/file",
-            "/a/.../.hidden", "/目录/页面/../文件", "/www/static.dat", "/www/./a/../b/c/..", "/..", "/a/..",
+            "/",
+            "////",
+            "/a//b/./c/",
+            "/a/b/../c",
+            "/../../a/../..",
+            "/doc/../doc-other/file",
+            "/a/.../.hidden",
+            "/目录/页面/../文件",
+            "/www/static.dat",
+            "/www/./a/../b/c/..",
+            "/..",
+            "/a/..",
         ] {
             let mut rewritten = path.to_owned();
             super::canonpath_in_place(&mut rewritten);
@@ -378,11 +409,18 @@ mod tests {
         let docroot = dir.to_str().unwrap().to_owned();
         std::fs::write(dir.join("f.txt"), b"first").unwrap();
         let body = |expect: &[u8]| {
-            let super::Lookup::Found(pi) = super::lookup(&docroot, "/f.txt", false, &[]) else { panic!("lookup") };
+            let super::Lookup::Found(pi) = super::lookup(&docroot, "/f.txt", false, &[]) else {
+                panic!("lookup")
+            };
             assert_eq!(pi.name(), "/f.txt");
             let opened = super::OpenFile::acquire(&pi, true).expect("open");
             let mut got = Vec::new();
-            super::ReadAt { file: &opened.file, pos: 0 }.read_to_end(&mut got).unwrap();
+            super::ReadAt {
+                file: &opened.file,
+                pos: 0,
+            }
+            .read_to_end(&mut got)
+            .unwrap();
             opened.release(true);
             assert_eq!(got, expect);
         };
@@ -390,7 +428,11 @@ mod tests {
         body(b"first");
         // Same inode rewritten: ctime moves, the descriptor is replaced.
         std::thread::sleep(std::time::Duration::from_millis(20));
-        let mut file = std::fs::OpenOptions::new().write(true).truncate(true).open(dir.join("f.txt")).unwrap();
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(dir.join("f.txt"))
+            .unwrap();
         file.write_all(b"second, longer").unwrap();
         drop(file);
         body(b"second, longer");
@@ -399,7 +441,9 @@ mod tests {
         std::fs::rename(dir.join("g.txt"), dir.join("f.txt")).unwrap();
         body(b"third");
         // Not reusing leaves nothing behind for the thread.
-        let super::Lookup::Found(pi) = super::lookup(&docroot, "/f.txt", false, &[]) else { panic!() };
+        let super::Lookup::Found(pi) = super::lookup(&docroot, "/f.txt", false, &[]) else {
+            panic!()
+        };
         super::OpenFile::acquire(&pi, false).unwrap().release(false);
         std::fs::remove_dir_all(&dir).unwrap();
     }
@@ -412,13 +456,24 @@ mod tests {
         let file = dir.join("f.txt");
         std::fs::write(&file, b"payload").unwrap();
         let mut text = String::new();
-        super::open_readonly(&file).unwrap().read_to_string(&mut text).unwrap();
+        super::open_readonly(&file)
+            .unwrap()
+            .read_to_string(&mut text)
+            .unwrap();
         assert_eq!(text, "payload");
-        assert_eq!(super::open_readonly(&dir.join("missing")).unwrap_err().kind(), std::io::ErrorKind::NotFound);
+        assert_eq!(
+            super::open_readonly(&dir.join("missing"))
+                .unwrap_err()
+                .kind(),
+            std::io::ErrorKind::NotFound
+        );
         // Past the stack buffer: the std fallback answers, with the same kind.
         let long = dir.join("a/".repeat(140)).join("f.txt");
         assert!(long.as_os_str().len() > 256);
-        assert_eq!(super::open_readonly(&long).unwrap_err().kind(), std::io::ErrorKind::NotFound);
+        assert_eq!(
+            super::open_readonly(&long).unwrap_err().kind(),
+            std::io::ErrorKind::NotFound
+        );
         std::fs::remove_dir_all(&dir).unwrap();
     }
 
@@ -453,9 +508,14 @@ mod tests {
         use std::os::unix::fs::symlink;
         struct Fixture(std::path::PathBuf);
         impl Drop for Fixture {
-            fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
         }
-        let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
         let dir = std::env::temp_dir().join(format!("httpd-mime-{}-{unique}", std::process::id()));
         std::fs::create_dir(&dir).unwrap();
         let fixture = Fixture(dir);
@@ -464,9 +524,15 @@ mod tests {
         symlink("actual.css", dir.join("alias.dat")).unwrap();
         symlink(dir.join("actual.css"), dir.join("absolute.dat")).unwrap();
         symlink("alias.dat", dir.join("chain.txt")).unwrap();
-        for (name, expected) in [("actual.css", "text/css"), ("alias.dat", "text/css"),
-            ("absolute.dat", "text/css"), ("chain.txt", "application/octet-stream")] {
-            let super::Lookup::Found(pi) = super::lookup(dir.to_str().unwrap(), &format!("/{name}"), false, &[]) else {
+        for (name, expected) in [
+            ("actual.css", "text/css"),
+            ("alias.dat", "text/css"),
+            ("absolute.dat", "text/css"),
+            ("chain.txt", "application/octet-stream"),
+        ] {
+            let super::Lookup::Found(pi) =
+                super::lookup(dir.to_str().unwrap(), &format!("/{name}"), false, &[])
+            else {
                 panic!("file lookup failed for {name}");
             };
             assert_eq!(super::file_mime_type(&pi.phys), expected, "{name}");
@@ -489,8 +555,12 @@ fn open_readonly(path: &Path) -> io::Result<fs::File> {
             cpath[..bytes.len()].copy_from_slice(bytes);
             let cpath = std::ffi::CStr::from_bytes_with_nul(&cpath[..bytes.len() + 1])
                 .map_err(|_| io::ErrorKind::InvalidInput)?;
-            let fd = rustix::fs::openat(rustix::fs::CWD, cpath,
-                rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::CLOEXEC, rustix::fs::Mode::empty())?;
+            let fd = rustix::fs::openat(
+                rustix::fs::CWD,
+                cpath,
+                rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::CLOEXEC,
+                rustix::fs::Mode::empty(),
+            )?;
             return Ok(fs::File::from(fd));
         }
     }
@@ -517,7 +587,9 @@ thread_local! {
 
 impl OpenFile {
     fn matches(&self, meta: &fs::Metadata) -> bool {
-        self.dev == meta.dev() && self.ino == meta.ino() && self.ctime == (meta.ctime(), meta.ctime_nsec())
+        self.dev == meta.dev()
+            && self.ino == meta.ino()
+            && self.ctime == (meta.ctime(), meta.ctime_nsec())
     }
 
     /// Reuse the thread's open file when it is the object `pi` names, else
@@ -534,7 +606,12 @@ impl OpenFile {
         }
         let file = open_readonly(pi.path()).ok()?;
         let meta = file.metadata().ok()?;
-        Some(OpenFile { file, dev: meta.dev(), ino: meta.ino(), ctime: (meta.ctime(), meta.ctime_nsec()) })
+        Some(OpenFile {
+            file,
+            dev: meta.dev(),
+            ino: meta.ino(),
+            ctime: (meta.ctime(), meta.ctime_nsec()),
+        })
     }
 
     fn release(self, reuse: bool) {
@@ -565,7 +642,10 @@ fn etag(meta: &fs::Metadata) -> String {
 
 fn ok_headers<W: Write>(resp: &mut Response<W>, meta: Option<&fs::Metadata>) -> io::Result<()> {
     if let Some(meta) = meta {
-        resp.header("ETag", format_args!("\"{:x}-{:x}-{:x}\"", meta.ino(), meta.size(), meta.mtime()))?;
+        resp.header(
+            "ETag",
+            format_args!("\"{:x}-{:x}-{:x}\"", meta.ino(), meta.size(), meta.mtime()),
+        )?;
         resp.header("Last-Modified", http::HttpDate(meta.mtime()))?;
     }
     resp.header("Date", http::HttpDate(http::now_unix()))
@@ -661,7 +741,10 @@ pub fn serve<W: http::Sink>(
         resp.header("Content-Type", file_mime_type(&pi.phys))?;
         resp.header("Content-Length", pi.meta.size())?;
         resp.end_headers()?;
-        let mut body = ReadAt { file: &opened.file, pos: 0 };
+        let mut body = ReadAt {
+            file: &opened.file,
+            pos: 0,
+        };
         let copied = resp.copy_unchunked(&mut body, pi.meta.size());
         opened.release(reuse_open);
         copied?;

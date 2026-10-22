@@ -344,7 +344,11 @@ impl DhcpFiles {
 
     /// Buffered watch events and active file generations remain runnable
     /// independently of the kernel descriptor's next POLLIN notification.
-    pub fn step_with_watch_readiness(&mut self, current_hosts: &[HostConfig], watch_ready: bool) -> FileStep {
+    pub fn step_with_watch_readiness(
+        &mut self,
+        current_hosts: &[HostConfig],
+        watch_ready: bool,
+    ) -> FileStep {
         let mut result = FileStep::default();
         if let Some(job) = &mut self.job {
             if job.step(self.generation.as_mut().unwrap(), &mut result.diagnostics) {
@@ -767,13 +771,25 @@ mod tests {
     fn watch_input_waits_for_its_fd_but_buffered_events_continue_without_readiness() {
         let directory = Directory::new();
         fs::create_dir(directory.path("live")).unwrap();
-        let mut owner = DhcpFiles::new(&[], &[], &[DynamicFileDirectory {
-            kind: DynamicFileKind::Hosts, path: directory.bytes("live"),
-        }]).unwrap();
+        let mut owner = DhcpFiles::new(
+            &[],
+            &[],
+            &[DynamicFileDirectory {
+                kind: DynamicFileKind::Hosts,
+                path: directory.bytes("live"),
+            }],
+        )
+        .unwrap();
         owner.begin_reload(&[]);
-        let initial = (0..100).find_map(|_| owner.step_with_watch_readiness(&[], false).update).unwrap();
+        let initial = (0..100)
+            .find_map(|_| owner.step_with_watch_readiness(&[], false).update)
+            .unwrap();
         assert!(initial.hosts.is_empty());
-        fs::write(directory.path("live/host"), b"02:00:00:00:00:01,192.0.2.10\n").unwrap();
+        fs::write(
+            directory.path("live/host"),
+            b"02:00:00:00:00:01,192.0.2.10\n",
+        )
+        .unwrap();
         for _ in 0..3 {
             let step = owner.step_with_watch_readiness(&[], false);
             assert!(step.update.is_none() && !step.runnable);
@@ -781,8 +797,13 @@ mod tests {
         // The first readable turn buffers a kernel batch; subsequent events
         // must finish even after its fd no longer reports POLLIN.
         assert!(owner.step_with_watch_readiness(&[], true).runnable);
-        assert!(owner.runnable(), "the kernel batch is now owned logical work");
-        let update = (0..100).find_map(|_| owner.step_with_watch_readiness(&[], false).update).unwrap();
+        assert!(
+            owner.runnable(),
+            "the kernel batch is now owned logical work"
+        );
+        let update = (0..100)
+            .find_map(|_| owner.step_with_watch_readiness(&[], false).update)
+            .unwrap();
         assert_eq!(update.hosts.len(), 1);
         assert_eq!(update.hosts[0].address, Some("192.0.2.10".parse().unwrap()));
     }
@@ -796,14 +817,23 @@ mod tests {
         owner.begin_reload(&[]);
         let mut update = None;
         for _ in 0..16 {
-            assert!(owner.runnable(), "the next bounded plan/read turn needs no new event");
+            assert!(
+                owner.runnable(),
+                "the next bounded plan/read turn needs no new event"
+            );
             let mut fds = Vec::new();
             owner.append_poll_fds(&mut fds);
             assert!(fds.is_empty());
             let step = owner.step_with_watch_readiness(&[], false);
-            if step.update.is_some() { update = step.update; break; }
+            if step.update.is_some() {
+                update = step.update;
+                break;
+            }
         }
-        assert_eq!(option_values(&update.unwrap().options), [b"logical".to_vec()]);
+        assert_eq!(
+            option_values(&update.unwrap().options),
+            [b"logical".to_vec()]
+        );
         assert!(!owner.runnable());
         assert!(!owner.busy());
     }
@@ -812,8 +842,12 @@ mod tests {
     fn fifo_waits_without_owner_work_and_parses_partial_line_at_eof() {
         let directory = Directory::new();
         let path = directory.path("fifo");
-        rustix::fs::mkfifoat(rustix::fs::CWD, &path,
-                            rustix::fs::Mode::from_raw_mode(0o600)).unwrap();
+        rustix::fs::mkfifoat(
+            rustix::fs::CWD,
+            &path,
+            rustix::fs::Mode::from_raw_mode(0o600),
+        )
+        .unwrap();
         let mut owner = DhcpFiles::new(&[], &[directory.bytes("fifo")], &[]).unwrap();
         owner.begin_reload(&[]);
         for _ in 0..100 {

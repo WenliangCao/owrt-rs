@@ -5,19 +5,19 @@
 use crate::session::Reply;
 use crate::util;
 use crate::{Ctx, Deferrer};
-use owrt_ubus::convert::{fields_to_json, json_to_fields};
 use owrt_ubus::blob::{self, MsgType};
+use owrt_ubus::convert::{fields_to_json, json_to_fields};
 use owrt_ubus::json::Json;
-use owrt_ubus::{status, BlobBuf, Request};
-use std::fs;
-use std::ffi::{OsStr, OsString};
-use std::os::unix::ffi::{OsStrExt, OsStringExt};
-use std::path::{Path, PathBuf};
-use std::io::{Read, Write};
-use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt};
 use owrt_ubus::sys::{poll_fds, PollFd, POLLIN};
+use owrt_ubus::{status, BlobBuf, Request};
+use std::ffi::{OsStr, OsString};
+use std::fs;
+use std::io::{Read, Write};
 use std::os::fd::{AsRawFd, OwnedFd};
+use std::os::unix::ffi::{OsStrExt, OsStringExt};
+use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt};
 use std::os::unix::process::CommandExt;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
@@ -28,14 +28,45 @@ const CMDLINE_MAX: usize = 1024;
 pub fn signature() -> Vec<(&'static str, Vec<(&'static str, owrt_ubus::MsgType)>)> {
     use owrt_ubus::MsgType::*;
     vec![
-        ("read", vec![("path", String), ("base64", Int8), ("ubus_rpc_session", String)]),
-        ("write", vec![("path", String), ("data", String), ("append", Int8), ("mode", Int32), ("base64", Int8), ("ubus_rpc_session", String)]),
+        (
+            "read",
+            vec![
+                ("path", String),
+                ("base64", Int8),
+                ("ubus_rpc_session", String),
+            ],
+        ),
+        (
+            "write",
+            vec![
+                ("path", String),
+                ("data", String),
+                ("append", Int8),
+                ("mode", Int32),
+                ("base64", Int8),
+                ("ubus_rpc_session", String),
+            ],
+        ),
         ("list", vec![("path", String), ("ubus_rpc_session", String)]),
-        ("lstat", vec![("path", String), ("ubus_rpc_session", String)]),
+        (
+            "lstat",
+            vec![("path", String), ("ubus_rpc_session", String)],
+        ),
         ("stat", vec![("path", String), ("ubus_rpc_session", String)]),
         ("md5", vec![("path", String), ("ubus_rpc_session", String)]),
-        ("remove", vec![("path", String), ("ubus_rpc_session", String)]),
-        ("exec", vec![("command", String), ("params", Array), ("env", Table), ("ubus_rpc_session", String)]),
+        (
+            "remove",
+            vec![("path", String), ("ubus_rpc_session", String)],
+        ),
+        (
+            "exec",
+            vec![
+                ("command", String),
+                ("params", Array),
+                ("env", Table),
+                ("ubus_rpc_session", String),
+            ],
+        ),
     ]
 }
 
@@ -55,7 +86,8 @@ fn arg_bool(args: &Json, key: &str) -> bool {
 }
 
 fn arg_sid(args: &Json) -> Option<&str> {
-    args.get("ubus_rpc_session").and_then(Json::as_bytes)
+    args.get("ubus_rpc_session")
+        .and_then(Json::as_bytes)
         .map(|value| std::str::from_utf8(value).unwrap_or(""))
 }
 
@@ -101,7 +133,13 @@ fn add_stat(out: &mut BlobBuf, m: &fs::Metadata, names: &mut util::IdentityNames
 }
 
 /// `rpc_check_path`: canonicalise, ACL-check, optionally stat.
-fn check_path(ctx: &Ctx, args: &Json, perm: &str, want_stat: bool, use_lstat: bool) -> Result<(PathBuf, Option<fs::Metadata>), i32> {
+fn check_path(
+    ctx: &Ctx,
+    args: &Json,
+    perm: &str,
+    want_stat: bool,
+    use_lstat: bool,
+) -> Result<(PathBuf, Option<fs::Metadata>), i32> {
     check_path_args(ctx, PathArgs::from_json(args), perm, want_stat, use_lstat)
 }
 
@@ -122,7 +160,10 @@ impl std::fmt::Debug for PathArgs<'_> {
 
 impl<'a> PathArgs<'a> {
     fn from_json(args: &'a Json) -> Self {
-        Self { path: args.get("path").and_then(Json::as_bytes), sid: arg_sid(args) }
+        Self {
+            path: args.get("path").and_then(Json::as_bytes),
+            sid: arg_sid(args),
+        }
     }
 
     fn from_blob(data: &'a [u8]) -> Self {
@@ -141,14 +182,26 @@ impl<'a> PathArgs<'a> {
         };
         Self {
             path: path.and_then(string_bytes),
-            sid: sid.and_then(string_bytes).map(|v| std::str::from_utf8(v).unwrap_or("")),
+            sid: sid
+                .and_then(string_bytes)
+                .map(|v| std::str::from_utf8(v).unwrap_or("")),
         }
     }
 }
 
-fn check_path_args(ctx: &Ctx, args: PathArgs<'_>, perm: &str, want_stat: bool, use_lstat: bool) -> Result<(PathBuf, Option<fs::Metadata>), i32> {
-    let Some(raw) = args.path else { return Err(status::INVALID_ARGUMENT) };
-    let Some(path) = util::canonicalize_bytes(raw) else { return Err(status::UNKNOWN_ERROR) };
+fn check_path_args(
+    ctx: &Ctx,
+    args: PathArgs<'_>,
+    perm: &str,
+    want_stat: bool,
+    use_lstat: bool,
+) -> Result<(PathBuf, Option<fs::Metadata>), i32> {
+    let Some(raw) = args.path else {
+        return Err(status::INVALID_ARGUMENT);
+    };
+    let Some(path) = util::canonicalize_bytes(raw) else {
+        return Err(status::UNKNOWN_ERROR);
+    };
     if !ctx.file_access_bytes(args.sid, &path, perm) {
         return Err(status::PERMISSION_DENIED);
     }
@@ -162,7 +215,11 @@ fn check_path_args(ctx: &Ctx, args: PathArgs<'_>, perm: &str, want_stat: bool, u
         check_symlink_access(ctx, args.sid, path, perm)?
     };
     if want_stat {
-        let m = if use_lstat { fs::symlink_metadata(&path) } else { fs::metadata(&path) };
+        let m = if use_lstat {
+            fs::symlink_metadata(&path)
+        } else {
+            fs::metadata(&path)
+        };
         match m {
             Ok(m) => Ok((path, Some(m))),
             Err(e) => Err(errno_status(&e)),
@@ -176,18 +233,34 @@ fn resolve_parent(path: &Path) -> Result<PathBuf, i32> {
     let Some(name) = path.file_name() else {
         return fs::canonicalize(path).map_err(|e| errno_status(&e));
     };
-    let parent = path.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
-    Ok(fs::canonicalize(parent).map_err(|e| errno_status(&e))?.join(name))
+    let parent = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    Ok(fs::canonicalize(parent)
+        .map_err(|e| errno_status(&e))?
+        .join(name))
 }
 
-fn authorize_resolved(ctx: &Ctx, sid: Option<&str>, path: &Path, resolved: PathBuf, perm: &str) -> Result<PathBuf, i32> {
+fn authorize_resolved(
+    ctx: &Ctx,
+    sid: Option<&str>,
+    path: &Path,
+    resolved: PathBuf,
+    perm: &str,
+) -> Result<PathBuf, i32> {
     if resolved != path && !ctx.file_access_bytes(sid, resolved.as_os_str().as_bytes(), perm) {
         return Err(status::PERMISSION_DENIED);
     }
     Ok(resolved)
 }
 
-fn check_symlink_access(ctx: &Ctx, sid: Option<&str>, path: PathBuf, perm: &str) -> Result<PathBuf, i32> {
+fn check_symlink_access(
+    ctx: &Ctx,
+    sid: Option<&str>,
+    path: PathBuf,
+    perm: &str,
+) -> Result<PathBuf, i32> {
     let resolved = match fs::canonicalize(&path) {
         Ok(resolved) => resolved,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
@@ -196,10 +269,14 @@ fn check_symlink_access(ctx: &Ctx, sid: Option<&str>, path: PathBuf, perm: &str)
             if fs::symlink_metadata(&path).is_ok_and(|m| m.file_type().is_symlink()) {
                 return Err(status::PERMISSION_DENIED);
             }
-            let parent = path.parent().filter(|p| !p.as_os_str().is_empty())
+            let parent = path
+                .parent()
+                .filter(|p| !p.as_os_str().is_empty())
                 .ok_or(status::NOT_FOUND)?;
             let name = path.file_name().ok_or(status::NOT_FOUND)?;
-            fs::canonicalize(parent).map_err(|e| errno_status(&e))?.join(name)
+            fs::canonicalize(parent)
+                .map_err(|e| errno_status(&e))?
+                .join(name)
         }
         Err(error) => return Err(errno_status(&error)),
     };
@@ -213,7 +290,11 @@ pub fn read(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
         return Err(status::NOT_SUPPORTED);
     }
     let mut f = fs::File::open(&path).map_err(|e| errno_status(&e))?;
-    let want = if m.size() == 0 { FILE_MIN_SIZE } else { m.size() } as usize;
+    let want = if m.size() == 0 {
+        FILE_MIN_SIZE
+    } else {
+        m.size()
+    } as usize;
     let mut buf = vec![0u8; want];
     let n = f.read(&mut buf).map_err(|_| status::NO_DATA)?;
     buf.truncate(n);
@@ -227,12 +308,15 @@ pub fn read(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
 
 pub fn write(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     let (path, _) = check_path(ctx, args, "write", false, false)?;
-    let Some(data) = args.get("data").and_then(Json::as_bytes) else { return Err(status::INVALID_ARGUMENT) };
+    let Some(data) = args.get("data").and_then(Json::as_bytes) else {
+        return Err(status::INVALID_ARGUMENT);
+    };
     let mode = match args.get("mode") {
         Some(Json::Int(m)) => *m as u32,
         _ => 0o666,
     };
-    let mut f = open_for_write(&path, mode, arg_bool(args, "append")).map_err(|e| errno_status(&e))?;
+    let mut f =
+        open_for_write(&path, mode, arg_bool(args, "append")).map_err(|e| errno_status(&e))?;
     let bytes: Vec<u8> = if !data.is_empty() && arg_bool(args, "base64") {
         util::b64_decode(data).ok_or(status::UNKNOWN_ERROR)?
     } else {
@@ -271,7 +355,10 @@ pub fn md5(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     }
     let mut input = fs::File::open(&path).map_err(|e| errno_status(&e))?;
     let digest = owrt_ubus::digest::md5_reader(&mut input).map_err(|e| errno_status(&e))?;
-    Ok(Some(Json::Object(vec![("md5".into(), Json::Str(util::hex(&digest)))])))
+    Ok(Some(Json::Object(vec![(
+        "md5".into(),
+        Json::Str(util::hex(&digest)),
+    )])))
 }
 
 fn list(ctx: &Ctx, args: PathArgs<'_>) -> Result<Vec<u8>, i32> {
@@ -300,7 +387,9 @@ fn list(ctx: &Ctx, args: PathArgs<'_>) -> Result<Vec<u8>, i32> {
             }
             match fs::metadata(&path) {
                 Ok(tm) => add_stat(&mut out, &tm, &mut names),
-                Err(_) => { out.msg_string("type", "broken"); },
+                Err(_) => {
+                    out.msg_string("type", "broken");
+                }
             }
             out.msg_close(target);
         }
@@ -382,7 +471,9 @@ fn exec_lookup_os(cmd: &OsStr) -> Option<OsString> {
 #[cfg(test)]
 fn acl_cmdline(executable: &str, params: &[String]) -> Option<String> {
     let params: Vec<OsString> = params.iter().map(OsString::from).collect();
-    acl_cmdline_os(OsStr::new(executable), &params)?.into_string().ok()
+    acl_cmdline_os(OsStr::new(executable), &params)?
+        .into_string()
+        .ok()
 }
 
 fn acl_cmdline_os(executable: &OsStr, params: &[OsString]) -> Option<OsString> {
@@ -410,23 +501,38 @@ type ExecPlan = (OsString, Vec<OsString>, Vec<(OsString, OsString)>);
 /// `sid`+`env` rejection, the PATH lookup and both ACL checks. Cheap and
 /// non-blocking, so it stays on the request loop exactly as in C.
 fn exec_prepare(ctx: &Ctx, args: &Json) -> Result<ExecPlan, i32> {
-    let Some(cmd) = args.get("command").and_then(Json::as_bytes) else { return Err(status::INVALID_ARGUMENT) };
+    let Some(cmd) = args.get("command").and_then(Json::as_bytes) else {
+        return Err(status::INVALID_ARGUMENT);
+    };
     let sid = arg_sid(args);
     let params: Vec<OsString> = match args.get("params") {
-        Some(Json::Array(a)) => a.iter().filter_map(|v| v.as_bytes().map(|b| OsString::from_vec(b.to_vec()))).collect(),
+        Some(Json::Array(a)) => a
+            .iter()
+            .filter_map(|v| v.as_bytes().map(|b| OsString::from_vec(b.to_vec())))
+            .collect(),
         _ => Vec::new(),
     };
     let has_params = matches!(args.get("params"), Some(Json::Array(_)));
     let env: Vec<(OsString, OsString)> = match args.get("env") {
-        Some(Json::Object(o)) => o.iter().filter_map(|(k, v)| v.as_bytes().map(|s| (OsString::from(k), OsString::from_vec(s.to_vec())))).collect(),
+        Some(Json::Object(o)) => o
+            .iter()
+            .filter_map(|(k, v)| {
+                v.as_bytes()
+                    .map(|s| (OsString::from(k), OsString::from_vec(s.to_vec())))
+            })
+            .collect(),
         _ => Vec::new(),
     };
     let has_env = matches!(args.get("env"), Some(Json::Object(_)));
     if sid.is_some() && has_env {
         return Err(status::PERMISSION_DENIED);
     }
-    let Some(found) = exec_lookup_os(OsStr::from_bytes(cmd)) else { return Err(status::NOT_FOUND) };
-    let Some(executable) = util::canonicalize_bytes(found.as_bytes()) else { return Err(status::UNKNOWN_ERROR) };
+    let Some(found) = exec_lookup_os(OsStr::from_bytes(cmd)) else {
+        return Err(status::NOT_FOUND);
+    };
+    let Some(executable) = util::canonicalize_bytes(found.as_bytes()) else {
+        return Err(status::UNKNOWN_ERROR);
+    };
     let executable = OsString::from_vec(executable);
     if !ctx.file_access_bytes(sid, executable.as_bytes(), "exec") {
         if !has_params {
@@ -475,20 +581,33 @@ pub fn exec(ctx: &Ctx, req: Request, args: &Json, deferrer: &Deferrer) -> Outcom
 /// `params`, collect stdout/stderr (256 KiB cap each -> NOT_SUPPORTED), kill on
 /// timeout (-> TIMEOUT), reply {code, stdout?, stderr?}. A failed exec in the
 /// child is code 127.
-pub fn run_command(executable: &str, params: &[String], env: &[(String, String)], timeout_ms: i32) -> Result<Json, i32> {
+pub fn run_command(
+    executable: &str,
+    params: &[String],
+    env: &[(String, String)],
+    timeout_ms: i32,
+) -> Result<Json, i32> {
     let params: Vec<OsString> = params.iter().map(OsString::from).collect();
     let env: Vec<(OsString, OsString)> = env.iter().map(|(k, v)| (k.into(), v.into())).collect();
     run_command_os(OsStr::new(executable), &params, &env, timeout_ms)
 }
 
-fn run_command_os(executable: &OsStr, params: &[OsString], env: &[(OsString, OsString)], timeout_ms: i32) -> Result<Json, i32> {
+fn run_command_os(
+    executable: &OsStr,
+    params: &[OsString],
+    env: &[(OsString, OsString)],
+    timeout_ms: i32,
+) -> Result<Json, i32> {
     let mut command = Command::new(executable);
     command.arg0(executable);
     command.args(params);
     for (k, v) in env {
         command.env(k, v);
     }
-    command.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    command
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
     // The child _exit(127)s if execv fails (non-executable, bad interpreter),
     // so a spawn failure after a successful lookup is reported as code 127,
     // not as a ubus status. Pre-fork failures (lookup/ACL) already returned.
@@ -540,7 +659,10 @@ fn run_command_os(executable: &OsStr, params: &[OsString], env: &[(OsString, OsS
     // right away.
     let code = match exited {
         Some(st) => Ok(st),
-        None => match crate::procwait::wait(&mut child, deadline.saturating_duration_since(Instant::now())) {
+        None => match crate::procwait::wait(
+            &mut child,
+            deadline.saturating_duration_since(Instant::now()),
+        ) {
             Ok(crate::procwait::Outcome::Exited(st)) => Ok(st),
             Ok(crate::procwait::Outcome::TimedOut) => {
                 timed_out = true;
@@ -554,7 +676,11 @@ fn run_command_os(executable: &OsStr, params: &[OsString], env: &[(OsString, OsS
     if out.overflow || err.overflow {
         return Err(status::NOT_SUPPORTED);
     }
-    let code = if timed_out { Err(status::TIMEOUT) } else { code };
+    let code = if timed_out {
+        Err(status::TIMEOUT)
+    } else {
+        code
+    };
     let st = code?;
     // rpc_file_exec_write emits WEXITSTATUS(stat): the exit code for a normal
     // exit, and 0 when the child was killed by a signal (st.code() is None).
@@ -583,7 +709,11 @@ struct Pipe {
 
 impl Pipe {
     fn new(file: fs::File) -> Self {
-        Pipe { file: Some(file), data: Vec::new(), overflow: false }
+        Pipe {
+            file: Some(file),
+            data: Vec::new(),
+            overflow: false,
+        }
     }
 
     fn open(&self) -> bool {
@@ -595,7 +725,9 @@ impl Pipe {
     /// what makes the child stop instead of filling a pipe nobody reads.
     fn read_ready(&mut self) {
         let mut chunk = [0u8; 4096];
-        let Some(file) = self.file.as_mut() else { return };
+        let Some(file) = self.file.as_mut() else {
+            return;
+        };
         match file.read(&mut chunk) {
             Ok(0) => self.file = None,
             Ok(n) => {
@@ -618,7 +750,11 @@ fn poll_pipes(out: &mut Pipe, err: &mut Pipe, timeout_ms: i32) -> bool {
     let mut fds: Vec<PollFd> = Vec::with_capacity(2);
     for pipe in [&*out, &*err] {
         if let Some(file) = pipe.file.as_ref() {
-            fds.push(PollFd { fd: file.as_raw_fd(), events: POLLIN, revents: 0 });
+            fds.push(PollFd {
+                fd: file.as_raw_fd(),
+                events: POLLIN,
+                revents: 0,
+            });
         }
     }
     if fds.is_empty() || poll_fds(&mut fds, timeout_ms).unwrap_or(0) == 0 {
@@ -678,8 +814,8 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
 #[cfg(test)]
 mod tests {
     use super::{acl_cmdline, open_for_write, run_command, PathArgs, CMDLINE_MAX};
-    use owrt_ubus::{BlobBuf, MsgType};
     use owrt_ubus::status;
+    use owrt_ubus::{BlobBuf, MsgType};
     use std::os::unix::fs::PermissionsExt;
     use std::time::Instant;
 
@@ -703,27 +839,40 @@ mod tests {
 
     fn context() -> crate::Ctx {
         crate::Ctx {
-            socket: None, exec_timeout_ms: 1000,
+            socket: None,
+            exec_timeout_ms: 1000,
             sessions: std::cell::RefCell::new(crate::session::Store::new()),
-            apply: Default::default(), delayed: Default::default(), uci_read_cache: Default::default(),
+            apply: Default::default(),
+            delayed: Default::default(),
+            uci_read_cache: Default::default(),
         }
     }
 
     fn args(path: &std::path::Path, sid: &str) -> crate::Json {
         crate::Json::Object(vec![
-            ("path".into(), crate::Json::Str(path.to_str().unwrap().into())),
+            (
+                "path".into(),
+                crate::Json::Str(path.to_str().unwrap().into()),
+            ),
             ("ubus_rpc_session".into(), crate::Json::Str(sid.into())),
             ("data".into(), crate::Json::Str("replacement".into())),
         ])
     }
 
     fn grant(ctx: &crate::Ctx, sid: &str, path: &std::path::Path, perm: &str) {
-        ctx.sessions.borrow_mut().get(sid).unwrap().grant("file", path.to_str(), Some(perm));
+        ctx.sessions
+            .borrow_mut()
+            .get(sid)
+            .unwrap()
+            .grant("file", path.to_str(), Some(perm));
     }
 
     #[test]
     fn path_argument_debug_omits_bearer_tokens_and_path_bytes() {
-        let args = PathArgs { path: Some(b"/private-path-secret"), sid: Some("bearer-secret") };
+        let args = PathArgs {
+            path: Some(b"/private-path-secret"),
+            sid: Some("bearer-secret"),
+        };
         for debug in [format!("{args:?}"), format!("{args:#?}")] {
             assert!(!debug.contains("bearer-secret"));
             assert!(!debug.contains("private-path-secret"));
@@ -734,10 +883,10 @@ mod tests {
 
     #[test]
     fn listing_keeps_raw_names_and_resolves_each_symlink_from_its_parent() {
+        use crate::Json;
+        use owrt_ubus::convert::fields_to_json;
         use std::ffi::OsStr;
         use std::os::unix::ffi::OsStrExt;
-        use owrt_ubus::convert::fields_to_json;
-        use crate::Json;
         let directory = TestDir::new();
         let root = &directory.0;
         let long = "l".repeat(240);
@@ -747,23 +896,39 @@ mod tests {
         std::fs::create_dir(root.join("dir")).unwrap();
         std::os::unix::fs::symlink("a", root.join("link")).unwrap();
         std::os::unix::fs::symlink("missing", root.join("broken")).unwrap();
-        let args = Json::Object(vec![("path".into(), Json::from_string_bytes(root.as_os_str().as_bytes().to_vec()))]);
+        let args = Json::Object(vec![(
+            "path".into(),
+            Json::from_string_bytes(root.as_os_str().as_bytes().to_vec()),
+        )]);
         let reply = super::list(&context(), PathArgs::from_json(&args)).unwrap();
         let result = fields_to_json(&reply).unwrap();
-        let Some(Json::Array(entries)) = result.get("entries") else { panic!("missing entries") };
+        let Some(Json::Array(entries)) = result.get("entries") else {
+            panic!("missing entries")
+        };
         assert_eq!(entries.len(), 6);
         for (name, ty) in [
-            (b"a".as_slice(), "file"), (long.as_bytes(), "file"), (b"raw-\xff", "file"),
-            (b"dir", "directory"), (b"link", "symlink"), (b"broken", "symlink"),
+            (b"a".as_slice(), "file"),
+            (long.as_bytes(), "file"),
+            (b"raw-\xff", "file"),
+            (b"dir", "directory"),
+            (b"link", "symlink"),
+            (b"broken", "symlink"),
         ] {
-            let entry = entries.iter().find(|entry| entry.get("name").and_then(Json::as_bytes) == Some(name)).unwrap();
+            let entry = entries
+                .iter()
+                .find(|entry| entry.get("name").and_then(Json::as_bytes) == Some(name))
+                .unwrap();
             assert_eq!(entry.get("type").and_then(Json::as_str), Some(ty));
             if ty == "file" {
                 assert_eq!(entry.get("size"), Some(&Json::Int(8)));
             }
             if name == b"link" || name == b"broken" {
                 let target = entry.get("target").unwrap();
-                let (name, ty) = if name == b"link" { ("a", "file") } else { ("missing", "broken") };
+                let (name, ty) = if name == b"link" {
+                    ("a", "file")
+                } else {
+                    ("missing", "broken")
+                };
                 assert_eq!(target.get("name").and_then(Json::as_str), Some(name));
                 assert_eq!(target.get("type").and_then(Json::as_str), Some(ty));
             }
@@ -779,16 +944,28 @@ mod tests {
         std::os::unix::fs::symlink(&target, &link).unwrap();
         let ctx = context();
         let sid = ctx.sessions.borrow_mut().create(60).unwrap();
-        for perm in ["read", "write", "list"] { grant(&ctx, &sid, &link, perm); }
+        for perm in ["read", "write", "list"] {
+            grant(&ctx, &sid, &link, perm);
+        }
         let request = args(&link, &sid);
         assert_eq!(super::read(&ctx, &request), Err(status::PERMISSION_DENIED));
         assert_eq!(super::md5(&ctx, &request), Err(status::PERMISSION_DENIED));
         assert_eq!(super::write(&ctx, &request), Err(status::PERMISSION_DENIED));
-        assert_eq!(super::stat(&ctx, PathArgs::from_json(&request), false), Err(status::PERMISSION_DENIED));
+        assert_eq!(
+            super::stat(&ctx, PathArgs::from_json(&request), false),
+            Err(status::PERMISSION_DENIED)
+        );
         assert!(super::stat(&ctx, PathArgs::from_json(&request), true).is_ok());
         assert_eq!(std::fs::read_to_string(&target).unwrap(), "private");
         grant(&ctx, &sid, &target, "read");
-        assert_eq!(super::read(&ctx, &request).unwrap().unwrap().get("data").and_then(crate::Json::as_str), Some("private"));
+        assert_eq!(
+            super::read(&ctx, &request)
+                .unwrap()
+                .unwrap()
+                .get("data")
+                .and_then(crate::Json::as_str),
+            Some("private")
+        );
         // remove unlinks the authorized link, never its denied target.
         assert!(super::remove(&ctx, &request).is_ok());
         assert!(target.exists());
@@ -806,7 +983,10 @@ mod tests {
         let sid = ctx.sessions.borrow_mut().create(60).unwrap();
         grant(&ctx, &sid, &link, "list");
         let request = args(&link, &sid);
-        assert_eq!(super::list(&ctx, PathArgs::from_json(&request)), Err(status::PERMISSION_DENIED));
+        assert_eq!(
+            super::list(&ctx, PathArgs::from_json(&request)),
+            Err(status::PERMISSION_DENIED)
+        );
         grant(&ctx, &sid, &target, "list");
         assert!(super::list(&ctx, PathArgs::from_json(&request)).is_ok());
         let new = link.join("new");
@@ -816,11 +996,17 @@ mod tests {
         assert!(!target.join("new").exists());
         grant(&ctx, &sid, &target.join("new"), "write");
         assert!(super::write(&ctx, &request).is_ok());
-        assert_eq!(std::fs::read_to_string(target.join("new")).unwrap(), "replacement");
+        assert_eq!(
+            std::fs::read_to_string(target.join("new")).unwrap(),
+            "replacement"
+        );
         let dangling = dir.0.join("dangling");
         std::os::unix::fs::symlink(target.join("missing"), &dangling).unwrap();
         grant(&ctx, &sid, &dangling, "write");
-        assert_eq!(super::write(&ctx, &args(&dangling, &sid)), Err(status::PERMISSION_DENIED));
+        assert_eq!(
+            super::write(&ctx, &args(&dangling, &sid)),
+            Err(status::PERMISSION_DENIED)
+        );
         assert!(!target.join("missing").exists());
     }
 
@@ -833,7 +1019,10 @@ mod tests {
         let sid = ctx.sessions.borrow_mut().create(60).unwrap();
         grant(&ctx, &sid, &dir.0, "write");
         let request = args(&dir.0, &sid);
-        assert_eq!(super::remove(&ctx, &request), Err(status::PERMISSION_DENIED));
+        assert_eq!(
+            super::remove(&ctx, &request),
+            Err(status::PERMISSION_DENIED)
+        );
         assert_eq!(std::fs::read_to_string(&child).unwrap(), "private");
         grant(&ctx, &sid, &child, "write");
         assert!(super::remove(&ctx, &request).is_ok());
@@ -850,11 +1039,22 @@ mod tests {
         std::os::unix::fs::symlink(&target, &link).unwrap();
         let ctx = context();
         let sid = ctx.sessions.borrow_mut().create(60).unwrap();
-        for perm in ["write", "list"] { grant(&ctx, &sid, &link.join("secret"), perm); }
+        for perm in ["write", "list"] {
+            grant(&ctx, &sid, &link.join("secret"), perm);
+        }
         let request = args(&link.join("secret"), &sid);
-        assert_eq!(super::remove(&ctx, &request), Err(status::PERMISSION_DENIED));
-        assert_eq!(super::stat(&ctx, PathArgs::from_json(&request), true), Err(status::PERMISSION_DENIED));
-        assert_eq!(std::fs::read_to_string(target.join("secret")).unwrap(), "private");
+        assert_eq!(
+            super::remove(&ctx, &request),
+            Err(status::PERMISSION_DENIED)
+        );
+        assert_eq!(
+            super::stat(&ctx, PathArgs::from_json(&request), true),
+            Err(status::PERMISSION_DENIED)
+        );
+        assert_eq!(
+            std::fs::read_to_string(target.join("secret")).unwrap(),
+            "private"
+        );
         grant(&ctx, &sid, &target.join("secret"), "write");
         assert!(super::remove(&ctx, &request).is_ok());
         assert!(!target.join("secret").exists());
@@ -870,9 +1070,20 @@ mod tests {
         grant(&ctx, &sid, &path, "read");
         let mut request = args(&path, &sid);
         for base64 in [false, true] {
-            if let crate::Json::Object(fields) = &mut request { fields.push(("base64".into(), crate::Json::Bool(base64))); }
-            assert_eq!(super::read(&ctx, &request).unwrap().unwrap().get("data").and_then(crate::Json::as_str), Some(""));
-            if let crate::Json::Object(fields) = &mut request { fields.pop(); }
+            if let crate::Json::Object(fields) = &mut request {
+                fields.push(("base64".into(), crate::Json::Bool(base64)));
+            }
+            assert_eq!(
+                super::read(&ctx, &request)
+                    .unwrap()
+                    .unwrap()
+                    .get("data")
+                    .and_then(crate::Json::as_str),
+                Some("")
+            );
+            if let crate::Json::Object(fields) = &mut request {
+                fields.pop();
+            }
         }
     }
 
@@ -895,7 +1106,13 @@ mod tests {
         b.msg_string("ubus_rpc_session", "first");
         b.msg_string("ubus_rpc_session", "second");
         let fields = b.into_payload();
-        assert_eq!(PathArgs::from_blob(&fields), PathArgs { path: Some(b"/tmp/\xff"), sid: Some("first") });
+        assert_eq!(
+            PathArgs::from_blob(&fields),
+            PathArgs {
+                path: Some(b"/tmp/\xff"),
+                sid: Some("first")
+            }
+        );
 
         let mut b = BlobBuf::new();
         b.msg_u32("path", 1);
@@ -903,14 +1120,32 @@ mod tests {
         b.msg_string_bytes("ubus_rpc_session", b"\xff");
         b.msg_string("ubus_rpc_session", "second");
         let fields = b.into_payload();
-        assert_eq!(PathArgs::from_blob(&fields), PathArgs { path: None, sid: Some("") });
+        assert_eq!(
+            PathArgs::from_blob(&fields),
+            PathArgs {
+                path: None,
+                sid: Some("")
+            }
+        );
 
         let mut b = BlobBuf::new();
         b.msg_field(MsgType::String as u32, "path", b"no terminator");
         b.msg_field(MsgType::String as u32, "ubus_rpc_session", b"no terminator");
         let fields = b.into_payload();
-        assert_eq!(PathArgs::from_blob(&fields), PathArgs { path: Some(b""), sid: Some("") });
-        assert_eq!(PathArgs::from_blob(&[]), PathArgs { path: None, sid: None });
+        assert_eq!(
+            PathArgs::from_blob(&fields),
+            PathArgs {
+                path: Some(b""),
+                sid: Some("")
+            }
+        );
+        assert_eq!(
+            PathArgs::from_blob(&[]),
+            PathArgs {
+                path: None,
+                sid: None
+            }
+        );
     }
 
     /// rpc_file_exec_run measures each parameter with blobmsg_data_len(), which
@@ -921,9 +1156,13 @@ mod tests {
     fn the_acl_command_line_stops_one_byte_before_the_c_buffer() {
         let exe = "/bin/x"; // 6 bytes
         let fits = "a".repeat(CMDLINE_MAX - exe.len() - 1 - 1);
-        let cmdstr = acl_cmdline(exe, std::slice::from_ref(&fits)).expect("1023 bytes must still be checked");
+        let cmdstr = acl_cmdline(exe, std::slice::from_ref(&fits))
+            .expect("1023 bytes must still be checked");
         assert_eq!(cmdstr.len(), CMDLINE_MAX - 1);
-        assert!(acl_cmdline(exe, &[format!("{fits}a")]).is_none(), "1024 bytes must be denied");
+        assert!(
+            acl_cmdline(exe, &[format!("{fits}a")]).is_none(),
+            "1024 bytes must be denied"
+        );
         // the same limit across several parameters
         let half = "b".repeat(500);
         assert!(acl_cmdline(exe, &[half.clone(), half.clone()]).is_some());
@@ -942,15 +1181,22 @@ mod tests {
         const CHILD: &str = "OWRT_RPCD_UMASK_TEST";
         if std::env::var_os(CHILD).is_none() {
             let status = std::process::Command::new(std::env::current_exe().unwrap())
-                .args(["--exact", "file::tests::write_respects_umask_and_masks_special_mode_bits", "--test-threads=1"])
-                .env(CHILD, "1").status().unwrap();
+                .args([
+                    "--exact",
+                    "file::tests::write_respects_umask_and_masks_special_mode_bits",
+                    "--test-threads=1",
+                ])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
             assert!(status.success());
             return;
         }
         let dir = TestDir::new();
         let path = dir.0.join("mode");
         let prev = rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o027));
-        let mode_of = |p: &std::path::Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o7777;
+        let mode_of =
+            |p: &std::path::Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o7777;
         open_for_write(&path, 0o7777, false).expect("create");
         assert_eq!(mode_of(&path), 0o750);
         std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
@@ -972,7 +1218,10 @@ mod tests {
     fn descendant_holding_the_pipes_does_not_extend_the_call() {
         let (r, ms) = sh("sleep 5 & exit 0", 200);
         assert!(r.is_ok(), "expected a normal reply, got {r:?}");
-        assert!(ms < 1000, "took {ms} ms, should return with the direct child");
+        assert!(
+            ms < 1000,
+            "took {ms} ms, should return with the direct child"
+        );
 
         let (r, ms) = sh("sleep 5 & wait", 200);
         assert_eq!(r.unwrap_err(), status::TIMEOUT);
@@ -987,11 +1236,18 @@ mod tests {
     fn output_over_the_cap_reports_not_supported_without_burning_the_timeout() {
         for redirect in ["", " >&2"] {
             let (r, ms) = sh(&format!("head -c 1048576 /dev/zero{redirect}"), 2000);
-            assert_eq!(r.unwrap_err(), status::NOT_SUPPORTED, "redirect {redirect:?}");
+            assert_eq!(
+                r.unwrap_err(),
+                status::NOT_SUPPORTED,
+                "redirect {redirect:?}"
+            );
             assert!(ms < 1500, "took {ms} ms with redirect {redirect:?}");
         }
         // both pipes over the cap at once
-        let (r, ms) = sh("head -c 1048576 /dev/zero; head -c 1048576 /dev/zero >&2", 2000);
+        let (r, ms) = sh(
+            "head -c 1048576 /dev/zero; head -c 1048576 /dev/zero >&2",
+            2000,
+        );
         assert_eq!(r.unwrap_err(), status::NOT_SUPPORTED);
         assert!(ms < 1500, "took {ms} ms");
     }
@@ -1001,7 +1257,9 @@ mod tests {
     fn output_just_under_the_cap_is_returned_whole() {
         let n = super::FILE_MAX_SIZE - 1;
         let (r, _) = sh(&format!("head -c {n} /dev/zero | tr '\\0' 'a'"), 5000);
-        let Ok(crate::Json::Object(o)) = r else { panic!("unexpected reply: {r:?}") };
+        let Ok(crate::Json::Object(o)) = r else {
+            panic!("unexpected reply: {r:?}")
+        };
         let Some((_, crate::Json::Str(s))) = o.iter().find(|(k, _)| k == "stdout") else {
             panic!("no stdout in {o:?}")
         };
@@ -1012,7 +1270,10 @@ mod tests {
     /// the call open either.
     #[test]
     fn a_producer_that_ignores_sigpipe_still_ends_at_the_cap() {
-        let (r, ms) = sh("trap '' PIPE; while :; do head -c 65536 /dev/zero; done", 2000);
+        let (r, ms) = sh(
+            "trap '' PIPE; while :; do head -c 65536 /dev/zero; done",
+            2000,
+        );
         assert_eq!(r.unwrap_err(), status::NOT_SUPPORTED);
         assert!(ms < 1500, "took {ms} ms");
     }
@@ -1020,7 +1281,9 @@ mod tests {
     #[test]
     fn output_and_exit_code_still_come_back() {
         let (r, _) = sh("printf out; printf err >&2; exit 3", 5000);
-        let Ok(crate::Json::Object(o)) = r else { panic!("unexpected reply: {r:?}") };
+        let Ok(crate::Json::Object(o)) = r else {
+            panic!("unexpected reply: {r:?}")
+        };
         let get = |k: &str| o.iter().find(|(n, _)| n == k).map(|(_, v)| v.clone());
         assert!(matches!(get("code"), Some(crate::Json::Int(3))));
         assert!(matches!(get("stdout"), Some(crate::Json::Str(ref s)) if s == "out"));

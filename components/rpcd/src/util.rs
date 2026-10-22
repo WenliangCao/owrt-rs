@@ -17,12 +17,24 @@ const B64: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012
 pub fn b64_encode(data: &[u8]) -> String {
     let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
-        let b = [chunk[0], *chunk.get(1).unwrap_or(&0), *chunk.get(2).unwrap_or(&0)];
+        let b = [
+            chunk[0],
+            *chunk.get(1).unwrap_or(&0),
+            *chunk.get(2).unwrap_or(&0),
+        ];
         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
         out.push(B64[(n >> 18) as usize & 63] as char);
         out.push(B64[(n >> 12) as usize & 63] as char);
-        out.push(if chunk.len() > 1 { B64[(n >> 6) as usize & 63] as char } else { '=' });
-        out.push(if chunk.len() > 2 { B64[n as usize & 63] as char } else { '=' });
+        out.push(if chunk.len() > 1 {
+            B64[(n >> 6) as usize & 63] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            B64[n as usize & 63] as char
+        } else {
+            '='
+        });
     }
     out
 }
@@ -145,7 +157,9 @@ fn lookup_name_in(reader: &mut impl BufRead, id: u32) -> Option<String> {
         }
         let mut fields = line.split(|&b| b == b':');
         let name = fields.next()?;
-        let found = fields.nth(1).and_then(|b| std::str::from_utf8(b).ok())
+        let found = fields
+            .nth(1)
+            .and_then(|b| std::str::from_utf8(b).ok())
             .and_then(|s| s.parse::<u32>().ok());
         if found == Some(id) {
             return Some(String::from_utf8_lossy(name).into_owned());
@@ -201,10 +215,15 @@ pub fn statvfs_of(path: &str) -> Option<rustix::fs::StatVfs> {
 
 /// `uname().machine`
 pub fn machine() -> String {
-    rustix::system::uname().machine().to_string_lossy().into_owned()
+    rustix::system::uname()
+        .machine()
+        .to_string_lossy()
+        .into_owned()
 }
 
-pub fn sync_all() { rustix::fs::sync(); }
+pub fn sync_all() {
+    rustix::fs::sync();
+}
 
 #[cfg(test)]
 mod tests {
@@ -214,39 +233,76 @@ mod tests {
     fn display_name_slots_are_per_response_and_do_not_mix_ids() {
         let mut slot = LastName::default();
         assert_eq!(slot.get(1, || Some("first".into())), Some("first"));
-        assert_eq!(slot.get(1, || panic!("same response and ID")), Some("first"));
+        assert_eq!(
+            slot.get(1, || panic!("same response and ID")),
+            Some("first")
+        );
         assert_eq!(slot.get(2, || None), None);
-        assert_eq!(slot.get(2, || panic!("missing identity is also a result")), None);
+        assert_eq!(
+            slot.get(2, || panic!("missing identity is also a result")),
+            None
+        );
         assert_eq!(slot.get(1, || Some("changed".into())), Some("changed"));
         let mut next_response = LastName::default();
-        assert_eq!(next_response.get(1, || Some("new response".into())), Some("new response"));
+        assert_eq!(
+            next_response.get(1, || Some("new response".into())),
+            Some("new response")
+        );
     }
 
     #[test]
     fn identity_lookup_handles_fragmented_lines_raw_names_and_duplicate_ids() {
         let bytes = b"invalid\nwrong:x:not-a-number\nus\xffer:x:41:9::/tmp:/bin/false\r\nlater:x:41:9\nlast:x:42";
         let mut input = BufReader::with_capacity(3, std::io::Cursor::new(bytes));
-        assert_eq!(lookup_name_in(&mut input, 41).as_deref(), Some("us\u{fffd}er"));
+        assert_eq!(
+            lookup_name_in(&mut input, 41).as_deref(),
+            Some("us\u{fffd}er")
+        );
         let mut input = BufReader::with_capacity(3, std::io::Cursor::new(bytes));
         assert_eq!(lookup_name_in(&mut input, 42).as_deref(), Some("last"));
-        assert_eq!(lookup_name_in(&mut std::io::Cursor::new(b"last:x:42\r"), 42), None);
-        assert_eq!(lookup_name_in(&mut std::io::Cursor::new(b"last:x:42\r\n"), 42).as_deref(), Some("last"));
+        assert_eq!(
+            lookup_name_in(&mut std::io::Cursor::new(b"last:x:42\r"), 42),
+            None
+        );
+        assert_eq!(
+            lookup_name_in(&mut std::io::Cursor::new(b"last:x:42\r\n"), 42).as_deref(),
+            Some("last")
+        );
     }
 
     #[test]
     fn identity_lookup_reopens_the_current_file() {
         let path = std::env::temp_dir().join(format!("rpcd-identity-{}", std::process::id()));
-        let mut file = std::fs::OpenOptions::new().create_new(true).write(true).open(&path).unwrap();
+        let mut file = std::fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&path)
+            .unwrap();
         std::io::Write::write_all(&mut file, b"first:x:7\n").unwrap();
         drop(file);
-        assert_eq!(lookup_name(path.to_str().unwrap(), 7).as_deref(), Some("first"));
+        assert_eq!(
+            lookup_name(path.to_str().unwrap(), 7).as_deref(),
+            Some("first")
+        );
         let mut response = LastName::default();
-        assert_eq!(response.get(7, || lookup_name(path.to_str().unwrap(), 7)), Some("first"));
+        assert_eq!(
+            response.get(7, || lookup_name(path.to_str().unwrap(), 7)),
+            Some("first")
+        );
         std::fs::write(&path, b"changed:x:7\n").unwrap();
-        assert_eq!(lookup_name(path.to_str().unwrap(), 7).as_deref(), Some("changed"));
-        assert_eq!(response.get(7, || lookup_name(path.to_str().unwrap(), 7)), Some("first"));
+        assert_eq!(
+            lookup_name(path.to_str().unwrap(), 7).as_deref(),
+            Some("changed")
+        );
+        assert_eq!(
+            response.get(7, || lookup_name(path.to_str().unwrap(), 7)),
+            Some("first")
+        );
         let mut next_response = LastName::default();
-        assert_eq!(next_response.get(7, || lookup_name(path.to_str().unwrap(), 7)), Some("changed"));
+        assert_eq!(
+            next_response.get(7, || lookup_name(path.to_str().unwrap(), 7)),
+            Some("changed")
+        );
         std::fs::remove_file(&path).unwrap();
         assert_eq!(lookup_name(path.to_str().unwrap(), 7), None);
     }
@@ -254,7 +310,10 @@ mod tests {
     #[test]
     fn md5_known() {
         assert_eq!(hex(&md5(b"")), "d41d8cd98f00b204e9800998ecf8427e");
-        assert_eq!(hex(&md5(b"The quick brown fox jumps over the lazy dog")), "9e107d9d372bb6826bd81d3542a419d6");
+        assert_eq!(
+            hex(&md5(b"The quick brown fox jumps over the lazy dog")),
+            "9e107d9d372bb6826bd81d3542a419d6"
+        );
         assert_eq!(hex(&md5(&[b'a'; 1000])), "cabe45dcc9ae5b66ba86600cca6b8ba8");
     }
 
@@ -276,17 +335,30 @@ mod tests {
 
     #[test]
     fn base64_rejects_nonzero_padding_bits() {
-        for input in [b"QR==".as_slice(), b"Qf==", b"QUJ=", b"Q U J =", b"////QR=="] {
+        for input in [
+            b"QR==".as_slice(),
+            b"Qf==",
+            b"QUJ=",
+            b"Q U J =",
+            b"////QR==",
+        ] {
             assert!(b64_decode(input).is_none(), "{input:?}");
         }
-        for (input, expected) in [(b"QQ==".as_slice(), b"A".as_slice()), (b"QUI=", b"AB"), (b"QUJD", b"ABC")] {
+        for (input, expected) in [
+            (b"QQ==".as_slice(), b"A".as_slice()),
+            (b"QUI=", b"AB"),
+            (b"QUJD", b"ABC"),
+        ] {
             assert_eq!(b64_decode(input).as_deref(), Some(expected));
         }
     }
 
     #[test]
     fn canon() {
-        assert_eq!(canonicalize("/etc//config/./firewall/").unwrap(), "/etc/config/firewall");
+        assert_eq!(
+            canonicalize("/etc//config/./firewall/").unwrap(),
+            "/etc/config/firewall"
+        );
         assert_eq!(canonicalize("/a/b/../c").unwrap(), "/a/c");
         assert_eq!(canonicalize("/a/../..").unwrap(), "/");
         assert_eq!(canonicalize("/").unwrap(), "/");

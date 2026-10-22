@@ -12,7 +12,6 @@ use owrt_netifd::{config, interface, ip};
 use owrt_ubus::blob::BlobBuf;
 use owrt_ubus::json::Json;
 
-
 use interface::{Address, Interface, IpSettings, Route, State};
 
 fn b_of(v: &Json, k: &str) -> bool {
@@ -35,8 +34,12 @@ fn u_of(v: &Json, k: &str) -> Option<u32> {
 
 fn main() {
     let mut args = std::env::args().skip(1);
-    let confdir = args.next().expect("usage: ifstatus <confdir> <c-dump.json>");
-    let cpath = args.next().expect("usage: ifstatus <confdir> <c-dump.json>");
+    let confdir = args
+        .next()
+        .expect("usage: ifstatus <confdir> <c-dump.json>");
+    let cpath = args
+        .next()
+        .expect("usage: ifstatus <confdir> <c-dump.json>");
 
     let cfg = config::load(&confdir).unwrap_or_else(|e| {
         eprintln!("config: {e}");
@@ -89,8 +92,12 @@ fn main() {
     // the C dump's order is netifd's own interface list order; follow it so
     // the comparison is not about ordering we have not implemented yet
     for ci in cifaces {
-        let Some(name) = s_of(ci, "interface") else { continue };
-        let Some(ic) = cfg.interfaces.iter().find(|i| i.name == name) else { continue };
+        let Some(name) = s_of(ci, "interface") else {
+            continue;
+        };
+        let Some(ic) = cfg.interfaces.iter().find(|i| i.name == name) else {
+            continue;
+        };
 
         let mut i = Interface::new(&name);
         i.state = if b_of(ci, "up") {
@@ -130,16 +137,17 @@ fn main() {
         // protocol handler.
         let mut ip = IpSettings::default();
         for (a, m) in &ic.ipv4 {
-            ip.addresses.push(Address::new(std::net::IpAddr::V4(*a), *m));
+            ip.addresses
+                .push(Address::new(std::net::IpAddr::V4(*a), *m));
         }
         for (a, m) in &ic.ipv6 {
-            ip.addresses.push(Address::new(std::net::IpAddr::V6(*a), *m));
+            ip.addresses
+                .push(Address::new(std::net::IpAddr::V6(*a), *m));
         }
         // parse_gateway_option sets only the family flag: the metric it
         // stores is never printed, because DEVROUTE_METRIC stays clear.
         if let Some(gw) = ic.gateway {
-            let mut r =
-                Route::new("0.0.0.0".parse().unwrap(), 0, std::net::IpAddr::V4(gw));
+            let mut r = Route::new("0.0.0.0".parse().unwrap(), 0, std::net::IpAddr::V4(gw));
             r.metric = ic.metric;
             if let Some(t) = ic.ip4table {
                 r.table = t;
@@ -206,5 +214,10 @@ fn main() {
         b.msg_close(t);
     }
     b.msg_close(arr);
-    println!("{}", owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact());
+    println!(
+        "{}",
+        owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact()
+    );
 }

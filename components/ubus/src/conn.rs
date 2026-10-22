@@ -172,8 +172,9 @@ impl Connection {
     /// A zero budget expires immediately; unlike request timeouts it does
     /// not mean an unbounded wait.
     pub fn connect_timeout(path: Option<&str>, timeout: Duration) -> io::Result<Self> {
-        let deadline = Instant::now().checked_add(timeout)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "connect timeout too large"))?;
+        let deadline = Instant::now().checked_add(timeout).ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "connect timeout too large")
+        })?;
         Self::connect_until(path, deadline, None)
     }
 
@@ -232,22 +233,36 @@ impl Connection {
     }
 
     fn server_deadline(&self) -> Option<Instant> {
-        self.server_io_timeout.map(|timeout| Instant::now() + timeout)
+        self.server_io_timeout
+            .map(|timeout| Instant::now() + timeout)
     }
 
     fn server_result<T>(&self, result: io::Result<T>) -> io::Result<T> {
-        if result.as_ref().is_err_and(|e| e.kind() == io::ErrorKind::TimedOut) {
+        if result
+            .as_ref()
+            .is_err_and(|e| e.kind() == io::ErrorKind::TimedOut)
+        {
             let _ = self.shutdown();
         }
         result
     }
 
     fn server_bound(&self) -> sys::Bound {
-        self.server_io_timeout.map_or(sys::Bound::Forever, sys::Bound::Within)
+        self.server_io_timeout
+            .map_or(sys::Bound::Forever, sys::Bound::Within)
     }
 
-    fn send_server_parts<const N: usize>(&self, parts: [&[u8]; N], fd: Option<RawFd>) -> io::Result<()> {
-        self.server_result(sys::send_parts_until(self.as_raw_fd(), parts, fd, self.server_bound()))
+    fn send_server_parts<const N: usize>(
+        &self,
+        parts: [&[u8]; N],
+        fd: Option<RawFd>,
+    ) -> io::Result<()> {
+        self.server_result(sys::send_parts_until(
+            self.as_raw_fd(),
+            parts,
+            fd,
+            self.server_bound(),
+        ))
     }
 
     /// A message can be handed out without waiting on the socket: one was
@@ -316,7 +331,10 @@ impl Connection {
             ) {
                 Ok((0, _)) => {
                     self.rx_reset();
-                    return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "ubus connection closed"));
+                    return Err(io::Error::new(
+                        io::ErrorKind::UnexpectedEof,
+                        "ubus connection closed",
+                    ));
                 }
                 Ok((got, fd)) => {
                     self.rx_end += got;
@@ -353,7 +371,11 @@ impl Connection {
         let s = self.rx_start;
         let header = Header::decode(self.rx[s..s + Header::LEN].try_into().unwrap())
             .ok_or_else(|| io::Error::other("ubus: bad header"))?;
-        let id_len = u32::from_be_bytes(self.rx[s + Header::LEN..s + Header::LEN + 4].try_into().unwrap());
+        let id_len = u32::from_be_bytes(
+            self.rx[s + Header::LEN..s + Header::LEN + 4]
+                .try_into()
+                .unwrap(),
+        );
         let raw_len = (id_len & 0x00ff_ffff) as usize;
         if !(4..=MAX_MSGLEN).contains(&raw_len) {
             return Err(io::Error::other("ubus: bad blob length"));
@@ -386,7 +408,11 @@ impl Connection {
 
     /// Take the next frame: header, its descriptor and its blob. None only
     /// with `start` when the buffer is empty and the socket idle.
-    fn take_frame(&mut self, start: bool, deadline: Option<Instant>) -> io::Result<Option<(Header, Option<OwnedFd>, Body)>> {
+    fn take_frame(
+        &mut self,
+        start: bool,
+        deadline: Option<Instant>,
+    ) -> io::Result<Option<(Header, Option<OwnedFd>, Body)>> {
         if !self.rx_fill(Header::LEN + 4, start, deadline)? {
             return Ok(None);
         }
@@ -443,8 +469,14 @@ impl Connection {
     }
 
     fn recv_until(&mut self, deadline: Option<Instant>) -> io::Result<Message> {
-        let (header, fd, body) = self.take_frame(false, deadline)?.expect("a waiting frame read yields a frame");
-        Ok(Message { header, blob: self.blob_of(body), fd })
+        let (header, fd, body) = self
+            .take_frame(false, deadline)?
+            .expect("a waiting frame read yields a frame");
+        Ok(Message {
+            header,
+            blob: self.blob_of(body),
+            fd,
+        })
     }
     fn next_seq(&mut self) -> u16 {
         self.seq = self.seq.wrapping_add(1);
@@ -464,8 +496,9 @@ impl Connection {
         timeout_ms: i32,
     ) -> io::Result<Reply> {
         let mut data = Vec::new();
-        let mut reply = self.request_with_data(cmd, peer, blob, fd, timeout_ms,
-            |blob| data.push(reply_payload(blob)))?;
+        let mut reply = self.request_with_data(cmd, peer, blob, fd, timeout_ms, |blob| {
+            data.push(reply_payload(blob))
+        })?;
         reply.data = data;
         Ok(reply)
     }
@@ -484,10 +517,13 @@ impl Connection {
     ) -> io::Result<Reply> {
         // One deadline covers sending and every byte of every reply. A
         // readable prefix alone must not turn a bounded call into a hang.
-        let deadline = (timeout_ms > 0)
-            .then(|| Instant::now() + Duration::from_millis(timeout_ms as u64));
+        let deadline =
+            (timeout_ms > 0).then(|| Instant::now() + Duration::from_millis(timeout_ms as u64));
         let result = self.request_until(cmd, peer, blob, fd, deadline, &mut on_data);
-        if result.as_ref().is_err_and(|e| e.kind() == io::ErrorKind::TimedOut) {
+        if result
+            .as_ref()
+            .is_err_and(|e| e.kind() == io::ErrorKind::TimedOut)
+        {
             // Only a partial frame loses its framing boundary. A clean
             // request timeout must keep object servers connected: rpcd may
             // be awaiting service.event while an apply rollback is armed.
@@ -499,7 +535,15 @@ impl Connection {
         result
     }
 
-    fn request_until(&mut self, cmd: u8, peer: u32, blob: &mut BlobBuf, fd: Option<RawFd>, deadline: Option<Instant>, on_data: &mut impl FnMut(Cow<'_, [u8]>)) -> io::Result<Reply> {
+    fn request_until(
+        &mut self,
+        cmd: u8,
+        peer: u32,
+        blob: &mut BlobBuf,
+        fd: Option<RawFd>,
+        deadline: Option<Instant>,
+        on_data: &mut impl FnMut(Cow<'_, [u8]>),
+    ) -> io::Result<Reply> {
         if blob.as_bytes().len() > MAX_MSGLEN {
             return Err(ubus_error(status::INVALID_ARGUMENT));
         }
@@ -519,9 +563,11 @@ impl Connection {
         loop {
             sys::check_cancelled(self.cancelled)?;
             sys::check_deadline(deadline)?;
-            let (header, fd, body) = self.take_frame(false, deadline)?
+            let (header, fd, body) = self
+                .take_frame(false, deadline)?
                 .expect("a waiting frame read yields a frame");
-            if header.seq != seq || header.peer != peer
+            if header.seq != seq
+                || header.peer != peer
                 || !matches!(header.ty, ty::DATA | ty::STATUS)
             {
                 // Only this synchronous request is active. libubus discards
@@ -549,7 +595,8 @@ impl Connection {
                     // libubus-req.c defaults a STATUS without a status attr
                     // to UBUS_STATUS_INVALID_ARGUMENT.
                     reply.status = Message::attrs_from(bytes)[attr::STATUS as usize]
-                        .and_then(|a| a.as_u32()).map(|v| v as i32)
+                        .and_then(|a| a.as_u32())
+                        .map(|v| v as i32)
                         .unwrap_or(status::INVALID_ARGUMENT);
                     reply.fd = fd;
                     return Ok(reply);
@@ -605,7 +652,9 @@ impl Connection {
         let mut found = None;
         let reply = self.request_until(ty::LOOKUP, 0, &mut b, None, deadline, &mut |blob| {
             // Keep the first usable matching DATA frame, as the collected path did.
-            if found.is_some() { return; }
+            if found.is_some() {
+                return;
+            }
             let mut id = None;
             let mut matches = false;
             for a in blob::iter(&blob[4..]) {
@@ -615,7 +664,9 @@ impl Connection {
                     matches = a.as_str() == Some(path);
                 }
             }
-            if matches { found = id; }
+            if matches {
+                found = id;
+            }
         })?;
         if reply.status != status::OK {
             return Err(ubus_error(reply.status));
@@ -660,7 +711,8 @@ impl Connection {
         timeout_ms: i32,
     ) -> io::Result<Reply> {
         let mut b = BlobBuf::new();
-        b.put_u32(attr::OBJID, objid).put_string(attr::METHOD, method);
+        b.put_u32(attr::OBJID, objid)
+            .put_string(attr::METHOD, method);
         b.put(attr::DATA, args);
         self.request(ty::INVOKE, objid, &mut b, None, timeout_ms)
     }
@@ -736,7 +788,8 @@ impl Connection {
         methods: &[(&str, &[(&str, MsgType)])],
         timeout_ms: i32,
     ) -> io::Result<u32> {
-        self.add_object_maybe_anonymous(Some(path), methods, None, timeout_ms).map(|(id, _)| id)
+        self.add_object_maybe_anonymous(Some(path), methods, None, timeout_ms)
+            .map(|(id, _)| id)
     }
 
     /// Register an object and retain its method type for other objects on this
@@ -753,10 +806,14 @@ impl Connection {
         if type_id == Some(0) {
             return Err(ubus_error(status::INVALID_ARGUMENT));
         }
-        let (id, assigned_type) = self.add_object_maybe_anonymous(Some(path.as_bytes()), methods, type_id, timeout_ms)?;
+        let (id, assigned_type) =
+            self.add_object_maybe_anonymous(Some(path.as_bytes()), methods, type_id, timeout_ms)?;
         // ubusd returns OBJTYPE only when the request supplied SIGNATURE.
         // A reused type remains the connection-scoped id supplied by us.
-        let assigned_type = assigned_type.or(type_id).filter(|id| *id != 0).ok_or_else(|| ubus_error(status::NO_DATA))?;
+        let assigned_type = assigned_type
+            .or(type_id)
+            .filter(|id| *id != 0)
+            .ok_or_else(|| ubus_error(status::NO_DATA))?;
         Ok((id, assigned_type))
     }
 
@@ -764,7 +821,8 @@ impl Connection {
     /// not listed and cannot be invoked by name -- which is what a subscriber
     /// is. `ubus_register_subscriber` does exactly this before subscribing.
     pub fn add_anonymous_object(&mut self, timeout_ms: i32) -> io::Result<u32> {
-        self.add_object_maybe_anonymous(None, &[], None, timeout_ms).map(|(id, _)| id)
+        self.add_object_maybe_anonymous(None, &[], None, timeout_ms)
+            .map(|(id, _)| id)
     }
 
     fn add_object_maybe_anonymous(
@@ -776,7 +834,10 @@ impl Connection {
     ) -> io::Result<(u32, Option<u32>)> {
         let mut b = BlobBuf::new();
         if let Some(path) = path {
-            let end = path.iter().position(|byte| *byte == 0).unwrap_or(path.len());
+            let end = path
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(path.len());
             b.put_string_bytes(attr::OBJPATH, &path[..end]);
         }
         if let Some(id) = type_id {
@@ -807,7 +868,9 @@ impl Connection {
                 }
             }
         }
-        object_id.map(|id| (id, assigned_type)).ok_or_else(|| ubus_error(status::NO_DATA))
+        object_id
+            .map(|id| (id, assigned_type))
+            .ok_or_else(|| ubus_error(status::NO_DATA))
     }
 
     /// ubusd's built-in event object. Subscribing to it is how libubus
@@ -909,7 +972,11 @@ impl Connection {
         let result = self.notify_data_until(objid, kind, fields, deadline, &mut on_data);
         self.cancelled = previous_cancelled;
         match result {
-            Err(error) if error.kind() == io::ErrorKind::TimedOut && !sys::is_partial_timeout(&error) => Ok(false),
+            Err(error)
+                if error.kind() == io::ErrorKind::TimedOut && !sys::is_partial_timeout(&error) =>
+            {
+                Ok(false)
+            }
             Err(error) => {
                 let _ = self.shutdown();
                 self.rx_reset();
@@ -937,7 +1004,15 @@ impl Connection {
         let seq = self.next_seq();
         sys::send_parts_until_cancelled(
             self.as_raw_fd(),
-            [&Header { ty: ty::NOTIFY, seq, peer: objid }.encode(), b.as_bytes()],
+            [
+                &Header {
+                    ty: ty::NOTIFY,
+                    seq,
+                    peer: objid,
+                }
+                .encode(),
+                b.as_bytes(),
+            ],
             None,
             Some(deadline).into(),
             self.cancelled,
@@ -950,7 +1025,8 @@ impl Connection {
         while pending != 0 {
             sys::check_cancelled(self.cancelled)?;
             sys::check_deadline(Some(deadline))?;
-            let (header, fd, body) = self.take_frame(false, Some(deadline))?
+            let (header, fd, body) = self
+                .take_frame(false, Some(deadline))?
                 .expect("a waiting frame read yields a frame");
             if matches!(header.ty, ty::DATA | ty::STATUS) {
                 // libubus drops replies not belonging to an active request.
@@ -958,8 +1034,11 @@ impl Connection {
                 if header.seq != seq {
                     continue;
                 }
-                let Some(index) = peers.iter().enumerate().position(|(index, peer)|
-                    pending & (1 << index) != 0 && *peer == header.peer) else {
+                let Some(index) = peers
+                    .iter()
+                    .enumerate()
+                    .position(|(index, peer)| pending & (1 << index) != 0 && *peer == header.peer)
+                else {
                     continue;
                 };
                 let bytes = match &body {
@@ -981,7 +1060,8 @@ impl Connection {
                                 if subscriber.payload.len() != 4 {
                                     continue;
                                 }
-                                peers[index] = u32::from_be_bytes(subscriber.payload.try_into().unwrap());
+                                peers[index] =
+                                    u32::from_be_bytes(subscriber.payload.try_into().unwrap());
                                 pending |= 1 << index;
                                 index += 1;
                                 if index == peers.len() {
@@ -999,15 +1079,25 @@ impl Connection {
                 // An idle owner cannot drain this queue until notification
                 // completion. Bound that temporary backlog and its retained FDs.
                 if self.pending.len() >= 128 || pending_bytes + blob.len() > MAX_MSGLEN {
-                    return Err(io::Error::new(io::ErrorKind::OutOfMemory, "ubus notification pending queue limit"));
+                    return Err(io::Error::new(
+                        io::ErrorKind::OutOfMemory,
+                        "ubus notification pending queue limit",
+                    ));
                 }
                 pending_bytes += blob.len();
                 self.pending.push_back(Message { header, blob, fd });
                 #[cfg(test)]
                 {
-                    self.notification_pending_peak.0 = self.notification_pending_peak.0.max(self.pending.len());
-                    self.notification_pending_peak.1 = self.notification_pending_peak.1.max(pending_bytes);
-                    self.notification_pending_peak.2 = self.notification_pending_peak.2.max(self.pending.iter().filter(|message| message.fd.is_some()).count());
+                    self.notification_pending_peak.0 =
+                        self.notification_pending_peak.0.max(self.pending.len());
+                    self.notification_pending_peak.1 =
+                        self.notification_pending_peak.1.max(pending_bytes);
+                    self.notification_pending_peak.2 = self.notification_pending_peak.2.max(
+                        self.pending
+                            .iter()
+                            .filter(|message| message.fd.is_some())
+                            .count(),
+                    );
                 }
             }
         }
@@ -1028,7 +1118,8 @@ impl Connection {
         if let Some(message) = self.pending.pop_front() {
             return Ok(Self::classify(message));
         }
-        let result = self.take_frame(false, None)
+        let result = self
+            .take_frame(false, None)
             .map(|frame| self.incoming(frame.expect("a waiting frame read yields a frame")));
         self.server_result(result)
     }
@@ -1040,7 +1131,9 @@ impl Connection {
         if let Some(message) = self.pending.pop_front() {
             return Ok(Some(Self::classify(message)));
         }
-        let result = self.take_frame(true, None).map(|frame| frame.map(|frame| self.incoming(frame)));
+        let result = self
+            .take_frame(true, None)
+            .map(|frame| frame.map(|frame| self.incoming(frame)));
         self.server_result(result)
     }
 
@@ -1086,10 +1179,18 @@ impl Connection {
                     self.rx.resize(need, 0);
                 }
             }
-            match sys::recv_into(self.stream.as_raw_fd(), &mut self.rx[self.rx_end..], true, true) {
+            match sys::recv_into(
+                self.stream.as_raw_fd(),
+                &mut self.rx[self.rx_end..],
+                true,
+                true,
+            ) {
                 Ok((0, _)) => {
                     self.rx_reset();
-                    return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "ubus connection closed"));
+                    return Err(io::Error::new(
+                        io::ErrorKind::UnexpectedEof,
+                        "ubus connection closed",
+                    ));
                 }
                 Ok((count, fd)) => {
                     self.rx_end += count;
@@ -1118,30 +1219,51 @@ impl Connection {
             };
             return Incoming::Invoke(Self::decode_request(header, blob, fd, spare));
         }
-        Self::classify(Message { header, blob: self.blob_of(body), fd })
+        Self::classify(Message {
+            header,
+            blob: self.blob_of(body),
+            fd,
+        })
     }
     /// Return storage only after the caller has finished using the request.
     /// At most one small request is retained; descriptors are closed now.
     pub fn recycle_request(&mut self, mut req: Request) {
         req.fd = None;
-        let capacity = req.method.capacity() + req.data.capacity()
+        let capacity = req.method.capacity()
+            + req.data.capacity()
             + req.user.as_ref().map_or(0, String::capacity)
             + req.group.as_ref().map_or(0, String::capacity);
         if capacity <= INCOMING_BUFFER_SIZE {
             req.method.clear();
             req.data.clear();
-            if let Some(user) = &mut req.user { user.clear(); }
-            if let Some(group) = &mut req.group { group.clear(); }
+            if let Some(user) = &mut req.user {
+                user.clear();
+            }
+            if let Some(group) = &mut req.group {
+                group.clear();
+            }
             self.spare_request = Some(req);
         }
     }
 
-    fn decode_request(header: Header, blob: &[u8], fd: Option<OwnedFd>, spare: Option<Request>) -> Request {
+    fn decode_request(
+        header: Header,
+        blob: &[u8],
+        fd: Option<OwnedFd>,
+        spare: Option<Request>,
+    ) -> Request {
         let attrs = Message::attrs_from(blob);
         let objid = attrs[attr::OBJID as usize].and_then(|a| a.as_u32());
         let mut req = spare.unwrap_or_else(|| Request {
-            peer: 0, seq: 0, objid: 0, method: String::new(), user: None, group: None,
-            data: Vec::new(), fd: None, no_reply: false,
+            peer: 0,
+            seq: 0,
+            objid: 0,
+            method: String::new(),
+            user: None,
+            group: None,
+            data: Vec::new(),
+            fd: None,
+            no_reply: false,
         });
         let method = attrs[attr::METHOD as usize]
             .and_then(|a| a.as_str())
@@ -1173,7 +1295,12 @@ impl Connection {
     fn classify(mut message: Message) -> Incoming {
         if message.header.ty == ty::INVOKE {
             let fd = message.fd.take();
-            return Incoming::Invoke(Self::decode_request(message.header, &message.blob, fd, None));
+            return Incoming::Invoke(Self::decode_request(
+                message.header,
+                &message.blob,
+                fd,
+                None,
+            ));
         }
         let attrs = message.attrs();
         let objid = attrs[attr::OBJID as usize].and_then(|a| a.as_u32());
@@ -1218,7 +1345,14 @@ impl Connection {
 
     fn data_prefix(req: &Request, len: usize) -> [u8; 24] {
         let mut prefix = [0u8; 24];
-        prefix[..8].copy_from_slice(&Header { ty: ty::DATA, seq: req.seq, peer: req.peer }.encode());
+        prefix[..8].copy_from_slice(
+            &Header {
+                ty: ty::DATA,
+                seq: req.seq,
+                peer: req.peer,
+            }
+            .encode(),
+        );
         prefix[8..12].copy_from_slice(&((16 + len) as u32).to_be_bytes());
         prefix[12..16].copy_from_slice(&((attr::OBJID << 24) | 8).to_be_bytes());
         prefix[16..20].copy_from_slice(&req.objid.to_be_bytes());
@@ -1228,7 +1362,14 @@ impl Connection {
 
     fn status_frame(req: &Request, code: i32) -> [u8; 28] {
         let mut frame = [0u8; 28];
-        frame[..8].copy_from_slice(&Header { ty: ty::STATUS, seq: req.seq, peer: req.peer }.encode());
+        frame[..8].copy_from_slice(
+            &Header {
+                ty: ty::STATUS,
+                seq: req.seq,
+                peer: req.peer,
+            }
+            .encode(),
+        );
         frame[8..12].copy_from_slice(&20u32.to_be_bytes());
         frame[12..16].copy_from_slice(&((attr::STATUS << 24) | 8).to_be_bytes());
         frame[16..20].copy_from_slice(&(code as u32).to_be_bytes());
@@ -1298,23 +1439,63 @@ mod tests {
             body.put_u32(attr::STATUS, status::OK as u32);
             for index in 0..256 {
                 let ty = if index % 2 == 0 { ty::DATA } else { ty::STATUS };
-                server.send(Header { ty, seq: request.header.seq.wrapping_sub(1), peer: 42 },
-                    &mut body, Some(stale_fd.as_raw_fd())).unwrap();
+                server
+                    .send(
+                        Header {
+                            ty,
+                            seq: request.header.seq.wrapping_sub(1),
+                            peer: 42,
+                        },
+                        &mut body,
+                        Some(stale_fd.as_raw_fd()),
+                    )
+                    .unwrap();
             }
             drop(stale_fd);
             let mut invoke = BlobBuf::new();
-            invoke.put_u32(attr::OBJID, 77).put_string(attr::METHOD, "queued");
-            server.send(Header { ty: ty::INVOKE, seq: 99, peer: 3 }, &mut invoke, None).unwrap();
-            server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 42 },
-                &mut body, Some(live_fd.as_raw_fd())).unwrap();
+            invoke
+                .put_u32(attr::OBJID, 77)
+                .put_string(attr::METHOD, "queued");
+            server
+                .send(
+                    Header {
+                        ty: ty::INVOKE,
+                        seq: 99,
+                        peer: 3,
+                    },
+                    &mut invoke,
+                    None,
+                )
+                .unwrap();
+            server
+                .send(
+                    Header {
+                        ty: ty::STATUS,
+                        seq: request.header.seq,
+                        peer: 42,
+                    },
+                    &mut body,
+                    Some(live_fd.as_raw_fd()),
+                )
+                .unwrap();
         });
         let reply = client.invoke_status(42, "probe", &[], 1000).unwrap();
         worker.join().unwrap();
         assert_eq!(reply.status, status::OK);
-        assert_eq!(client.pending.len(), 1, "only the live INVOKE may remain pending");
+        assert_eq!(
+            client.pending.len(),
+            1,
+            "only the live INVOKE may remain pending"
+        );
         stale_watch.set_nonblocking(true).unwrap();
-        assert_eq!(stale_watch.read(&mut [0]).unwrap(), 0, "stale reply FDs must close");
-        let Incoming::Invoke(request) = client.read_incoming().unwrap() else { panic!("queued INVOKE") };
+        assert_eq!(
+            stale_watch.read(&mut [0]).unwrap(),
+            0,
+            "stale reply FDs must close"
+        );
+        let Incoming::Invoke(request) = client.read_incoming().unwrap() else {
+            panic!("queued INVOKE")
+        };
         assert_eq!((request.seq, request.method.as_str()), (99, "queued"));
         assert!(!client.has_pending());
         let mut received = UnixStream::from(reply.fd.unwrap());
@@ -1333,7 +1514,17 @@ mod tests {
             b.put_u32(0, *peer);
         }
         b.nest_end(nested);
-        server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: request.header.peer }, &mut b, None).unwrap();
+        server
+            .send(
+                Header {
+                    ty: ty::STATUS,
+                    seq: request.header.seq,
+                    peer: request.header.peer,
+                },
+                &mut b,
+                None,
+            )
+            .unwrap();
     }
 
     #[cfg(target_os = "linux")]
@@ -1367,21 +1558,66 @@ mod tests {
             notify_reply(&mut server, seq, 10, None);
             notify_reply(&mut server, seq, 10, Some("finished-peer"));
             let mut pending = BlobBuf::new();
-            pending.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "metrics");
-            server.send(Header { ty: ty::INVOKE, seq: 600, peer: 77 }, &mut pending, None).unwrap();
+            pending
+                .put_u32(attr::OBJID, 42)
+                .put_string(attr::METHOD, "metrics");
+            server
+                .send(
+                    Header {
+                        ty: ty::INVOKE,
+                        seq: 600,
+                        peer: 77,
+                    },
+                    &mut pending,
+                    None,
+                )
+                .unwrap();
             pending.reset();
             pending.put_u32(attr::OBJID, 42).put_u32(attr::ACTIVE, 1);
-            server.send(Header { ty: ty::NOTIFY, seq: 601, peer: 42 }, &mut pending, None).unwrap();
+            server
+                .send(
+                    Header {
+                        ty: ty::NOTIFY,
+                        seq: 601,
+                        peer: 42,
+                    },
+                    &mut pending,
+                    None,
+                )
+                .unwrap();
             notify_reply(&mut server, seq, 20, Some("third"));
             notify_reply(&mut server, seq, 20, None);
         });
         let mut values = Vec::new();
-        assert!(client.notify_with_data_until(42, "dns_result", &[], Instant::now() + Duration::from_secs(1), None,
-            |data| values.push(blob::fields(data).next().unwrap().as_str().unwrap().to_owned())).unwrap());
+        assert!(client
+            .notify_with_data_until(
+                42,
+                "dns_result",
+                &[],
+                Instant::now() + Duration::from_secs(1),
+                None,
+                |data| values.push(
+                    blob::fields(data)
+                        .next()
+                        .unwrap()
+                        .as_str()
+                        .unwrap()
+                        .to_owned()
+                )
+            )
+            .unwrap());
         assert_eq!(values, ["first", "second", "third"]);
-        let Incoming::Invoke(request) = client.read_incoming().unwrap() else { panic!("invoke was not queued") };
+        let Incoming::Invoke(request) = client.read_incoming().unwrap() else {
+            panic!("invoke was not queued")
+        };
         assert_eq!(request.method, "metrics");
-        assert!(matches!(client.read_incoming().unwrap(), Incoming::SubscribeState { objid: 42, active: true }));
+        assert!(matches!(
+            client.read_incoming().unwrap(),
+            Incoming::SubscribeState {
+                objid: 42,
+                active: true
+            }
+        ));
         assert!(client.pending.is_empty());
         worker.join().unwrap();
     }
@@ -1402,10 +1638,40 @@ mod tests {
             notify_reply(&mut server, second.header.seq, 10, None);
         });
         let mut values = Vec::new();
-        assert!(!client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_millis(30), None,
-            |data| values.push(blob::fields(data).next().unwrap().as_str().unwrap().to_owned())).unwrap());
-        assert!(client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_secs(1), None,
-            |data| values.push(blob::fields(data).next().unwrap().as_str().unwrap().to_owned())).unwrap());
+        assert!(!client
+            .notify_with_data_until(
+                42,
+                "event",
+                &[],
+                Instant::now() + Duration::from_millis(30),
+                None,
+                |data| values.push(
+                    blob::fields(data)
+                        .next()
+                        .unwrap()
+                        .as_str()
+                        .unwrap()
+                        .to_owned()
+                )
+            )
+            .unwrap());
+        assert!(client
+            .notify_with_data_until(
+                42,
+                "event",
+                &[],
+                Instant::now() + Duration::from_secs(1),
+                None,
+                |data| values.push(
+                    blob::fields(data)
+                        .next()
+                        .unwrap()
+                        .as_str()
+                        .unwrap()
+                        .to_owned()
+                )
+            )
+            .unwrap());
         assert_eq!(values, ["before-timeout", "fresh"]);
         assert!(client.pending.is_empty());
         worker.join().unwrap();
@@ -1416,7 +1682,9 @@ mod tests {
     fn notification_partial_timeout_and_cancel_close_descriptors() {
         use std::sync::atomic::{AtomicBool, Ordering};
         static CANCEL: AtomicBool = AtomicBool::new(false);
-        fn cancelled() -> bool { CANCEL.load(Ordering::Relaxed) }
+        fn cancelled() -> bool {
+            CANCEL.load(Ordering::Relaxed)
+        }
         for cancel in [false, true] {
             CANCEL.store(false, Ordering::Relaxed);
             let (mut client, mut server) = pair();
@@ -1426,23 +1694,57 @@ mod tests {
                 notify_broker(&mut server, &request, &[10]);
                 let mut b = BlobBuf::new();
                 b.put(attr::DATA, &vec![0; 8192]);
-                let mut wire = Header { ty: ty::DATA, seq: request.header.seq, peer: 10 }.encode().to_vec();
+                let mut wire = Header {
+                    ty: ty::DATA,
+                    seq: request.header.seq,
+                    peer: 10,
+                }
+                .encode()
+                .to_vec();
                 wire.extend_from_slice(b.as_bytes());
-                sys::send_with_fd(server.as_raw_fd(), &wire[..5000], &[], Some(passed.as_raw_fd())).unwrap();
+                sys::send_with_fd(
+                    server.as_raw_fd(),
+                    &wire[..5000],
+                    &[],
+                    Some(passed.as_raw_fd()),
+                )
+                .unwrap();
                 drop(passed);
                 if cancel {
                     std::thread::sleep(Duration::from_millis(10));
                     CANCEL.store(true, Ordering::Relaxed);
                 }
-                server.stream.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+                server
+                    .stream
+                    .set_read_timeout(Some(Duration::from_secs(1)))
+                    .unwrap();
                 assert_eq!(server.stream.read(&mut [0]).unwrap(), 0);
             });
-            let error = client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_millis(50),
-                Some(cancelled), |_| panic!("partial data reached callback")).unwrap_err();
-            assert_eq!(error.kind(), if cancel { io::ErrorKind::Interrupted } else { io::ErrorKind::TimedOut });
+            let error = client
+                .notify_with_data_until(
+                    42,
+                    "event",
+                    &[],
+                    Instant::now() + Duration::from_millis(50),
+                    Some(cancelled),
+                    |_| panic!("partial data reached callback"),
+                )
+                .unwrap_err();
+            assert_eq!(
+                error.kind(),
+                if cancel {
+                    io::ErrorKind::Interrupted
+                } else {
+                    io::ErrorKind::TimedOut
+                }
+            );
             worker.join().unwrap();
             observer.set_nonblocking(true).unwrap();
-            assert_eq!(observer.read(&mut [0]).unwrap(), 0, "partial notify retained passed FD");
+            assert_eq!(
+                observer.read(&mut [0]).unwrap(),
+                0,
+                "partial notify retained passed FD"
+            );
             assert!(client.rx_fds.is_empty() && client.pending.is_empty());
         }
         CANCEL.store(false, Ordering::Relaxed);
@@ -1451,38 +1753,70 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn notification_pending_queue_limit_closes_transport() {
-      for payload_length in [0, 600_000] {
-        let (mut client, mut server) = pair();
-        let (passed, mut observer) = UnixStream::pair().unwrap();
-        let worker = std::thread::spawn(move || {
-            let request = server.recv().unwrap();
-            notify_broker(&mut server, &request, &[10]);
-            for seq in 0..129 {
-                let mut b = BlobBuf::new();
-                b.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "metrics");
-                if payload_length != 0 { b.put(attr::DATA, &vec![0; payload_length]); }
-                if server.send(Header { ty: ty::INVOKE, seq, peer: 77 }, &mut b, Some(passed.as_raw_fd())).is_err() { break; }
-            }
-            drop(passed);
-            server.stream.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
-            assert_eq!(server.stream.read(&mut [0]).unwrap(), 0);
-        });
-        let error = client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_secs(1), None, |_| {}).unwrap_err();
-        assert_eq!(error.kind(), io::ErrorKind::OutOfMemory);
-        assert!(client.pending.is_empty() && client.rx_fds.is_empty());
-        let (messages, bytes, fds) = client.notification_pending_peak;
-        assert_eq!(messages, if payload_length == 0 { 128 } else { 1 });
-        assert!(bytes <= MAX_MSGLEN);
-        assert_eq!(fds, messages);
-        eprintln!("notification pending peak: messages={messages} bytes={bytes} descriptors={fds}; userspace retained after error=0");
-        worker.join().unwrap();
-        // Follow the error contract: shutdown stops the peer, but unread
-        // SCM_RIGHTS in the socket receive queue are released by close.
-        // Check userspace cleanup above before dropping the connection.
-        drop(client);
-        observer.set_nonblocking(true).unwrap();
-        assert_eq!(observer.read(&mut [0]).unwrap(), 0, "pending notify backlog retained passed descriptors");
-      }
+        for payload_length in [0, 600_000] {
+            let (mut client, mut server) = pair();
+            let (passed, mut observer) = UnixStream::pair().unwrap();
+            let worker = std::thread::spawn(move || {
+                let request = server.recv().unwrap();
+                notify_broker(&mut server, &request, &[10]);
+                for seq in 0..129 {
+                    let mut b = BlobBuf::new();
+                    b.put_u32(attr::OBJID, 42)
+                        .put_string(attr::METHOD, "metrics");
+                    if payload_length != 0 {
+                        b.put(attr::DATA, &vec![0; payload_length]);
+                    }
+                    if server
+                        .send(
+                            Header {
+                                ty: ty::INVOKE,
+                                seq,
+                                peer: 77,
+                            },
+                            &mut b,
+                            Some(passed.as_raw_fd()),
+                        )
+                        .is_err()
+                    {
+                        break;
+                    }
+                }
+                drop(passed);
+                server
+                    .stream
+                    .set_read_timeout(Some(Duration::from_secs(1)))
+                    .unwrap();
+                assert_eq!(server.stream.read(&mut [0]).unwrap(), 0);
+            });
+            let error = client
+                .notify_with_data_until(
+                    42,
+                    "event",
+                    &[],
+                    Instant::now() + Duration::from_secs(1),
+                    None,
+                    |_| {},
+                )
+                .unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::OutOfMemory);
+            assert!(client.pending.is_empty() && client.rx_fds.is_empty());
+            let (messages, bytes, fds) = client.notification_pending_peak;
+            assert_eq!(messages, if payload_length == 0 { 128 } else { 1 });
+            assert!(bytes <= MAX_MSGLEN);
+            assert_eq!(fds, messages);
+            eprintln!("notification pending peak: messages={messages} bytes={bytes} descriptors={fds}; userspace retained after error=0");
+            worker.join().unwrap();
+            // Follow the error contract: shutdown stops the peer, but unread
+            // SCM_RIGHTS in the socket receive queue are released by close.
+            // Check userspace cleanup above before dropping the connection.
+            drop(client);
+            observer.set_nonblocking(true).unwrap();
+            assert_eq!(
+                observer.read(&mut [0]).unwrap(),
+                0,
+                "pending notify backlog retained passed descriptors"
+            );
+        }
     }
 
     #[cfg(target_os = "linux")]
@@ -1494,11 +1828,30 @@ mod tests {
             let request = server.recv().unwrap();
             notify_broker(&mut server, &request, &[10]);
             let mut b = BlobBuf::new();
-            b.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "metrics");
-            server.send(Header { ty: ty::INVOKE, seq: 600, peer: 77 }, &mut b, Some(passed.as_raw_fd())).unwrap();
+            b.put_u32(attr::OBJID, 42)
+                .put_string(attr::METHOD, "metrics");
+            server
+                .send(
+                    Header {
+                        ty: ty::INVOKE,
+                        seq: 600,
+                        peer: 77,
+                    },
+                    &mut b,
+                    Some(passed.as_raw_fd()),
+                )
+                .unwrap();
         });
-        let error = client.notify_with_data_until(42, "event", &[], Instant::now() + Duration::from_secs(1), None,
-            |_| panic!("no DATA was sent")).unwrap_err();
+        let error = client
+            .notify_with_data_until(
+                42,
+                "event",
+                &[],
+                Instant::now() + Duration::from_secs(1),
+                None,
+                |_| panic!("no DATA was sent"),
+            )
+            .unwrap_err();
         assert_eq!(error.kind(), io::ErrorKind::UnexpectedEof);
         worker.join().unwrap();
         observer.set_nonblocking(true).unwrap();
@@ -1695,20 +2048,30 @@ mod tests {
     #[test]
     fn owned_reply_payload_keeps_allocation_attributes_and_padding() {
         let mut b = BlobBuf::new();
-        b.put_u32(attr::OBJID, 17).put(attr::DATA, b"abc\xff\0")
+        b.put_u32(attr::OBJID, 17)
+            .put(attr::DATA, b"abc\xff\0")
             .put(attr::DATA, b"second");
-        let samples = [b.as_bytes().to_vec(), vec![0, 0, 0, 4], vec![0, 0, 0, 7, 1, 2, 3]];
+        let samples = [
+            b.as_bytes().to_vec(),
+            vec![0, 0, 0, 4],
+            vec![0, 0, 0, 7, 1, 2, 3],
+        ];
         let lengths = (0..=256).chain([4080, 4084, 8192, 32768]);
-        for blob in samples.into_iter().chain(lengths.map(|len| {
-            (0..len + 4).map(|i| (i % 251) as u8).collect()
-        })) {
+        for blob in samples
+            .into_iter()
+            .chain(lengths.map(|len| (0..len + 4).map(|i| (i % 251) as u8).collect()))
+        {
             let expected = blob[4..].to_vec();
             assert_eq!(reply_payload(Cow::Borrowed(&blob)), expected);
             let pointer = blob.as_ptr();
             let capacity = blob.capacity();
             let payload = reply_payload(Cow::Owned(blob));
             assert_eq!(payload, expected, "only the root header is removed");
-            assert_eq!(payload.as_ptr(), pointer, "large frame storage was replaced");
+            assert_eq!(
+                payload.as_ptr(),
+                pointer,
+                "large frame storage was replaced"
+            );
             assert_eq!(payload.capacity(), capacity);
         }
     }
@@ -1723,19 +2086,51 @@ mod tests {
                     assert_eq!(request.header.ty, ty::LOOKUP);
                     for (name, id) in [("wrong", 11), (path, 23), (path, 99)] {
                         let mut data = BlobBuf::new();
-                        data.put_string(attr::OBJPATH, "overridden").put_string(attr::OBJPATH, name)
-                            .put_u32(attr::OBJID, 1).put_u32(attr::OBJID, id)
+                        data.put_string(attr::OBJPATH, "overridden")
+                            .put_string(attr::OBJPATH, name)
+                            .put_u32(attr::OBJID, 1)
+                            .put_u32(attr::OBJID, id)
                             .put(attr::SIGNATURE, &[0xa5; 8192]);
-                        server.send(Header { ty: ty::DATA, seq: request.header.seq, peer: 0 }, &mut data, None).unwrap();
+                        server
+                            .send(
+                                Header {
+                                    ty: ty::DATA,
+                                    seq: request.header.seq,
+                                    peer: 0,
+                                },
+                                &mut data,
+                                None,
+                            )
+                            .unwrap();
                     }
                     let mut status = BlobBuf::new();
-                    status.put_u32(attr::STATUS, if path == "fixture" { final_status as u32 } else { 0 });
-                    server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }, &mut status, None).unwrap();
+                    status.put_u32(
+                        attr::STATUS,
+                        if path == "fixture" {
+                            final_status as u32
+                        } else {
+                            0
+                        },
+                    );
+                    server
+                        .send(
+                            Header {
+                                ty: ty::STATUS,
+                                seq: request.header.seq,
+                                peer: 0,
+                            },
+                            &mut status,
+                            None,
+                        )
+                        .unwrap();
                 }
             });
             let result = client.lookup_id("fixture", 1000);
-            if final_status == status::OK { assert_eq!(result.unwrap(), 23); }
-            else { assert_eq!(error_status(&result.unwrap_err()), Some(final_status)); }
+            if final_status == status::OK {
+                assert_eq!(result.unwrap(), 23);
+            } else {
+                assert_eq!(error_status(&result.unwrap_err()), Some(final_status));
+            }
             assert_eq!(client.lookup_id("next", 1000).unwrap(), 23);
             assert!(client.pending.is_empty());
             peer.join().unwrap();
@@ -1746,22 +2141,62 @@ mod tests {
     fn synchronous_reply_owns_data_and_preserves_unmatched_frames() {
         // The wire has an eight-byte ubus header, four-byte root blob header
         // and four-byte DATA attr header: these straddle the rx boundary.
-        for size in [16, INCOMING_BUFFER_SIZE - 16, INCOMING_BUFFER_SIZE - 12, INCOMING_BUFFER_SIZE * 2] {
+        for size in [
+            16,
+            INCOMING_BUFFER_SIZE - 16,
+            INCOMING_BUFFER_SIZE - 12,
+            INCOMING_BUFFER_SIZE * 2,
+        ] {
             let (mut client, mut server) = pair();
             let peer = std::thread::spawn(move || {
                 let req = server.recv().unwrap();
                 let mut b = BlobBuf::new();
                 b.put(attr::DATA, &vec![0xa5; size]);
-                server.send(Header { ty: ty::INVOKE, seq: req.header.seq + 1, peer: 42 }, &mut b, None).unwrap();
-                server.send(Header { ty: ty::DATA, seq: req.header.seq, peer: 42 }, &mut b, None).unwrap();
+                server
+                    .send(
+                        Header {
+                            ty: ty::INVOKE,
+                            seq: req.header.seq + 1,
+                            peer: 42,
+                        },
+                        &mut b,
+                        None,
+                    )
+                    .unwrap();
+                server
+                    .send(
+                        Header {
+                            ty: ty::DATA,
+                            seq: req.header.seq,
+                            peer: 42,
+                        },
+                        &mut b,
+                        None,
+                    )
+                    .unwrap();
                 b = BlobBuf::new();
                 b.put_u32(attr::STATUS, 3).put_u32(attr::STATUS, 0);
-                server.send(Header { ty: ty::STATUS, seq: req.header.seq, peer: 42 }, &mut b, None).unwrap();
+                server
+                    .send(
+                        Header {
+                            ty: ty::STATUS,
+                            seq: req.header.seq,
+                            peer: 42,
+                        },
+                        &mut b,
+                        None,
+                    )
+                    .unwrap();
             });
-            let reply = client.request(ty::INVOKE, 42, &mut BlobBuf::new(), None, 1000).unwrap();
+            let reply = client
+                .request(ty::INVOKE, 42, &mut BlobBuf::new(), None, 1000)
+                .unwrap();
             assert_eq!(reply.status, status::OK, "last STATUS attr wins");
             assert_eq!(reply.data.len(), 1);
-            assert_eq!(blob::iter(&reply.data[0]).next().unwrap().payload, vec![0xa5; size]);
+            assert_eq!(
+                blob::iter(&reply.data[0]).next().unwrap().payload,
+                vec![0xa5; size]
+            );
             let queued = client.pending.pop_front().unwrap();
             assert_eq!(queued.header.seq, 2);
             assert_eq!(queued.blob[4..], reply.data[0]);
@@ -1778,15 +2213,43 @@ mod tests {
             let request = server.recv().unwrap();
             assert_eq!(request.header.ty, ty::ADD_OBJECT);
             let attrs = request.attrs();
-            assert_eq!(attrs[attr::OBJPATH as usize].unwrap().payload, b"opaque.\xff\0");
+            assert_eq!(
+                attrs[attr::OBJPATH as usize].unwrap().payload,
+                b"opaque.\xff\0"
+            );
             let mut data = BlobBuf::new();
             data.put_u32(attr::OBJID, 31);
-            server.send(Header { ty: ty::DATA, seq: request.header.seq, peer: 0 }, &mut data, None).unwrap();
+            server
+                .send(
+                    Header {
+                        ty: ty::DATA,
+                        seq: request.header.seq,
+                        peer: 0,
+                    },
+                    &mut data,
+                    None,
+                )
+                .unwrap();
             let mut status = BlobBuf::new();
             status.put_u32(attr::STATUS, 0);
-            server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }, &mut status, None).unwrap();
+            server
+                .send(
+                    Header {
+                        ty: ty::STATUS,
+                        seq: request.header.seq,
+                        peer: 0,
+                    },
+                    &mut status,
+                    None,
+                )
+                .unwrap();
         });
-        assert_eq!(client.add_object_bytes(b"opaque.\xff\0ignored", &[], 1000).unwrap(), 31);
+        assert_eq!(
+            client
+                .add_object_bytes(b"opaque.\xff\0ignored", &[], 1000)
+                .unwrap(),
+            31
+        );
         peer.join().unwrap();
     }
 
@@ -1794,7 +2257,10 @@ mod tests {
     fn typed_objects_reuse_server_type_without_repeating_signature() {
         let (mut client, mut server) = pair();
         let peer = std::thread::spawn(move || {
-            for (index, path) in ["network.interface", "network.interface.lan"].iter().enumerate() {
+            for (index, path) in ["network.interface", "network.interface.lan"]
+                .iter()
+                .enumerate()
+            {
                 let request = server.recv().unwrap();
                 assert_eq!(request.header.ty, ty::ADD_OBJECT);
                 let attrs = request.attrs();
@@ -1811,36 +2277,95 @@ mod tests {
                 if index == 0 {
                     data.put_u32(attr::OBJTYPE, 71);
                 }
-                server.send(Header { ty: ty::DATA, seq: request.header.seq, peer: 0 }, &mut data, None).unwrap();
+                server
+                    .send(
+                        Header {
+                            ty: ty::DATA,
+                            seq: request.header.seq,
+                            peer: 0,
+                        },
+                        &mut data,
+                        None,
+                    )
+                    .unwrap();
                 let mut status = BlobBuf::new();
                 status.put_u32(attr::STATUS, 0);
-                server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }, &mut status, None).unwrap();
+                server
+                    .send(
+                        Header {
+                            ty: ty::STATUS,
+                            seq: request.header.seq,
+                            peer: 0,
+                        },
+                        &mut status,
+                        None,
+                    )
+                    .unwrap();
             }
         });
-        let first = client.add_object_typed("network.interface", &[("status", &[])], None, 1000).unwrap();
+        let first = client
+            .add_object_typed("network.interface", &[("status", &[])], None, 1000)
+            .unwrap();
         assert_eq!(first, (31, 71));
-        assert_eq!(client.add_object_typed("network.interface.lan", &[], Some(first.1), 1000).unwrap(), (32, 71));
+        assert_eq!(
+            client
+                .add_object_typed("network.interface.lan", &[], Some(first.1), 1000)
+                .unwrap(),
+            (32, 71)
+        );
         peer.join().unwrap();
     }
 
     #[test]
     fn typed_registration_requires_type_and_preserves_legacy_and_error_replies() {
-        for (typed, code, expected) in [(false, status::OK, None), (true, status::OK, Some(status::NO_DATA)),
-                                      (true, status::PERMISSION_DENIED, Some(status::PERMISSION_DENIED))] {
+        for (typed, code, expected) in [
+            (false, status::OK, None),
+            (true, status::OK, Some(status::NO_DATA)),
+            (
+                true,
+                status::PERMISSION_DENIED,
+                Some(status::PERMISSION_DENIED),
+            ),
+        ] {
             let (mut client, mut server) = pair();
             let peer = std::thread::spawn(move || {
                 let request = server.recv().unwrap();
                 if code == status::OK {
                     let mut data = BlobBuf::new();
                     data.put_u32(attr::OBJID, 31);
-                    server.send(Header { ty: ty::DATA, seq: request.header.seq, peer: 0 }, &mut data, None).unwrap();
+                    server
+                        .send(
+                            Header {
+                                ty: ty::DATA,
+                                seq: request.header.seq,
+                                peer: 0,
+                            },
+                            &mut data,
+                            None,
+                        )
+                        .unwrap();
                 }
                 let mut status = BlobBuf::new();
                 status.put_u32(attr::STATUS, code as u32);
-                server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }, &mut status, None).unwrap();
+                server
+                    .send(
+                        Header {
+                            ty: ty::STATUS,
+                            seq: request.header.seq,
+                            peer: 0,
+                        },
+                        &mut status,
+                        None,
+                    )
+                    .unwrap();
             });
-            let result = if typed { client.add_object_typed("probe", &[], None, 1000).map(|(id, _)| id) }
-                         else { client.add_object("probe", &[], 1000) };
+            let result = if typed {
+                client
+                    .add_object_typed("probe", &[], None, 1000)
+                    .map(|(id, _)| id)
+            } else {
+                client.add_object("probe", &[], 1000)
+            };
             if let Some(expected) = expected {
                 assert_eq!(error_status(&result.unwrap_err()), Some(expected));
             } else {
@@ -1849,8 +2374,14 @@ mod tests {
             peer.join().unwrap();
         }
         let (mut client, _server) = pair();
-        assert_eq!(error_status(&client.add_object_typed("invalid", &[], Some(0), 1000).unwrap_err()),
-                   Some(status::INVALID_ARGUMENT));
+        assert_eq!(
+            error_status(
+                &client
+                    .add_object_typed("invalid", &[], Some(0), 1000)
+                    .unwrap_err()
+            ),
+            Some(status::INVALID_ARGUMENT)
+        );
         assert_eq!(client.seq, 0, "invalid type sent no request");
     }
 
@@ -1862,7 +2393,13 @@ mod tests {
             server.set_server_io_timeout(Duration::from_millis(1));
             let mut b = BlobBuf::new();
             b.put_string(attr::METHOD, &"x".repeat(5000));
-            let mut wire = Header { ty: ty::INVOKE, seq: 1, peer: 9 }.encode().to_vec();
+            let mut wire = Header {
+                ty: ty::INVOKE,
+                seq: 1,
+                peer: 9,
+            }
+            .encode()
+            .to_vec();
             wire.extend_from_slice(b.as_bytes());
             sender.stream.write_all(&wire[..split]).unwrap();
             let started = Instant::now();
@@ -1888,11 +2425,20 @@ mod tests {
     fn poll_owner_keeps_a_partial_descriptor_until_completion_or_connection_drop() {
         let (sender, mut server) = pair();
         let (passed, mut observer) = UnixStream::pair().unwrap();
-        sys::send_with_fd(sender.stream.as_raw_fd(), &[0], &[], Some(passed.as_raw_fd())).unwrap();
+        sys::send_with_fd(
+            sender.stream.as_raw_fd(),
+            &[0],
+            &[],
+            Some(passed.as_raw_fd()),
+        )
+        .unwrap();
         drop(passed);
         assert!(server.incoming_if_complete().unwrap().is_none());
         observer.set_nonblocking(true).unwrap();
-        assert_eq!(observer.read(&mut [0]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        assert_eq!(
+            observer.read(&mut [0]).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
+        );
         drop(server);
         assert_eq!(observer.read(&mut [0]).unwrap(), 0);
     }
@@ -1904,7 +2450,13 @@ mod tests {
             server.set_server_io_timeout(Duration::from_millis(40));
             let mut b = BlobBuf::new();
             b.put_string(attr::METHOD, "partial");
-            let mut wire = Header { ty: ty::INVOKE, seq: 1, peer: 9 }.encode().to_vec();
+            let mut wire = Header {
+                ty: ty::INVOKE,
+                seq: 1,
+                peer: 9,
+            }
+            .encode()
+            .to_vec();
             wire.extend_from_slice(b.as_bytes());
             sender.stream.write_all(&wire[..size]).unwrap();
             let start = Instant::now();
@@ -1918,7 +2470,9 @@ mod tests {
         // An empty incoming socket is still an immediate None, not a timeout.
         assert!(server.incoming_if_started().unwrap().is_none());
         let start = Instant::now();
-        let error = server.reply_data_status(&request(), &vec![0; MAX_MSGLEN - 16], status::OK).unwrap_err();
+        let error = server
+            .reply_data_status(&request(), &vec![0; MAX_MSGLEN - 16], status::OK)
+            .unwrap_err();
         assert_eq!(error.kind(), io::ErrorKind::TimedOut);
         assert!(start.elapsed() < Duration::from_millis(200));
         client.stream.set_nonblocking(true).unwrap();
@@ -1935,7 +2489,13 @@ mod tests {
                 let request = server.recv().unwrap();
                 let mut b = BlobBuf::new();
                 b.put_u32(attr::STATUS, status::OK as u32);
-                let mut wire = Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }.encode().to_vec();
+                let mut wire = Header {
+                    ty: ty::STATUS,
+                    seq: request.header.seq,
+                    peer: 0,
+                }
+                .encode()
+                .to_vec();
                 wire.extend_from_slice(b.as_bytes());
                 server.stream.write_all(&wire[..prefix]).unwrap();
                 // Keep the transport alive much longer than the RPC deadline.
@@ -1946,7 +2506,10 @@ mod tests {
             let elapsed = start.elapsed();
             peer.join().unwrap();
             assert_eq!(error_status(&error), Some(status::TIMEOUT), "{error}");
-            assert!(elapsed < Duration::from_millis(200), "partial prefix {prefix}: {elapsed:?}");
+            assert!(
+                elapsed < Duration::from_millis(200),
+                "partial prefix {prefix}: {elapsed:?}"
+            );
         }
     }
 
@@ -1956,7 +2519,9 @@ mod tests {
         let mut b = BlobBuf::new();
         b.put(attr::DATA, &vec![0; MAX_MSGLEN - 16]);
         let start = Instant::now();
-        let error = client.request(ty::INVOKE, 42, &mut b, None, 40).unwrap_err();
+        let error = client
+            .request(ty::INVOKE, 42, &mut b, None, 40)
+            .unwrap_err();
         assert_eq!(error_status(&error), Some(status::TIMEOUT));
         assert!(start.elapsed() < Duration::from_millis(200));
         server.stream.set_nonblocking(true).unwrap();
@@ -1976,14 +2541,41 @@ mod tests {
             let second = server.recv().unwrap();
             let mut b = BlobBuf::new();
             b.put_u32(attr::STATUS, status::OK as u32);
-            server.send(Header { ty: ty::STATUS, seq: first.header.seq, peer: 0 }, &mut b, None).unwrap();
-            server.send(Header { ty: ty::STATUS, seq: second.header.seq, peer: 0 }, &mut b, None).unwrap();
+            server
+                .send(
+                    Header {
+                        ty: ty::STATUS,
+                        seq: first.header.seq,
+                        peer: 0,
+                    },
+                    &mut b,
+                    None,
+                )
+                .unwrap();
+            server
+                .send(
+                    Header {
+                        ty: ty::STATUS,
+                        seq: second.header.seq,
+                        peer: 0,
+                    },
+                    &mut b,
+                    None,
+                )
+                .unwrap();
         });
-        let error = client.request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 30).unwrap_err();
+        let error = client
+            .request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 30)
+            .unwrap_err();
         assert_eq!(error_status(&error), Some(status::TIMEOUT));
-        let next = client.request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 500).unwrap();
+        let next = client
+            .request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 500)
+            .unwrap();
         assert_eq!(next.status, status::OK);
-        assert!(client.pending.is_empty(), "late response belongs to an expired request");
+        assert!(
+            client.pending.is_empty(),
+            "late response belongs to an expired request"
+        );
         peer.join().unwrap();
     }
 
@@ -1996,9 +2588,21 @@ mod tests {
                 let req = server.recv().unwrap();
                 let mut b = BlobBuf::new();
                 b.put_u32(attr::STATUS, status::OK as u32);
-                let mut wire = Header { ty: ty::STATUS, seq: req.header.seq, peer: 0 }.encode().to_vec();
+                let mut wire = Header {
+                    ty: ty::STATUS,
+                    seq: req.header.seq,
+                    peer: 0,
+                }
+                .encode()
+                .to_vec();
                 wire.extend_from_slice(b.as_bytes());
-                sys::send_with_fd(server.as_raw_fd(), &wire[..1], &[], Some(passed.as_raw_fd())).unwrap();
+                sys::send_with_fd(
+                    server.as_raw_fd(),
+                    &wire[..1],
+                    &[],
+                    Some(passed.as_raw_fd()),
+                )
+                .unwrap();
                 drop(passed);
                 if complete {
                     for part in wire[1..].chunks(3) {
@@ -2019,7 +2623,11 @@ mod tests {
             } else {
                 assert_eq!(error_status(&reply.unwrap_err()), Some(status::TIMEOUT));
                 observer.set_nonblocking(true).unwrap();
-                assert_eq!(observer.read(&mut [0]).unwrap(), 0, "timed-out prefix leaked SCM_RIGHTS");
+                assert_eq!(
+                    observer.read(&mut [0]).unwrap(),
+                    0,
+                    "timed-out prefix leaked SCM_RIGHTS"
+                );
             }
             peer.join().unwrap();
         }
@@ -2030,20 +2638,49 @@ mod tests {
         let (mut sender, mut receiver) = pair();
         assert!(receiver.incoming_if_started().unwrap().is_none());
         let mut b = BlobBuf::new();
-        b.put_string(attr::METHOD, "queued").put(attr::DATA, b"first");
-        sender.send(Header { ty: ty::INVOKE, seq: 1, peer: 9 }, &mut b, None).unwrap();
+        b.put_string(attr::METHOD, "queued")
+            .put(attr::DATA, b"first");
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 1,
+                    peer: 9,
+                },
+                &mut b,
+                None,
+            )
+            .unwrap();
         let queued = receiver.recv().unwrap();
         receiver.pending.push_back(queued);
         b = BlobBuf::new();
-        b.put_string(attr::METHOD, "socket").put(attr::DATA, b"second");
-        sender.send(Header { ty: ty::INVOKE, seq: 2, peer: 9 }, &mut b, None).unwrap();
-        let Some(Incoming::Invoke(first)) = receiver.incoming_if_started().unwrap() else { panic!("queued") };
-        let Some(Incoming::Invoke(second)) = receiver.incoming_if_started().unwrap() else { panic!("socket") };
+        b.put_string(attr::METHOD, "socket")
+            .put(attr::DATA, b"second");
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 2,
+                    peer: 9,
+                },
+                &mut b,
+                None,
+            )
+            .unwrap();
+        let Some(Incoming::Invoke(first)) = receiver.incoming_if_started().unwrap() else {
+            panic!("queued")
+        };
+        let Some(Incoming::Invoke(second)) = receiver.incoming_if_started().unwrap() else {
+            panic!("socket")
+        };
         assert_eq!((first.seq, first.data.as_slice()), (1, &b"first"[..]));
         assert_eq!((second.seq, second.data.as_slice()), (2, &b"second"[..]));
         assert!(receiver.incoming_if_started().unwrap().is_none());
         drop(sender);
-        assert_eq!(receiver.incoming_if_started().unwrap_err().kind(), io::ErrorKind::UnexpectedEof);
+        assert_eq!(
+            receiver.incoming_if_started().unwrap_err().kind(),
+            io::ErrorKind::UnexpectedEof
+        );
     }
 
     #[test]
@@ -2051,20 +2688,39 @@ mod tests {
         let (mut sender, mut receiver) = pair();
         let mut message = BlobBuf::new();
         message.put_string(attr::METHOD, "get_metrics");
-        sender.send(Header { ty: ty::INVOKE, seq: 7, peer: 9 }, &mut message, None).unwrap();
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 7,
+                    peer: 9,
+                },
+                &mut message,
+                None,
+            )
+            .unwrap();
         // A doctor request consumes a nonmatching method while waiting for its
         // own response and parks it in this same queue.
         let method = receiver.recv().unwrap();
         receiver.pending.push_back(method);
         let mut fd = [sys::PollFd {
-            fd: receiver.as_raw_fd(), events: sys::POLLIN, revents: 0,
+            fd: receiver.as_raw_fd(),
+            events: sys::POLLIN,
+            revents: 0,
         }];
         assert_eq!(sys::poll_fds(&mut fd, 0).unwrap(), 0);
-        assert!(receiver.has_pending(), "owner must wake without a new socket event");
-        let Some(Incoming::Invoke(method)) = receiver.incoming_if_started().unwrap()
-            else { panic!("pending method") };
+        assert!(
+            receiver.has_pending(),
+            "owner must wake without a new socket event"
+        );
+        let Some(Incoming::Invoke(method)) = receiver.incoming_if_started().unwrap() else {
+            panic!("pending method")
+        };
         assert_eq!(method.seq, 7);
-        assert!(!receiver.has_pending(), "empty queues must return to fd waiting");
+        assert!(
+            !receiver.has_pending(),
+            "empty queues must return to fd waiting"
+        );
     }
 
     #[test]
@@ -2072,10 +2728,23 @@ mod tests {
         let (mut sender, mut receiver) = pair();
         let (passed, mut observer) = UnixStream::pair().unwrap();
         let mut b = BlobBuf::new();
-        b.put_string(attr::METHOD, "fragment").put(attr::DATA, b"raw\xff");
-        let mut wire = Header { ty: ty::INVOKE, seq: 5, peer: 8 }.encode().to_vec();
+        b.put_string(attr::METHOD, "fragment")
+            .put(attr::DATA, b"raw\xff");
+        let mut wire = Header {
+            ty: ty::INVOKE,
+            seq: 5,
+            peer: 8,
+        }
+        .encode()
+        .to_vec();
         wire.extend_from_slice(b.as_bytes());
-        sys::send_with_fd(sender.as_raw_fd(), &wire[..1], &[], Some(passed.as_raw_fd())).unwrap();
+        sys::send_with_fd(
+            sender.as_raw_fd(),
+            &wire[..1],
+            &[],
+            Some(passed.as_raw_fd()),
+        )
+        .unwrap();
         drop(passed);
         let producer = std::thread::spawn(move || {
             for part in wire[1..].chunks(3) {
@@ -2084,7 +2753,9 @@ mod tests {
             }
             sender
         });
-        let Some(Incoming::Invoke(req)) = receiver.incoming_if_started().unwrap() else { panic!("started") };
+        let Some(Incoming::Invoke(req)) = receiver.incoming_if_started().unwrap() else {
+            panic!("started")
+        };
         assert_eq!(req.method, "fragment");
         assert_eq!(req.data, b"raw\xff");
         let mut received = UnixStream::from(req.fd.unwrap());
@@ -2095,17 +2766,33 @@ mod tests {
 
     #[test]
     fn started_receive_error_releases_descriptor() {
-        for (version, len, truncated) in [(1, 4, false), (0, 3, false),
-            (0, MAX_MSGLEN + 1, false), (0, 16, true)] {
+        for (version, len, truncated) in [
+            (1, 4, false),
+            (0, 3, false),
+            (0, MAX_MSGLEN + 1, false),
+            (0, 16, true),
+        ] {
             let (sender, mut receiver) = pair();
             let (passed, mut observer) = UnixStream::pair().unwrap();
             observer.set_nonblocking(true).unwrap();
-            let mut header = Header { ty: ty::INVOKE, seq: 1, peer: 2 }.encode();
+            let mut header = Header {
+                ty: ty::INVOKE,
+                seq: 1,
+                peer: 2,
+            }
+            .encode();
             header[0] = version;
-            sys::send_with_fd(sender.as_raw_fd(), &header, &(len as u32).to_be_bytes(),
-                Some(passed.as_raw_fd())).unwrap();
+            sys::send_with_fd(
+                sender.as_raw_fd(),
+                &header,
+                &(len as u32).to_be_bytes(),
+                Some(passed.as_raw_fd()),
+            )
+            .unwrap();
             drop(passed);
-            if truncated { sender.stream.shutdown(std::net::Shutdown::Write).unwrap(); }
+            if truncated {
+                sender.stream.shutdown(std::net::Shutdown::Write).unwrap();
+            }
             assert!(receiver.incoming_if_started().is_err());
             assert_eq!(observer.read(&mut [0]).unwrap(), 0);
         }
@@ -2116,12 +2803,19 @@ mod tests {
         use std::os::fd::AsFd;
         let (mut sender, mut receiver) = pair();
         let file = std::fs::File::open("/dev/null").unwrap();
-        let header = Header { ty: ty::INVOKE, seq: 19, peer: 2718 };
+        let header = Header {
+            ty: ty::INVOKE,
+            seq: 19,
+            peer: 2718,
+        };
         for data in [vec![], vec![0xff, 0, 2, 3, 4], vec![0xab; 4096]] {
             let mut b = BlobBuf::new();
-            b.put(attr::DATA, b"replaced").put_string(attr::GROUP, "group")
-                .put(attr::DATA, &data).put_u32(attr::OBJID, 42)
-                .put_string(attr::METHOD, "run").put_string(attr::USER, "user")
+            b.put(attr::DATA, b"replaced")
+                .put_string(attr::GROUP, "group")
+                .put(attr::DATA, &data)
+                .put_u32(attr::OBJID, 42)
+                .put_string(attr::METHOD, "run")
+                .put_string(attr::USER, "user")
                 .put_u32(attr::NO_REPLY, 1);
             sender.send(header, &mut b, Some(file.as_raw_fd())).unwrap();
             let Incoming::Invoke(req) = receiver.read_incoming().unwrap() else {
@@ -2148,7 +2842,17 @@ mod tests {
             if let Some(data) = data {
                 b.put(attr::DATA, data);
             }
-            sender.send(Header { ty: ty::INVOKE, seq: 0, peer: 0 }, &mut b, None).unwrap();
+            sender
+                .send(
+                    Header {
+                        ty: ty::INVOKE,
+                        seq: 0,
+                        peer: 0,
+                    },
+                    &mut b,
+                    None,
+                )
+                .unwrap();
             let Incoming::Invoke(req) = receiver.read_incoming().unwrap() else {
                 panic!("expected INVOKE");
             };
@@ -2165,10 +2869,23 @@ mod tests {
     fn later_invokes_do_not_change_owned_requests_or_keep_old_credentials() {
         let (mut sender, mut receiver) = pair();
         let mut b = BlobBuf::new();
-        b.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "first")
-            .put_string(attr::USER, "root").put_string(attr::GROUP, "group")
-            .put_u32(attr::NO_REPLY, 1).put(attr::DATA, b"owned arguments");
-        sender.send(Header { ty: ty::INVOKE, seq: 1, peer: 2 }, &mut b, None).unwrap();
+        b.put_u32(attr::OBJID, 42)
+            .put_string(attr::METHOD, "first")
+            .put_string(attr::USER, "root")
+            .put_string(attr::GROUP, "group")
+            .put_u32(attr::NO_REPLY, 1)
+            .put(attr::DATA, b"owned arguments");
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 1,
+                    peer: 2,
+                },
+                &mut b,
+                None,
+            )
+            .unwrap();
         let Incoming::Invoke(first) = receiver.read_incoming().unwrap() else {
             panic!("expected first INVOKE");
         };
@@ -2176,7 +2893,17 @@ mod tests {
         assert_eq!(receiver.rx.capacity(), INCOMING_BUFFER_SIZE);
         for seq in 2..5 {
             let mut b = BlobBuf::new();
-            sender.send(Header { ty: ty::INVOKE, seq, peer: 3 }, &mut b, None).unwrap();
+            sender
+                .send(
+                    Header {
+                        ty: ty::INVOKE,
+                        seq,
+                        peer: 3,
+                    },
+                    &mut b,
+                    None,
+                )
+                .unwrap();
             let Some(Incoming::Invoke(next)) = receiver.next_incoming(100).unwrap() else {
                 panic!("expected next INVOKE");
             };
@@ -2198,37 +2925,92 @@ mod tests {
         let (passed, mut observer) = UnixStream::pair().unwrap();
         observer.set_nonblocking(true).unwrap();
         let mut b = BlobBuf::new();
-        b.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "long_method")
-            .put_string(attr::USER, "first_user").put_string(attr::GROUP, "first_group")
-            .put_u32(attr::NO_REPLY, 1).put(attr::DATA, b"first arguments");
-        sender.send(Header { ty: ty::INVOKE, seq: 1, peer: 2 }, &mut b, Some(passed.as_raw_fd())).unwrap();
+        b.put_u32(attr::OBJID, 42)
+            .put_string(attr::METHOD, "long_method")
+            .put_string(attr::USER, "first_user")
+            .put_string(attr::GROUP, "first_group")
+            .put_u32(attr::NO_REPLY, 1)
+            .put(attr::DATA, b"first arguments");
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 1,
+                    peer: 2,
+                },
+                &mut b,
+                Some(passed.as_raw_fd()),
+            )
+            .unwrap();
         drop(passed);
-        let Incoming::Invoke(first) = receiver.read_incoming().unwrap() else { panic!("INVOKE") };
-        let pointers = (first.method.as_ptr(), first.user.as_ref().unwrap().as_ptr(),
-            first.group.as_ref().unwrap().as_ptr(), first.data.as_ptr());
+        let Incoming::Invoke(first) = receiver.read_incoming().unwrap() else {
+            panic!("INVOKE")
+        };
+        let pointers = (
+            first.method.as_ptr(),
+            first.user.as_ref().unwrap().as_ptr(),
+            first.group.as_ref().unwrap().as_ptr(),
+            first.data.as_ptr(),
+        );
         receiver.recycle_request(first);
         assert_eq!(observer.read(&mut [0]).unwrap(), 0);
 
         let mut b = BlobBuf::new();
-        b.put_u32(attr::OBJID, 7).put_string(attr::METHOD, "next")
-            .put_string(attr::USER, "user").put_string(attr::GROUP, "group").put(attr::DATA, b"next");
-        sender.send(Header { ty: ty::INVOKE, seq: 3, peer: 4 }, &mut b, None).unwrap();
-        let Incoming::Invoke(next) = receiver.read_incoming().unwrap() else { panic!("INVOKE") };
+        b.put_u32(attr::OBJID, 7)
+            .put_string(attr::METHOD, "next")
+            .put_string(attr::USER, "user")
+            .put_string(attr::GROUP, "group")
+            .put(attr::DATA, b"next");
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 3,
+                    peer: 4,
+                },
+                &mut b,
+                None,
+            )
+            .unwrap();
+        let Incoming::Invoke(next) = receiver.read_incoming().unwrap() else {
+            panic!("INVOKE")
+        };
         assert_eq!((next.peer, next.seq, next.objid), (4, 3, 7));
         assert_eq!(next.method, "next");
         assert_eq!(next.user.as_deref(), Some("user"));
         assert_eq!(next.group.as_deref(), Some("group"));
         assert_eq!(next.data, b"next");
         assert!(!next.no_reply && next.fd.is_none());
-        assert_eq!(pointers, (next.method.as_ptr(), next.user.as_ref().unwrap().as_ptr(),
-            next.group.as_ref().unwrap().as_ptr(), next.data.as_ptr()));
+        assert_eq!(
+            pointers,
+            (
+                next.method.as_ptr(),
+                next.user.as_ref().unwrap().as_ptr(),
+                next.group.as_ref().unwrap().as_ptr(),
+                next.data.as_ptr()
+            )
+        );
         receiver.recycle_request(next);
 
-        sender.send(Header { ty: ty::INVOKE, seq: 5, peer: 6 }, &mut BlobBuf::new(), None).unwrap();
-        let Incoming::Invoke(empty) = receiver.read_incoming().unwrap() else { panic!("INVOKE") };
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 5,
+                    peer: 6,
+                },
+                &mut BlobBuf::new(),
+                None,
+            )
+            .unwrap();
+        let Incoming::Invoke(empty) = receiver.read_incoming().unwrap() else {
+            panic!("INVOKE")
+        };
         assert_eq!((empty.peer, empty.seq, empty.objid), (6, 5, 0));
         assert!(empty.method.is_empty() && empty.data.is_empty());
-        assert!(empty.user.is_none() && empty.group.is_none() && empty.fd.is_none() && !empty.no_reply);
+        assert!(
+            empty.user.is_none() && empty.group.is_none() && empty.fd.is_none() && !empty.no_reply
+        );
     }
 
     #[test]
@@ -2254,19 +3036,42 @@ mod tests {
     fn receive_buffer_is_lazy_bounded_and_preserves_frames_at_the_boundary() {
         let (mut sender, mut receiver) = pair();
         sender.reply_status(&request(), 0, None).unwrap();
-        assert!(matches!(receiver.read_incoming().unwrap(), Incoming::Other(_)));
+        assert!(matches!(
+            receiver.read_incoming().unwrap(),
+            Incoming::Other(_)
+        ));
         assert_eq!(receiver.rx.capacity(), INCOMING_BUFFER_SIZE);
 
         let writer = std::thread::spawn(move || {
-            for len in [INCOMING_BUFFER_SIZE + 4, INCOMING_BUFFER_SIZE, MAX_MSGLEN, 8] {
+            for len in [
+                INCOMING_BUFFER_SIZE + 4,
+                INCOMING_BUFFER_SIZE,
+                MAX_MSGLEN,
+                8,
+            ] {
                 let mut b = BlobBuf::new();
                 b.put(attr::DATA, &vec![0xa5; len - 8]);
                 assert_eq!(b.as_bytes().len(), len);
-                sender.send(Header { ty: ty::INVOKE, seq: 7, peer: 9 }, &mut b, None).unwrap();
+                sender
+                    .send(
+                        Header {
+                            ty: ty::INVOKE,
+                            seq: 7,
+                            peer: 9,
+                        },
+                        &mut b,
+                        None,
+                    )
+                    .unwrap();
             }
         });
         let mut retained = None;
-        for len in [INCOMING_BUFFER_SIZE + 4, INCOMING_BUFFER_SIZE, MAX_MSGLEN, 8] {
+        for len in [
+            INCOMING_BUFFER_SIZE + 4,
+            INCOMING_BUFFER_SIZE,
+            MAX_MSGLEN,
+            8,
+        ] {
             let Incoming::Invoke(req) = receiver.read_incoming().unwrap() else {
                 panic!("expected INVOKE");
             };
@@ -2287,7 +3092,17 @@ mod tests {
         for size in [32, 2048, INCOMING_BUFFER_SIZE - 8, 16] {
             let mut b = BlobBuf::new();
             b.put(attr::DATA, &vec![0xa5; size]);
-            sender.send(Header { ty: ty::INVOKE, seq: 1, peer: 2 }, &mut b, None).unwrap();
+            sender
+                .send(
+                    Header {
+                        ty: ty::INVOKE,
+                        seq: 1,
+                        peer: 2,
+                    },
+                    &mut b,
+                    None,
+                )
+                .unwrap();
             let Incoming::Invoke(req) = receiver.read_incoming().unwrap() else {
                 panic!("expected INVOKE");
             };
@@ -2304,36 +3119,78 @@ mod tests {
     fn queued_invokes_keep_order_ahead_of_socket_frames() {
         let (mut sender, mut receiver) = pair();
         let mut b = BlobBuf::new();
-        b.put_string(attr::METHOD, "queued").put(attr::DATA, b"first");
-        sender.send(Header { ty: ty::INVOKE, seq: 1, peer: 9 }, &mut b, None).unwrap();
+        b.put_string(attr::METHOD, "queued")
+            .put(attr::DATA, b"first");
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 1,
+                    peer: 9,
+                },
+                &mut b,
+                None,
+            )
+            .unwrap();
         let queued = receiver.recv().unwrap();
         receiver.pending.push_back(queued);
         b = BlobBuf::new();
-        b.put_string(attr::METHOD, "socket").put(attr::DATA, b"second");
-        sender.send(Header { ty: ty::INVOKE, seq: 2, peer: 9 }, &mut b, None).unwrap();
+        b.put_string(attr::METHOD, "socket")
+            .put(attr::DATA, b"second");
+        sender
+            .send(
+                Header {
+                    ty: ty::INVOKE,
+                    seq: 2,
+                    peer: 9,
+                },
+                &mut b,
+                None,
+            )
+            .unwrap();
         let Some(Incoming::Invoke(first)) = receiver.next_incoming(0).unwrap() else {
             panic!("expected queued INVOKE");
         };
-        assert_eq!((first.seq, first.method.as_str(), first.data.as_slice()), (1, "queued", &b"first"[..]));
+        assert_eq!(
+            (first.seq, first.method.as_str(), first.data.as_slice()),
+            (1, "queued", &b"first"[..])
+        );
         let Incoming::Invoke(second) = receiver.read_incoming().unwrap() else {
             panic!("expected socket INVOKE");
         };
-        assert_eq!((second.seq, second.method.as_str(), second.data.as_slice()), (2, "socket", &b"second"[..]));
+        assert_eq!(
+            (second.seq, second.method.as_str(), second.data.as_slice()),
+            (2, "socket", &b"second"[..])
+        );
         assert_eq!(first.data, b"first");
         assert!(receiver.next_incoming(0).unwrap().is_none());
     }
 
     #[test]
     fn malformed_or_truncated_frames_release_received_descriptors() {
-        for (version, len, truncated) in [(1, 4, false), (0, 3, false),
-            (0, MAX_MSGLEN + 1, false), (0, 16, true)] {
+        for (version, len, truncated) in [
+            (1, 4, false),
+            (0, 3, false),
+            (0, MAX_MSGLEN + 1, false),
+            (0, 16, true),
+        ] {
             let (sender, mut receiver) = pair();
             let (passed, mut observer) = UnixStream::pair().unwrap();
             observer.set_nonblocking(true).unwrap();
-            let mut header = Header { ty: ty::INVOKE, seq: 1, peer: 2 }.encode();
+            let mut header = Header {
+                ty: ty::INVOKE,
+                seq: 1,
+                peer: 2,
+            }
+            .encode();
             header[0] = version;
-            sys::send_with_fd(sender.as_raw_fd(), &header, &(len as u32).to_be_bytes(),
-                Some(passed.as_raw_fd())).unwrap();
+            sys::send_with_fd(
+                sender.as_raw_fd(),
+                &header,
+                &(len as u32).to_be_bytes(),
+                Some(passed.as_raw_fd()),
+            )
+            .unwrap();
             drop(passed);
             if truncated {
                 sender.stream.shutdown(std::net::Shutdown::Write).unwrap();
@@ -2347,8 +3204,17 @@ mod tests {
     }
 
     fn request() -> Request {
-        Request { peer: 0xa1b2c3d4, seq: 0xabcd, objid: 0x10203040,
-            method: "test".into(), user: None, group: None, data: vec![], fd: None, no_reply: false }
+        Request {
+            peer: 0xa1b2c3d4,
+            seq: 0xabcd,
+            objid: 0x10203040,
+            method: "test".into(),
+            user: None,
+            group: None,
+            data: vec![],
+            fd: None,
+            no_reply: false,
+        }
     }
 
     #[test]
@@ -2359,12 +3225,21 @@ mod tests {
             let req = request();
             let fields: Vec<u8> = (0..size).map(|i| i as u8).collect();
             let mut expected = BlobBuf::new();
-            expected.put_u32(attr::OBJID, req.objid).put(attr::DATA, &fields);
+            expected
+                .put_u32(attr::OBJID, req.objid)
+                .put(attr::DATA, &fields);
             let bytes = expected.as_bytes().to_vec();
             let reader = std::thread::spawn(move || client.recv().unwrap());
             server.reply_data(&req, &fields).unwrap();
             let message = reader.join().unwrap();
-            assert_eq!(message.header, Header { ty: ty::DATA, seq: req.seq, peer: req.peer });
+            assert_eq!(
+                message.header,
+                Header {
+                    ty: ty::DATA,
+                    seq: req.seq,
+                    peer: req.peer
+                }
+            );
             assert_eq!(message.blob, bytes, "payload size {size}");
             assert!(message.fd.is_none());
         }
@@ -2374,8 +3249,13 @@ mod tests {
     fn oversized_reply_is_rejected_before_writing() {
         let (mut server, mut client) = pair();
         client.stream.set_nonblocking(true).unwrap();
-        assert!(server.reply_data(&request(), &vec![0; MAX_MSGLEN - 15]).is_err());
-        assert_eq!(client.stream.read(&mut [0]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        assert!(server
+            .reply_data(&request(), &vec![0; MAX_MSGLEN - 15])
+            .is_err());
+        assert_eq!(
+            client.stream.read(&mut [0]).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
+        );
     }
 
     #[test]
@@ -2383,16 +3263,31 @@ mod tests {
         let (mut server, mut client) = pair();
         let req = request();
         let (read_end, write_end) = sys::pipe().unwrap();
-        server.reply_status(&req, -7, Some(read_end.as_raw_fd())).unwrap();
+        server
+            .reply_status(&req, -7, Some(read_end.as_raw_fd()))
+            .unwrap();
         drop(read_end);
         let message = client.recv().unwrap();
-        assert_eq!(message.header, Header { ty: ty::STATUS, seq: req.seq, peer: req.peer });
+        assert_eq!(
+            message.header,
+            Header {
+                ty: ty::STATUS,
+                seq: req.seq,
+                peer: req.peer
+            }
+        );
         let mut expected = BlobBuf::new();
-        expected.put_u32(attr::STATUS, (-7i32) as u32).put_u32(attr::OBJID, req.objid);
+        expected
+            .put_u32(attr::STATUS, (-7i32) as u32)
+            .put_u32(attr::OBJID, req.objid);
         assert_eq!(message.blob, expected.as_bytes());
-        std::fs::File::from(write_end).write_all(b"descriptor").unwrap();
+        std::fs::File::from(write_end)
+            .write_all(b"descriptor")
+            .unwrap();
         let mut bytes = [0; 10];
-        std::fs::File::from(message.fd.unwrap()).read_exact(&mut bytes).unwrap();
+        std::fs::File::from(message.fd.unwrap())
+            .read_exact(&mut bytes)
+            .unwrap();
         assert_eq!(&bytes, b"descriptor");
     }
 
@@ -2403,7 +3298,10 @@ mod tests {
         req.no_reply = true;
         server.reply_status(&req, 0, None).unwrap();
         client.stream.set_nonblocking(true).unwrap();
-        assert_eq!(client.stream.read(&mut [0]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        assert_eq!(
+            client.stream.read(&mut [0]).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
+        );
         client.stream.set_nonblocking(false).unwrap();
         server.reply_data(&req, &[]).unwrap();
         assert_eq!(client.recv().unwrap().header.ty, ty::DATA);
@@ -2416,15 +3314,34 @@ mod tests {
             server.stream.set_nonblocking(true).unwrap();
             let req = request();
             let fields: Vec<u8> = (0..size).map(|i| i as u8).collect();
-            let reader = std::thread::spawn(move || (client.recv().unwrap(), client.recv().unwrap()));
+            let reader =
+                std::thread::spawn(move || (client.recv().unwrap(), client.recv().unwrap()));
             server.reply_data_status(&req, &fields, -7).unwrap();
             let (data, status) = reader.join().unwrap();
             let mut expected_data = BlobBuf::new();
-            expected_data.put_u32(attr::OBJID, req.objid).put(attr::DATA, &fields);
+            expected_data
+                .put_u32(attr::OBJID, req.objid)
+                .put(attr::DATA, &fields);
             let mut expected_status = BlobBuf::new();
-            expected_status.put_u32(attr::STATUS, (-7i32) as u32).put_u32(attr::OBJID, req.objid);
-            assert_eq!(data.header, Header { ty: ty::DATA, seq: req.seq, peer: req.peer });
-            assert_eq!(status.header, Header { ty: ty::STATUS, seq: req.seq, peer: req.peer });
+            expected_status
+                .put_u32(attr::STATUS, (-7i32) as u32)
+                .put_u32(attr::OBJID, req.objid);
+            assert_eq!(
+                data.header,
+                Header {
+                    ty: ty::DATA,
+                    seq: req.seq,
+                    peer: req.peer
+                }
+            );
+            assert_eq!(
+                status.header,
+                Header {
+                    ty: ty::STATUS,
+                    seq: req.seq,
+                    peer: req.peer
+                }
+            );
             assert_eq!(data.blob, expected_data.as_bytes(), "size {size}");
             assert_eq!(status.blob, expected_status.as_bytes(), "size {size}");
             assert!(data.fd.is_none() && status.fd.is_none());
@@ -2439,10 +3356,15 @@ mod tests {
         server.reply_data_status(&req, &[], -7).unwrap();
         assert_eq!(client.recv().unwrap().header.ty, ty::DATA);
         client.stream.set_nonblocking(true).unwrap();
-        assert_eq!(client.stream.read(&mut [0]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        assert_eq!(
+            client.stream.read(&mut [0]).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
+        );
         client.stream.set_nonblocking(false).unwrap();
         req.no_reply = false;
-        assert!(server.reply_data_status(&req, &vec![0; MAX_MSGLEN - 15], 0).is_err());
+        assert!(server
+            .reply_data_status(&req, &vec![0; MAX_MSGLEN - 15], 0)
+            .is_err());
         let status = client.recv().unwrap();
         assert_eq!(status.header.ty, ty::STATUS);
         assert_eq!(status.status(), Some(0));

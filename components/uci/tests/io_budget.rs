@@ -11,11 +11,18 @@ static NEXT: AtomicU64 = AtomicU64::new(0);
 struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {
-        let dir = std::env::temp_dir().join(format!("uci-budget-{}-{}",
-            std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
+        let dir = std::env::temp_dir().join(format!(
+            "uci-budget-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ));
         fs::create_dir_all(dir.join("config")).unwrap();
         fs::create_dir(dir.join("delta")).unwrap();
-        fs::write(dir.join("config/alpha"), "config test 's'\n option value 'base'\n").unwrap();
+        fs::write(
+            dir.join("config/alpha"),
+            "config test 's'\n option value 'base'\n",
+        )
+        .unwrap();
         fs::write(dir.join("delta/alpha"), "alpha.s.value='staged'\n").unwrap();
         Self(dir)
     }
@@ -38,7 +45,9 @@ impl Fixture {
 }
 
 impl Drop for Fixture {
-    fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); }
+    fn drop(&mut self) {
+        let _ = fs::remove_dir_all(&self.0);
+    }
 }
 
 #[test]
@@ -49,14 +58,23 @@ fn base_and_delta_lock_timeouts_do_not_cache_partial_packages() {
         let mut ctx = f.context(Duration::from_millis(40), &cancelled);
         let holder = f.hold(kind);
         let start = Instant::now();
-        assert_eq!(file::load(&mut ctx, "alpha"), Err(Error::TimedOut), "{kind}");
+        assert_eq!(
+            file::load(&mut ctx, "alpha"),
+            Err(Error::TimedOut),
+            "{kind}"
+        );
         assert!(start.elapsed() < Duration::from_secs(2));
-        assert!(ctx.root.is_empty(), "{kind}: partially loaded package was cached");
+        assert!(
+            ctx.root.is_empty(),
+            "{kind}: partially loaded package was cached"
+        );
         drop(holder);
         ctx.set_io_budget(Duration::from_secs(2), &cancelled);
         let p = file::load(&mut ctx, "alpha").unwrap();
-        assert_eq!(ctx.root[p].sections[0].options[0].value,
-                   owrt_uci::OptionValue::Str(b"staged".to_vec().into()));
+        assert_eq!(
+            ctx.root[p].sections[0].options[0].value,
+            owrt_uci::OptionValue::Str(b"staged".to_vec().into())
+        );
     }
 }
 
@@ -73,7 +91,11 @@ fn base_and_delta_waits_notice_cancellation_while_the_lock_is_held() {
                 cancelled.store(true, Ordering::Relaxed);
             });
             let start = Instant::now();
-            assert_eq!(file::load(&mut ctx, "alpha"), Err(Error::Cancelled), "{kind}");
+            assert_eq!(
+                file::load(&mut ctx, "alpha"),
+                Err(Error::Cancelled),
+                "{kind}"
+            );
             assert!(start.elapsed() < Duration::from_secs(2));
         });
         assert!(ctx.root.is_empty());
@@ -92,8 +114,10 @@ fn releasing_a_lock_before_the_deadline_loads_the_current_delta() {
             drop(holder);
         });
         let p = file::load(&mut ctx, "alpha").unwrap();
-        assert_eq!(ctx.root[p].sections[0].options[0].value,
-                   owrt_uci::OptionValue::Str(b"staged".to_vec().into()));
+        assert_eq!(
+            ctx.root[p].sections[0].options[0].value,
+            owrt_uci::OptionValue::Str(b"staged".to_vec().into())
+        );
     });
 }
 
@@ -109,18 +133,26 @@ fn cached_load_rechecks_base_and_delta_locks_and_cancellation() {
         }
         let holder = f.hold(kind);
         let mut ctx = f.context(Duration::from_millis(40), &cancelled);
-        assert_eq!(file::load_cached(&mut ctx, "alpha", &mut cache), Err(Error::TimedOut));
+        assert_eq!(
+            file::load_cached(&mut ctx, "alpha", &mut cache),
+            Err(Error::TimedOut)
+        );
         assert!(ctx.root.is_empty());
         cancelled.store(true, Ordering::Relaxed);
         ctx.set_io_budget(Duration::from_secs(2), &cancelled);
-        assert_eq!(file::load_cached(&mut ctx, "alpha", &mut cache), Err(Error::Cancelled));
+        assert_eq!(
+            file::load_cached(&mut ctx, "alpha", &mut cache),
+            Err(Error::Cancelled)
+        );
         assert!(ctx.root.is_empty());
         drop(holder);
         cancelled.store(false, Ordering::Relaxed);
         fs::write(f.0.join("delta/alpha"), "alpha.s.value='recovered'\n").unwrap();
         ctx.set_io_budget(Duration::from_secs(2), &cancelled);
         let p = file::load_cached(&mut ctx, "alpha", &mut cache).unwrap();
-        assert_eq!(ctx.root[p].sections[0].options[0].value,
-                   owrt_uci::OptionValue::Str(b"recovered".to_vec().into()));
+        assert_eq!(
+            ctx.root[p].sections[0].options[0].value,
+            owrt_uci::OptionValue::Str(b"recovered".to_vec().into())
+        );
     }
 }

@@ -8,12 +8,12 @@ mod acl;
 mod client;
 #[path = "../src/obj.rs"]
 mod obj;
+#[path = "../../rpcd/examples/profile_support/mod.rs"]
+mod profile_support;
 #[path = "../src/server.rs"]
 mod server;
 #[path = "../src/sys.rs"]
 mod sys;
-#[path = "../../rpcd/examples/profile_support/mod.rs"]
-mod profile_support;
 
 use client::{Client, InMsg};
 use owrt_ubus::blob::BlobBuf;
@@ -30,9 +30,18 @@ const OBJECT: u32 = 4096;
 fn connection() -> (Client, UnixStream) {
     let (a, b) = UnixStream::pair().unwrap();
     a.set_nonblocking(true).unwrap();
-    b.set_read_timeout(Some(std::time::Duration::from_secs(2))).unwrap();
-    let mut c = Client::new(a.into(), sys::Ucred { pid: std::process::id() as i32, uid: 0, gid: 0 },
-                            "root".into(), "root".into());
+    b.set_read_timeout(Some(std::time::Duration::from_secs(2)))
+        .unwrap();
+    let mut c = Client::new(
+        a.into(),
+        sys::Ucred {
+            pid: std::process::id() as i32,
+            uid: 0,
+            gid: 0,
+        },
+        "root".into(),
+        "root".into(),
+    );
     c.extra_gid = vec![0];
     (c, b)
 }
@@ -43,30 +52,52 @@ fn fixture(count: usize, methods: usize) -> (server::Server, UnixStream, UnixStr
     let (owner, owner_peer) = connection();
     s.clients.insert(CALLER, Box::new(caller));
     s.clients.insert(OWNER, Box::new(owner));
-    let methods = (0..methods).map(|i| {
-        let name = format!("method_{i:04}");
-        let mut b = BlobBuf::new();
-        let table = b.msg_open_table(&name);
-        b.msg_u32("value", 5);
-        b.msg_close(table);
-        obj::Method::new(b.payload().to_vec())
-    }).collect();
-    s.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods });
+    let methods = (0..methods)
+        .map(|i| {
+            let name = format!("method_{i:04}");
+            let mut b = BlobBuf::new();
+            let table = b.msg_open_table(&name);
+            b.msg_u32("value", 5);
+            b.msg_close(table);
+            obj::Method::new(b.payload().to_vec())
+        })
+        .collect();
+    s.reg.types.insert(
+        TYPE,
+        obj::ObjType {
+            refcount: 0,
+            methods,
+        },
+    );
     for i in 0..count {
         let id = OBJECT + i as u32;
         s.reg.create(Some(TYPE), Some(id)).unwrap();
-        assert!(s.reg.set_path(id, &format!("bench.object{i:04}").into_bytes()));
+        assert!(s
+            .reg
+            .set_path(id, &format!("bench.object{i:04}").into_bytes()));
         s.reg.get_mut(id).unwrap().client = Some(OWNER);
     }
     (s, caller_peer, owner_peer)
 }
 
 fn input(kind: u8, mut b: BlobBuf) -> InMsg<'static> {
-    InMsg { header: Header { ty: kind, seq: 1, peer: 0 }, blob: b.as_bytes().to_vec().into(), fd: None }
+    InMsg {
+        header: Header {
+            ty: kind,
+            seq: 1,
+            peer: 0,
+        },
+        blob: b.as_bytes().to_vec().into(),
+        fd: None,
+    }
 }
 
 fn copy(msg: &InMsg) -> InMsg<'static> {
-    InMsg { header: msg.header, blob: msg.blob.clone().into_owned().into(), fd: None }
+    InMsg {
+        header: msg.header,
+        blob: msg.blob.clone().into_owned().into(),
+        fd: None,
+    }
 }
 
 fn drain(peer: &mut UnixStream, frames: usize, scratch: &mut Vec<u8>) {
@@ -94,12 +125,16 @@ fn backpressure(n: u64, filter: &str) {
         let size: i32 = 4096;
         // SAFETY: the live Linux socket and i32 value have the declared size;
         // SOL_SOCKET/SO_SNDBUF changes this fixture's socket only.
-        assert_eq!(unsafe { setsockopt(s.clients[&CALLER].fd(), 1, 7, &size, 4) }, 0);
+        assert_eq!(
+            unsafe { setsockopt(s.clients[&CALLER].fd(), 1, 7, &size, 4) },
+            0
+        );
         let mut signature = BlobBuf::new();
         let table = signature.msg_open_table("method_0000");
         signature.msg_string("large", &"x".repeat(16384));
         signature.msg_close(table);
-        s.reg.types.get_mut(&TYPE).unwrap().methods[0] = obj::Method::new(signature.payload().to_vec());
+        s.reg.types.get_mut(&TYPE).unwrap().methods[0] =
+            obj::Method::new(signature.payload().to_vec());
         for mode in ["all", "prefix"] {
             let mut b = BlobBuf::new();
             if mode == "prefix" {
@@ -140,7 +175,13 @@ fn backpressure(n: u64, filter: &str) {
                 black_box(&bytes);
             };
             run();
-            profile_support::measure_with_warmup(&format!("backpressure_{mode}_{count}"), n, 3, filter, &mut run);
+            profile_support::measure_with_warmup(
+                &format!("backpressure_{mode}_{count}"),
+                n,
+                3,
+                filter,
+                &mut run,
+            );
             // Validate every frame outside timing, including payloads and the
             // terminating status. Object IDs are fixed by fixture().
             let mut rest = bytes.as_slice();
@@ -148,14 +189,18 @@ fn backpressure(n: u64, filter: &str) {
                 let h = Header::decode(rest[..Header::LEN].try_into().unwrap()).unwrap();
                 let len = client::blob_raw_len(&rest[Header::LEN..]);
                 assert_eq!((h.seq, h.peer), (1, 0));
-                let fields: Vec<_> = owrt_ubus::blob::iter(&rest[Header::LEN + 4..Header::LEN + len]).collect();
+                let fields: Vec<_> =
+                    owrt_ubus::blob::iter(&rest[Header::LEN + 4..Header::LEN + len]).collect();
                 if i == count {
                     assert_eq!(h.ty, ty::STATUS);
                     assert_eq!(fields[0].as_u32(), Some(0));
                 } else {
                     assert_eq!(h.ty, ty::DATA);
                     assert_eq!(fields[1].as_u32(), Some(OBJECT + i as u32));
-                    assert_eq!(obj::cstr_bytes(fields[0].payload), format!("bench.object{i:04}").as_bytes());
+                    assert_eq!(
+                        obj::cstr_bytes(fields[0].payload),
+                        format!("bench.object{i:04}").as_bytes()
+                    );
                     assert_eq!(fields[3].payload, signature.payload());
                 }
                 rest = &rest[Header::LEN + len..];
@@ -166,7 +211,11 @@ fn backpressure(n: u64, filter: &str) {
 }
 
 fn main() {
-    let n = std::env::args().nth(1).unwrap_or_else(|| "5000".into()).parse().unwrap();
+    let n = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "5000".into())
+        .parse()
+        .unwrap();
     let filter = std::env::args().nth(2).unwrap_or_default();
     println!("stage,iterations,ns_per_op,allocations,reallocations,allocated_bytes");
     if filter == "backpressure" {
@@ -178,7 +227,14 @@ fn main() {
         for mode in ["exact", "all", "prefix"] {
             let mut b = BlobBuf::new();
             if mode != "all" {
-                b.put_string(attr::OBJPATH, if mode == "exact" { "bench.object0000" } else { "bench.object*" });
+                b.put_string(
+                    attr::OBJPATH,
+                    if mode == "exact" {
+                        "bench.object0000"
+                    } else {
+                        "bench.object*"
+                    },
+                );
             }
             let msg = input(ty::LOOKUP, b);
             let frames = if mode == "exact" { 2 } else { count + 1 };

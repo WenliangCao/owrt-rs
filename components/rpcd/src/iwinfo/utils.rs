@@ -4,7 +4,9 @@
 //! the small libc string emulations (atoi/strtol/strtok/fgets) the backend
 //! needs to keep the C parsing rules byte for byte.
 
-use super::sys::{Ifreq, IFF_RUNNING, IFF_UP, SIOCGIFFLAGS, SIOCGIFHWADDR, SIOCSIFFLAGS, SIOCSIFHWADDR};
+use super::sys::{
+    Ifreq, IFF_RUNNING, IFF_UP, SIOCGIFFLAGS, SIOCGIFHWADDR, SIOCSIFFLAGS, SIOCSIFHWADDR,
+};
 use super::tables::{IWINFO_80211_NAMES, IWINFO_BAND_NAMES, IWINFO_HTMODE_NAMES};
 use super::*;
 use owrt_ubus::convert::fields_to_json;
@@ -12,8 +14,8 @@ use owrt_ubus::json::Json;
 use owrt_ubus::Connection;
 use owrt_uci::model::{OptionValue, Ptr, Section, LOOKUP_EXTENDED};
 use std::cell::RefCell;
-use std::os::fd::OwnedFd;
 use std::io::Read;
+use std::os::fd::OwnedFd;
 
 pub const LOG10_MAGIC: f64 = 1.25892541179;
 
@@ -61,13 +63,19 @@ pub fn strtol16(s: &[u8]) -> (i64, usize) {
         neg = s[i] == b'-';
         i += 1;
     }
-    if i + 1 < s.len() && s[i] == b'0' && (s[i + 1] == b'x' || s[i + 1] == b'X') && s.get(i + 2).is_some_and(|c| c.is_ascii_hexdigit()) {
+    if i + 1 < s.len()
+        && s[i] == b'0'
+        && (s[i + 1] == b'x' || s[i + 1] == b'X')
+        && s.get(i + 2).is_some_and(|c| c.is_ascii_hexdigit())
+    {
         i += 2;
     }
     let start = i;
     let mut v: i64 = 0;
     while i < s.len() && s[i].is_ascii_hexdigit() {
-        v = v.wrapping_mul(16).wrapping_add((s[i] as char).to_digit(16).unwrap_or(0) as i64);
+        v = v
+            .wrapping_mul(16)
+            .wrapping_add((s[i] as char).to_digit(16).unwrap_or(0) as i64);
         i += 1;
     }
     if i == start {
@@ -97,7 +105,9 @@ pub fn strtok<'a>(s: &'a [u8], delim: &[u8]) -> (Option<&'a [u8]>, &'a [u8]) {
 
 /// All strtok() tokens of `s` for `delim` (maximal runs of non-delimiters).
 pub fn strtok_all<'a>(s: &'a [u8], delim: &[u8]) -> Vec<&'a [u8]> {
-    s.split(|c| delim.contains(c)).filter(|t| !t.is_empty()).collect()
+    s.split(|c| delim.contains(c))
+        .filter(|t| !t.is_empty())
+        .collect()
 }
 
 /// fgets(buf, size, fp) loop: successive chunks of at most `size - 1` bytes,
@@ -141,20 +151,33 @@ pub fn iwinfo_ioctl(cmd: u64, ifr: &mut Ifreq) -> i32 {
     IOCTL_SOCKET.with(|cell| {
         let mut socket = cell.borrow_mut();
         if socket.is_none() {
-            let Ok(fd) = rustix::net::socket(rustix::net::AddressFamily::INET, rustix::net::SocketType::DGRAM, None) else { return -1; };
+            let Ok(fd) = rustix::net::socket(
+                rustix::net::AddressFamily::INET,
+                rustix::net::SocketType::DGRAM,
+                None,
+            ) else {
+                return -1;
+            };
             if let Ok(flags) = rustix::io::fcntl_getfd(&fd) {
                 let _ = rustix::io::fcntl_setfd(&fd, flags | rustix::io::FdFlags::CLOEXEC);
             }
             *socket = Some(fd);
         }
-        match owrt_platform::rpcd::interface_ioctl(socket.as_ref().unwrap(), cmd, &ifr.name, &mut ifr.data) {
+        match owrt_platform::rpcd::interface_ioctl(
+            socket.as_ref().unwrap(),
+            cmd,
+            &ifr.name,
+            &mut ifr.data,
+        ) {
             Ok(()) => 0,
             Err(_) => -1,
         }
     })
 }
 
-pub fn iwinfo_close() { IOCTL_SOCKET.with(|cell| cell.borrow_mut().take()); }
+pub fn iwinfo_close() {
+    IOCTL_SOCKET.with(|cell| cell.borrow_mut().take());
+}
 
 // --------------------------------------------------------------- conversions
 
@@ -279,7 +302,11 @@ pub fn iwinfo_htmode_is_ht(htmode: i32) -> bool {
 pub fn iwinfo_htmode_is_vht(htmode: i32) -> bool {
     matches!(
         htmode,
-        IWINFO_HTMODE_VHT20 | IWINFO_HTMODE_VHT40 | IWINFO_HTMODE_VHT80 | IWINFO_HTMODE_VHT80_80 | IWINFO_HTMODE_VHT160
+        IWINFO_HTMODE_VHT20
+            | IWINFO_HTMODE_VHT40
+            | IWINFO_HTMODE_VHT80
+            | IWINFO_HTMODE_VHT80_80
+            | IWINFO_HTMODE_VHT160
     )
 }
 
@@ -287,7 +314,11 @@ pub fn iwinfo_htmode_is_vht(htmode: i32) -> bool {
 pub fn iwinfo_htmode_is_he(htmode: i32) -> bool {
     matches!(
         htmode,
-        IWINFO_HTMODE_HE20 | IWINFO_HTMODE_HE40 | IWINFO_HTMODE_HE80 | IWINFO_HTMODE_HE80_80 | IWINFO_HTMODE_HE160
+        IWINFO_HTMODE_HE20
+            | IWINFO_HTMODE_HE40
+            | IWINFO_HTMODE_HE80
+            | IWINFO_HTMODE_HE80_80
+            | IWINFO_HTMODE_HE160
     )
 }
 
@@ -417,7 +448,11 @@ impl<'a> Scan<'a> {
     /// `%N[^"]`: one to N characters other than `excl`.
     fn set(&mut self, max: usize, excl: u8) -> Option<&'a [u8]> {
         let s = &self.s[self.i..];
-        let n = s.iter().take(max).position(|&c| c == excl).unwrap_or(s.len().min(max));
+        let n = s
+            .iter()
+            .take(max)
+            .position(|&c| c == excl)
+            .unwrap_or(s.len().min(max));
         if n == 0 {
             return None;
         }
@@ -546,7 +581,9 @@ fn iwinfo_hardware_line(buf: &[u8], id: &HardwareId) -> Option<HardwareEntry> {
 
 /// iwinfo_hardware() over an in-memory copy of the database file.
 pub fn iwinfo_hardware_from(db: &[u8], id: &HardwareId) -> Option<HardwareEntry> {
-    fgets_chunks(db, 256 - 1).into_iter().find_map(|line| iwinfo_hardware_line(line, id))
+    fgets_chunks(db, 256 - 1)
+        .into_iter()
+        .find_map(|line| iwinfo_hardware_line(line, id))
 }
 
 /// iwinfo_hardware: first devices.txt entry matching `id` (0xffff wildcards,
@@ -584,7 +621,11 @@ fn fscanf_mtd_line(data: &[u8], pos: usize) -> (i32, usize, i32, u32, Vec<u8>) {
     }
     sc.ws();
     let s = &data[sc.i..];
-    let n = s.iter().take(127).position(|&c| isspace(c)).unwrap_or(s.len().min(127));
+    let n = s
+        .iter()
+        .take(127)
+        .position(|&c| isspace(c))
+        .unwrap_or(s.len().min(127));
     if n == 0 {
         return (2, sc.i, off, len, Vec::new());
     }
@@ -611,7 +652,8 @@ pub fn mtd_find_partition(data: &[u8]) -> (i32, u32) {
         // fscanf(mtd, "mtd%d: %x %*x %127s", &off, &len, buf)
         let (n, npos, o, l, name) = fscanf_mtd_line(data, pos);
         pos = npos;
-        if n < 3 || (name != b"\"boardconfig\"" && name != b"\"EEPROM\"" && name != b"\"factory\"") {
+        if n < 3 || (name != b"\"boardconfig\"" && name != b"\"EEPROM\"" && name != b"\"factory\"")
+        {
             off = -1;
             continue;
         }
@@ -674,8 +716,22 @@ pub fn iwinfo_hardware_id_from_mtd(id: &mut HardwareId) -> i32 {
             /* Rt3xxx SoC */
             else if matches!(
                 w,
-                0x3050 | 0x5030 | 0x3051 | 0x5130 | 0x3052 | 0x5230 | 0x3350 | 0x5033 | 0x3352 | 0x5233 | 0x3662
-                    | 0x6236 | 0x3883 | 0x8338 | 0x5350 | 0x5053
+                0x3050
+                    | 0x5030
+                    | 0x3051
+                    | 0x5130
+                    | 0x3052
+                    | 0x5230
+                    | 0x3350
+                    | 0x5033
+                    | 0x3352
+                    | 0x5233
+                    | 0x3662
+                    | 0x6236
+                    | 0x3883
+                    | 0x8338
+                    | 0x5350
+                    | 0x5053
             ) {
                 /* vendor: RaLink */
                 id.vendor_id = 0x1814;
@@ -853,7 +909,11 @@ pub fn iwinfo_uci_get_radio(name: &str, ty: &str) -> Option<Section> {
     let mut ptr = Ptr {
         package: Some("wireless".to_owned()),
         section: Some(name.to_owned()),
-        flags: if name.starts_with('@') { LOOKUP_EXTENDED } else { 0 },
+        flags: if name.starts_with('@') {
+            LOOKUP_EXTENDED
+        } else {
+            0
+        },
         ..Ptr::default()
     };
     if owrt_uci::ops::lookup_ptr(&mut ctx, &mut ptr, None, true).is_err() {
@@ -954,8 +1014,16 @@ mod tests {
 
     #[test]
     fn format_hwmodes() {
-        assert_eq!(iwinfo_format_hwmodes(IWINFO_80211_B | IWINFO_80211_G | IWINFO_80211_N), "b/g/n");
-        assert_eq!(iwinfo_format_hwmodes(IWINFO_80211_A | IWINFO_80211_N | IWINFO_80211_AC | IWINFO_80211_AX), "ac/ax/a/n");
+        assert_eq!(
+            iwinfo_format_hwmodes(IWINFO_80211_B | IWINFO_80211_G | IWINFO_80211_N),
+            "b/g/n"
+        );
+        assert_eq!(
+            iwinfo_format_hwmodes(
+                IWINFO_80211_A | IWINFO_80211_N | IWINFO_80211_AC | IWINFO_80211_AX
+            ),
+            "ac/ax/a/n"
+        );
         assert_eq!(iwinfo_format_hwmodes(0xff), "ad/ac/ax/a/b/be/g/n");
         assert_eq!(iwinfo_format_hwmodes(0), "");
         assert_eq!(iwinfo_format_hwmodes(1 << 20), "");
@@ -980,7 +1048,13 @@ mod tests {
 \"ralink,rt7620-wmac\"    0      -1  \"Ralink\" \"MT7620\"\n";
 
     fn id(v: u16, d: u16, sv: u16, sd: u16, compat: &[u8]) -> HardwareId {
-        let mut id = HardwareId { vendor_id: v, device_id: d, subsystem_vendor_id: sv, subsystem_device_id: sd, ..HardwareId::default() };
+        let mut id = HardwareId {
+            vendor_id: v,
+            device_id: d,
+            subsystem_vendor_id: sv,
+            subsystem_device_id: sd,
+            ..HardwareId::default()
+        };
         set_cstr(&mut id.compatible, compat);
         id
     }
@@ -1007,7 +1081,9 @@ mod tests {
         assert_eq!(e.vendor_id, 0);
         let e = iwinfo_hardware_from(DB, &id(0, 0, 0, 0, b"ralink,rt7620-wmac")).expect("rt7620");
         assert_eq!(e.frequency_offset, -1);
-        assert!(iwinfo_hardware_from(DB, &id(0x14c3, 0x7981, 0, 0, b"mediatek,mt7981-wmac")).is_none());
+        assert!(
+            iwinfo_hardware_from(DB, &id(0x14c3, 0x7981, 0, 0, b"mediatek,mt7981-wmac")).is_none()
+        );
         assert!(iwinfo_hardware_from(DB, &id(0, 0, 0, 0, b"")).is_none());
         assert!(iwinfo_hardware_from(DB, &id(0x1234, 0x5678, 0, 0, b"")).is_none());
         // a 64+ char name fails the %63[^"] conversion and skips the line
@@ -1037,28 +1113,48 @@ mtd3: 00f80000 00010000 \"firmware\"\n";
         assert_eq!(strtol16(b"0x14c3\n"), (0x14c3, 6));
         assert_eq!(strtol16(b":aa"), (0, 0));
         assert_eq!(strtoul16(b"0e8d"), 0x0e8d);
-        assert_eq!(strtok(b"ssid=My Net\n", b" =\t\n"), (Some(&b"ssid"[..]), &b"My Net\n"[..]));
+        assert_eq!(
+            strtok(b"ssid=My Net\n", b" =\t\n"),
+            (Some(&b"ssid"[..]), &b"My Net\n"[..])
+        );
         assert_eq!(strtok(b"\n\n", b"\n").0, None);
         assert_eq!(strtok(b"key", b"=").1, &b""[..]);
-        assert_eq!(fgets_chunks(b"abc\ndef", 128), vec![&b"abc\n"[..], &b"def"[..]]);
-        assert_eq!(fgets_chunks(b"abcdef\n", 4), vec![&b"abc"[..], &b"def"[..], &b"\n"[..]]);
+        assert_eq!(
+            fgets_chunks(b"abc\ndef", 128),
+            vec![&b"abc\n"[..], &b"def"[..]]
+        );
+        assert_eq!(
+            fgets_chunks(b"abcdef\n", 4),
+            vec![&b"abc"[..], &b"def"[..], &b"\n"[..]]
+        );
     }
 
     #[test]
     fn rsn_ie() {
         // RSN IE payload: version 1, group CCMP, 1 pairwise CCMP, 1 AKM PSK
         let ie = [
-            0x01, 0x00, 0x00, 0x0f, 0xac, 0x04, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x04, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x02,
+            0x01, 0x00, 0x00, 0x0f, 0xac, 0x04, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x04, 0x01, 0x00,
+            0x00, 0x0f, 0xac, 0x02,
         ];
         let mut c = CryptoEntry::default();
-        iwinfo_parse_rsn(&mut c, &ie, IWINFO_CIPHER_CCMP as u16, IWINFO_KMGMT_8021X as u8);
+        iwinfo_parse_rsn(
+            &mut c,
+            &ie,
+            IWINFO_CIPHER_CCMP as u16,
+            IWINFO_KMGMT_8021X as u8,
+        );
         assert_eq!(c.wpa_version, 2);
         assert_eq!(c.group_ciphers, IWINFO_CIPHER_CCMP as u16);
         assert_eq!(c.pair_ciphers, IWINFO_CIPHER_CCMP as u16);
         assert_eq!(c.auth_suites, IWINFO_KMGMT_PSK as u8);
         // short IE: defaults
         let mut c = CryptoEntry::default();
-        iwinfo_parse_rsn(&mut c, &ie[..4], IWINFO_CIPHER_TKIP as u16, IWINFO_KMGMT_PSK as u8);
+        iwinfo_parse_rsn(
+            &mut c,
+            &ie[..4],
+            IWINFO_CIPHER_TKIP as u16,
+            IWINFO_KMGMT_PSK as u8,
+        );
         assert_eq!(c.pair_ciphers, IWINFO_CIPHER_TKIP as u16);
         assert_eq!(c.auth_suites, IWINFO_KMGMT_PSK as u8);
         assert_eq!(c.wpa_version, 0);
@@ -1070,7 +1166,10 @@ mtd3: 00f80000 00010000 \"firmware\"\n";
             r#"{"radio0":{"up":true,"interfaces":[{"section":"default_radio0","ifname":"phy0-ap0","config":{"mode":"ap","ssid":"x"}},{"ifname":"phy0-mesh0","config":{"mode":"mesh","mesh_id":"MyMesh"}}]},"radio1":{"interfaces":[]}}"#,
         )
         .unwrap();
-        assert_eq!(iwinfo_ubus_query_cb(&msg, "phy0-mesh0", "mesh_id"), Some("MyMesh".to_owned()));
+        assert_eq!(
+            iwinfo_ubus_query_cb(&msg, "phy0-mesh0", "mesh_id"),
+            Some("MyMesh".to_owned())
+        );
         assert_eq!(iwinfo_ubus_query_cb(&msg, "phy0-ap0", "mesh_id"), None);
         assert_eq!(iwinfo_ubus_query_cb(&msg, "phy1-ap0", "mesh_id"), None);
     }

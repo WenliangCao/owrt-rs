@@ -26,13 +26,17 @@ unsafe impl GlobalAlloc for Heap {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         // SAFETY: the caller supplied a valid layout.
         let ptr = unsafe { System.alloc(layout) };
-        if !ptr.is_null() { add(layout.size()); }
+        if !ptr.is_null() {
+            add(layout.size());
+        }
         ptr
     }
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
         // SAFETY: the caller supplied a valid layout.
         let ptr = unsafe { System.alloc_zeroed(layout) };
-        if !ptr.is_null() { add(layout.size()); }
+        if !ptr.is_null() {
+            add(layout.size());
+        }
         ptr
     }
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
@@ -44,8 +48,11 @@ unsafe impl GlobalAlloc for Heap {
         // SAFETY: forward the caller's valid allocation, layout and new size.
         let next = unsafe { System.realloc(ptr, layout, size) };
         if !next.is_null() {
-            if size >= layout.size() { add(size - layout.size()); }
-            else { LIVE.fetch_sub(layout.size() - size, Relaxed); }
+            if size >= layout.size() {
+                add(size - layout.size());
+            } else {
+                LIVE.fetch_sub(layout.size() - size, Relaxed);
+            }
         }
         next
     }
@@ -71,7 +78,13 @@ fn main() {
             let baseline = LIVE.load(Relaxed);
             PEAK.store(baseline, Relaxed);
             let mut r = obj::Registry::default();
-            r.types.insert(2048, obj::ObjType { refcount: 0, methods: Vec::new() });
+            r.types.insert(
+                2048,
+                obj::ObjType {
+                    refcount: 0,
+                    methods: Vec::new(),
+                },
+            );
             for i in 0..count {
                 r.create(Some(2048), Some(4096 + i)).unwrap();
                 assert!(r.set_path(4096 + i, &path(i, len)));
@@ -90,7 +103,11 @@ fn main() {
             drop(r);
             assert_eq!(&held[..], path(0, len).as_slice());
             drop(held);
-            assert_eq!(LIVE.load(Relaxed), baseline, "registry allocations retained after drop");
+            assert_eq!(
+                LIVE.load(Relaxed),
+                baseline,
+                "registry allocations retained after drop"
+            );
             println!("{count},{len},{retained},{peak}");
         }
     }

@@ -39,7 +39,9 @@ struct Options {
 fn parse_log_size(value: &str) -> Result<usize, String> {
     let kib: i64 = value.parse().map_err(|_| "-S must be an integer")?;
     let kib = if kib < 1 { 16 } else { kib };
-    usize::try_from(kib).ok().and_then(|kib| kib.checked_mul(1024))
+    usize::try_from(kib)
+        .ok()
+        .and_then(|kib| kib.checked_mul(1024))
         .filter(|size| *size <= u32::MAX as usize)
         .ok_or_else(|| "-S exceeds the ring's addressable capacity".into())
 }
@@ -101,7 +103,9 @@ fn set_pipe_capacity(fd: impl AsFd, bytes: i32) -> io::Result<()> {
     Ok(())
 }
 #[cfg(not(target_os = "linux"))]
-fn set_pipe_capacity(_fd: impl AsFd, _bytes: i32) -> io::Result<()> { Ok(()) }
+fn set_pipe_capacity(_fd: impl AsFd, _bytes: i32) -> io::Result<()> {
+    Ok(())
+}
 
 struct Client {
     fd: OwnedFd,
@@ -255,12 +259,17 @@ fn send_to_clients(clients: &mut Vec<Client>, bytes: &[u8], max_stream_pending: 
         index += 1;
         true
     });
-    let mut total: usize = clients.iter().enumerate()
-        .map(|(i, client)| client.queued() + bytes.len() - sent[i]).sum();
+    let mut total: usize = clients
+        .iter()
+        .enumerate()
+        .map(|(i, client)| client.queued() + bytes.len() - sent[i])
+        .sum();
     // A full global budget belongs to the lagging streams, not an earlier
     // healthy reader. This scan is only needed at the pressure boundary.
     while total > max_total_pending {
-        let (index, client) = clients.iter().enumerate()
+        let (index, client) = clients
+            .iter()
+            .enumerate()
             .max_by_key(|(i, client)| client.queued() + bytes.len() - sent[*i])
             .expect("an over-budget set is nonempty");
         total -= client.queued() + bytes.len() - sent[index];
@@ -336,7 +345,9 @@ impl Daemon {
         let start = self.batch.len();
         push_frame(&mut self.batch, &record);
         if self.has_subscribers {
-            let _ = self.conn.notify(self.objid, "message", &self.batch[start + 4..]);
+            let _ = self
+                .conn
+                .notify(self.objid, "message", &self.batch[start + 4..]);
         }
         if self.clients.is_empty() {
             self.batch.truncate(start);
@@ -389,15 +400,20 @@ impl Daemon {
         };
         if stream {
             if self.clients.len() >= MAX_STREAM_CLIENTS {
-                return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
+                return self
+                    .conn
+                    .reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
             }
             let total: usize = self.clients.iter().map(Client::queued).sum();
-            let backlog: usize = window
-                .map_or(0, |count| self.ring.list(count).map(|r| frame_len(r.size())).sum());
+            let backlog: usize = window.map_or(0, |count| {
+                self.ring.list(count).map(|r| frame_len(r.size())).sum()
+            });
             if backlog > self.max_stream_pending
                 || total + backlog > MAX_TOTAL_PENDING.max(self.max_stream_pending)
             {
-                return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
+                return self
+                    .conn
+                    .reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
             }
             // A pipe, as in exact C logd (R89..R93 used a Unix stream socket).
             let pair = io::pipe().and_then(|(read_end, write_end)| {
@@ -430,7 +446,8 @@ impl Daemon {
                 sent: 0,
                 oneshot,
             };
-            self.conn.reply_status(req, owrt_ubus::status::OK, Some(read_end.as_raw_fd()))?;
+            self.conn
+                .reply_status(req, owrt_ubus::status::OK, Some(read_end.as_raw_fd()))?;
             drop(read_end);
             if client.flush() {
                 self.clients.push(client);
@@ -438,7 +455,12 @@ impl Daemon {
             return Ok(());
         }
         let total = REPLY_HEADER_LEN
-            + window.map_or(0, |count| self.ring.list(count).map(|r| table_len(r.size())).sum::<usize>());
+            + window.map_or(0, |count| {
+                self.ring
+                    .list(count)
+                    .map(|r| table_len(r.size()))
+                    .sum::<usize>()
+            });
         self.reply.clear();
         self.reply.reserve_exact(total);
         push_reply_header(&mut self.reply, total);
@@ -454,9 +476,11 @@ impl Daemon {
         // connection would cost us the `log` object until `service log restart`.
         let result = if total > owrt_ubus::msg::MAX_MSGLEN - 16 {
             eprintln!("logd-rs: log read reply of {total} bytes exceeds the ubus message limit");
-            self.conn.reply_status(req, owrt_ubus::status::INVALID_ARGUMENT, None)
+            self.conn
+                .reply_status(req, owrt_ubus::status::INVALID_ARGUMENT, None)
         } else {
-            self.conn.reply_data_status(req, &self.reply, owrt_ubus::status::OK)
+            self.conn
+                .reply_data_status(req, &self.reply, owrt_ubus::status::OK)
         };
         if self.reply.capacity() > RETAINED_REPLY {
             self.reply = Vec::new();
@@ -517,7 +541,11 @@ impl Daemon {
         }
         // Two datagrams in one wakeup, or one more while spinning, means the
         // producer is still writing.
-        self.spin = if received >= 2 || (spinning && received >= 1) { BURST_SPINS } else { 0 };
+        self.spin = if received >= 2 || (spinning && received >= 1) {
+            BURST_SPINS
+        } else {
+            0
+        };
         self.flush_batch();
     }
 
@@ -544,11 +572,23 @@ impl Daemon {
     fn poll_set(&mut self, with_bus: bool) -> usize {
         self.fds.clear();
         if with_bus {
-            self.fds.push(sys::PollFd { fd: self.conn.as_raw_fd(), events: sys::POLLIN, revents: 0 });
+            self.fds.push(sys::PollFd {
+                fd: self.conn.as_raw_fd(),
+                events: sys::POLLIN,
+                revents: 0,
+            });
         }
-        self.fds.push(sys::PollFd { fd: self.syslog.as_raw_fd(), events: sys::POLLIN, revents: 0 });
+        self.fds.push(sys::PollFd {
+            fd: self.syslog.as_raw_fd(),
+            events: sys::POLLIN,
+            revents: 0,
+        });
         if let Some(kmsg) = &self.kmsg {
-            self.fds.push(sys::PollFd { fd: kmsg.as_raw_fd(), events: sys::POLLIN, revents: 0 });
+            self.fds.push(sys::PollFd {
+                fd: kmsg.as_raw_fd(),
+                events: sys::POLLIN,
+                revents: 0,
+            });
         }
         let client_base = self.fds.len();
         self.fds.extend(self.clients.iter().map(Client::poll_fd));
@@ -571,8 +611,10 @@ impl Daemon {
             // keep collecting syslog/kmsg while ubusd is away (uloop keeps
             // servicing those fds in C logd too)
             let client_base = self.poll_set(false);
-            let timeout = retry_at.saturating_duration_since(Instant::now())
-                .as_millis().min(1000) as i32;
+            let timeout = retry_at
+                .saturating_duration_since(Instant::now())
+                .as_millis()
+                .min(1000) as i32;
             if sys::poll_fds(&mut self.fds, timeout).is_ok() {
                 flush_ready_clients(&mut self.clients, &self.fds[client_base..]);
                 if self.fds[0].revents & sys::POLLIN != 0 {
@@ -645,7 +687,9 @@ impl Daemon {
 
 fn lookup_user(name: &str) -> Option<(u32, u32)> {
     // getpwnam is byte-based: a non-UTF-8 comment field elsewhere in the file must not hide the user
-    let passwd = std::fs::read("/etc/passwd").ok().map(|b| String::from_utf8_lossy(&b).into_owned())?;
+    let passwd = std::fs::read("/etc/passwd")
+        .ok()
+        .map(|b| String::from_utf8_lossy(&b).into_owned())?;
     passwd.lines().find_map(|line| {
         let mut parts = line.split(':');
         if parts.next()? != name {
@@ -678,7 +722,11 @@ fn main() {
     let syslog = match open_syslog(&options.log_socket) {
         Ok(socket) => socket,
         Err(error) => {
-            let _ = writeln!(std::io::stderr(), "logd-rs: failed to open {}: {error}", options.log_socket);
+            let _ = writeln!(
+                std::io::stderr(),
+                "logd-rs: failed to open {}: {error}",
+                options.log_socket
+            );
             std::process::exit(1);
         }
     };
@@ -717,7 +765,12 @@ fn main() {
                     std::process::exit(1);
                 }
             }
-            None => { let _ = writeln!(std::io::stderr(), "logd-rs: user {user} not found, staying root"); },
+            None => {
+                let _ = writeln!(
+                    std::io::stderr(),
+                    "logd-rs: user {user} not found, staying root"
+                );
+            }
         }
     }
     let mut daemon = Daemon {
@@ -752,7 +805,12 @@ mod stream_tests {
             assert_eq!(parse_log_size(value).unwrap(), 16 * 1024);
         }
         assert_eq!(parse_log_size("2048").unwrap(), 2 * 1024 * 1024);
-        for value in ["4194304", "18014398509481984", "9223372036854775807", "invalid"] {
+        for value in [
+            "4194304",
+            "18014398509481984",
+            "9223372036854775807",
+            "invalid",
+        ] {
             assert!(parse_log_size(value).is_err(), "invalid ring size: {value}");
         }
     }
@@ -781,7 +839,15 @@ mod stream_tests {
         let (read_end, write_end) = io::pipe().unwrap();
         let write_end = OwnedFd::from(write_end);
         nonblocking(&write_end);
-        (File::from(OwnedFd::from(read_end)), Client { fd: write_end, pending, sent: 0, oneshot })
+        (
+            File::from(OwnedFd::from(read_end)),
+            Client {
+                fd: write_end,
+                pending,
+                sent: 0,
+                oneshot,
+            },
+        )
     }
 
     fn fill_pipe(client: &Client) {
@@ -883,7 +949,9 @@ mod stream_tests {
         let (mut fast, first) = pair(Vec::new(), false);
         let (mut lagging, second) = pair(b"old-backlog|".to_vec(), false);
         let mut clients = vec![first, second];
-        let batch: Vec<u8> = (0..300).flat_map(|i| format!("frame-{i:03}|").into_bytes()).collect();
+        let batch: Vec<u8> = (0..300)
+            .flat_map(|i| format!("frame-{i:03}|").into_bytes())
+            .collect();
         send_to_clients(&mut clients, &batch, MAX_STREAM_PENDING);
         assert_eq!(clients.len(), 2);
         assert_eq!(read_available(&mut fast), batch);
@@ -926,7 +994,10 @@ mod stream_tests {
         let mut expected = big;
         expected.extend_from_slice(b"tail");
         assert_eq!(got, expected);
-        assert!(clients[0].pending.capacity() <= RETAINED_QUEUE, "drained queue keeps bounded storage");
+        assert!(
+            clients[0].pending.capacity() <= RETAINED_QUEUE,
+            "drained queue keeps bounded storage"
+        );
     }
 
     #[test]

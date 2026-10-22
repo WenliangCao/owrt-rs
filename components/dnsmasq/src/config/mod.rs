@@ -6,25 +6,25 @@
 
 pub mod auth;
 pub mod dhcp;
+pub mod dhcp_device;
 pub mod dhcp_network;
 pub mod dhcp_pxe;
 pub mod dhcp_relay;
-pub mod dump;
 pub mod dns;
 pub mod domains;
-pub mod dhcp_device;
+pub mod dump;
 pub mod edns;
-pub mod interface_records;
-pub mod synth_domain;
 pub mod ethers;
-pub mod logging;
+pub mod interface_records;
 #[cfg(unix)]
 pub mod loader;
+pub mod logging;
 mod options;
 pub mod records;
 pub(crate) mod rrtypes;
 mod scalar;
 pub mod script_arp;
+pub mod synth_domain;
 pub mod tftp;
 pub mod ubus;
 

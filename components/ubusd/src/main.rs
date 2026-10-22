@@ -17,8 +17,8 @@ mod obj;
 mod server;
 mod sys;
 
-use server::Server;
 use owrt_ubus::sys as bus_sys;
+use server::Server;
 use std::io::Write;
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
@@ -48,7 +48,9 @@ extern "C" fn on_term(_: i32) {
 /// Async-signal-safe wake-up: one byte down the self-pipe.
 fn wake() {
     let fd = WAKE_FD.load(Ordering::SeqCst);
-    if fd >= 0 { owrt_platform::ubusd::wake(fd); }
+    if fd >= 0 {
+        owrt_platform::ubusd::wake(fd);
+    }
 }
 
 #[cfg(all(test, target_os = "linux"))]
@@ -57,7 +59,10 @@ fn saturated_signal_pipe_preserves_errno() {
     let (_read, write) = bus_sys::nonblocking_pipe().unwrap();
     let fd = write.as_raw_fd();
     while owrt_platform::unix::write_fd(fd, &[0u8; 4096]) > 0 {}
-    assert_eq!(std::io::Error::last_os_error().kind(), std::io::ErrorKind::WouldBlock);
+    assert_eq!(
+        std::io::Error::last_os_error().kind(),
+        std::io::ErrorKind::WouldBlock
+    );
     let previous = WAKE_FD.swap(fd, Ordering::SeqCst);
     let (_, after) = owrt_platform::ubusd::with_errno(22, wake);
     WAKE_FD.store(previous, Ordering::SeqCst);
@@ -66,7 +71,8 @@ fn saturated_signal_pipe_preserves_errno() {
 
 fn usage(program: &str) -> ! {
     let _ = writeln!(std::io::stderr(), "{BUILD_ID}");
-    let _ = writeln!(std::io::stderr(),
+    let _ = writeln!(
+        std::io::stderr(),
         "Usage: {program} [<options>]\n\
          Options: \n\
          \x20 -A <path>:\t\tSet the path to ACL files\n\
@@ -79,7 +85,10 @@ fn main() {
     let mut socket = DEFAULT_SOCKET.to_owned();
     let mut acl_dir = DEFAULT_ACL_DIR.to_owned();
     let args: Vec<String> = std::env::args().collect();
-    let program = args.first().cloned().unwrap_or_else(|| "ubusd-rs".to_owned());
+    let program = args
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "ubusd-rs".to_owned());
     let mut i = 1;
     while i < args.len() {
         match args[i].as_str() {
@@ -114,7 +123,10 @@ fn run(socket: &str, acl_dir: &str) -> std::io::Result<()> {
     WAKE_FD.store(wake_w.as_raw_fd(), Ordering::SeqCst);
     // SAFETY: both fixed handlers only store atomics and write to the live,
     // nonblocking wake pipe while preserving errno; neither allocates or locks.
-    #[expect(unsafe_code, reason = "install the audited atomic/self-pipe signal handlers")]
+    #[expect(
+        unsafe_code,
+        reason = "install the audited atomic/self-pipe signal handlers"
+    )]
     unsafe {
         let _ = bus_sys::set_signal_handler(sys::SIGHUP, on_sighup);
         let _ = bus_sys::set_signal_handler(bus_sys::SIGTERM, on_term);
@@ -186,7 +198,9 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
             match r.token {
                 TOKEN_WAKE => {}
                 TOKEN_LISTENER => {
-                    if r.revents & bus_sys::POLLIN != 0 && !accept_all(server, listener, &mut poller) {
+                    if r.revents & bus_sys::POLLIN != 0
+                        && !accept_all(server, listener, &mut poller)
+                    {
                         poller.remove(listener.as_raw_fd())?;
                         listener_retry_at = Some(Instant::now() + ACCEPT_RETRY_DELAY);
                     }
@@ -224,11 +238,16 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
 /// Ask for output readiness exactly while the client has queued output, the
 /// way the C daemon adds and drops ULOOP_WRITE around a blocked write.
 fn sync_write_interest(server: &mut Server, poller: &mut owrt_ubus::readiness::Poller, id: u32) {
-    let Some(c) = server.clients.get_mut(&id) else { return };
+    let Some(c) = server.clients.get_mut(&id) else {
+        return;
+    };
     let want = !c.tx_empty();
     let read = !c.eof;
     if (want != c.out_registered || read != c.in_registered)
-        && poller.set_interest(c.fd(), u64::from(id), read, want).is_ok() {
+        && poller
+            .set_interest(c.fd(), u64::from(id), read, want)
+            .is_ok()
+    {
         c.out_registered = want;
         c.in_registered = read;
     }
@@ -245,13 +264,19 @@ fn disconnect(server: &mut Server, poller: &mut owrt_ubus::readiness::Poller, id
 /// with a budget so repeated transient errors cannot monopolize the loop.
 /// Other errors (including EMFILE/ENFILE) or exhausted retries return false:
 /// the caller parks the level-triggered listener and retries after a delay.
-fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::readiness::Poller) -> bool {
+fn accept_all(
+    server: &mut Server,
+    listener: &OwnedFd,
+    poller: &mut owrt_ubus::readiness::Poller,
+) -> bool {
     let mut transient_errors = 0;
     loop {
         match sys::accept(listener) {
             Ok(Some(sock)) => match server.add_client(sock) {
                 Ok(id) => {
-                    let Some(c) = server.clients.get_mut(&id) else { continue };
+                    let Some(c) = server.clients.get_mut(&id) else {
+                        continue;
+                    };
                     // HELLO was just queued or written; register with the
                     // interest that matches.
                     let write = !c.tx_empty();
@@ -265,7 +290,10 @@ fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::r
             },
             Ok(None) => return true,
             Err(e) => {
-                if matches!(e.kind(), std::io::ErrorKind::Interrupted | std::io::ErrorKind::ConnectionAborted) {
+                if matches!(
+                    e.kind(),
+                    std::io::ErrorKind::Interrupted | std::io::ErrorKind::ConnectionAborted
+                ) {
                     transient_errors += 1;
                     if transient_errors < ACCEPT_TRANSIENT_BUDGET {
                         continue;
@@ -279,26 +307,39 @@ fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::r
 }
 
 /// Drive one connection for this poll round. Returns false to disconnect it.
-fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; client::RX_SIZE]) -> bool {
+fn service_client(
+    server: &mut Server,
+    id: u32,
+    revents: i16,
+    rx: &mut [u8; client::RX_SIZE],
+) -> bool {
     if revents & (bus_sys::POLLERR) != 0 {
         return false;
     }
 
     if revents & bus_sys::POLLOUT != 0 {
-        let Some(c) = server.clients.get_mut(&id) else { return false };
+        let Some(c) = server.clients.get_mut(&id) else {
+            return false;
+        };
         if !c.flush() {
             return false;
         }
         if c.tx_empty() && !server.process_cmd_queue(id) {
             return false;
         }
-        if server.clients.get(&id).is_some_and(|c| c.eof && c.tx_empty()) {
+        if server
+            .clients
+            .get(&id)
+            .is_some_and(|c| c.eof && c.tx_empty())
+        {
             return false;
         }
     }
 
     if revents & (bus_sys::POLLIN | bus_sys::POLLHUP) != 0 {
-        let Some(mut c) = server.clients.get_mut(&id) else { return false };
+        let Some(mut c) = server.clients.get_mut(&id) else {
+            return false;
+        };
         c.begin_read(rx);
         loop {
             match c.read_message(rx) {

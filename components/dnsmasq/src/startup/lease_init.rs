@@ -15,7 +15,10 @@ use std::path::PathBuf;
 ///
 /// When a lease-init script is configured, the caller must satisfy
 /// [`Helper::start`]'s single-threaded process and resource requirements.
-#[expect(unsafe_code, reason = "lease initialization forwards the explicit fork contract")]
+#[expect(
+    unsafe_code,
+    reason = "lease initialization forwards the explicit fork contract"
+)]
 pub unsafe fn initialize(
     config: &DhcpConfig,
     debug: bool,
@@ -29,14 +32,16 @@ pub unsafe fn initialize(
     };
     // SAFETY: the caller guarantees the process prerequisites; the snapshot
     // contains only the copied script path, user name and scalar settings.
-    let mut helper = unsafe { Helper::start_initializer(
-        Config {
-            script: PathBuf::from(OsString::from_vec(script.clone())),
-            script_user: config.script_user.clone(),
-            debug,
-        },
-        config.lease_max,
-    ) }?;
+    let mut helper = unsafe {
+        Helper::start_initializer(
+            Config {
+                script: PathBuf::from(OsString::from_vec(script.clone())),
+                script_user: config.script_user.clone(),
+                debug,
+            },
+            config.lease_max,
+        )
+    }?;
     let mut restored = LeaseFile::default();
     let mut ended = false;
     let mut exited = false;

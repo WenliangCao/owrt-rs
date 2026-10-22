@@ -1,8 +1,8 @@
 //! A method normally returns one DATA frame. Only multi-reply methods need a
 //! heap-allocated list in addition to their payload storage.
 
-use std::borrow::Cow;
 use owrt_ubus::BlobBuf;
+use std::borrow::Cow;
 
 pub struct Reply {
     pub code: i32,
@@ -17,31 +17,49 @@ pub enum Payloads {
 
 impl Reply {
     pub fn empty(code: i32) -> Self {
-        Self { code, data: Payloads::Many(Vec::new()) }
+        Self {
+            code,
+            data: Payloads::Many(Vec::new()),
+        }
     }
 
     pub fn one(code: i32, data: Vec<u8>) -> Self {
-        Self { code, data: Payloads::One(Cow::Owned(data)) }
+        Self {
+            code,
+            data: Payloads::One(Cow::Owned(data)),
+        }
     }
 
     /// Keep the Blob's owned allocation and borrow its payload for sending.
     /// The four-byte head stays in that same allocation until the reply drops.
     pub fn blob(code: i32, data: BlobBuf) -> Self {
-        Self { code, data: Payloads::Blob(data) }
+        Self {
+            code,
+            data: Payloads::Blob(data),
+        }
     }
 
     pub fn constant(code: i32, data: &'static [u8]) -> Self {
-        Self { code, data: Payloads::One(Cow::Borrowed(data)) }
+        Self {
+            code,
+            data: Payloads::One(Cow::Borrowed(data)),
+        }
     }
 
     pub fn many(code: i32, data: Vec<Vec<u8>>) -> Self {
-        Self { code, data: Payloads::Many(data) }
+        Self {
+            code,
+            data: Payloads::Many(data),
+        }
     }
 }
 
 impl Payloads {
     pub fn len(&self) -> usize {
-        match self { Self::One(_) | Self::Blob(_) => 1, Self::Many(data) => data.len() }
+        match self {
+            Self::One(_) | Self::Blob(_) => 1,
+            Self::Many(data) => data.len(),
+        }
     }
 
     pub fn single(&self) -> Option<&[u8]> {
@@ -67,8 +85,14 @@ impl std::ops::Index<usize> for Payloads {
     type Output = [u8];
     fn index(&self, index: usize) -> &Self::Output {
         match self {
-            Self::One(data) => { assert_eq!(index, 0); data }
-            Self::Blob(data) => { assert_eq!(index, 0); data.payload() }
+            Self::One(data) => {
+                assert_eq!(index, 0);
+                data
+            }
+            Self::Blob(data) => {
+                assert_eq!(index, 0);
+                data.payload()
+            }
             Self::Many(data) => &data[index],
         }
     }
@@ -115,7 +139,10 @@ mod tests {
         let many = Reply::many(0, vec![b"first".to_vec(), Vec::new(), b"last".to_vec()]);
         assert_eq!(many.data.len(), 3);
         assert_eq!(many.data.single(), None);
-        assert_eq!(many.data.iter().collect::<Vec<_>>(), [b"first".as_slice(), b"", b"last"]);
+        assert_eq!(
+            many.data.iter().collect::<Vec<_>>(),
+            [b"first".as_slice(), b"", b"last"]
+        );
         assert_eq!(&many.data[2], b"last");
     }
 
@@ -135,7 +162,13 @@ mod tests {
         assert_eq!(empty.data.single(), Some(b"".as_slice()));
         let many = Reply::many(0, vec![b"first".to_vec(), Vec::new(), b"last".to_vec()]);
         assert!(many.data.single().is_none());
-        assert_eq!(many.data.iter().collect::<Vec<_>>(), [b"first".as_slice(), b"", b"last"]);
-        assert_eq!(Reply::many(0, vec![b"only".to_vec()]).data.single(), Some(b"only".as_slice()));
+        assert_eq!(
+            many.data.iter().collect::<Vec<_>>(),
+            [b"first".as_slice(), b"", b"last"]
+        );
+        assert_eq!(
+            Reply::many(0, vec![b"only".to_vec()]).data.single(),
+            Some(b"only".as_slice())
+        );
     }
 }

@@ -36,14 +36,20 @@ pub const NETWORK_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ),
     ("get_proto_handlers", &[]),
     ("add_dynamic", &[("name", MsgType::String)]),
-    ("netns_updown", &[("jail", MsgType::String), ("start", BOOL)]),
+    (
+        "netns_updown",
+        &[("jail", MsgType::String), ("start", BOOL)],
+    ),
 ];
 
 /// `dev_object_methods`. `hotplug_event` is `#ifdef DUMMY_MODE` and this
 /// target is not a dummy build, so it is absent — confirmed on the device.
 pub const DEVICE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("status", &[("name", MsgType::String)]),
-    ("set_alias", &[("alias", MsgType::Array), ("device", MsgType::String)]),
+    (
+        "set_alias",
+        &[("alias", MsgType::Array), ("device", MsgType::String)],
+    ),
     (
         "set_state",
         &[
@@ -93,8 +99,7 @@ pub fn wireless_read_device(data: &[u8]) -> Result<Option<&[u8]>, i32> {
         if padded < 4 || padded > remaining.len() {
             break;
         }
-        let (attr, _) = owrt_ubus::blob::attr_at(remaining, 0)
-            .ok_or(status::INVALID_ARGUMENT)?;
+        let (attr, _) = owrt_ubus::blob::attr_at(remaining, 0).ok_or(status::INVALID_ARGUMENT)?;
         if !attr.extended || attr.id != MsgType::String as u32 || attr.payload.len() < 2 {
             return Err(status::INVALID_ARGUMENT);
         }
@@ -129,7 +134,10 @@ mod wireless_argument_tests {
         assert_eq!(wireless_read_device(b.payload()), Ok(None));
         b.msg_string("device", "radio0");
         b.msg_string("device", "radio1");
-        assert_eq!(wireless_read_device(b.payload()), Ok(Some(b"radio1".as_slice())));
+        assert_eq!(
+            wireless_read_device(b.payload()),
+            Ok(Some(b"radio1".as_slice()))
+        );
         b.msg_string("device", "");
         assert_eq!(wireless_read_device(b.payload()), Ok(Some(b"".as_slice())));
     }
@@ -148,7 +156,10 @@ mod wireless_argument_tests {
                         b.msg_bool("device", true);
                     }
                 }
-                assert_eq!(wireless_read_device(b.payload()), Err(status::INVALID_ARGUMENT));
+                assert_eq!(
+                    wireless_read_device(b.payload()),
+                    Err(status::INVALID_ARGUMENT)
+                );
             }
         }
     }
@@ -163,7 +174,7 @@ mod wireless_argument_tests {
         let mut bad_name_utf8 = valid.clone();
         bad_name_utf8[4 + 2] = 0xff;
         for bad in [
-            vec![3, 0, 0, 4],                 // non-extended
+            vec![3, 0, 0, 4],                // non-extended
             vec![0x83, 0, 0, 5, 0, 0, 0, 0], // short field header
             vec![0x83, 0, 0, 8, 0xff, 0xff, 0, 0],
             bad_name_nul,
@@ -172,13 +183,19 @@ mod wireless_argument_tests {
             for prefix in [false, true] {
                 let mut request = if prefix { valid.clone() } else { Vec::new() };
                 request.extend_from_slice(&bad);
-                assert_eq!(wireless_read_device(&request), Err(status::INVALID_ARGUMENT));
+                assert_eq!(
+                    wireless_read_device(&request),
+                    Err(status::INVALID_ARGUMENT)
+                );
             }
         }
         for value in [b"".as_slice(), b"radio0", b"radio0\0tail"] {
             b.reset();
             b.msg_field(MsgType::String as u32, "device", value);
-            assert_eq!(wireless_read_device(b.payload()), Err(status::INVALID_ARGUMENT));
+            assert_eq!(
+                wireless_read_device(b.payload()),
+                Err(status::INVALID_ARGUMENT)
+            );
         }
     }
 
@@ -187,17 +204,26 @@ mod wireless_argument_tests {
         let mut b = BlobBuf::new();
         b.msg_string("device", "radio0");
         for tail in [
-            vec![0xff], vec![0xff; 3], vec![0x83, 0, 0, 0],
-            vec![0x83, 0, 0, 100], vec![0x83, 0, 0, 5, b'x'],
+            vec![0xff],
+            vec![0xff; 3],
+            vec![0x83, 0, 0, 0],
+            vec![0x83, 0, 0, 100],
+            vec![0x83, 0, 0, 5, b'x'],
         ] {
             let mut request = b.payload().to_vec();
             request.extend_from_slice(&tail);
-            assert_eq!(wireless_read_device(&request), Ok(Some(b"radio0".as_slice())));
+            assert_eq!(
+                wireless_read_device(&request),
+                Ok(Some(b"radio0".as_slice()))
+            );
         }
         for raw_len in 1..=3 {
             let mut request = b.payload().to_vec();
             request.extend_from_slice(&[0x83, 0, 0, raw_len]);
-            assert_eq!(wireless_read_device(&request), Err(status::INVALID_ARGUMENT));
+            assert_eq!(
+                wireless_read_device(&request),
+                Err(status::INVALID_ARGUMENT)
+            );
         }
     }
 
@@ -214,7 +240,10 @@ mod wireless_argument_tests {
         for name in ["device\0suffix", "device\0"] {
             b.reset();
             b.msg_string(name, "radio0");
-            assert_eq!(wireless_read_device(b.payload()), Err(status::INVALID_ARGUMENT));
+            assert_eq!(
+                wireless_read_device(b.payload()),
+                Err(status::INVALID_ARGUMENT)
+            );
         }
     }
 }
@@ -229,11 +258,19 @@ pub const IFACE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("dump", &[]),
     (
         "add_device",
-        &[("name", MsgType::String), ("link-ext", BOOL), ("vlan", MsgType::Array)],
+        &[
+            ("name", MsgType::String),
+            ("link-ext", BOOL),
+            ("vlan", MsgType::Array),
+        ],
     ),
     (
         "remove_device",
-        &[("name", MsgType::String), ("link-ext", BOOL), ("vlan", MsgType::Array)],
+        &[
+            ("name", MsgType::String),
+            ("link-ext", BOOL),
+            ("vlan", MsgType::Array),
+        ],
     ),
     ("notify_proto", &[]),
     ("remove", &[]),
@@ -261,7 +298,8 @@ impl Objects {
     pub fn register(conn: &mut Connection) -> io::Result<Self> {
         let network = conn.add_object("network", NETWORK_METHODS, 5000)?;
         let device = conn.add_object("network.device", DEVICE_METHODS, 5000)?;
-        let (interface, interface_type) = conn.add_object_typed("network.interface", IFACE_METHODS, None, 5000)?;
+        let (interface, interface_type) =
+            conn.add_object_typed("network.interface", IFACE_METHODS, None, 5000)?;
         Ok(Self {
             network,
             device,
@@ -333,7 +371,8 @@ pub fn send_event(conn: &mut Connection, id: &str, fields: &[u8]) -> io::Result<
     b.put_raw_fields(fields);
     b.msg_close(t);
     let payload = b.payload().to_vec();
-    conn.invoke(SYSTEM_OBJECT_EVENT, "send", &payload, 5000).map(|_| ())
+    conn.invoke(SYSTEM_OBJECT_EVENT, "send", &payload, 5000)
+        .map(|_| ())
 }
 
 /// `netifd_ubus_interface_event`: the `network.interface` broadcast, with the

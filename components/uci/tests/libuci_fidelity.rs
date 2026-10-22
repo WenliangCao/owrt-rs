@@ -188,7 +188,9 @@ fn owned_values_preserve_bytes_across_scalar_list_and_size_changes() {
         let mut ptr = Ptr::default();
         ops::lookup_ptr(&mut ctx, &mut ptr, Some(b"t.named.value=tail"), true).unwrap();
         ops::add_list(&mut ctx, &mut ptr, true).unwrap();
-        let OptionValue::List(items) = &ctx.root[i].sections[0].options[0].value else { panic!() };
+        let OptionValue::List(items) = &ctx.root[i].sections[0].options[0].value else {
+            panic!()
+        };
         assert_eq!(items[0].as_slice(), value);
         assert_eq!(items[1].as_slice(), b"tail");
         let cloned = ctx.root[i].clone();
@@ -197,11 +199,15 @@ fn owned_values_preserve_bytes_across_scalar_list_and_size_changes() {
         ops::set(&mut ctx, &mut ptr, true).unwrap();
         ptr.value = Some(value.clone());
         ops::set(&mut ctx, &mut ptr, true).unwrap();
-        let OptionValue::Str(current) = &ctx.root[i].sections[0].options[0].value else { panic!() };
+        let OptionValue::Str(current) = &ctx.root[i].sections[0].options[0].value else {
+            panic!()
+        };
         assert_eq!(current.as_slice(), value);
         drop(ctx);
 
-        let OptionValue::List(items) = &cloned.sections[0].options[0].value else { panic!() };
+        let OptionValue::List(items) = &cloned.sections[0].options[0].value else {
+            panic!()
+        };
         assert_eq!(items[0].as_slice(), value);
         assert_eq!(items[1].as_slice(), b"tail");
     }

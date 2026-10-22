@@ -118,10 +118,16 @@ impl Session {
             return status::INVALID_ARGUMENT;
         };
         // C stores the object as a C string, so the key ends at a NUL as well.
-        let end = object.iter().position(|c| matches!(c, b'*' | b'?' | b'[' | 0)).unwrap_or(object.len());
+        let end = object
+            .iter()
+            .position(|c| matches!(c, b'*' | b'?' | b'[' | 0))
+            .unwrap_or(object.len());
         let key = object[..end].to_vec();
         let list = self.acls.entry(scope.to_owned()).or_default();
-        if list.iter().any(|a| a.object == object && a.function == function) {
+        if list
+            .iter()
+            .any(|a| a.object == object && a.function == function)
+        {
             return 0;
         }
         // insert after the last entry whose key <= new key (avl dup order)
@@ -143,7 +149,9 @@ impl Session {
     }
 
     fn revoke_bytes(&mut self, scope: &str, object: Option<&[u8]>, function: Option<&str>) -> i32 {
-        let Some(list) = self.acls.get_mut(scope) else { return 0 };
+        let Some(list) = self.acls.get_mut(scope) else {
+            return 0;
+        };
         match (object, function) {
             (None, None) => {
                 self.acls.remove(scope);
@@ -166,10 +174,11 @@ impl Session {
     }
 
     fn allowed_bytes(&self, scope: &str, obj: &[u8], fun: &str) -> bool {
-        let Some(list) = self.acls.get(scope) else { return false };
-        let matches = |a: &Acl| {
-            fnmatch(&a.object, obj) && fnmatch(a.function.as_bytes(), fun.as_bytes())
+        let Some(list) = self.acls.get(scope) else {
+            return false;
         };
+        let matches =
+            |a: &Acl| fnmatch(&a.object, obj) && fnmatch(a.function.as_bytes(), fun.as_bytes());
         // Small scopes benefit from a simple scan, including the usual single
         // wildcard grant. Larger scopes are already sorted by literal prefix.
         if list.len() <= 8 {
@@ -310,12 +319,23 @@ impl Store {
         self.create_with_random(timeout, Self::random_id)
     }
 
-    fn create_with_random(&mut self, timeout: i32, mut random: impl FnMut() -> Option<String>) -> Option<String> {
+    fn create_with_random(
+        &mut self,
+        timeout: i32,
+        mut random: impl FnMut() -> Option<String>,
+    ) -> Option<String> {
         let dirname = random()?;
         let id = random()?;
-        if !validate_sid(&id) || !validate_sid(&dirname) || id == DEFAULT_SID || id == dirname
-            || self.sessions.contains_key(&id) || self.sessions.contains_key(&dirname)
-            || self.sessions.values().any(|ses| ses.dirname == dirname || ses.dirname == id)
+        if !validate_sid(&id)
+            || !validate_sid(&dirname)
+            || id == DEFAULT_SID
+            || id == dirname
+            || self.sessions.contains_key(&id)
+            || self.sessions.contains_key(&dirname)
+            || self
+                .sessions
+                .values()
+                .any(|ses| ses.dirname == dirname || ses.dirname == id)
         {
             return None;
         }
@@ -333,7 +353,8 @@ impl Store {
 
     /// Return this session's private UCI delta directory, without touching it.
     pub fn savedir(&self, id: &str) -> Option<String> {
-        self.dirname(id).map(|name| format!("{}/uci-{name}", self.run_dir))
+        self.dirname(id)
+            .map(|name| format!("{}/uci-{name}", self.run_dir))
     }
 
     /// rpc_session_get: lookup + touch
@@ -409,7 +430,10 @@ impl Store {
     /// rpc_session_freeze: persist non-default sessions for a re-exec.
     pub fn freeze(&self) {
         let directory = format!("{}/sessions", self.run_dir);
-        let _ = fs::DirBuilder::new().recursive(true).mode(0o700).create(&directory);
+        let _ = fs::DirBuilder::new()
+            .recursive(true)
+            .mode(0o700)
+            .create(&directory);
         for ses in self.sessions.values() {
             if ses.id == DEFAULT_SID {
                 continue;
@@ -430,7 +454,9 @@ impl Store {
     /// rpc_session_thaw
     pub fn thaw(&mut self) {
         let directory = format!("{}/sessions", self.run_dir);
-        let Ok(entries) = fs::read_dir(&directory) else { return };
+        let Ok(entries) = fs::read_dir(&directory) else {
+            return;
+        };
         for e in entries.flatten() {
             let name = e.file_name().to_string_lossy().into_owned();
             if !validate_sid(&name) {
@@ -445,22 +471,32 @@ impl Store {
     }
 
     /// rpc_session_from_blob
-    fn restore_blob(&mut self, bytes: &[u8], dirname: &str, mut random: impl FnMut() -> Option<String>) -> bool {
-        let Some((head, _)) = blob::attr_at(bytes, 0) else { return false };
+    fn restore_blob(
+        &mut self,
+        bytes: &[u8],
+        dirname: &str,
+        mut random: impl FnMut() -> Option<String>,
+    ) -> bool {
+        let Some((head, _)) = blob::attr_at(bytes, 0) else {
+            return false;
+        };
         let mut sid = None;
         let mut timeout = None;
         let mut expires = None;
         let mut data: Option<Vec<u8>> = None;
         for f in blob::fields(head.payload) {
             match (f.name, f.ty) {
-                ("ubus_rpc_session", t) if t == MsgType::String as u32 => sid = f.as_str().map(str::to_owned),
+                ("ubus_rpc_session", t) if t == MsgType::String as u32 => {
+                    sid = f.as_str().map(str::to_owned)
+                }
                 ("timeout", t) if t == MsgType::Int32 as u32 => timeout = f.as_u32(),
                 ("expires", t) if t == MsgType::Int64 as u32 => expires = f.as_u64(),
                 ("data", t) if t == MsgType::Table as u32 => data = Some(f.data.to_vec()),
                 _ => {}
             }
         }
-        let (Some(sid), Some(timeout), Some(expires), Some(data)) = (sid, timeout, expires, data) else {
+        let (Some(sid), Some(timeout), Some(expires), Some(data)) = (sid, timeout, expires, data)
+        else {
             return false;
         };
         if !validate_sid(&sid) || !validate_sid(dirname) || sid == DEFAULT_SID {
@@ -471,9 +507,13 @@ impl Store {
             // Preserve staged changes by renaming before restoring the session;
             // never fall back to publishing its SID when migration fails.
             let Some(name) = random().filter(|name| {
-                validate_sid(name) && name != &sid && !self.sessions.contains_key(name)
+                validate_sid(name)
+                    && name != &sid
+                    && !self.sessions.contains_key(name)
                     && !self.sessions.values().any(|ses| &ses.dirname == name)
-            }) else { return false };
+            }) else {
+                return false;
+            };
             let old = format!("{}/uci-{sid}", self.run_dir);
             let new = format!("{}/uci-{name}", self.run_dir);
             // Avoid replacing any existing staging directory on collision.
@@ -483,7 +523,8 @@ impl Store {
             }
             if let Err(error) = fs::rename(&old, &new) {
                 if error.kind() != std::io::ErrorKind::NotFound
-                    || !fs::symlink_metadata(&old).is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+                    || !fs::symlink_metadata(&old)
+                        .is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
                 {
                     return false;
                 }
@@ -506,7 +547,9 @@ impl Store {
                 setup_acls(&mut ses, Some(&login));
             }
         }
-        let ms = (expires as i64).saturating_mul(1000).clamp(0, i32::MAX as i64) as u64;
+        let ms = (expires as i64)
+            .saturating_mul(1000)
+            .clamp(0, i32::MAX as i64) as u64;
         ses.expires = Some(Instant::now() + Duration::from_millis(ms));
         self.insert(ses);
         true
@@ -533,17 +576,23 @@ fn test_password(hash: &str, password: &str) -> bool {
     }
     if let Some(user) = hash.strip_prefix("$p$") {
         // getspnam(user)->sp_pwdp
-        let Ok(shadow) = crate::util::read_lossy("/etc/shadow") else { return false };
+        let Ok(shadow) = crate::util::read_lossy("/etc/shadow") else {
+            return false;
+        };
         for line in shadow.lines() {
             let mut it = line.splitn(3, ':');
-            let (Some(name), Some(pw)) = (it.next(), it.next()) else { continue };
+            let (Some(name), Some(pw)) = (it.next(), it.next()) else {
+                continue;
+            };
             if name == user {
                 return test_password(pw, password);
             }
         }
         return false;
     }
-    let (Ok(key), Ok(salt)) = (CString::new(password), CString::new(hash)) else { return false };
+    let (Ok(key), Ok(salt)) = (CString::new(password), CString::new(hash)) else {
+        return false;
+    };
     owrt_platform::rpcd::crypt_matches(&key, &salt, hash.as_bytes())
 }
 
@@ -557,17 +606,31 @@ pub fn test_login(username: &str, password: Option<&str>) -> Option<Login> {
         if s.ty != "login" {
             continue;
         }
-        let Some(u) = s.find_option("username") else { continue };
-        let owrt_uci::OptionValue::Str(u) = &s.options[u].value else { continue };
+        let Some(u) = s.find_option("username") else {
+            continue;
+        };
+        let owrt_uci::OptionValue::Str(u) = &s.options[u].value else {
+            continue;
+        };
         if u.as_slice() != username.as_bytes() {
             continue;
         }
         let login = Login {
-            options: s.options.iter().map(|o| (o.name.clone(), o.value.clone())).collect(),
+            options: s
+                .options
+                .iter()
+                .map(|o| (o.name.clone(), o.value.clone()))
+                .collect(),
         };
-        let Some(password) = password else { return Some(login) };
-        let Some(pw) = s.find_option("password") else { continue };
-        let owrt_uci::OptionValue::Str(hash) = &s.options[pw].value else { continue };
+        let Some(password) = password else {
+            return Some(login);
+        };
+        let Some(pw) = s.find_option("password") else {
+            continue;
+        };
+        let owrt_uci::OptionValue::Str(hash) = &s.options[pw].value else {
+            continue;
+        };
         if test_password(&String::from_utf8_lossy(hash), password) {
             return Some(login);
         }
@@ -581,13 +644,17 @@ fn test_permission(login: Option<&Login>, perm: &str, group: &str) -> bool {
         return group == "unauthenticated";
     };
     for (name, value) in &login.options {
-        let owrt_uci::OptionValue::List(items) = value else { continue };
+        let owrt_uci::OptionValue::List(items) = value else {
+            continue;
+        };
         if name != perm {
             continue;
         }
         // negative expressions first
         for item in items {
-            let Some(mut p) = item.strip_prefix(b"!") else { continue };
+            let Some(mut p) = item.strip_prefix(b"!") else {
+                continue;
+            };
             while let [first, rest @ ..] = p {
                 if !first.is_ascii_whitespace() {
                     break;
@@ -656,7 +723,9 @@ fn setup_acl_file(ses: &mut Session, login: Option<&Login>, path: &str) {
     for (group, perms) in &groups {
         let Json::Object(perms) = perms else { continue };
         for (perm, scopes) in perms {
-            let Json::Object(scopes) = scopes else { continue };
+            let Json::Object(scopes) = scopes else {
+                continue;
+            };
             if perm != "read" && perm != "write" {
                 continue;
             }
@@ -673,7 +742,9 @@ fn setup_acl_file(ses: &mut Session, login: Option<&Login>, path: &str) {
 
 /// rpc_login_setup_acls: glob(ACL_DIR/*.json) in sorted order.
 pub fn setup_acls(ses: &mut Session, login: Option<&Login>) {
-    let Ok(entries) = fs::read_dir(ACL_DIR) else { return };
+    let Ok(entries) = fs::read_dir(ACL_DIR) else {
+        return;
+    };
     let mut files: Vec<String> = entries
         .flatten()
         .map(|e| e.file_name().to_string_lossy().into_owned())
@@ -692,14 +763,43 @@ pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
     vec![
         ("create", vec![("timeout", Int32)]),
         ("list", vec![("ubus_rpc_session", String)]),
-        ("grant", vec![("ubus_rpc_session", String), ("scope", String), ("objects", Array)]),
-        ("revoke", vec![("ubus_rpc_session", String), ("scope", String), ("objects", Array)]),
-        ("access", vec![("ubus_rpc_session", String), ("scope", String), ("object", String), ("function", String)]),
+        (
+            "grant",
+            vec![
+                ("ubus_rpc_session", String),
+                ("scope", String),
+                ("objects", Array),
+            ],
+        ),
+        (
+            "revoke",
+            vec![
+                ("ubus_rpc_session", String),
+                ("scope", String),
+                ("objects", Array),
+            ],
+        ),
+        (
+            "access",
+            vec![
+                ("ubus_rpc_session", String),
+                ("scope", String),
+                ("object", String),
+                ("function", String),
+            ],
+        ),
         ("set", vec![("ubus_rpc_session", String), ("values", Table)]),
         ("get", vec![("ubus_rpc_session", String), ("keys", Array)]),
         ("unset", vec![("ubus_rpc_session", String), ("keys", Array)]),
         ("destroy", vec![("ubus_rpc_session", String)]),
-        ("login", vec![("username", String), ("password", String), ("timeout", Int32)]),
+        (
+            "login",
+            vec![
+                ("username", String),
+                ("password", String),
+                ("timeout", Int32),
+            ],
+        ),
     ]
 }
 
@@ -751,13 +851,21 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             },
         },
         "grant" | "revoke" => {
-            let Some(sid) = arg_sid(raw) else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = arg_sid(raw) else {
+                return err(status::INVALID_ARGUMENT);
+            };
             let scope = arg_str(raw, "scope").unwrap_or("ubus").to_owned();
             let objects = arg(raw, "objects", MsgType::Array).map(|f| f.data.to_vec());
             let grant = method == "grant";
-            let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
+            let Some(ses) = store.get(sid) else {
+                return err(status::NOT_FOUND);
+            };
             let Some(objects) = objects else {
-                let rc = if grant { ses.grant(&scope, None, None) } else { ses.revoke(&scope, None, None) };
+                let rc = if grant {
+                    ses.grant(&scope, None, None)
+                } else {
+                    ses.revoke(&scope, None, None)
+                };
                 return err(rc);
             };
             for pair in blob::fields(&objects) {
@@ -805,11 +913,15 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                 }
             }
             let [sid, scope, object, function] = args;
-            let Some(sid) = sid.and_then(|f| f.as_str()) else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = sid.and_then(|f| f.as_str()) else {
+                return err(status::INVALID_ARGUMENT);
+            };
             let scope = scope.and_then(|f| f.as_str()).unwrap_or("ubus");
             let object = object.and_then(|f| f.as_bytes());
             let function = function.and_then(|f| f.as_str());
-            let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
+            let Some(ses) = store.get(sid) else {
+                return err(status::NOT_FOUND);
+            };
             if let (Some(o), Some(f)) = (object, function) {
                 let allowed = ses.allowed_bytes(scope, o, f);
                 return Reply::constant(0, if allowed { ACCESS_TRUE } else { ACCESS_FALSE });
@@ -819,10 +931,13 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             Reply::one(0, b.into_payload())
         }
         "set" => {
-            let (Some(sid), Some(values)) = (arg_sid(raw), arg(raw, "values", MsgType::Table)) else {
+            let (Some(sid), Some(values)) = (arg_sid(raw), arg(raw, "values", MsgType::Table))
+            else {
                 return err(status::INVALID_ARGUMENT);
             };
-            let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
+            let Some(ses) = store.get(sid) else {
+                return err(status::NOT_FOUND);
+            };
             for f in blob::fields(values.data) {
                 if f.name.is_empty() {
                     continue;
@@ -832,9 +947,13 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             ok(vec![])
         }
         "get" => {
-            let Some(sid) = arg_sid(raw) else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = arg_sid(raw) else {
+                return err(status::INVALID_ARGUMENT);
+            };
             let keys = arg(raw, "keys", MsgType::Array).map(|f| f.data);
-            let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
+            let Some(ses) = store.get(sid) else {
+                return err(status::NOT_FOUND);
+            };
             let mut b = BlobBuf::new();
             let c = b.msg_open_table("values");
             match keys {
@@ -855,9 +974,13 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             Reply::one(0, b.into_payload())
         }
         "unset" => {
-            let Some(sid) = arg_sid(raw) else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = arg_sid(raw) else {
+                return err(status::INVALID_ARGUMENT);
+            };
             let keys = arg(raw, "keys", MsgType::Array).map(|f| f.data);
-            let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
+            let Some(ses) = store.get(sid) else {
+                return err(status::NOT_FOUND);
+            };
             match keys {
                 None => ses.data.clear(),
                 Some(keys) => {
@@ -874,7 +997,9 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             ok(vec![])
         }
         "destroy" => {
-            let Some(sid) = arg_sid(raw) else { return err(status::INVALID_ARGUMENT) };
+            let Some(sid) = arg_sid(raw) else {
+                return err(status::INVALID_ARGUMENT);
+            };
             if sid == DEFAULT_SID {
                 return err(status::PERMISSION_DENIED);
             }
@@ -885,7 +1010,9 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             ok(vec![])
         }
         "login" => {
-            let (Some(username), Some(password)) = (arg_str(raw, "username"), arg_str(raw, "password")) else {
+            let (Some(username), Some(password)) =
+                (arg_str(raw, "username"), arg_str(raw, "password"))
+            else {
                 return err(status::INVALID_ARGUMENT);
             };
             let username = username.to_owned();
@@ -902,7 +1029,11 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                     Some(ses) => match ses.data.get("username") {
                         Some(u) if u.ty == MsgType::String as u32 => {
                             let stored = u.data.split(|&b| b == 0).next().unwrap_or(&[]);
-                            if stored == username.as_bytes() { Some(asid) } else { None }
+                            if stored == username.as_bytes() {
+                                Some(asid)
+                            } else {
+                                None
+                            }
                         }
                         _ => None,
                     },
@@ -937,10 +1068,23 @@ mod tests {
     #[test]
     fn debug_omits_session_credentials_and_raw_data() {
         let mut session = Session::new("session-bearer-secret", "directory-secret".into());
-        let value = RawField { ty: MsgType::String as u32, data: b"credential-secret\0".to_vec() };
+        let value = RawField {
+            ty: MsgType::String as u32,
+            data: b"credential-secret\0".to_vec(),
+        };
         session.data.insert("sensitive-key".into(), value.clone());
-        for debug in [format!("{session:?}"), format!("{session:#?}"), format!("{value:?}"), format!("{value:#?}")] {
-            for secret in ["session-bearer-secret", "directory-secret", "sensitive-key", "credential-secret"] {
+        for debug in [
+            format!("{session:?}"),
+            format!("{session:#?}"),
+            format!("{value:?}"),
+            format!("{value:#?}"),
+        ] {
+            for secret in [
+                "session-bearer-secret",
+                "directory-secret",
+                "sensitive-key",
+                "credential-secret",
+            ] {
                 assert!(!debug.contains(secret));
             }
             assert!(!debug.contains(&format!("{:?}", value.data)));
@@ -954,8 +1098,11 @@ mod tests {
     impl Fixture {
         fn new() -> Self {
             static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
-            let path = std::env::temp_dir().join(format!("rpcd-session-{}-{}", std::process::id(),
-                NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
+            let path = std::env::temp_dir().join(format!(
+                "rpcd-session-{}-{}",
+                std::process::id(),
+                NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+            ));
             fs::DirBuilder::new().mode(0o700).create(&path).unwrap();
             Self(path)
         }
@@ -977,7 +1124,10 @@ mod tests {
         assert!(store.dirname(DEFAULT_SID).is_none());
         assert_eq!(store.create_with_random(120, || None), None);
         let mut values = [Some("a".repeat(32)), None].into_iter();
-        assert_eq!(store.create_with_random(120, || values.next().flatten()), None);
+        assert_eq!(
+            store.create_with_random(120, || values.next().flatten()),
+            None
+        );
         assert!(store.sessions.is_empty());
         let mut values = ["a".repeat(32), "b".repeat(32)].into_iter();
         let sid = store.create_with_random(120, || values.next()).unwrap();
@@ -1022,7 +1172,14 @@ mod tests {
         let frozen = fixture.0.join("sessions");
         assert!(!frozen.join(&sid).exists());
         assert_eq!(fs::read_dir(&frozen).unwrap().count(), 1);
-        assert_eq!(fs::metadata(frozen.join(&dirname)).unwrap().permissions().mode() & 0o777, 0o600);
+        assert_eq!(
+            fs::metadata(frozen.join(&dirname))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            0o600
+        );
 
         let mut thawed = fixture.store();
         thawed.thaw();
@@ -1049,7 +1206,10 @@ mod tests {
         store.thaw();
         assert_ne!(store.dirname(&sid), Some(sid.as_str()));
         let new = store.savedir(&sid).unwrap();
-        assert_eq!(fs::read(std::path::Path::new(&new).join("network")).unwrap(), b"network.lan.proto='static'\n");
+        assert_eq!(
+            fs::read(std::path::Path::new(&new).join("network")).unwrap(),
+            b"network.lan.proto='static'\n"
+        );
         assert!(!old.exists());
         assert!(!frozen.join(&sid).exists());
         store.freeze();
@@ -1082,9 +1242,22 @@ mod tests {
         let old = fixture.0.join("luci-system.json");
         let compat = fixture.0.join("owrt-rpcd-compat.json");
         // Exact flash read group from LuCI 128a7812f4be233c5dd7f7466f534fd888785caf.
-        fs::write(&old, include_str!("../tests/fixtures/luci-system-flash-25.12.5.json")).unwrap();
-        fs::write(&compat, include_str!("../../../packaging/openwrt/owrt-rpcd/files/owrt-rpcd-compat.json")).unwrap();
-        let login = Login { options: vec![("read".into(), owrt_uci::OptionValue::List(vec!["luci-mod-system-flash".into()]))] };
+        fs::write(
+            &old,
+            include_str!("../tests/fixtures/luci-system-flash-25.12.5.json"),
+        )
+        .unwrap();
+        fs::write(
+            &compat,
+            include_str!("../../../packaging/openwrt/owrt-rpcd/files/owrt-rpcd-compat.json"),
+        )
+        .unwrap();
+        let login = Login {
+            options: vec![(
+                "read".into(),
+                owrt_uci::OptionValue::List(vec!["luci-mod-system-flash".into()]),
+            )],
+        };
         let mut session = test_session("flash-read");
         setup_acl_file(&mut session, Some(&login), old.to_str().unwrap());
         assert!(session.allowed("file", "/proc/mounts", "read"));
@@ -1145,13 +1318,21 @@ mod tests {
         let mut store = Store::new();
         let sid = store.create(0).unwrap();
         let mut b = BlobBuf::new();
-        b.msg_string("ubus_rpc_session", &sid).msg_string("scope", "ubus")
-            .msg_string("object", "changing").msg_string("function", "read");
+        b.msg_string("ubus_rpc_session", &sid)
+            .msg_string("scope", "ubus")
+            .msg_string("object", "changing")
+            .msg_string("function", "read");
         let raw = b.into_payload();
         assert_eq!(&call(&mut store, "access", &raw).data[0], ACCESS_FALSE);
-        store.get(&sid).unwrap().grant("ubus", Some("changing"), Some("read"));
+        store
+            .get(&sid)
+            .unwrap()
+            .grant("ubus", Some("changing"), Some("read"));
         assert_eq!(&call(&mut store, "access", &raw).data[0], ACCESS_TRUE);
-        store.get(&sid).unwrap().revoke("ubus", Some("changing"), Some("read"));
+        store
+            .get(&sid)
+            .unwrap()
+            .revoke("ubus", Some("changing"), Some("read"));
         assert_eq!(&call(&mut store, "access", &raw).data[0], ACCESS_FALSE);
     }
 
@@ -1177,14 +1358,17 @@ mod tests {
         assert_eq!(before, session.to_blob(true));
         for (object, function) in [
             (b"a99".as_slice(), "read"), // skips a00..a63 but must keep a*
-            (b"a99", "write"),          // equal keys retain every function
+            (b"a99", "write"),           // equal keys retain every function
             (b"a99", "stat"),
             (b"", "empty"),
             (b"\xff", "raw"),
             (b"nu\0tail", "nul"),
             (b"zzzzz", "wildcard"),
         ] {
-            assert!(session.allowed_bytes("ubus", object, function), "{object:?} {function}");
+            assert!(
+                session.allowed_bytes("ubus", object, function),
+                "{object:?} {function}"
+            );
             assert!(!session.allowed_bytes("missing", object, function));
         }
         assert!(!session.allowed("ubus", "a99", "denied"));
@@ -1209,22 +1393,29 @@ mod tests {
         let functions = ["read", "r*", "[rw]rite", "?", "", "all"];
         for count in 0..128 {
             let len = next() % 12;
-            let object: Vec<u8> = (0..len).map(|_| alphabet[next() % alphabet.len()]).collect();
+            let object: Vec<u8> = (0..len)
+                .map(|_| alphabet[next() % alphabet.len()])
+                .collect();
             let function = functions[next() % functions.len()];
             session.grant_bytes("ubus", Some(&object), Some(function));
             let list = &session.acls["ubus"];
             assert!(list.windows(2).all(|a| a[0].key <= a[1].key));
             for _ in 0..128 {
                 let len = next() % 14;
-                let object: Vec<u8> = (0..len).map(|_| alphabet[next() % alphabet.len()]).collect();
+                let object: Vec<u8> = (0..len)
+                    .map(|_| alphabet[next() % alphabet.len()])
+                    .collect();
                 let function = functions[next() % functions.len()];
                 let linear = list.iter().any(|a| {
                     object.starts_with(&a.key)
                         && fnmatch(&a.object, &object)
                         && fnmatch(a.function.as_bytes(), function.as_bytes())
                 });
-                assert_eq!(session.allowed_bytes("ubus", &object, function), linear,
-                    "{count} rules: {object:?} {function}");
+                assert_eq!(
+                    session.allowed_bytes("ubus", &object, function),
+                    linear,
+                    "{count} rules: {object:?} {function}"
+                );
             }
         }
     }
@@ -1234,7 +1425,12 @@ mod tests {
     }
 
     fn empty_store() -> Store {
-        Store { sessions: BTreeMap::new(), run_dir: "/nonexistent/rpcd-session-test".into(), expiry_hint: None, apply_sid: None }
+        Store {
+            sessions: BTreeMap::new(),
+            run_dir: "/nonexistent/rpcd-session-test".into(),
+            expiry_hint: None,
+            apply_sid: None,
+        }
     }
 
     fn timer(id: &str, expires: Option<Instant>) -> Session {
@@ -1247,7 +1443,10 @@ mod tests {
     fn access_preserves_typed_duplicates_raw_objects_and_acl_dump_fallback() {
         let mut store = empty_store();
         let mut session = test_session("access-test");
-        assert_eq!(session.grant_bytes("file", Some(b"/raw\xff"), Some("read")), 0);
+        assert_eq!(
+            session.grant_bytes("file", Some(b"/raw\xff"), Some("read")),
+            0
+        );
         store.insert(session);
         let mut b = BlobBuf::new();
         b.msg_string("function", "read");
@@ -1259,14 +1458,20 @@ mod tests {
         b.msg_string("scope", "ubus");
         let reply = call(&mut store, "access", b.payload());
         assert_eq!(reply.code, 0);
-        assert_eq!(blob::fields(&reply.data[0]).next().unwrap().as_bool(), Some(true));
+        assert_eq!(
+            blob::fields(&reply.data[0]).next().unwrap().as_bool(),
+            Some(true)
+        );
 
         // A malformed first STRING is still the selected field. A later valid
         // duplicate must not turn an invalid SID into an authorized request.
         let mut b = BlobBuf::new();
         b.msg_field(MsgType::String as u32, "ubus_rpc_session", b"\xff\0");
         b.msg_string("ubus_rpc_session", "access-test");
-        assert_eq!(call(&mut store, "access", b.payload()).code, status::INVALID_ARGUMENT);
+        assert_eq!(
+            call(&mut store, "access", b.payload()).code,
+            status::INVALID_ARGUMENT
+        );
 
         let mut b = BlobBuf::new();
         b.msg_string("ubus_rpc_session", "access-test");
@@ -1346,7 +1551,11 @@ mod tests {
         blob.msg_close(data);
         assert!(store.restore_blob(blob.as_bytes(), &"b".repeat(32), || None));
         let thawed = store.next_expiry().unwrap();
-        let touched = store.get("12345678901234567890123456789012").unwrap().expires.unwrap();
+        let touched = store
+            .get("12345678901234567890123456789012")
+            .unwrap()
+            .expires
+            .unwrap();
         assert!(touched < thawed);
         assert_eq!(store.next_expiry(), Some(touched));
         // Replacing a record during thaw also includes its new deadline.
@@ -1373,21 +1582,49 @@ mod tests {
     #[test]
     fn thaw_rejects_corrupt_session_ids_without_panicking() {
         let mut store = empty_store();
-        for sid in [format!("{}é", "a".repeat(31)), "a".repeat(31), "g".repeat(32), "a".repeat(33)] {
-            assert!(!store.restore_blob(frozen_session(&sid, 120).as_bytes(), &"b".repeat(32), || None));
+        for sid in [
+            format!("{}é", "a".repeat(31)),
+            "a".repeat(31),
+            "g".repeat(32),
+            "a".repeat(33),
+        ] {
+            assert!(!store.restore_blob(
+                frozen_session(&sid, 120).as_bytes(),
+                &"b".repeat(32),
+                || None
+            ));
             assert!(store.sessions.is_empty());
         }
-        assert!(store.restore_blob(frozen_session(&"a".repeat(32), 120).as_bytes(), &"b".repeat(32), || None));
+        assert!(store.restore_blob(
+            frozen_session(&"a".repeat(32), 120).as_bytes(),
+            &"b".repeat(32),
+            || None
+        ));
     }
 
     #[test]
     fn thaw_clamps_corrupt_expiration_without_overflow() {
-        for expires in [120, i32::MAX as u64, i64::MAX as u64 / 1000 + 1, i64::MAX as u64, u64::MAX] {
+        for expires in [
+            120,
+            i32::MAX as u64,
+            i64::MAX as u64 / 1000 + 1,
+            i64::MAX as u64,
+            u64::MAX,
+        ] {
             let mut store = empty_store();
             let before = Instant::now();
-            assert!(store.restore_blob(frozen_session(&"a".repeat(32), expires).as_bytes(), &"b".repeat(32), || None));
-            let remaining = store.next_expiry().unwrap().saturating_duration_since(before);
-            let expected = (expires as i64).saturating_mul(1000).clamp(0, i32::MAX as i64) as u64;
+            assert!(store.restore_blob(
+                frozen_session(&"a".repeat(32), expires).as_bytes(),
+                &"b".repeat(32),
+                || None
+            ));
+            let remaining = store
+                .next_expiry()
+                .unwrap()
+                .saturating_duration_since(before);
+            let expected = (expires as i64)
+                .saturating_mul(1000)
+                .clamp(0, i32::MAX as i64) as u64;
             assert!(remaining >= Duration::from_millis(expected));
             assert!(remaining < Duration::from_millis(expected + 1000));
         }

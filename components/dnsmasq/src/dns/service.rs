@@ -233,7 +233,12 @@ pub struct LocalDnsService {
 }
 
 impl LocalDnsService {
-    pub fn new(config: impl Into<Arc<DnsConfig>>, hosts: Hosts, local_ttl: u32, max_udp: usize) -> Self {
+    pub fn new(
+        config: impl Into<Arc<DnsConfig>>,
+        hosts: Hosts,
+        local_ttl: u32,
+        max_udp: usize,
+    ) -> Self {
         Self::new_with_limits(
             config,
             hosts,
@@ -355,7 +360,8 @@ impl LocalDnsService {
         cache: Option<&mut Cache>,
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
-        let answer = self.lookup_local_parsed(query, header, question, now, cache, tcp, &mut None)?;
+        let answer =
+            self.lookup_local_parsed(query, header, question, now, cache, tcp, &mut None)?;
         Ok(answer.map(|answer| self.finish_local_answer(answer)))
     }
 
@@ -382,7 +388,9 @@ impl LocalDnsService {
         let opt = if tcp {
             None
         } else {
-            find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
+            find_pseudoheader(query, true)
+                .ok()
+                .and_then(|scan| scan.opt)
         };
         let limit = if tcp {
             u16::MAX as usize
@@ -413,7 +421,9 @@ impl LocalDnsService {
         };
         // TCP needs OPT only after a hit; UDP needs it to size the writer.
         let opt = if tcp {
-            find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
+            find_pseudoheader(query, true)
+                .ok()
+                .and_then(|scan| scan.opt)
         } else {
             opt
         };
@@ -446,19 +456,40 @@ impl LocalDnsService {
         cache: Option<&mut Cache>,
         tcp: bool,
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
-        let opt = find_pseudoheader(query, true).ok().and_then(|scan| scan.opt);
-        let limit = if tcp { u16::MAX as usize } else {
-            opt.as_ref().map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)))
+        let opt = find_pseudoheader(query, true)
+            .ok()
+            .and_then(|scan| scan.opt);
+        let limit = if tcp {
+            u16::MAX as usize
+        } else {
+            opt.as_ref()
+                .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)))
         };
         let answerer = LocalAnswerer {
-            config: &self.config, hosts: &mut self.hosts,
-            local_ttl: self.local_ttl, max_packet: limit,
+            config: &self.config,
+            hosts: &mut self.hosts,
+            local_ttl: self.local_ttl,
+            max_packet: limit,
         };
         let Some(mut answer) = answerer.answer_forward_rule(
-            header, question, name, &self.leases, now, cache.as_deref(), self.query_logging,
-        )? else { return Ok(None); };
+            header,
+            question,
+            name,
+            &self.leases,
+            now,
+            cache.as_deref(),
+            self.query_logging,
+        )?
+        else {
+            return Ok(None);
+        };
         if let Some(opt) = opt {
-            append_empty_opt(&mut answer.packet, self.edns_packet_max, opt.dnssec_ok() && tcp, limit)?;
+            append_empty_opt(
+                &mut answer.packet,
+                self.edns_packet_max,
+                opt.dnssec_ok() && tcp,
+                limit,
+            )?;
         }
         Ok(Some(answer))
     }
@@ -569,16 +600,34 @@ mod tests {
     fn tcp_config_snapshot_shares_direct_records_until_a_real_domain_change() {
         use crate::config::domains::{DomainAddress, DomainInterfaces};
         let mut config = DnsConfig::default();
-        config.apply(&lex_line(b"host-record=direct.test,192.0.2.8").unwrap().unwrap()).unwrap();
+        config
+            .apply(
+                &lex_line(b"host-record=direct.test,192.0.2.8")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
         let hosts = super::super::local::configured_hosts(&config, 37);
         let mut parent = LocalDnsService::new(config, hosts, 37, 1232);
-        let child = LocalDnsService::new(Arc::clone(&parent.config), parent.hosts.tcp_snapshot(), 37, 1232);
+        let child = LocalDnsService::new(
+            Arc::clone(&parent.config),
+            parent.hosts.tcp_snapshot(),
+            37,
+            1232,
+        );
         parent.publish_domain_interfaces(Arc::new(DomainInterfaces::default()));
         assert!(Arc::ptr_eq(&parent.config, &child.config));
-        assert_eq!(parent.config.host_records.as_ptr(), child.config.host_records.as_ptr());
-        parent.publish_domain_interfaces(Arc::new(DomainInterfaces { addresses: vec![DomainAddress {
-            label: b"eth0".to_vec(), address: "192.0.2.1".parse().unwrap(), prefix: 24,
-        }] }));
+        assert_eq!(
+            parent.config.host_records.as_ptr(),
+            child.config.host_records.as_ptr()
+        );
+        parent.publish_domain_interfaces(Arc::new(DomainInterfaces {
+            addresses: vec![DomainAddress {
+                label: b"eth0".to_vec(),
+                address: "192.0.2.1".parse().unwrap(),
+                prefix: 24,
+            }],
+        }));
         assert!(!Arc::ptr_eq(&parent.config, &child.config));
         assert!(child.config.domain_interfaces.addresses.is_empty());
         assert_eq!(parent.config.domain_interfaces.addresses.len(), 1);
@@ -914,7 +963,10 @@ mod tests {
 
     #[test]
     fn tcp_write_frame_keeps_prefix_and_payload_across_partial_writes() {
-        struct ShortWriter { bytes: Vec<u8>, maximum: usize }
+        struct ShortWriter {
+            bytes: Vec<u8>,
+            maximum: usize,
+        }
         impl Write for ShortWriter {
             fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
                 let count = bytes.len().min(self.maximum);
@@ -930,14 +982,19 @@ mod tests {
                 }
                 Ok(count)
             }
-            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
         }
         for length in [1, 32, 1232, u16::MAX as usize] {
             let packet = vec![0xa5; length];
             let expected = encode_tcp_frame(&packet).unwrap();
             for maximum in [1, 2, 3, 31, length + 2] {
                 let frame = TcpWriteFrame::new(packet.clone()).unwrap();
-                let mut output = ShortWriter { bytes: Vec::new(), maximum };
+                let mut output = ShortWriter {
+                    bytes: Vec::new(),
+                    maximum,
+                };
                 let mut offset = 0;
                 while offset < frame.wire_len() {
                     offset += frame.write_from(&mut output, offset).unwrap();
@@ -946,8 +1003,14 @@ mod tests {
                 assert_eq!(output.bytes, expected);
             }
         }
-        assert!(matches!(TcpWriteFrame::new(Vec::new()), Err(FrameError::Empty)));
-        assert!(matches!(TcpWriteFrame::new(vec![0; 65536]), Err(FrameError::TooLarge)));
+        assert!(matches!(
+            TcpWriteFrame::new(Vec::new()),
+            Err(FrameError::Empty)
+        ));
+        assert!(matches!(
+            TcpWriteFrame::new(vec![0; 65536]),
+            Err(FrameError::TooLarge)
+        ));
     }
 
     #[test]
@@ -969,7 +1032,10 @@ mod tests {
                 assert!(before.is_none());
                 assert_eq!(after.unwrap(), packet);
                 assert_eq!(used, first.len() - split);
-                assert_eq!(framer.push_frame(&input[used..]).unwrap().1.unwrap(), b"second");
+                assert_eq!(
+                    framer.push_frame(&input[used..]).unwrap().1.unwrap(),
+                    b"second"
+                );
             }
             assert_eq!(framer.buffered_len(), 0);
             assert!(framer.finish().is_ok());

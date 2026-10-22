@@ -266,7 +266,11 @@ pub struct Rule {
 
 impl Default for Proto {
     fn default() -> Proto {
-        Proto { invert: false, any: true, name: None }
+        Proto {
+            invert: false,
+            any: true,
+            name: None,
+        }
     }
 }
 
@@ -380,6 +384,9 @@ pub struct State {
 
 impl State {
     pub fn network(&self, name: &str) -> Option<&Net> {
-        self.networks.iter().find(|(n, _)| n == name).map(|(_, net)| net)
+        self.networks
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, net)| net)
     }
 }

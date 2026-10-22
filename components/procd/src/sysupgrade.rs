@@ -35,7 +35,10 @@ use owrt_ubus::convert::json_to_fields as json_to_blob;
 pub fn validate_call(file: &str) -> Result<Vec<u8>, String> {
     use std::process::{Command, Stdio};
     let mut cmd = Command::new(VALIDATE_SCRIPT);
-    cmd.arg(file).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::null());
+    cmd.arg(file)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
     crate::proc::inherit_ignored_sigpipe(&mut cmd);
     let mut child = match cmd.spawn() {
         Ok(c) => c,
@@ -159,7 +162,7 @@ pub fn exec_upgraded(
             argv.push(c);
         }
     }
-    let _=owrt_platform::procd::process::execvp(&argv0,&argv);
+    let _ = owrt_platform::procd::process::execvp(&argv0, &argv);
 
     // Cleanup on failure, exactly the C's order.
     crate::sys::stderr_line("Failed to exec upgraded.");
@@ -198,6 +201,9 @@ mod tests {
         if std::path::Path::new(VALIDATE_SCRIPT).exists() {
             return; // a real OpenWrt host; the other cases cover it
         }
-        assert_eq!(validate_call("/nonexistent"), Err("no JSON input".to_string()));
+        assert_eq!(
+            validate_call("/nonexistent"),
+            Err("no JSON input".to_string())
+        );
     }
 }

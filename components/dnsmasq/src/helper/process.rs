@@ -141,7 +141,10 @@ impl Helper {
         unsafe { Self::start_inner(config, Some(maximum), true) }
     }
 
-    #[expect(unsafe_code, reason = "audited owned helper snapshot at the fork boundary")]
+    #[expect(
+        unsafe_code,
+        reason = "audited owned helper snapshot at the fork boundary"
+    )]
     unsafe fn start_inner(
         config: Config,
         init_capacity: Option<usize>,
@@ -160,9 +163,9 @@ impl Helper {
         // SAFETY: the unsafe caller guarantees the process prerequisites.
         // HelperStartup owns only path/name buffers and scalar config; child
         // uses only this snapshot and the two fresh IPC channels passed to it.
-        let (startup, pid, writer, reader) = unsafe {
-            dnsmasq_platform::process::spawn_helper(startup, child)
-        }.map_err(start_error)?;
+        let (startup, pid, writer, reader) =
+            unsafe { dnsmasq_platform::process::spawn_helper(startup, child) }
+                .map_err(start_error)?;
         let config = startup.config;
         Ok(Self {
             pid: pid.as_raw_nonzero().get(),
@@ -784,7 +787,10 @@ fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Resul
 
 #[cfg(feature = "process-test-support")]
 #[path = "process_tests.rs"]
-#[expect(unsafe_code, reason = "standalone process tests establish the fork prerequisites")]
+#[expect(
+    unsafe_code,
+    reason = "standalone process tests establish the fork prerequisites"
+)]
 mod process_tests;
 
 #[cfg(feature = "process-test-support")]
@@ -792,7 +798,10 @@ mod process_tests;
 /// Run only on a standalone process main thread, without shared writable
 /// mappings, application atfork hooks or held locks.
 #[doc(hidden)]
-#[expect(unsafe_code, reason = "test runner must preserve the explicit fork contract")]
+#[expect(
+    unsafe_code,
+    reason = "test runner must preserve the explicit fork contract"
+)]
 pub unsafe fn run_process_tests() {
     process_tests::run();
 }
@@ -839,5 +848,4 @@ mod tests {
             io::ErrorKind::BrokenPipe
         );
     }
-
 }

@@ -340,7 +340,9 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
             if saved_delta.is_some() {
                 // Retain the old inode until draft cleanup also succeeds.
                 // A failed truncate must not turn a retry into a second list-add.
-                let parent = real.parent().ok_or_else(|| std::io::Error::other("config has no parent"))?;
+                let parent = real
+                    .parent()
+                    .ok_or_else(|| std::io::Error::other("config has no parent"))?;
                 let template = parent.join(format!(".{name}.uci-backup-XXXXXX"));
                 let (placeholder, old) = sys::mkstemp(&template.to_string_lossy())?;
                 drop(placeholder);
@@ -355,7 +357,9 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
             Ok(real) => real,
             Err(_) => {
                 let _ = fs::remove_file(&tmp);
-                if let Some(old) = backup { let _ = fs::remove_file(old); }
+                if let Some(old) = backup {
+                    let _ = fs::remove_file(old);
+                }
                 return Err(Error::Io);
             }
         };
@@ -372,7 +376,9 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
                 return Err(Error::Io);
             }
         }
-        if let Some(old) = backup { let _ = fs::remove_file(old); }
+        if let Some(old) = backup {
+            let _ = fs::remove_file(old);
+        }
     } else if let Some(tmp) = &tmpname {
         let _ = fs::remove_file(tmp);
     }

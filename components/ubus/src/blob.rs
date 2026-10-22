@@ -83,8 +83,10 @@ pub struct AttrIter<'a> {
 
 impl std::fmt::Debug for AttrIter<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("AttrIter").field("bytes", &self.buf.len())
-            .field("offset", &self.offset).finish_non_exhaustive()
+        f.debug_struct("AttrIter")
+            .field("bytes", &self.buf.len())
+            .field("offset", &self.offset)
+            .finish_non_exhaustive()
     }
 }
 
@@ -173,7 +175,9 @@ impl<'a> Field<'a> {
 
     pub fn as_f64(&self) -> Option<f64> {
         if self.ty == MsgType::Double as u32 && self.data.len() == 8 {
-            return Some(f64::from_bits(u64::from_be_bytes(self.data.try_into().unwrap())));
+            return Some(f64::from_bits(u64::from_be_bytes(
+                self.data.try_into().unwrap(),
+            )));
         }
         None
     }
@@ -307,7 +311,8 @@ impl BlobBuf {
         let header = 4 + pad4(2 + name.len() + 1);
         self.data.reserve(header);
         let offset = self.open(ty as u32, true);
-        self.data.extend_from_slice(&(name.len() as u16).to_be_bytes());
+        self.data
+            .extend_from_slice(&(name.len() as u16).to_be_bytes());
         self.data.extend_from_slice(name);
         self.data.resize(offset + header, 0);
         offset
@@ -383,7 +388,8 @@ impl BlobBuf {
         let header = 4 + pad4(2 + name.len() + 1);
         self.data.reserve(header + data.len() + 3);
         let offset = self.open(ty, true);
-        self.data.extend_from_slice(&(name.len() as u16).to_be_bytes());
+        self.data
+            .extend_from_slice(&(name.len() as u16).to_be_bytes());
         self.data.extend_from_slice(name.as_bytes());
         self.data.resize(offset + header, 0);
         self.data.extend_from_slice(data);
@@ -477,17 +483,19 @@ mod tests {
         // Do not finalize through as_bytes before testing the mutable API.
         let bytes = b.as_mut_bytes();
         assert_eq!(bytes.as_ptr(), storage);
-        assert_eq!(bytes, &[
-            0x00, 0x00, 0x00, 0x38, // whole blob: 56 bytes
-            0x03, 0x00, 0x00, 0x08, 0x11, 0x22, 0x33, 0x44,
-            0x07, 0x00, 0x00, 0x2c, // DATA: 44 bytes
-            0x81, 0x00, 0x00, 0x28, 0x00, 0x01, b'a', 0x00,
-            0x82, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00,
-            0x86, 0x00, 0x00, 0x0a, 0x00, 0x01, b'v', 0x00,
-            0x12, 0x34, 0x00, 0x00, // INT16 raw length 10, padded to 12
-            0x83, 0x00, 0x00, 0x0b, 0x00, 0x01, b's', 0x00,
-            b'x', b'y', 0x00, 0x00, // STRING raw length 11, padded to 12
-        ]);
+        assert_eq!(
+            bytes,
+            &[
+                0x00, 0x00, 0x00, 0x38, // whole blob: 56 bytes
+                0x03, 0x00, 0x00, 0x08, 0x11, 0x22, 0x33, 0x44, 0x07, 0x00, 0x00,
+                0x2c, // DATA: 44 bytes
+                0x81, 0x00, 0x00, 0x28, 0x00, 0x01, b'a', 0x00, 0x82, 0x00, 0x00, 0x20, 0x00, 0x00,
+                0x00, 0x00, 0x86, 0x00, 0x00, 0x0a, 0x00, 0x01, b'v', 0x00, 0x12, 0x34, 0x00,
+                0x00, // INT16 raw length 10, padded to 12
+                0x83, 0x00, 0x00, 0x0b, 0x00, 0x01, b's', 0x00, b'x', b'y', 0x00,
+                0x00, // STRING raw length 11, padded to 12
+            ]
+        );
         bytes[8..12].copy_from_slice(&0xaabbccddu32.to_be_bytes());
         let (head, next) = attr_at(b.as_bytes(), 0).unwrap();
         assert_eq!(next, 56);
@@ -500,7 +508,10 @@ mod tests {
         let values: Vec<_> = table.children().collect();
         assert_eq!(values.len(), 2);
         assert_eq!((values[0].name, values[0].as_u32()), ("v", Some(0x1234)));
-        assert_eq!((values[1].name, values[1].as_bytes()), ("s", Some(&b"xy"[..])));
+        assert_eq!(
+            (values[1].name, values[1].as_bytes()),
+            ("s", Some(&b"xy"[..]))
+        );
     }
 
     #[test]
@@ -576,7 +587,11 @@ mod tests {
         v.extend_from_slice(b"a\0");
         v.extend_from_slice(&7u16.to_be_bytes());
         assert_eq!(v.len(), 10, "exactly raw_len bytes, no padding");
-        assert_eq!(iter(&v).count(), 0, "C sees rem=10 < pad_len=12 and yields nothing");
+        assert_eq!(
+            iter(&v).count(),
+            0,
+            "C sees rem=10 < pad_len=12 and yields nothing"
+        );
         assert_eq!(fields(&v).count(), 0);
         // with the padding present both agree
         v.extend_from_slice(&[0, 0]);

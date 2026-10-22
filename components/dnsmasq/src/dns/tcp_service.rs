@@ -297,7 +297,14 @@ impl TcpDnsService {
         forward_name: Option<&super::daemon::ForwardName>,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
         self.start_with_cache_sink(
-            query, local, deadline, Some(cache), no_cache, Some(now), cached_name, forward_name,
+            query,
+            local,
+            deadline,
+            Some(cache),
+            no_cache,
+            Some(now),
+            cached_name,
+            forward_name,
         )
     }
 
@@ -346,7 +353,13 @@ impl TcpDnsService {
         };
         let progress = self.upstream.start(group, query, deadline);
         self.finish_progress(
-            query.to_vec(), local, progress, cache, no_cache, now, cached_name,
+            query.to_vec(),
+            local,
+            progress,
+            cache,
+            no_cache,
+            now,
+            cached_name,
         )
     }
 
@@ -461,7 +474,11 @@ impl TcpDnsService {
             return Ok(PreparedQuery::Answer(reply));
         }
         let policy_reply = self.query_policy.reply_with_cache(
-            query, &self.routing, local, self.edns_packet_max, true,
+            query,
+            &self.routing,
+            local,
+            self.edns_packet_max,
+            true,
             forward_name.map(|cursor| &cursor.name),
             forward_name.map_or(cached_name, |cursor| cursor.cached),
             self.query_logging.then_some(&mut self.query_events),
@@ -470,9 +487,12 @@ impl TcpDnsService {
             return Ok(PreparedQuery::Answer(packet));
         }
         let question = Question::parse(query, 12)?;
-        let route = self
-            .routing
-            .select(forward_name.map_or(&question.name, |cursor| &cursor.name), question.qtype, question.class, false);
+        let route = self.routing.select(
+            forward_name.map_or(&question.name, |cursor| &cursor.name),
+            question.qtype,
+            question.class,
+            false,
+        );
         let Some(group) = route.upstream_group() else {
             return match route.reason {
                 RouteReason::NoMatchingRule => {

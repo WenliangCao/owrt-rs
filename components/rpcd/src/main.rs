@@ -6,18 +6,18 @@
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-mod file;
 mod delayed;
+mod file;
 mod glob;
 mod ip;
 mod iwinfo;
 mod iwinfoobj;
 mod luci;
+mod lucirpc;
 mod procwait;
+mod rc;
 mod readiness;
 mod reply;
-mod lucirpc;
-mod rc;
 mod rpcsys;
 mod rrdns;
 mod rtnl;
@@ -54,7 +54,9 @@ impl Ctx {
 
     pub fn file_access_bytes(&self, sid: Option<&str>, path: &[u8], perm: &str) -> bool {
         let Some(sid) = sid else { return true };
-        self.sessions.borrow_mut().access_bytes(sid, "file", path, perm)
+        self.sessions
+            .borrow_mut()
+            .access_bytes(sid, "file", path, perm)
     }
 
     /// Plain ubus call helper for the luci methods.
@@ -108,7 +110,10 @@ impl Deferrer {
         let taken = std::sync::Arc::clone(&slot);
         let d = self.clone();
         let spawned = std::thread::Builder::new().spawn(move || {
-            let req = taken.lock().expect("shared daemon state poisoned by a panic").take();
+            let req = taken
+                .lock()
+                .expect("shared daemon state poisoned by a panic")
+                .take();
             if let Some(req) = req {
                 d.finish(req, work());
             }
@@ -117,8 +122,14 @@ impl Deferrer {
             Ok(_) => None,
             Err(error) => {
                 eprintln!("rpcd-rs: cannot create worker thread: {error}");
-                let req = slot.lock().expect("shared daemon state poisoned by a panic").take();
-                Some((req.expect("unstarted worker keeps its request"), session::Reply::empty(owrt_ubus::status::UNKNOWN_ERROR)))
+                let req = slot
+                    .lock()
+                    .expect("shared daemon state poisoned by a panic")
+                    .take();
+                Some((
+                    req.expect("unstarted worker keeps its request"),
+                    session::Reply::empty(owrt_ubus::status::UNKNOWN_ERROR),
+                ))
             }
         }
     }
@@ -130,15 +141,23 @@ const SIGHUP: i32 = 1;
 const SIGUSR1: i32 = 10;
 const SIGCHLD: i32 = 17;
 
-fn wake(fd: RawFd) { owrt_platform::rpcd::wake(fd); }
-
-extern "C" fn handle_signal(sig: i32) {
-    if sig != SIGCHLD { SIGNAL.store(sig, Ordering::SeqCst); }
-    let fd = WAKE_FD.load(Ordering::SeqCst);
-    if fd >= 0 { wake(fd); }
+fn wake(fd: RawFd) {
+    owrt_platform::rpcd::wake(fd);
 }
 
-fn drain(fd: RawFd) { owrt_platform::rpcd::drain_pipe(fd); }
+extern "C" fn handle_signal(sig: i32) {
+    if sig != SIGCHLD {
+        SIGNAL.store(sig, Ordering::SeqCst);
+    }
+    let fd = WAKE_FD.load(Ordering::SeqCst);
+    if fd >= 0 {
+        wake(fd);
+    }
+}
+
+fn drain(fd: RawFd) {
+    owrt_platform::rpcd::drain_pipe(fd);
+}
 
 fn wake_pipe() -> std::io::Result<(std::os::fd::OwnedFd, std::os::fd::OwnedFd)> {
     let (read, write) = sys::pipe()?;
@@ -163,8 +182,13 @@ struct Ids {
     iwinfo: u32,
 }
 
-fn register(conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'static str, MsgType)>)]) -> std::io::Result<u32> {
-    let refs: Vec<(&str, &[(&str, MsgType)])> = methods.iter().map(|(n, p)| (*n, p.as_slice())).collect();
+fn register(
+    conn: &mut Connection,
+    name: &str,
+    methods: &[(&'static str, Vec<(&'static str, MsgType)>)],
+) -> std::io::Result<u32> {
+    let refs: Vec<(&str, &[(&str, MsgType)])> =
+        methods.iter().map(|(n, p)| (*n, p.as_slice())).collect();
     conn.add_object(name, &refs, 1000)
 }
 
@@ -236,9 +260,13 @@ fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer:
 /// exec_self: re-run with the same arguments and RPC_HANGUP=1.
 fn exec_self(children: &delayed::Children) {
     use std::os::unix::process::CommandExt;
-    let exe = std::env::current_exe().unwrap_or_else(|_| std::env::args_os().next().unwrap_or_default().into());
-    let err = std::process::Command::new(exe).args(std::env::args_os().skip(1))
-        .env("RPC_HANGUP", "1").env(delayed::REEXEC_ENV, children.reexec_pids()).exec();
+    let exe = std::env::current_exe()
+        .unwrap_or_else(|_| std::env::args_os().next().unwrap_or_default().into());
+    let err = std::process::Command::new(exe)
+        .args(std::env::args_os().skip(1))
+        .env("RPC_HANGUP", "1")
+        .env(delayed::REEXEC_ENV, children.reexec_pids())
+        .exec();
     eprintln!("respawn failed: {err}");
 }
 
@@ -267,7 +295,12 @@ fn main() {
             break;
         }
         let opt = a.as_bytes()[1];
-        let val = if a.len() > 2 { Some(a[2..].to_owned()) } else { i += 1; argv.get(i).cloned() };
+        let val = if a.len() > 2 {
+            Some(a[2..].to_owned())
+        } else {
+            i += 1;
+            argv.get(i).cloned()
+        };
         match (opt, val) {
             (b's', Some(v)) => socket = Some(v),
             (b't', Some(v)) => {
@@ -283,7 +316,9 @@ fn main() {
         std::process::exit(255);
     }
     if std::fs::metadata(session::RUN_DIR).is_err() {
-        let _ = std::fs::DirBuilder::new().mode(0o700).create(session::RUN_DIR);
+        let _ = std::fs::DirBuilder::new()
+            .mode(0o700)
+            .create(session::RUN_DIR);
     }
     rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o077));
     sys::ignore_signal(sys::SIGPIPE);
@@ -328,7 +363,13 @@ fn main() {
     }
 
     loop {
-        if let Err(error) = serve(&ctx, &mut conn, &ids, pipe_r.as_raw_fd(), pipe_w.as_raw_fd()) {
+        if let Err(error) = serve(
+            &ctx,
+            &mut conn,
+            &ids,
+            pipe_r.as_raw_fd(),
+            pipe_w.as_raw_fd(),
+        ) {
             eprintln!("ubus connection lost: {error}");
         }
         // A deferred worker may still be running, but serve() has dropped its
@@ -342,7 +383,11 @@ fn main() {
 fn maintain(ctx: &Ctx) {
     ctx.delayed.borrow_mut().reap();
     ctx.sessions.borrow_mut().expire();
-    let due = ctx.apply.borrow().deadline.is_some_and(|at| at <= Instant::now());
+    let due = ctx
+        .apply
+        .borrow()
+        .deadline
+        .is_some_and(|at| at <= Instant::now());
     if due {
         uciobj::apply_timeout(ctx);
     }
@@ -350,10 +395,16 @@ fn maintain(ctx: &Ctx) {
 
 fn check_signal(ctx: &Ctx, conn: Option<&Connection>) {
     let sig = SIGNAL.swap(0, Ordering::SeqCst);
-    if sig == 0 { return; }
+    if sig == 0 {
+        return;
+    }
     ctx.sessions.borrow().freeze();
-    if let Some(conn) = conn { let _ = conn.shutdown(); }
-    if sig == SIGHUP { exec_self(&ctx.delayed.borrow()); }
+    if let Some(conn) = conn {
+        let _ = conn.shutdown();
+    }
+    if sig == SIGHUP {
+        exec_self(&ctx.delayed.borrow());
+    }
     std::process::exit(0);
 }
 
@@ -376,18 +427,37 @@ fn reconnect(ctx: &Ctx, read_fd: RawFd) -> (Connection, Ids) {
             retry_at = Instant::now() + Duration::from_secs(1);
             continue;
         }
-        let next = [Some(retry_at), ctx.sessions.borrow().next_expiry(), ctx.apply.borrow().deadline]
-            .into_iter().flatten().min().unwrap();
-        let timeout = next.saturating_duration_since(Instant::now()).as_micros().div_ceil(1000)
+        let next = [
+            Some(retry_at),
+            ctx.sessions.borrow().next_expiry(),
+            ctx.apply.borrow().deadline,
+        ]
+        .into_iter()
+        .flatten()
+        .min()
+        .unwrap();
+        let timeout = next
+            .saturating_duration_since(Instant::now())
+            .as_micros()
+            .div_ceil(1000)
             .min(i32::MAX as u128) as i32;
-        let mut fds = [sys::PollFd { fd: read_fd, events: sys::POLLIN, revents: 0 }];
+        let mut fds = [sys::PollFd {
+            fd: read_fd,
+            events: sys::POLLIN,
+            revents: 0,
+        }];
         if sys::poll_fds(&mut fds, timeout).is_ok() && fds[0].revents != 0 {
             drain(read_fd);
         }
     }
 }
 
-fn register_live(ctx: &Ctx, conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'static str, MsgType)>)]) -> std::io::Result<u32> {
+fn register_live(
+    ctx: &Ctx,
+    conn: &mut Connection,
+    name: &str,
+    methods: &[(&'static str, Vec<(&'static str, MsgType)>)],
+) -> std::io::Result<u32> {
     maintain(ctx);
     check_signal(ctx, Some(conn));
     register(conn, name, methods)
@@ -403,14 +473,21 @@ fn register_objects(ctx: &Ctx, conn: &mut Connection) -> std::io::Result<Ids> {
         sys: register_live(ctx, conn, "rpc-sys", &rpcsys::signature())?,
         rrdns: register_live(ctx, conn, "network.rrdns", &rrdns::signature())?,
         lucirpc: {
-            let name = std::env::var("OWRT_RPCD_LUCI_RPC_NAME").unwrap_or_else(|_| "luci-rpc".to_owned());
+            let name =
+                std::env::var("OWRT_RPCD_LUCI_RPC_NAME").unwrap_or_else(|_| "luci-rpc".to_owned());
             register_live(ctx, conn, &name, &lucirpc::signature())?
         },
         iwinfo: register_live(ctx, conn, "iwinfo", &iwinfoobj::signature())?,
     })
 }
 
-fn serve(ctx: &Ctx, conn: &mut Connection, ids: &Ids, read_fd: RawFd, wake_fd: RawFd) -> std::io::Result<()> {
+fn serve(
+    ctx: &Ctx,
+    conn: &mut Connection,
+    ids: &Ids,
+    read_fd: RawFd,
+    wake_fd: RawFd,
+) -> std::io::Result<()> {
     let (deferrer, rx) = Deferrer::channel(wake_fd);
     let ubus_fd = conn.as_raw_fd();
     let mut readiness = readiness::Readiness::new([ubus_fd, read_fd]);
@@ -442,15 +519,25 @@ fn serve(ctx: &Ctx, conn: &mut Connection, ids: &Ids, read_fd: RawFd, wake_fd: R
         // next timer
         let now = Instant::now();
         let mut timeout: i32 = -1;
-        let deadlines = [ctx.sessions.borrow().next_expiry(), ctx.apply.borrow().deadline, ctx.apply.borrow().event_retry];
+        let deadlines = [
+            ctx.sessions.borrow().next_expiry(),
+            ctx.apply.borrow().deadline,
+            ctx.apply.borrow().event_retry,
+        ];
         for d in deadlines.into_iter().flatten() {
-            let ms = if d <= now { 0 } else { (d - now).as_micros().div_ceil(1000).min(i32::MAX as u128) as i32 };
+            let ms = if d <= now {
+                0
+            } else {
+                (d - now).as_micros().div_ceil(1000).min(i32::MAX as u128) as i32
+            };
             timeout = if timeout < 0 { ms } else { timeout.min(ms) };
         }
         if conn.has_pending() {
             timeout = 0;
         }
-        let Ok([bus_ready, wake_ready]) = readiness.wait(timeout) else { continue };
+        let Ok([bus_ready, wake_ready]) = readiness.wait(timeout) else {
+            continue;
+        };
         if wake_ready {
             drain(read_fd);
         }
@@ -500,7 +587,11 @@ fn strtol0(s: &str) -> i64 {
         v = v.saturating_mul(base).saturating_add(d);
         i += 1;
     }
-    if neg { -v } else { v }
+    if neg {
+        -v
+    } else {
+        v
+    }
 }
 
 #[cfg(test)]
@@ -510,9 +601,12 @@ mod reconnect_tests {
     #[test]
     fn file_read_denies_non_utf8_session_id_before_opening_the_path() {
         let ctx = Ctx {
-            socket: None, exec_timeout_ms: 1000,
+            socket: None,
+            exec_timeout_ms: 1000,
             sessions: RefCell::new(session::Store::new()),
-            apply: Default::default(), delayed: Default::default(), uci_read_cache: Default::default(),
+            apply: Default::default(),
+            delayed: Default::default(),
+            uci_read_cache: Default::default(),
         };
         let mut args = owrt_ubus::BlobBuf::new();
         args.msg_string("path", "/does-not-exist");
@@ -528,14 +622,26 @@ mod reconnect_tests {
         drop(receiver);
         let (_current, receiver) = Deferrer::channel(-1);
         let done = Done {
-            req: Request { peer: 42, seq: 7, objid: 99, method: "exec".into(),
-                user: None, group: None, data: vec![], fd: None, no_reply: false },
+            req: Request {
+                peer: 42,
+                seq: 7,
+                objid: 99,
+                method: "exec".into(),
+                user: None,
+                group: None,
+                data: vec![],
+                fd: None,
+                no_reply: false,
+            },
             reply: session::Reply::empty(0),
         };
         // A worker's captured Sender stays on the old generation even if the
         // new daemon happens to reuse the same peer/sequence/object numbers.
         assert!(old.tx.send(done).is_err());
-        assert!(matches!(receiver.try_recv(), Err(mpsc::TryRecvError::Empty)));
+        assert!(matches!(
+            receiver.try_recv(),
+            Err(mpsc::TryRecvError::Empty)
+        ));
     }
 }
 
@@ -556,7 +662,10 @@ mod wake_tests {
             loop {
                 match rustix::io::write(&write_end, &bytes) {
                     Ok(n) => assert!(n > 0),
-                    Err(error) => { assert_eq!(error, rustix::io::Errno::AGAIN); break; }
+                    Err(error) => {
+                        assert_eq!(error, rustix::io::Errno::AGAIN);
+                        break;
+                    }
                 }
             }
             rustix::fs::fcntl_setfl(&write_end, original_flags).unwrap();
@@ -572,8 +681,14 @@ mod wake_tests {
         // A blocking signal handler must fail a bounded regression test rather
         // than hanging the entire test suite.
         let mut child = std::process::Command::new(std::env::current_exe().unwrap())
-            .args(["--exact", "wake_tests::saturated_wake_pipe_keeps_signal_handling_live", "--nocapture"])
-            .env(CHILD, "1").spawn().unwrap();
+            .args([
+                "--exact",
+                "wake_tests::saturated_wake_pipe_keeps_signal_handling_live",
+                "--nocapture",
+            ])
+            .env(CHILD, "1")
+            .spawn()
+            .unwrap();
         let deadline = Instant::now() + Duration::from_secs(3);
         loop {
             if let Some(status) = child.try_wait().unwrap() {

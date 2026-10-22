@@ -103,7 +103,11 @@ impl Ring {
             id: self.read_u32(offset + H_ID),
             priority: self.read_u32(offset + H_PRIORITY),
             source: self.read_u32(offset + H_SOURCE),
-            time_ms: u64::from_ne_bytes(self.arena[offset + H_TIME..offset + H_TIME + 8].try_into().unwrap()),
+            time_ms: u64::from_ne_bytes(
+                self.arena[offset + H_TIME..offset + H_TIME + 8]
+                    .try_into()
+                    .unwrap(),
+            ),
             text: &self.arena[offset + HEAD..offset + HEAD + size],
         }
     }
@@ -171,7 +175,11 @@ impl Ring {
     pub fn list(&self, count: i64) -> impl Iterator<Item = Record<'_>> + '_ {
         let cur = self.next_id as i64;
         let min = if count != 0 {
-            if count < cur { cur - count } else { 0 }
+            if count < cur {
+                cur - count
+            } else {
+                0
+            }
         } else {
             0
         };
@@ -260,13 +268,20 @@ mod tests {
 
     #[test]
     fn normalize_strips_priority_timestamp_and_trailing_space() {
-        let (p, m) = stored(b"<30>Sep  2 13:16:33 reload_config[1]: hello\n", SOURCE_SYSLOG).unwrap();
+        let (p, m) = stored(
+            b"<30>Sep  2 13:16:33 reload_config[1]: hello\n",
+            SOURCE_SYSLOG,
+        )
+        .unwrap();
         assert_eq!(p, 30);
         assert_eq!(m, b"reload_config[1]: hello");
         let (p, m) = stored(b"<6>[  123.456] kernel line", SOURCE_KLOG).unwrap();
         assert_eq!(p, 6);
         assert_eq!(m, b"[  123.456] kernel line");
-        assert_eq!(stored(b"plain", SOURCE_SYSLOG), Some((0, b"plain".to_vec())));
+        assert_eq!(
+            stored(b"plain", SOURCE_SYSLOG),
+            Some((0, b"plain".to_vec()))
+        );
         assert!(stored(b"<191>debug local7", SOURCE_SYSLOG).is_none());
     }
 
@@ -285,15 +300,27 @@ mod tests {
         assert_eq!(stored(b"<184>discard", SOURCE_SYSLOG), None);
         // Decimal syntax is consumed even when u32 conversion overflows;
         // malformed interiors remain part of the message.
-        assert_eq!(stored(b"<4294967295>max", SOURCE_SYSLOG), Some((u32::MAX, b"max".to_vec())));
-        assert_eq!(stored(b"<4294967296>overflow", SOURCE_SYSLOG), Some((0, b"overflow".to_vec())));
-        assert_eq!(stored(b"<12x>malformed", SOURCE_SYSLOG), Some((0, b"<12x>malformed".to_vec())));
+        assert_eq!(
+            stored(b"<4294967295>max", SOURCE_SYSLOG),
+            Some((u32::MAX, b"max".to_vec()))
+        );
+        assert_eq!(
+            stored(b"<4294967296>overflow", SOURCE_SYSLOG),
+            Some((0, b"overflow".to_vec()))
+        );
+        assert_eq!(
+            stored(b"<12x>malformed", SOURCE_SYSLOG),
+            Some((0, b"<12x>malformed".to_vec()))
+        );
         for raw in [b"".as_slice(), b" \t\n", b"\0ignored", b"<0>", b"<>"] {
             let (_, bytes) = stored(raw, SOURCE_SYSLOG).unwrap();
             assert!(bytes.is_empty(), "{raw:?}");
         }
         // an unparsable priority keeps the whole text (no regex match in C)
-        assert_eq!(stored(b"<1a>x", SOURCE_SYSLOG), Some((0, b"<1a>x".to_vec())));
+        assert_eq!(
+            stored(b"<1a>x", SOURCE_SYSLOG),
+            Some((0, b"<1a>x".to_vec()))
+        );
         // kernel lines never lose a timestamp-shaped prefix
         assert_eq!(
             stored(b"<4>0123456789ABCDE rest", SOURCE_KLOG),
@@ -317,7 +344,10 @@ mod tests {
         // C log_list: count 0 or >= current_id -> all; negative -> none.
         assert_eq!(ids(&r, 100), vec![2, 3]);
         assert_eq!(ids(&r, -1), Vec::<u32>::new());
-        assert_eq!(r.list(0).map(|e| e.msg().to_vec()).collect::<Vec<_>>(), [b"c", b"d"]);
+        assert_eq!(
+            r.list(0).map(|e| e.msg().to_vec()).collect::<Vec<_>>(),
+            [b"c", b"d"]
+        );
     }
 
     /// Bytes the retained records occupy in the arena: the 32-byte header plus
@@ -366,7 +396,12 @@ mod tests {
         let mut r = Ring::new(16 * 1024);
         for lap in 0..40 {
             for i in 0..200 {
-                r.add(format!("lap {lap} line {i} {}", "x".repeat(40)).as_bytes(), 0, 1, 0);
+                r.add(
+                    format!("lap {lap} line {i} {}", "x".repeat(40)).as_bytes(),
+                    0,
+                    1,
+                    0,
+                );
                 assert!(retained_bytes(&r) <= 16 * 1024, "lap {lap} line {i}");
             }
             r.add(&[b'L'; 1000], 0, 1, 0);
@@ -400,17 +435,51 @@ mod tests {
         for i in 0..300u32 {
             let msg = format!("record {i} {}", "y".repeat(i as usize % 50));
             let rec = r.add(msg.as_bytes(), i % 8, i % 2, 1_000 + i as u64);
-            assert_eq!((rec.id, rec.priority, rec.source, rec.time_ms), (i, i % 8, i % 2, 1_000 + i as u64));
+            assert_eq!(
+                (rec.id, rec.priority, rec.source, rec.time_ms),
+                (i, i % 8, i % 2, 1_000 + i as u64)
+            );
             assert_eq!(rec.msg(), msg.as_bytes());
             expected.push((i, msg.into_bytes()));
         }
         let cur = 300i64;
         let retained: Vec<u32> = ids(&r, 0);
         let oldest = retained[0];
-        assert_eq!(retained, (oldest..300).collect::<Vec<_>>(), "ids must stay contiguous");
-        for count in [-5i64, -1, 0, 1, 2, 7, 50, 100, (cur - oldest as i64) - 1, cur - oldest as i64, cur - 1, cur, cur + 1, 10_000] {
-            let min = if count != 0 { if count < cur { cur - count } else { 0 } } else { 0 };
-            let reference: Vec<u32> = retained.iter().copied().filter(|&id| (id as i64) >= min).collect();
+        assert_eq!(
+            retained,
+            (oldest..300).collect::<Vec<_>>(),
+            "ids must stay contiguous"
+        );
+        for count in [
+            -5i64,
+            -1,
+            0,
+            1,
+            2,
+            7,
+            50,
+            100,
+            (cur - oldest as i64) - 1,
+            cur - oldest as i64,
+            cur - 1,
+            cur,
+            cur + 1,
+            10_000,
+        ] {
+            let min = if count != 0 {
+                if count < cur {
+                    cur - count
+                } else {
+                    0
+                }
+            } else {
+                0
+            };
+            let reference: Vec<u32> = retained
+                .iter()
+                .copied()
+                .filter(|&id| (id as i64) >= min)
+                .collect();
             assert_eq!(ids(&r, count), reference, "count {count}");
         }
         for rec in r.list(0) {
@@ -436,8 +505,12 @@ mod tests {
         assert_eq!(ids(&r, 0), [u32::MAX - 1, u32::MAX, 0, 1]);
         assert_eq!(ids(&r, 1), [u32::MAX - 1, u32::MAX, 1]);
         assert_eq!(ids(&r, -1), [u32::MAX - 1, u32::MAX]);
-        assert_eq!(r.list(0).map(|record| record.msg().to_vec()).collect::<Vec<_>>(),
-                   [b"before a".as_slice(), b"before b", b"after a", b"after b"]);
+        assert_eq!(
+            r.list(0)
+                .map(|record| record.msg().to_vec())
+                .collect::<Vec<_>>(),
+            [b"before a".as_slice(), b"before b", b"after a", b"after b"]
+        );
     }
 
     #[test]

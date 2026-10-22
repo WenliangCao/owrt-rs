@@ -72,11 +72,16 @@ pub fn parse_dump(script: &Path, text: &str) -> Result<Vec<Handler>, String> {
     let mut out = Vec::new();
     let mut rest = text.trim_start();
     while !rest.is_empty() {
-        let (j, used) =
-            owrt_ubus::json::parse_prefix(rest).map(|j| (j, 0)).map_err(|e| e.to_string())?;
+        let (j, used) = owrt_ubus::json::parse_prefix(rest)
+            .map(|j| (j, 0))
+            .map_err(|e| e.to_string())?;
         // parse_prefix does not tell us how much it consumed, so find the end
         // of this object by matching braces outside strings
-        let end = if used == 0 { object_end(rest).ok_or("unterminated JSON object")? } else { used };
+        let end = if used == 0 {
+            object_end(rest).ok_or("unterminated JSON object")?
+        } else {
+            used
+        };
         out.push(Handler::from_json(script, &j)?);
         rest = rest[end..].trim_start();
     }
@@ -135,7 +140,9 @@ impl Handler {
         if let Some(Json::Array(items)) = j.get("config") {
             for item in items {
                 let Json::Array(pair) = item else { continue };
-                let (Some(Json::Str(spec)), ty) = (pair.first(), pair.get(1)) else { continue };
+                let (Some(Json::Str(spec)), ty) = (pair.first(), pair.get(1)) else {
+                    continue;
+                };
                 let ty = match ty {
                     Some(Json::Int(n)) => *n as u32,
                     _ => MsgType::String as u32,
@@ -200,7 +207,9 @@ pub fn discover(dir: &Path) -> Vec<Handler> {
     // stable order, so `get_proto_handlers` does not depend on readdir
     names.sort();
     for path in names {
-        let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else { continue };
+        let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else {
+            continue;
+        };
         match run_dump(dir, &path, stem) {
             Ok(text) => match parse_dump(&path, &text) {
                 Ok(hs) => out.extend(hs),
@@ -263,7 +272,10 @@ pub struct ProtoState {
 
 impl ProtoState {
     pub fn new() -> Self {
-        Self { last_error: -1, ..Default::default() }
+        Self {
+            last_error: -1,
+            ..Default::default()
+        }
     }
 }
 
@@ -272,7 +284,10 @@ impl ProtoState {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Action {
     /// Run the script with this action word, and this extra environment.
-    Run { action: &'static str, env: Vec<(String, String)> },
+    Run {
+        action: &'static str,
+        env: Vec<(String, String)>,
+    },
     /// Signal the running script and helper, and wait for them.
     Abort,
     /// Nothing to do; the caller returns success.
@@ -283,17 +298,16 @@ pub enum Action {
 
 /// `proto_shell_handler`, as a decision over the state machine. The comments
 /// mark each branch's counterpart in the C.
-pub fn plan(
-    state: &mut ProtoState,
-    cmd: Cmd,
-    handler: &Handler,
-) -> Action {
+pub fn plan(state: &mut ProtoState, cmd: Cmd, handler: &Handler) -> Action {
     match cmd {
         Cmd::Setup => match state.sm {
             Sm::Idle => {
                 state.last_error = -1;
                 state.sm = Sm::Setup;
-                Action::Run { action: "setup", env: Vec::new() }
+                Action::Run {
+                    action: "setup",
+                    env: Vec::new(),
+                }
             }
             // "default: return -1"
             _ => Action::Refuse,
@@ -308,7 +322,10 @@ pub fn plan(
                 return Action::Nothing;
             }
             state.renew_pending = false;
-            Action::Run { action: "renew", env: Vec::new() }
+            Action::Run {
+                action: "renew",
+                env: Vec::new(),
+            }
         }
         Cmd::Teardown => match state.sm {
             Sm::Setup if state.script.is_running() => {
@@ -323,7 +340,10 @@ pub fn plan(
                 if state.last_error >= 0 {
                     env.push(("ERROR".to_string(), state.last_error.to_string()));
                 }
-                Action::Run { action: "teardown", env }
+                Action::Run {
+                    action: "teardown",
+                    env,
+                }
             }
             // "case S_TEARDOWN: return 0"
             Sm::Teardown => Action::Nothing,
@@ -469,7 +489,10 @@ fn option_type(handler: &Handler, name: &str) -> Option<MsgType> {
             MsgType::String
         });
     }
-    IFACE_ATTRS.iter().find(|(n, _)| *n == name).map(|(_, t)| *t)
+    IFACE_ATTRS
+        .iter()
+        .find(|(n, _)| *n == name)
+        .map(|(_, t)| *t)
 }
 
 /// The config document a script receives as its fourth argument, built the way
@@ -478,7 +501,9 @@ fn option_type(handler: &Handler, name: &str) -> Option<MsgType> {
 pub fn config_json(handler: &Handler, opts: &[(String, Vec<String>)]) -> String {
     let mut b = BlobBuf::new();
     for (name, values) in opts {
-        let Some(ty) = option_type(handler, name) else { continue };
+        let Some(ty) = option_type(handler, name) else {
+            continue;
+        };
         match ty {
             MsgType::Array => {
                 let a = b.msg_open_array(name);
@@ -502,7 +527,8 @@ pub fn config_json(handler: &Handler, opts: &[(String, Vec<String>)]) -> String 
         }
     }
     owrt_ubus::convert::fields_to_json(b.payload())
-        .expect("protocol config contains only scalars and string lists").to_compact()
+        .expect("protocol config contains only scalars and string lists")
+        .to_compact()
 }
 
 /// The argv `proto_shell_handler` builds:
@@ -545,7 +571,12 @@ mod tests {
     #[test]
     fn a_dump_without_a_colon_takes_its_type_default() {
         let h = dhcp();
-        let get = |n: &str| h.config.iter().find(|(k, _)| k == n).map(|(_, v)| v.as_str());
+        let get = |n: &str| {
+            h.config
+                .iter()
+                .find(|(k, _)| k == n)
+                .map(|(_, v)| v.as_str())
+        };
         assert_eq!(get("ipaddr"), Some("ipaddr"));
         assert_eq!(get("clientid"), Some("string"));
         assert_eq!(get("broadcast"), Some("bool"));
@@ -559,7 +590,14 @@ mod tests {
         let h = dhcp();
         assert_eq!(
             h.config.iter().map(|(k, _)| k.as_str()).collect::<Vec<_>>(),
-            vec!["ipaddr", "clientid", "broadcast", "delegate", "mtu6rd", "sendopts"]
+            vec![
+                "ipaddr",
+                "clientid",
+                "broadcast",
+                "delegate",
+                "mtu6rd",
+                "sendopts"
+            ]
         );
     }
 
@@ -571,7 +609,9 @@ mod tests {
         assert!(!h.no_device);
         let mut b = BlobBuf::new();
         h.dump_info(&mut b);
-        let j = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
+        let j = owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact();
         assert!(j.contains("\"renew_available\":true"), "{j}");
         assert!(j.contains("\"immediate\":false"), "{j}");
         assert!(j.contains("\"force_link_default\":false"), "{j}");
@@ -582,8 +622,14 @@ mod tests {
     // odhcp6c/files/dhcpv6.sh. The retained scripts own mode selection; netifd
     // must discover their schema and carry the UCI values without choosing a mode.
     const CLIENT_ID_DUMPS: [(&str, &str); 2] = [
-        ("dhcp", r#"{"name":"dhcp","config":[["clientid",3],["sendclientid",3]]}"#),
-        ("dhcpv6", r#"{"name":"dhcpv6","config":[["clientid",3],["sendclientid:or(\"auto\",\"global\",\"hardware\")",3]]}"#),
+        (
+            "dhcp",
+            r#"{"name":"dhcp","config":[["clientid",3],["sendclientid",3]]}"#,
+        ),
+        (
+            "dhcpv6",
+            r#"{"name":"dhcpv6","config":[["clientid",3],["sendclientid:or(\"auto\",\"global\",\"hardware\")",3]]}"#,
+        ),
     ];
 
     #[test]
@@ -598,8 +644,14 @@ mod tests {
                 "dhcp" => "string",
                 _ => r#"or("auto","global","hardware")"#,
             };
-            assert_eq!(validation.get("sendclientid").and_then(Json::as_str), Some(expected));
-            assert_eq!(validation.get("clientid").and_then(Json::as_str), Some("string"));
+            assert_eq!(
+                validation.get("sendclientid").and_then(Json::as_str),
+                Some(expected)
+            );
+            assert_eq!(
+                validation.get("clientid").and_then(Json::as_str),
+                Some("string")
+            );
         }
     }
 
@@ -608,7 +660,13 @@ mod tests {
         for (protocol, dump) in CLIENT_ID_DUMPS {
             let script = PathBuf::from(format!("/lib/netifd/proto/{protocol}.sh"));
             let handler = Handler::parse(&script, dump).unwrap();
-            for mode in [None, Some("auto"), Some("global"), Some("hardware"), Some("none")] {
+            for mode in [
+                None,
+                Some("auto"),
+                Some("global"),
+                Some("hardware"),
+                Some("none"),
+            ] {
                 if protocol == "dhcpv6" && mode == Some("none") {
                     continue;
                 }
@@ -632,8 +690,11 @@ mod tests {
                 let config = crate::config::parse(&ctx.root[idx]);
                 assert!(config.warnings.is_empty(), "{:?}", config.warnings);
                 let iface = &config.interfaces[0];
-                let opts: Vec<_> =
-                    iface.raw.iter().map(|r| (r.name.clone(), r.values.clone())).collect();
+                let opts: Vec<_> = iface
+                    .raw
+                    .iter()
+                    .map(|r| (r.name.clone(), r.values.clone()))
+                    .collect();
                 let args = argv(
                     &handler,
                     "setup",
@@ -647,7 +708,10 @@ mod tests {
                     mode,
                     "{protocol}: {mode:?}"
                 );
-                assert_eq!(request.get("clientid").and_then(Json::as_str), Some("00:01:02:03"));
+                assert_eq!(
+                    request.get("clientid").and_then(Json::as_str),
+                    Some("00:01:02:03")
+                );
                 assert_eq!(args[5], "eth0");
             }
         }
@@ -657,7 +721,13 @@ mod tests {
     fn setup_is_only_accepted_when_idle() {
         let h = dhcp();
         let mut s = ProtoState::new();
-        assert!(matches!(plan(&mut s, Cmd::Setup, &h), Action::Run { action: "setup", .. }));
+        assert!(matches!(
+            plan(&mut s, Cmd::Setup, &h),
+            Action::Run {
+                action: "setup",
+                ..
+            }
+        ));
         assert_eq!(s.sm, Sm::Setup);
         // a second setup while setting up is refused
         assert_eq!(plan(&mut s, Cmd::Setup, &h), Action::Refuse);
@@ -669,7 +739,9 @@ mod tests {
         let mut s = ProtoState::new();
         plan(&mut s, Cmd::Setup, &h);
         // the script has to be running for the abort path
-        s.script.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        s.script
+            .start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[])
+            .unwrap();
         assert_eq!(plan(&mut s, Cmd::Teardown, &h), Action::Abort);
         assert_eq!(s.sm, Sm::SetupAbort);
         s.script.terminate();
@@ -682,7 +754,10 @@ mod tests {
         s.sm = Sm::Idle;
         s.last_error = 7;
         match plan(&mut s, Cmd::Teardown, &h) {
-            Action::Run { action: "teardown", env } => {
+            Action::Run {
+                action: "teardown",
+                env,
+            } => {
                 assert_eq!(env, vec![("ERROR".to_string(), "7".to_string())]);
             }
             other => panic!("{other:?}"),
@@ -712,7 +787,9 @@ mod tests {
     fn renew_is_remembered_rather_than_queued_while_the_script_runs() {
         let h = dhcp();
         let mut s = ProtoState::new();
-        s.script.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        s.script
+            .start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[])
+            .unwrap();
         assert_eq!(plan(&mut s, Cmd::Renew, &h), Action::Nothing);
         assert!(s.renew_pending);
         s.script.terminate();
@@ -735,7 +812,9 @@ mod tests {
                 let mut s = ProtoState::new();
                 s.sm = sm;
                 if running {
-                    s.script.start(&["/bin/sleep".into(), "30".into()], &[]).unwrap();
+                    s.script
+                        .start(&["/bin/sleep".into(), "30".into()], &[])
+                        .unwrap();
                 }
                 assert_eq!(plan(&mut s, Cmd::Renew, &h), Action::Nothing);
                 assert!(!s.renew_pending);
@@ -751,7 +830,14 @@ mod tests {
         let with = argv(&h, "setup", "wan", "{}", Some("eth1"));
         assert_eq!(
             with,
-            vec!["/lib/netifd/proto/dhcp.sh", "dhcp", "setup", "wan", "{}", "eth1"]
+            vec![
+                "/lib/netifd/proto/dhcp.sh",
+                "dhcp",
+                "setup",
+                "wan",
+                "{}",
+                "eth1"
+            ]
         );
         let without = argv(&h, "teardown", "wan", "{}", None);
         assert_eq!(without.len(), 5);
@@ -773,7 +859,10 @@ mod tests {
         let h = dhcp();
         let mut s = ProtoState::new();
         s.sm = Sm::Setup;
-        assert_eq!(task_finish(&mut s, Which::Task, &h, 0), vec![Finish::Teardown]);
+        assert_eq!(
+            task_finish(&mut s, Which::Task, &h, 0),
+            vec![Finish::Teardown]
+        );
     }
 
     #[test]
@@ -783,7 +872,10 @@ mod tests {
         s.sm = Sm::Setup;
         // no helper running and the handler is not NO_TASK: nothing is going
         // to bring the interface up, so netifd gives up
-        assert_eq!(task_finish(&mut s, Which::Script, &h, 0), vec![Finish::Teardown]);
+        assert_eq!(
+            task_finish(&mut s, Which::Script, &h, 0),
+            vec![Finish::Teardown]
+        );
     }
 
     #[test]
@@ -791,7 +883,9 @@ mod tests {
         let h = dhcp();
         let mut s = ProtoState::new();
         s.sm = Sm::Setup;
-        s.task.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        s.task
+            .start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[])
+            .unwrap();
         assert!(task_finish(&mut s, Which::Script, &h, 0).is_empty());
         s.task.terminate();
     }
@@ -802,7 +896,10 @@ mod tests {
         let mut s = ProtoState::new();
         s.sm = Sm::Setup;
         s.renew_pending = true;
-        assert_eq!(task_finish(&mut s, Which::Script, &h, 0), vec![Finish::Renew]);
+        assert_eq!(
+            task_finish(&mut s, Which::Script, &h, 0),
+            vec![Finish::Renew]
+        );
     }
 
     #[test]
@@ -810,8 +907,13 @@ mod tests {
         let h = dhcp();
         let mut s = ProtoState::new();
         s.sm = Sm::Setup;
-        s.task.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
-        assert_eq!(task_finish(&mut s, Which::Script, &h, 10), vec![Finish::ArmCheckup]);
+        s.task
+            .start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[])
+            .unwrap();
+        assert_eq!(
+            task_finish(&mut s, Which::Script, &h, 10),
+            vec![Finish::ArmCheckup]
+        );
         s.task.terminate();
         // idle: no checkup
         let mut s2 = ProtoState::new();
@@ -823,11 +925,16 @@ mod tests {
         let h = dhcp();
         let mut s = ProtoState::new();
         s.sm = Sm::SetupAbort;
-        s.script.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        s.script
+            .start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[])
+            .unwrap();
         assert!(task_finish(&mut s, Which::Script, &h, 0).is_empty());
         assert_eq!(s.sm, Sm::SetupAbort);
         s.script.terminate();
-        assert_eq!(task_finish(&mut s, Which::Script, &h, 0), vec![Finish::Teardown]);
+        assert_eq!(
+            task_finish(&mut s, Which::Script, &h, 0),
+            vec![Finish::Teardown]
+        );
         assert_eq!(s.sm, Sm::Idle);
     }
 
@@ -836,7 +943,9 @@ mod tests {
         let h = dhcp();
         let mut s = ProtoState::new();
         s.sm = Sm::Teardown;
-        s.task.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        s.task
+            .start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[])
+            .unwrap();
         assert_eq!(
             task_finish(&mut s, Which::Script, &h, 0),
             vec![Finish::SignalTask(crate::process::SIGTERM as u32)]
@@ -844,7 +953,10 @@ mod tests {
         s.task_killed = true;
         assert!(task_finish(&mut s, Which::Script, &h, 0).is_empty());
         s.task.terminate();
-        assert_eq!(task_finish(&mut s, Which::Script, &h, 0), vec![Finish::Down]);
+        assert_eq!(
+            task_finish(&mut s, Which::Script, &h, 0),
+            vec![Finish::Down]
+        );
         assert_eq!(s.sm, Sm::Idle);
     }
 
@@ -856,7 +968,10 @@ mod tests {
             ("clientid".to_string(), vec!["abc".to_string()]),
             ("broadcast".to_string(), vec!["1".to_string()]),
             ("mtu6rd".to_string(), vec!["1400".to_string()]),
-            ("sendopts".to_string(), vec!["a".to_string(), "b".to_string()]),
+            (
+                "sendopts".to_string(),
+                vec!["a".to_string(), "b".to_string()],
+            ),
             ("metric".to_string(), vec!["13".to_string()]),
         ];
         let j = config_json(&h, &opts);
@@ -1029,8 +1144,12 @@ pub fn parse_addr_item(f: &blob::Field, v6: bool) -> Option<NotifyAddr> {
         }
     } else {
         // 0xffffffff is "infinite" and is dropped rather than stored
-        a.preferred = get("preferred").and_then(|c| c.as_u32()).filter(|v| *v != u32::MAX);
-        a.valid = get("valid").and_then(|c| c.as_u32()).filter(|v| *v != u32::MAX);
+        a.preferred = get("preferred")
+            .and_then(|c| c.as_u32())
+            .filter(|v| *v != u32::MAX);
+        a.valid = get("valid")
+            .and_then(|c| c.as_u32())
+            .filter(|v| *v != u32::MAX);
         if let (Some(p), Some(v)) = (a.preferred, a.valid) {
             if p > v {
                 return None;
@@ -1092,7 +1211,11 @@ pub fn parse_route_item(f: &blob::Field, v6: bool) -> Option<interface::Route> {
         // "Mask out IPv4 host bits" -- v4 only, and only below /32
         if let (IpAddr::V4(v4), true) = (target, !v6 && mask < 32) {
             let bits = u32::from_be_bytes(v4.octets());
-            let keep = if mask == 0 { 0 } else { u32::MAX << (32 - mask) };
+            let keep = if mask == 0 {
+                0
+            } else {
+                u32::MAX << (32 - mask)
+            };
             target = IpAddr::V4(std::net::Ipv4Addr::from(bits & keep));
         }
     }
@@ -1189,7 +1312,6 @@ fn parse_mac(s: &str) -> Option<[u8; 6]> {
 }
 
 pub(crate) use crate::rt::{resolve_rt_proto, resolve_rt_table, resolve_rt_type};
-
 
 #[cfg(test)]
 mod rt_resolver_tests {
@@ -1369,7 +1491,11 @@ mod notify_tests {
 
     #[test]
     fn a_named_route_type_becomes_its_number_and_is_flagged() {
-        let buf = table(&[("target", "10.0.0.0"), ("netmask", "8"), ("type", "unreachable")]);
+        let buf = table(&[
+            ("target", "10.0.0.0"),
+            ("netmask", "8"),
+            ("type", "unreachable"),
+        ]);
         let r = parse_route_item(&one(&buf), false).unwrap();
         assert_eq!(r.ty, 7);
         assert_ne!(r.flags & interface::devroute::TYPE, 0);
@@ -1384,7 +1510,6 @@ mod notify_tests {
         assert!(parse_addr_item(&one(&buf), false).is_none());
     }
 }
-
 
 /// One `ip6prefix` entry: a delegated prefix, pushed by `netifd-proto.sh` as a
 /// plain string, `<prefix>/<length>[,<preferred>[,<valid>[,excluded=<p>/<l>]]]`.
@@ -1416,7 +1541,13 @@ pub fn parse_prefix6(text: &str) -> Option<Prefix6> {
         }
         v.parse().ok()
     };
-    let mut out = Prefix6 { addr, length, preferred: None, valid: None, excl: None };
+    let mut out = Prefix6 {
+        addr,
+        length,
+        preferred: None,
+        valid: None,
+        excl: None,
+    };
     let mut rest: Vec<&str> = parts.collect();
     // `excluded=` can be anywhere after the network, and `class=` is stripped
     // by the script before it gets here, so an unknown key is ignored rather
@@ -1447,7 +1578,8 @@ mod prefix6_tests {
     #[test]
     fn unsupported_excluded_prefix_cannot_reach_an_invalid_assignment_shift() {
         let parsed = parse_prefix6("2001:db8::/56,3600,7200,excluded=2001:db8::/80").unwrap();
-        let mut prefix = crate::ip::DevicePrefix::new(parsed.addr, parsed.length, "wan", Some("wan"));
+        let mut prefix =
+            crate::ip::DevicePrefix::new(parsed.addr, parsed.length, "wan", Some("wan"));
         prefix.excl = parsed.excl;
         let request = crate::ip::AssignRequest {
             name: "lan".into(),

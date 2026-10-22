@@ -22,8 +22,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use crate::proc::{self, LogPipe, SIGKILL, SIGTERM};
-use crate::sys::LOG_NOTICE;
 use crate::sys;
+use crate::sys::LOG_NOTICE;
 
 /// The `rc()` queue's width (`r.max_running_tasks = 8`).
 pub const RC_WIDTH: usize = 8;
@@ -68,7 +68,10 @@ impl Default for RunQueue {
 
 impl RunQueue {
     pub fn with_width(width: usize) -> Self {
-        RunQueue { width: width.max(1), jobs: Vec::new() }
+        RunQueue {
+            width: width.max(1),
+            jobs: Vec::new(),
+        }
     }
 
     /// `rcS()`'s queue: `runqueue_init(&q); q.max_running_tasks = 1;`
@@ -80,12 +83,7 @@ impl RunQueue {
     /// `add_initd()`: dedup applies to "running" only; stop/shutdown carry
     /// the two timeouts.
     fn add_initd(&mut self, file: PathBuf, param: &str) {
-        if param == "running"
-            && self
-                .jobs
-                .iter()
-                .any(|j| j.file == file && j.param == param)
-        {
+        if param == "running" && self.jobs.iter().any(|j| j.file == file && j.param == param) {
             return;
         }
         let run_timeout_ms = if param == "stop" || param == "shutdown" {
@@ -175,12 +173,22 @@ impl RunQueue {
             };
             match j.kill_at {
                 None if now >= started + rt => {
-                    log!(sys::LOG_ERR, "{} {} ran past {rt} ms, cancelling", j.file.display(), j.param);
+                    log!(
+                        sys::LOG_ERR,
+                        "{} {} ran past {rt} ms, cancelling",
+                        j.file.display(),
+                        j.param
+                    );
                     proc::signal(pid, SIGTERM);
                     j.kill_at = Some(now + STOP_CANCEL_TIMEOUT_MS);
                 }
                 Some(at) if now >= at => {
-                    log!(sys::LOG_ERR, "{} {} ignored SIGTERM, killing", j.file.display(), j.param);
+                    log!(
+                        sys::LOG_ERR,
+                        "{} {} ignored SIGTERM, killing",
+                        j.file.display(),
+                        j.param
+                    );
                     proc::signal(pid, SIGKILL);
                     j.kill_at = Some(i64::MAX);
                 }
@@ -232,7 +240,8 @@ impl RunQueue {
                 }
             }
         }
-        self.jobs.retain(|j| !(j.pid.is_none() && j.param.is_empty()));
+        self.jobs
+            .retain(|j| !(j.pid.is_none() && j.param.is_empty()));
     }
 
     /// Called by the main loop's waitpid when one of these children exits.
@@ -359,7 +368,8 @@ mod tests {
         assert!(q.is_idle(), "queue did not drain: {:?}", q.jobs);
 
         let got = std::fs::read_to_string(&log).unwrap();
-        let want = "start S10a boot\nend S10a\nstart S20b boot\nend S20b\nstart S30c boot\nend S30c\n";
+        let want =
+            "start S10a boot\nend S10a\nstart S20b boot\nend S20b\nstart S30c boot\nend S30c\n";
         assert_eq!(got, want, "one at a time, sorted, each with the param");
 
         std::fs::remove_dir_all(&dir).ok();
@@ -369,7 +379,14 @@ mod tests {
     fn the_rc_queue_runs_up_to_eight_at_once() {
         let dir = tmpdir("parallel");
         let log = dir.join("log");
-        script(&dir, "svc", &format!("echo start >> {log}; sleep 0.3; echo end >> {log}", log = log.display()));
+        script(
+            &dir,
+            "svc",
+            &format!(
+                "echo start >> {log}; sleep 0.3; echo end >> {log}",
+                log = log.display()
+            ),
+        );
         let d = dir.to_str().unwrap();
         let mut q = RunQueue::default();
         for _ in 0..3 {
@@ -400,13 +417,22 @@ mod tests {
         // it has run; even a heavily loaded test host now has a fixed order.
         use rustix::process::{waitid, Pid, WaitId, WaitIdOptions};
         let child = Pid::from_raw(pid).expect("spawned child pid");
-        waitid(WaitId::Pid(child), WaitIdOptions::STOPPED | WaitIdOptions::NOWAIT)
-            .unwrap()
-            .expect("child stopped after installing its TERM trap");
+        waitid(
+            WaitId::Pid(child),
+            WaitIdOptions::STOPPED | WaitIdOptions::NOWAIT,
+        )
+        .unwrap()
+        .expect("child stopped after installing its TERM trap");
         assert!(proc::signal(pid, 18)); // SIGCONT: the trap is now installed.
         q.pump(STOP_RUN_TIMEOUT_MS);
-        assert_eq!(q.jobs[0].kill_at, Some(STOP_RUN_TIMEOUT_MS + STOP_CANCEL_TIMEOUT_MS));
-        assert!(proc::try_reap(pid).is_none(), "SIGTERM is ignored by the script");
+        assert_eq!(
+            q.jobs[0].kill_at,
+            Some(STOP_RUN_TIMEOUT_MS + STOP_CANCEL_TIMEOUT_MS)
+        );
+        assert!(
+            proc::try_reap(pid).is_none(),
+            "SIGTERM is ignored by the script"
+        );
 
         q.pump(STOP_RUN_TIMEOUT_MS + STOP_CANCEL_TIMEOUT_MS);
         let mut status = None;

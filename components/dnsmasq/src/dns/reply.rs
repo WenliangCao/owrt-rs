@@ -316,7 +316,11 @@ pub(super) fn known_name(
 ) -> bool {
     local.is_some_and(|local| {
         super::local::known_forwarded_domain_with_leases(
-            &local.config, &local.hosts, name, &local.leases, now,
+            &local.config,
+            &local.hosts,
+            name,
+            &local.leases,
+            now,
         )
     }) || routing.is_some_and(|routing| routing.has_configured_address(name))
         || cached_name

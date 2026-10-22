@@ -59,7 +59,10 @@ pub fn strtoul_int(s: &str) -> i32 {
     };
     let mut v: u64 = 0;
     for b in digits.bytes().take_while(|b| b.is_ascii_digit()) {
-        let Some(next) = v.checked_mul(10).and_then(|v| v.checked_add((b - b'0') as u64)) else {
+        let Some(next) = v
+            .checked_mul(10)
+            .and_then(|v| v.checked_add((b - b'0') as u64))
+        else {
             // strtoul returns ULONG_MAX on overflow, even with a minus sign.
             // The pinned aarch64 C ABI has a 64-bit unsigned long.
             return u64::MAX as i32;
@@ -82,7 +85,11 @@ pub fn parse_delta_tuple(pctx: &mut Pctx) -> Result<(Cmd, Ptr)> {
         .copied()
         .find(|c| c.prefix() == first)
         .unwrap_or(Cmd::Change);
-    let rest = if c != Cmd::Change { &arg[1..] } else { &arg[..] };
+    let rest = if c != Cmd::Change {
+        &arg[1..]
+    } else {
+        &arg[..]
+    };
     let mut ptr = Ptr::default();
     ops::parse_ptr(&mut ptr, rest)?;
     if ptr.section.is_none() {
@@ -101,7 +108,12 @@ pub fn parse_delta_tuple(pctx: &mut Pctx) -> Result<(Cmd, Ptr)> {
             }
         }
         Cmd::Rename => {
-            if !ptr.value.as_deref().and_then(|v| std::str::from_utf8(v).ok()).is_some_and(ops::validate_name) {
+            if !ptr
+                .value
+                .as_deref()
+                .and_then(|v| std::str::from_utf8(v).ok())
+                .is_some_and(ops::validate_name)
+            {
                 return Err(Error::Inval);
             }
         }
@@ -134,7 +146,9 @@ fn parse_delta_line(ctx: &mut Context, pidx: usize, pctx: &mut Pctx) -> Result<(
             let Some(sidx) = ptr.s else {
                 return Err(Error::NotFound);
             };
-            let pos = strtoul_int(&String::from_utf8_lossy(ptr.value.as_deref().unwrap_or(b"")));
+            let pos = strtoul_int(&String::from_utf8_lossy(
+                ptr.value.as_deref().unwrap_or(b""),
+            ));
             ops::reorder_section(ctx, pidx, sidx, pos, true)
         }
         Cmd::Rename => ops::rename(ctx, &mut ptr, true),
@@ -175,7 +189,12 @@ fn parse_delta(ctx: &mut Context, reader: &mut dyn io::BufRead, pidx: usize) -> 
 }
 
 /// uci_load_delta_file: open errors are swallowed (0 changes, no stream).
-fn load_delta_file(ctx: &mut Context, p: Option<usize>, filename: &str, flush: bool) -> Result<(usize, Option<File>)> {
+fn load_delta_file(
+    ctx: &mut Context,
+    p: Option<usize>,
+    filename: &str,
+    flush: bool,
+) -> Result<(usize, Option<File>)> {
     let stream = match file::open_stream(ctx, filename, false, flush, false) {
         Ok(f) => f,
         Err(e @ (Error::TimedOut | Error::Cancelled)) => return ctx.fail(e),

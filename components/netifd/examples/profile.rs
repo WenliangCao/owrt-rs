@@ -10,7 +10,11 @@ use std::hint::black_box;
 
 // Retain the old allocating counter reader only as a diagnostic comparison.
 fn dev_sysfs(ifname: &str, attr: &str) -> std::io::Result<String> {
-    Ok(std::fs::read_to_string(format!("/sys/class/net/{ifname}/{attr}"))?.trim().to_string())
+    Ok(
+        std::fs::read_to_string(format!("/sys/class/net/{ifname}/{attr}"))?
+            .trim()
+            .to_string(),
+    )
 }
 
 fn interface(index: usize) -> interface::Interface {
@@ -22,13 +26,21 @@ fn interface(index: usize) -> interface::Interface {
     i.device = Some("br-profile".into());
     i.l3_device = i.device.clone();
     i.started_at = Some(60);
-    i.proto_ip.addresses.push(interface::Address::new("192.0.2.1".parse().unwrap(), 24));
-    i.proto_ip.addresses.push(interface::Address::new("2001:db8::1".parse().unwrap(), 64));
+    i.proto_ip
+        .addresses
+        .push(interface::Address::new("192.0.2.1".parse().unwrap(), 24));
+    i.proto_ip
+        .addresses
+        .push(interface::Address::new("2001:db8::1".parse().unwrap(), 64));
     i
 }
 
 fn main() {
-    let n = std::env::args().nth(1).unwrap_or_else(|| "1000".into()).parse().unwrap();
+    let n = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "1000".into())
+        .parse()
+        .unwrap();
     let filter = std::env::args().nth(2).unwrap_or_default();
     println!("stage,iterations,ns_per_op,allocations,reallocations,allocated_bytes");
     let mut reply = BlobBuf::with_capacity(1024);
@@ -61,10 +73,16 @@ fn main() {
         let handlerdir = std::env::args().nth(4).expect("wireless handler directory");
         let handlers = wireless::discover(std::path::Path::new(&handlerdir));
         let radios = wireless::load(&confdir, &handlers);
-        assert!(!radios.is_empty(), "wireless profile requires nonempty config");
+        assert!(
+            !radios.is_empty(),
+            "wireless profile requires nonempty config"
+        );
         let state = wireless::RadioState::default();
         let mut expected = BlobBuf::new();
-        wireless::json_text_into_blob(&mut expected, &wireless::status_json(&radios, &handlers, state, &[]));
+        wireless::json_text_into_blob(
+            &mut expected,
+            &wireless::status_json(&radios, &handlers, state, &[]),
+        );
         let mut b = BlobBuf::new();
         for radio in &radios {
             wireless::status_into_blob(&mut b, radio, &handlers, state, &[]);
@@ -89,28 +107,65 @@ fn main() {
         let interfaces: Vec<_> = (0..count).map(interface).collect();
         let times: Vec<_> = interfaces.iter().map(|i| (i.name.clone(), 60u64)).collect();
         let mut objects = ubus::Objects::default();
-        objects.per_interface = interfaces.iter().enumerate().map(|(n, i)| (i.name.clone(), 100 + n as u32)).collect();
+        objects.per_interface = interfaces
+            .iter()
+            .enumerate()
+            .map(|(n, i)| (i.name.clone(), 100 + n as u32))
+            .collect();
         let name = interfaces.last().unwrap().name.as_str();
         profile_support::measure(&format!("lookup_object_{count}"), n, &filter, || {
             black_box(objects.route(black_box(100 + count as u32 - 1)));
         });
-        profile_support::measure(&format!("lookup_interface_linear_{count}"), n, &filter, || {
-            black_box(black_box(&interfaces).iter().find(|i| i.name == black_box(name)));
-        });
-        profile_support::measure(&format!("lookup_interface_partition_{count}"), n, &filter, || {
-            let at = black_box(&interfaces).partition_point(|i| i.name.as_str() < black_box(name));
-            black_box(interfaces.get(at).filter(|i| i.name == name));
-        });
+        profile_support::measure(
+            &format!("lookup_interface_linear_{count}"),
+            n,
+            &filter,
+            || {
+                black_box(
+                    black_box(&interfaces)
+                        .iter()
+                        .find(|i| i.name == black_box(name)),
+                );
+            },
+        );
+        profile_support::measure(
+            &format!("lookup_interface_partition_{count}"),
+            n,
+            &filter,
+            || {
+                let at =
+                    black_box(&interfaces).partition_point(|i| i.name.as_str() < black_box(name));
+                black_box(interfaces.get(at).filter(|i| i.name == name));
+            },
+        );
         profile_support::measure(&format!("lookup_uptime_linear_{count}"), n, &filter, || {
-            black_box(black_box(&times).iter().find(|(key, _)| key == black_box(name))
-                .map(|(_, time)| clock::now().saturating_sub(*time) as u32).unwrap_or(0));
+            black_box(
+                black_box(&times)
+                    .iter()
+                    .find(|(key, _)| key == black_box(name))
+                    .map(|(_, time)| clock::now().saturating_sub(*time) as u32)
+                    .unwrap_or(0),
+            );
         });
-        profile_support::measure(&format!("lookup_interface_current_{count}"), n, &filter, || {
-            black_box(interface::find_by_name(black_box(&interfaces), black_box(name)));
-        });
-        profile_support::measure(&format!("lookup_uptime_current_{count}"), n, &filter, || {
-            black_box(black_box(interfaces.last().unwrap()).current_uptime());
-        });
+        profile_support::measure(
+            &format!("lookup_interface_current_{count}"),
+            n,
+            &filter,
+            || {
+                black_box(interface::find_by_name(
+                    black_box(&interfaces),
+                    black_box(name),
+                ));
+            },
+        );
+        profile_support::measure(
+            &format!("lookup_uptime_current_{count}"),
+            n,
+            &filter,
+            || {
+                black_box(black_box(interfaces.last().unwrap()).current_uptime());
+            },
+        );
     }
     let iface = interface(0);
     profile_support::measure("interface_clone", n, &filter, || {
@@ -123,45 +178,60 @@ fn main() {
     });
     for count in [2, 32, 64, 128] {
         let interfaces: Vec<_> = (0..count).map(interface).collect();
-        profile_support::measure(&format!("interface_dump_snapshots_{count}"), n, &filter, || {
-            let mut b = BlobBuf::with_capacity(1024);
-            let arr = b.msg_open_array("interface");
-            for i in &interfaces {
-                let snapshot = i.clone();
-                let table = b.msg_open_table("");
-                b.msg_string("interface", &snapshot.name);
-                snapshot.dump_status_with(&mut b, 60, &snapshot.proto_ip.prefixes);
-                b.msg_close(table);
-            }
-            b.msg_close(arr);
-            black_box(b.payload());
-        });
-        profile_support::measure(&format!("interface_dump_borrowed_{count}"), n, &filter, || {
-            let mut b = BlobBuf::with_capacity(1024);
-            let arr = b.msg_open_array("interface");
-            for i in &interfaces {
-                let table = b.msg_open_table("");
-                b.msg_string("interface", &i.name);
-                i.dump_status_with(&mut b, 60, &i.proto_ip.prefixes);
-                b.msg_close(table);
-            }
-            b.msg_close(arr);
-            black_box(b.payload());
-        });
+        profile_support::measure(
+            &format!("interface_dump_snapshots_{count}"),
+            n,
+            &filter,
+            || {
+                let mut b = BlobBuf::with_capacity(1024);
+                let arr = b.msg_open_array("interface");
+                for i in &interfaces {
+                    let snapshot = i.clone();
+                    let table = b.msg_open_table("");
+                    b.msg_string("interface", &snapshot.name);
+                    snapshot.dump_status_with(&mut b, 60, &snapshot.proto_ip.prefixes);
+                    b.msg_close(table);
+                }
+                b.msg_close(arr);
+                black_box(b.payload());
+            },
+        );
+        profile_support::measure(
+            &format!("interface_dump_borrowed_{count}"),
+            n,
+            &filter,
+            || {
+                let mut b = BlobBuf::with_capacity(1024);
+                let arr = b.msg_open_array("interface");
+                for i in &interfaces {
+                    let table = b.msg_open_table("");
+                    b.msg_string("interface", &i.name);
+                    i.dump_status_with(&mut b, 60, &i.proto_ip.prefixes);
+                    b.msg_close(table);
+                }
+                b.msg_close(arr);
+                black_box(b.payload());
+            },
+        );
         for limit in [64 * 1024, 128 * 1024] {
-        let mut b = BlobBuf::with_capacity(1024);
-        profile_support::measure(&format!("interface_dump_reused_{count}_limit{limit}"), n, &filter, || {
-            let arr = b.msg_open_array("interface");
-            for i in &interfaces {
-                let table = b.msg_open_table("");
-                b.msg_string("interface", &i.name);
-                i.dump_status_with(&mut b, 60, &i.proto_ip.prefixes);
-                b.msg_close(table);
-            }
-            b.msg_close(arr);
-            black_box(b.payload());
-            b.reset_bounded(limit);
-        });
+            let mut b = BlobBuf::with_capacity(1024);
+            profile_support::measure(
+                &format!("interface_dump_reused_{count}_limit{limit}"),
+                n,
+                &filter,
+                || {
+                    let arr = b.msg_open_array("interface");
+                    for i in &interfaces {
+                        let table = b.msg_open_table("");
+                        b.msg_string("interface", &i.name);
+                        i.dump_status_with(&mut b, 60, &i.proto_ip.prefixes);
+                        b.msg_close(table);
+                    }
+                    b.msg_close(arr);
+                    black_box(b.payload());
+                    b.reset_bounded(limit);
+                },
+            );
         }
     }
     let ethtool = ethtool::Ethtool::open().unwrap();
@@ -173,9 +243,16 @@ fn main() {
         d.link_active = present;
         if present {
             d.orig_settings = device::read_settings("lo", &ethtool, &ioctl);
-            assert_eq!(ethtool::statistics("lo").len(), ethtool::STAT_COUNTERS.len());
+            assert_eq!(
+                ethtool::statistics("lo").len(),
+                ethtool::STAT_COUNTERS.len()
+            );
         }
-        let label = if present { "device_status_lo" } else { "device_status_absent" };
+        let label = if present {
+            "device_status_lo"
+        } else {
+            "device_status_absent"
+        };
         profile_support::measure(label, n, &filter, || {
             let mut b = BlobBuf::with_capacity(1024);
             d.dump_status(&mut b, Some(&ethtool), None);

@@ -68,8 +68,17 @@ fn is_blank(line: &[u8]) -> bool {
 fn scan_token(line: &[u8]) -> Option<Vec<u8>> {
     let rest = line.get(2..)?;
     let start = rest.iter().position(|c| !c.is_ascii_whitespace())?;
-    let tok: Vec<u8> = rest[start..].iter().take_while(|c| !c.is_ascii_whitespace()).take(127).copied().collect();
-    if tok.is_empty() { None } else { Some(tok) }
+    let tok: Vec<u8> = rest[start..]
+        .iter()
+        .take_while(|c| !c.is_ascii_whitespace())
+        .take(127)
+        .copied()
+        .collect();
+    if tok.is_empty() {
+        None
+    } else {
+        Some(tok)
+    }
 }
 
 /// fgets(line, 516): lines longer than 515 bytes arrive in chunks.
@@ -90,7 +99,9 @@ fn fgets_chunks(data: &[u8]) -> Vec<&[u8]> {
 
 fn parse_abi(line: &[u8], abi: &mut Vec<u8>) {
     let Some(payload) = line.get(2..) else { return };
-    let mut toks = payload.split(|c| matches!(c, b' ' | b'=' | b'\n')).filter(|t| !t.is_empty());
+    let mut toks = payload
+        .split(|c| matches!(c, b' ' | b'=' | b'\n'))
+        .filter(|t| !t.is_empty());
     while let Some(tok) = toks.next() {
         if tok == b"openwrt:abiversion" {
             if let Some(v) = toks.next() {
@@ -102,8 +113,12 @@ fn parse_abi(line: &[u8], abi: &mut Vec<u8>) {
 }
 
 fn packagelist(raw: &[u8]) -> Reply {
-    let all = arg(raw, "all", MsgType::Int8).and_then(|f| f.as_bool()).unwrap_or(false);
-    let Ok(db) = fs::read("/lib/apk/db/installed") else { return code(status::NOT_FOUND) };
+    let all = arg(raw, "all", MsgType::Int8)
+        .and_then(|f| f.as_bool())
+        .unwrap_or(false);
+    let Ok(db) = fs::read("/lib/apk/db/installed") else {
+        return code(status::NOT_FOUND);
+    };
     let mut world_buf: Vec<u8> = Vec::new();
     let mut world: Option<Vec<&[u8]>> = None;
     if !all {
@@ -161,7 +176,10 @@ fn packagelist(raw: &[u8]) -> Reply {
                             }
                         }
                         if keep {
-                            b.msg_string(&String::from_utf8_lossy(&name), &String::from_utf8_lossy(&ver));
+                            b.msg_string(
+                                &String::from_utf8_lossy(&name),
+                                &String::from_utf8_lossy(&ver),
+                            );
                         }
                     }
                     abi.clear();
@@ -181,7 +199,9 @@ fn password_set(raw: &[u8]) -> Reply {
         return code(status::INVALID_ARGUMENT);
     };
     let passwd = "/bin/passwd";
-    let Ok(m) = fs::metadata(passwd) else { return code(status::NOT_FOUND) };
+    let Ok(m) = fs::metadata(passwd) else {
+        return code(status::NOT_FOUND);
+    };
     if m.permissions().mode() & 0o100 == 0 {
         return code(status::PERMISSION_DENIED);
     }
@@ -242,11 +262,17 @@ pub fn call(req: Request, ctx: &Ctx, deferrer: &Deferrer) -> Outcome {
             };
         }
         "upgrade_start" => {
-            let keep = arg(raw, "keep", MsgType::Int8).and_then(|f| f.as_bool()).unwrap_or(false);
+            let keep = arg(raw, "keep", MsgType::Int8)
+                .and_then(|f| f.as_bool())
+                .unwrap_or(false);
             if keep {
-                ctx.delayed.borrow_mut().exec(&["/sbin/sysupgrade", "/tmp/firmware.bin"]);
+                ctx.delayed
+                    .borrow_mut()
+                    .exec(&["/sbin/sysupgrade", "/tmp/firmware.bin"]);
             } else {
-                ctx.delayed.borrow_mut().exec(&["/sbin/sysupgrade", "-n", "/tmp/firmware.bin"]);
+                ctx.delayed
+                    .borrow_mut()
+                    .exec(&["/sbin/sysupgrade", "-n", "/tmp/firmware.bin"]);
             }
             code(0)
         }
@@ -255,7 +281,9 @@ pub fn call(req: Request, ctx: &Ctx, deferrer: &Deferrer) -> Outcome {
             Err(e) => code(errno_status(&e)),
         },
         "factory" => {
-            ctx.delayed.borrow_mut().exec(&["/sbin/jffs2reset", "-y", "-r"]);
+            ctx.delayed
+                .borrow_mut()
+                .exec(&["/sbin/jffs2reset", "-y", "-r"]);
             code(0)
         }
         "reboot" => {
@@ -295,7 +323,10 @@ mod tests {
 
     #[test]
     fn tokens_and_chunks() {
-        assert_eq!(scan_token(b"P: libubox20260213\n").unwrap(), b"libubox20260213");
+        assert_eq!(
+            scan_token(b"P: libubox20260213\n").unwrap(),
+            b"libubox20260213"
+        );
         assert_eq!(scan_token(b"P:x y\n").unwrap(), b"x");
         assert!(scan_token(b"P:\n").is_none());
         let long = vec![b'a'; 600];

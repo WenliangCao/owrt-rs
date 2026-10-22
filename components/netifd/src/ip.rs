@@ -159,7 +159,9 @@ pub fn assign(prefix: &DevicePrefix, requests: &[AssignRequest]) -> Vec<Assignme
     // out a subnet explicitly withheld by the upstream. The pinned C uses
     // undefined shifts for these lengths; normal /48../64 behavior is retained.
     if !(2..=64).contains(&prefix.length)
-        || prefix.excl.is_some_and(|(_, length)| length == 1 || length > 64)
+        || prefix
+            .excl
+            .is_some_and(|(_, length)| length == 1 || length > 64)
     {
         return Vec::new();
     }
@@ -251,7 +253,13 @@ mod tests {
     use super::*;
 
     fn req(name: &str, length: u8) -> AssignRequest {
-        AssignRequest { name: name.into(), length, hint: None, weight: 0, classes: vec![] }
+        AssignRequest {
+            name: name.into(),
+            length,
+            hint: None,
+            weight: 0,
+            classes: vec![],
+        }
     }
 
     #[test]
@@ -269,25 +277,38 @@ mod tests {
         for p in &prefixes {
             for assignment in assign(p, &[req("lan", 60)]) {
                 let addr = assignment_address(p, assignment.assigned);
-                lan.prefix_assignments.push(crate::interface::PrefixAssignment {
-                    addr,
-                    length: assignment.length,
-                    preferred_until: None,
-                    valid_until: None,
-                    local: Some((local_address(addr, "::1".parse().unwrap()), assignment.length)),
-                    owner: Some((p.iface.clone(), p.addr, p.length)),
-                });
+                lan.prefix_assignments
+                    .push(crate::interface::PrefixAssignment {
+                        addr,
+                        length: assignment.length,
+                        preferred_until: None,
+                        valid_until: None,
+                        local: Some((
+                            local_address(addr, "::1".parse().unwrap()),
+                            assignment.length,
+                        )),
+                        owner: Some((p.iface.clone(), p.addr, p.length)),
+                    });
             }
         }
         let mut buf = owrt_ubus::BlobBuf::new();
         lan.dump_status_with(&mut buf, 0, &lan.proto_ip.prefixes);
         let status = owrt_ubus::convert::fields_to_json(buf.payload()).unwrap();
-        let owrt_ubus::json::Json::Array(addresses) = status.get("ipv6-address").unwrap() else { panic!() };
+        let owrt_ubus::json::Json::Array(addresses) = status.get("ipv6-address").unwrap() else {
+            panic!()
+        };
         assert!(addresses.is_empty());
-        let owrt_ubus::json::Json::Array(assignments) = status.get("ipv6-prefix-assignment").unwrap() else { panic!() };
+        let owrt_ubus::json::Json::Array(assignments) =
+            status.get("ipv6-prefix-assignment").unwrap()
+        else {
+            panic!()
+        };
         assert_eq!(assignments.len(), 2);
         let first = assignments[0].get("local-address").unwrap();
-        assert_eq!(first.get("address").and_then(owrt_ubus::json::Json::as_str), Some("2001:db8:1::1"));
+        assert_eq!(
+            first.get("address").and_then(owrt_ubus::json::Json::as_str),
+            Some("2001:db8:1::1")
+        );
     }
 
     #[test]
@@ -304,7 +325,10 @@ mod tests {
         replace_prefixes(&mut prefixes, Some("other6"), vec![other.clone()]);
         assert_eq!(prefixes, vec![other.clone(), wan.clone(), ula.clone()]);
         // Even an unchanged PD renewal moves that owner's node to the head.
-        assert_eq!(replace_prefixes(&mut prefixes, Some("wan6"), vec![wan.clone()]), 1);
+        assert_eq!(
+            replace_prefixes(&mut prefixes, Some("wan6"), vec![wan.clone()]),
+            1
+        );
         assert_eq!(prefixes, vec![wan.clone(), other.clone(), ula]);
         let new_ula = prefix("fd01::", None);
         replace_prefixes(&mut prefixes, None, vec![new_ula.clone()]);
@@ -318,16 +342,29 @@ mod tests {
         let first = DevicePrefix::new("2001:db8:1::".parse().unwrap(), 64, "wan6", Some("wan6"));
         let last = DevicePrefix::new("2001:db8:2::".parse().unwrap(), 64, "wan6", Some("wan6"));
         let mut prefixes = Vec::new();
-        replace_prefixes(&mut prefixes, Some("wan6"), vec![first.clone(), last.clone()]);
+        replace_prefixes(
+            &mut prefixes,
+            Some("wan6"),
+            vec![first.clone(), last.clone()],
+        );
         assert_eq!(prefixes, vec![last, first]);
     }
 
     #[test]
     fn clearing_a_prefix_zeroes_below_the_length() {
         let a: Ipv6Addr = "2001:db8:1:2:3:4:5:6".parse().unwrap();
-        assert_eq!(clear_if_addr(a, 48), "2001:db8:1::".parse::<Ipv6Addr>().unwrap());
-        assert_eq!(clear_if_addr(a, 60), "2001:db8:1::".parse::<Ipv6Addr>().unwrap());
-        assert_eq!(clear_if_addr(a, 64), "2001:db8:1:2::".parse::<Ipv6Addr>().unwrap());
+        assert_eq!(
+            clear_if_addr(a, 48),
+            "2001:db8:1::".parse::<Ipv6Addr>().unwrap()
+        );
+        assert_eq!(
+            clear_if_addr(a, 60),
+            "2001:db8:1::".parse::<Ipv6Addr>().unwrap()
+        );
+        assert_eq!(
+            clear_if_addr(a, 64),
+            "2001:db8:1:2::".parse::<Ipv6Addr>().unwrap()
+        );
         assert_eq!(clear_if_addr(a, 0), Ipv6Addr::UNSPECIFIED);
     }
 
@@ -348,8 +385,13 @@ mod tests {
     #[test]
     fn normal_prefix_range_and_zero_length_exclusion_keep_their_assignments() {
         for length in 48..=64 {
-            let mut prefix = DevicePrefix::new("2001:db8::".parse().unwrap(), length, "wan", Some("wan"));
-            let expected = vec![Assignment { name: "lan".into(), length: 64, assigned: 0 }];
+            let mut prefix =
+                DevicePrefix::new("2001:db8::".parse().unwrap(), length, "wan", Some("wan"));
+            let expected = vec![Assignment {
+                name: "lan".into(),
+                length: 64,
+                assigned: 0,
+            }];
             assert_eq!(assign(&prefix, &[req("lan", 64)]), expected);
             // The C tests excl_length > 0: /0 means no exclusion.
             prefix.excl = Some(("2001:db8::".parse().unwrap(), 0));
@@ -361,8 +403,18 @@ mod tests {
     fn a_lone_60_out_of_a_48_lands_at_offset_zero() {
         let p = DevicePrefix::new("fd11:2233:4455::".parse().unwrap(), 48, "local", None);
         let got = assign(&p, &[req("lan", 60)]);
-        assert_eq!(got, vec![Assignment { name: "lan".into(), length: 60, assigned: 0 }]);
-        assert_eq!(assignment_address(&p, 0), "fd11:2233:4455::".parse::<Ipv6Addr>().unwrap());
+        assert_eq!(
+            got,
+            vec![Assignment {
+                name: "lan".into(),
+                length: 60,
+                assigned: 0
+            }]
+        );
+        assert_eq!(
+            assignment_address(&p, 0),
+            "fd11:2233:4455::".parse::<Ipv6Addr>().unwrap()
+        );
         assert_eq!(
             local_address(assignment_address(&p, 0), "::1".parse().unwrap()),
             "fd11:2233:4455::1".parse::<Ipv6Addr>().unwrap()
@@ -374,7 +426,14 @@ mod tests {
         // the device's real case: ip6assign 60 on lan, but wan6 delegates a /64
         let p = DevicePrefix::new("2001:db8:1:2::".parse().unwrap(), 64, "wan6", Some("wan6"));
         let got = assign(&p, &[req("lan", 60)]);
-        assert_eq!(got, vec![Assignment { name: "lan".into(), length: 64, assigned: 0 }]);
+        assert_eq!(
+            got,
+            vec![Assignment {
+                name: "lan".into(),
+                length: 64,
+                assigned: 0
+            }]
+        );
     }
 
     #[test]
@@ -466,6 +525,9 @@ mod tests {
     #[test]
     fn assignment_address_ors_into_the_second_word() {
         let p = DevicePrefix::new("fd00::".parse().unwrap(), 48, "local", None);
-        assert_eq!(assignment_address(&p, 0x10), "fd00:0:0:10::".parse::<Ipv6Addr>().unwrap());
+        assert_eq!(
+            assignment_address(&p, 0x10),
+            "fd00:0:0:10::".parse::<Ipv6Addr>().unwrap()
+        );
     }
 }

@@ -39,7 +39,11 @@ fn fmt_double(d: f64) -> String {
         return "NaN".into();
     }
     if d.is_infinite() {
-        return if d > 0.0 { "Infinity".into() } else { "-Infinity".into() };
+        return if d > 0.0 {
+            "Infinity".into()
+        } else {
+            "-Infinity".into()
+        };
     }
     if d == d.trunc() && d.abs() < 1e14 {
         return format!("{}", d as i64);
@@ -50,7 +54,12 @@ fn fmt_double(d: f64) -> String {
     let exp: i32 = exp.parse().unwrap_or(0);
     if !(-4..14).contains(&exp) {
         let mant = mant.trim_end_matches('0').trim_end_matches('.');
-        return format!("{}e{}{:02}", mant, if exp < 0 { '-' } else { '+' }, exp.abs());
+        return format!(
+            "{}e{}{:02}",
+            mant,
+            if exp < 0 { '-' } else { '+' },
+            exp.abs()
+        );
     }
     let mut s = format!("{:.*}", (13 - exp).max(0) as usize, d);
     if s.contains('.') {
@@ -96,7 +105,11 @@ pub fn parse_num_str(s: &str) -> Num {
     if body.bytes().all(|b| b.is_ascii_digit()) {
         return match body.parse::<i64>() {
             Ok(v) => Num::Int(if neg { -v } else { v }),
-            Err(_) => Num::Dbl(body.parse::<f64>().map(|v| if neg { -v } else { v }).unwrap_or(f64::NAN)),
+            Err(_) => Num::Dbl(
+                body.parse::<f64>()
+                    .map(|v| if neg { -v } else { v })
+                    .unwrap_or(f64::NAN),
+            ),
         };
     }
     // double: digits [. digits*] [e[+-]digits]
@@ -145,7 +158,9 @@ pub fn to_num(v: &Json) -> Num {
         Json::Int(i) => Num::Int(*i),
         Json::Float(f) => Num::Dbl(*f),
         Json::Str(s) => parse_num_str(s),
-        Json::Bytes(s) => std::str::from_utf8(s).map(parse_num_str).unwrap_or(Num::Dbl(f64::NAN)),
+        Json::Bytes(s) => std::str::from_utf8(s)
+            .map(parse_num_str)
+            .unwrap_or(Num::Dbl(f64::NAN)),
         Json::Array(_) | Json::Object(_) => Num::Dbl(f64::NAN),
     }
 }
@@ -154,7 +169,13 @@ pub fn to_num(v: &Json) -> Num {
 pub fn to_str(v: &Json) -> String {
     match v {
         Json::Null => "null".into(),
-        Json::Bool(b) => if *b { "true".into() } else { "false".into() },
+        Json::Bool(b) => {
+            if *b {
+                "true".into()
+            } else {
+                "false".into()
+            }
+        }
         Json::Int(i) => i.to_string(),
         Json::Float(f) => fmt_double(*f),
         Json::Str(s) => s.clone(),

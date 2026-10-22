@@ -15,7 +15,9 @@ pub(super) fn parse(bytes: &[u8]) -> Result<u16, Error> {
         // numeric_check accepts empty input. The image's musl atoi wraps
         // to signed int before rrlist stores the low unsigned-short bits.
         let value = bytes.iter().fold(0u32, |value, digit| {
-            value.wrapping_mul(10).wrapping_add(u32::from(*digit - b'0'))
+            value
+                .wrapping_mul(10)
+                .wrapping_add(u32::from(*digit - b'0'))
         });
         return Ok(value as u16);
     }

@@ -342,7 +342,10 @@ impl DnsFiles {
     /// must not turn that backpressure into a zero-timeout polling loop.
     pub fn runnable(&self) -> bool {
         if self.endpoint_update.is_some() {
-            return self.endpoint_lookup.as_ref().is_none_or(EndpointLookup::reap_pending);
+            return self
+                .endpoint_lookup
+                .as_ref()
+                .is_none_or(EndpointLookup::reap_pending);
         }
         self.job.as_ref().map_or(
             // Init can yield at initial_cache_reload so the owner publishes
@@ -461,7 +464,10 @@ impl DnsFiles {
     ///
     /// If configured server input can contain hostnames, the caller must meet
     /// [`EndpointLookup::start`]'s process requirements during this call.
-    #[expect(unsafe_code, reason = "forward the resolver fork contract to the caller")]
+    #[expect(
+        unsafe_code,
+        reason = "forward the resolver fork contract to the caller"
+    )]
     pub unsafe fn step(&mut self) -> FileStep {
         // SAFETY: the caller supplies the same conditional process contract.
         unsafe { self.step_with_watch_readiness(true) }
@@ -474,7 +480,10 @@ impl DnsFiles {
     ///
     /// If configured server input can contain hostnames, the caller must meet
     /// [`EndpointLookup::start`]'s process requirements during this call.
-    #[expect(unsafe_code, reason = "only the owning process can authorize resolver forks")]
+    #[expect(
+        unsafe_code,
+        reason = "only the owning process can authorize resolver forks"
+    )]
     pub unsafe fn step_with_watch_readiness(&mut self, watch_ready: bool) -> FileStep {
         let mut result = FileStep::default();
         if self.endpoint_update.is_some() {
@@ -705,7 +714,10 @@ impl DnsFiles {
 
 #[cfg(feature = "process-test-support")]
 #[path = "files_process_tests.rs"]
-#[expect(unsafe_code, reason = "standalone process tests establish the fork prerequisites")]
+#[expect(
+    unsafe_code,
+    reason = "standalone process tests establish the fork prerequisites"
+)]
 mod process_tests;
 
 #[cfg(feature = "process-test-support")]
@@ -713,13 +725,19 @@ mod process_tests;
 /// Run only on a standalone process main thread, without shared writable
 /// mappings, application atfork hooks or held locks.
 #[doc(hidden)]
-#[expect(unsafe_code, reason = "test runner must preserve the explicit fork contract")]
+#[expect(
+    unsafe_code,
+    reason = "test runner must preserve the explicit fork contract"
+)]
 pub unsafe fn run_process_tests() {
     process_tests::run();
 }
 
 #[cfg(test)]
-#[expect(unsafe_code, reason = "these fixtures use numeric endpoints only and never fork")]
+#[expect(
+    unsafe_code,
+    reason = "these fixtures use numeric endpoints only and never fork"
+)]
 mod tests {
     use super::*;
     use std::os::unix::fs::symlink;
@@ -836,7 +854,9 @@ mod tests {
         for _ in 0..100 {
             // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
             initial.extend(unsafe { files.step_with_watch_readiness(false) }.update);
-            if !files.has_work() { break; }
+            if !files.has_work() {
+                break;
+            }
         }
         assert_eq!(initial.len(), 1);
         fs::write(path, b"nameserver 192.0.2.2\n").unwrap();
@@ -845,11 +865,16 @@ mod tests {
             let step = unsafe { files.step_with_watch_readiness(false) };
             assert!(step.update.is_none() && !step.runnable);
         }
-        assert!(files.watch.as_ref().unwrap().pending().unwrap(),
-            "unrelated ready descriptors must leave this watch's bytes queued");
+        assert!(
+            files.watch.as_ref().unwrap().pending().unwrap(),
+            "unrelated ready descriptors must leave this watch's bytes queued"
+        );
         let (updates, _) = drain(&mut files);
         assert_eq!(updates.len(), 1);
-        assert_eq!(updates[0].rows[0].address, Some("192.0.2.2:53".parse().unwrap()));
+        assert_eq!(
+            updates[0].rows[0].address,
+            Some("192.0.2.2:53".parse().unwrap())
+        );
 
         // A no-poll SIGHUP must still advance with no inotify readiness.
         let mut config = config;
@@ -857,8 +882,13 @@ mod tests {
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Signal);
         // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
-        let update = (0..100).find_map(|_| unsafe { files.step_with_watch_readiness(false) }.update).unwrap();
-        assert_eq!(update.rows[0].address, Some("192.0.2.2:53".parse().unwrap()));
+        let update = (0..100)
+            .find_map(|_| unsafe { files.step_with_watch_readiness(false) }.update)
+            .unwrap();
+        assert_eq!(
+            update.rows[0].address,
+            Some("192.0.2.2:53".parse().unwrap())
+        );
     }
 
     #[test]
@@ -866,7 +896,11 @@ mod tests {
         use std::io::Write;
         let dir = Directory::new();
         let path = dir.0.join("servers-fifo");
-        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        assert!(std::process::Command::new("mkfifo")
+            .arg(&path)
+            .status()
+            .unwrap()
+            .success());
         let mut config = dir.config();
         config.no_resolv = true;
         config.servers_file = Some(path.clone());
@@ -879,21 +913,39 @@ mod tests {
         assert!(!step.runnable && !files.runnable());
         assert!(files.has_work());
         files.request(ReloadReason::Signal);
-        assert!(!files.runnable(), "a later request cannot bypass held FIFO input");
-        let mut writer = OpenOptions::new().write(true).custom_flags(0o4000).open(&path).unwrap();
+        assert!(
+            !files.runnable(),
+            "a later request cannot bypass held FIFO input"
+        );
+        let mut writer = OpenOptions::new()
+            .write(true)
+            .custom_flags(0o4000)
+            .open(&path)
+            .unwrap();
         writer.write_all(b"server=127.0.0.2\n").unwrap();
         // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
         let step = unsafe { files.step_with_watch_readiness(false) };
-        assert!(step.update.is_none() && !files.runnable(), "partial input waits for EOF");
+        assert!(
+            step.update.is_none() && !files.runnable(),
+            "partial input waits for EOF"
+        );
         drop(writer);
         // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
-        let update = (0..8).find_map(|_| unsafe { files.step_with_watch_readiness(false) }.update).unwrap();
+        let update = (0..8)
+            .find_map(|_| unsafe { files.step_with_watch_readiness(false) }.update)
+            .unwrap();
         assert!(matches!(&update.rows[0].rule.target,
             RuleTarget::Upstream(endpoint) if endpoint.host == ServerHost::Address("127.0.0.2".parse().unwrap())));
-        assert!(files.runnable(), "the later trigger survives first publication");
+        assert!(
+            files.runnable(),
+            "the later trigger survives first publication"
+        );
         // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
         unsafe { files.step_with_watch_readiness(false) };
-        assert!(!files.runnable(), "the next FIFO read again waits on its descriptor");
+        assert!(
+            !files.runnable(),
+            "the next FIFO read again waits on its descriptor"
+        );
     }
 
     #[test]
@@ -1095,8 +1147,11 @@ mod tests {
         drop(files);
         fs::remove_file(path).unwrap();
         rustix::fs::mkfifoat(
-            rustix::fs::CWD, path, rustix::fs::Mode::RUSR | rustix::fs::Mode::WUSR,
-        ).unwrap();
+            rustix::fs::CWD,
+            path,
+            rustix::fs::Mode::RUSR | rustix::fs::Mode::WUSR,
+        )
+        .unwrap();
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Init);
         // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
@@ -1105,12 +1160,18 @@ mod tests {
         // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
         assert!(!unsafe { files.step() }.runnable);
         assert!(files.initializing() && files.has_work());
-        assert!(!files.runnable(), "pending init must not spin while its actual FIFO job waits");
+        assert!(
+            !files.runnable(),
+            "pending init must not spin while its actual FIFO job waits"
+        );
         files.request(ReloadReason::Signal);
         // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
         let step = unsafe { files.step() };
         assert!(step.update.is_none() && !step.runnable);
-        assert!(!files.runnable(), "a later trigger cannot override FIFO backpressure");
+        assert!(
+            !files.runnable(),
+            "a later trigger cannot override FIFO backpressure"
+        );
         let mut fds = Vec::new();
         files.append_poll_fds(&mut fds);
         assert_eq!(fds.len(), 2); // Watch descriptor plus waiting FIFO.

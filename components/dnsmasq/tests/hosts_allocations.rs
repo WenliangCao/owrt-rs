@@ -14,7 +14,10 @@ thread_local! {
 }
 struct FailOne;
 fn fail_now(bytes: usize) -> bool {
-    if FAIL_MIN_BYTES.try_with(|minimum| bytes < minimum.get()).unwrap_or(false) {
+    if FAIL_MIN_BYTES
+        .try_with(|minimum| bytes < minimum.get())
+        .unwrap_or(false)
+    {
         return false;
     }
     FAIL_AFTER
@@ -183,8 +186,18 @@ fn removing_uppercase_name_records_is_atomic_under_allocation_failure() {
             let mut failures = 0;
             for failure in 0..128 {
                 let mut local = Hosts::new();
-                local.insert(b"Representative.Test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 2);
-                local.insert(b"REPRESENTATIVE.TEST".to_vec(), "192.0.2.2".parse().unwrap(), 37, 3);
+                local.insert(
+                    b"Representative.Test".to_vec(),
+                    "192.0.2.1".parse().unwrap(),
+                    37,
+                    2,
+                );
+                local.insert(
+                    b"REPRESENTATIVE.TEST".to_vec(),
+                    "192.0.2.2".parse().unwrap(),
+                    37,
+                    3,
+                );
                 let held = shared.then(|| local.tcp_snapshot());
                 let expected = local.entries().to_vec();
                 let action = || local.try_remove_uid(2);
@@ -387,7 +400,13 @@ fn retained_hosts_restore_without_allocating_after_failed_publication() {
     for (incremental, shared) in [(false, false), (false, true), (true, true)] {
         let mut local = Hosts::new();
         local.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 37, 1);
-        local.read(b"192.0.2.42 old.test\n192.0.2.43 old.test\n", 2, 37, false, |_| None);
+        local.read(
+            b"192.0.2.42 old.test\n192.0.2.43 old.test\n",
+            2,
+            37,
+            false,
+            |_| None,
+        );
         local.set_source_name(2, b"/old-hosts".to_vec());
         assert!(!local.has_shared_records());
         let held = shared.then(|| local.tcp_snapshot());
@@ -414,12 +433,17 @@ fn retained_hosts_restore_without_allocating_after_failed_publication() {
             (failed_publication, before - after)
         });
         assert!(failed && failed_publication);
-        assert_eq!(restore_attempts, 0, "restoring a retained owner cannot allocate");
+        assert_eq!(
+            restore_attempts, 0,
+            "restoring a retained owner cannot allocate"
+        );
         assert_eq!(local.entries().as_ptr(), original_records);
         assert_eq!(local.entries(), expected.entries());
         assert_eq!(local.source_name(2), Some(b"/old-hosts".as_slice()));
-        assert_eq!(local.addresses(b"old.test").collect::<Vec<_>>(),
-            expected.addresses(b"old.test").collect::<Vec<_>>());
+        assert_eq!(
+            local.addresses(b"old.test").collect::<Vec<_>>(),
+            expected.addresses(b"old.test").collect::<Vec<_>>()
+        );
         assert_eq!(local.addresses(b"ready.test").count(), 1);
         assert_eq!(local.addresses(b"new.test").count(), 0);
         let later = local.tcp_snapshot();
@@ -448,11 +472,22 @@ fn incremental_transaction_preserves_owners_at_every_allocation_failure() {
             for persistent in [false, true] {
                 let mut local = Hosts::new();
                 local.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 37, 1);
-                local.read(b"192.0.2.42 old.test\n192.0.2.43 old.test\n", 2, 37, false, |_| None);
+                local.read(
+                    b"192.0.2.42 old.test\n192.0.2.43 old.test\n",
+                    2,
+                    37,
+                    false,
+                    |_| None,
+                );
                 local.set_source_name(2, b"/old-hosts".to_vec());
                 // Removing source 2 must not promote another source's
                 // previously suppressed PTR ownership.
-                local.insert(b"retained.test".to_vec(), "192.0.2.42".parse().unwrap(), 37, 3);
+                local.insert(
+                    b"retained.test".to_vec(),
+                    "192.0.2.42".parse().unwrap(),
+                    37,
+                    3,
+                );
                 let daemon = local.try_clone().unwrap();
                 let held = shared.then(|| local.tcp_snapshot());
                 local.lookup(b"old.test", Some(false), false);
@@ -469,9 +504,10 @@ fn incremental_transaction_preserves_owners_at_every_allocation_failure() {
                             (b"new.test".as_slice(), "192.0.2.44"),
                             (b"new.test".as_slice(), "192.0.2.45"),
                             (b"leaf.deep.branch.test".as_slice(), "192.0.2.46"),
-                        ].into_iter().map(|(name, address)|
-                            (name.to_vec(), address.parse().unwrap())
-                        ).collect()
+                        ]
+                        .into_iter()
+                        .map(|(name, address)| (name.to_vec(), address.parse().unwrap()))
+                        .collect()
                     };
                     let action = || {
                         // This is the same assembler and publication copy
@@ -479,7 +515,11 @@ fn incremental_transaction_preserves_owners_at_every_allocation_failure() {
                         let (replacement, removed) =
                             local.try_replace_source(2, b"/new-hosts", records, 37)?;
                         let published = replacement.try_clone()?;
-                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((replacement, published, removed))
+                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((
+                            replacement,
+                            published,
+                            removed,
+                        ))
                     };
                     let (result, failed) = if persistent {
                         with_persistent_failure(failure, action)
@@ -491,8 +531,10 @@ fn incremental_transaction_preserves_owners_at_every_allocation_failure() {
                     assert_eq!(local.entries().as_ptr(), original_records);
                     assert_eq!(local.entries(), expected.entries());
                     assert_eq!(local.source_name(2), Some(b"/old-hosts".as_slice()));
-                    assert_eq!(local.addresses(b"old.test").collect::<Vec<_>>(),
-                        expected.addresses(b"old.test").collect::<Vec<_>>());
+                    assert_eq!(
+                        local.addresses(b"old.test").collect::<Vec<_>>(),
+                        expected.addresses(b"old.test").collect::<Vec<_>>()
+                    );
                     assert_eq!(daemon.addresses(b"old.test").count(), 2);
                     if let Some(held) = &held {
                         assert_eq!(held.addresses(b"old.test").count(), 2);
@@ -506,7 +548,10 @@ fn incremental_transaction_preserves_owners_at_every_allocation_failure() {
                         assert_eq!(replacement.addresses(b"old.test").count(), 0);
                         assert!(replacement.reverse("192.0.2.42".parse().unwrap()).is_none());
                         assert_eq!(replacement.len(), if deleted { 2 } else { 5 });
-                        assert_eq!(replacement.addresses(b"new.test").count(), if deleted { 0 } else { 2 });
+                        assert_eq!(
+                            replacement.addresses(b"new.test").count(),
+                            if deleted { 0 } else { 2 }
+                        );
                         if !deleted {
                             assert!(replacement.name_exists(b"deep.branch.test"));
                         }
@@ -524,12 +569,15 @@ fn incremental_transaction_preserves_owners_at_every_allocation_failure() {
 // Exact C fixture: its temporary reverse hash and name lookup share `next`.
 // With EDNS 1232, the packet buffer is 1232 + MAXDNAME(255) + RRFIXEDSZ(10).
 const BULK_PACKET_BYTES: usize = 1497;
-const BULK_PREFIX: &[u8] = b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n";
+const BULK_PREFIX: &[u8] =
+    b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n";
 const BULK_SUFFIX: &[u8] = b"192.0.2.1 y.test\n192.0.2.2 y.test\n";
 
 fn ptr_names(hosts: &Hosts, address: &str) -> Vec<Vec<u8>> {
-    let mut names: Vec<_> = hosts.reverse_all(address.parse().unwrap())
-        .map(|host| host.name.clone()).collect();
+    let mut names: Vec<_> = hosts
+        .reverse_all(address.parse().unwrap())
+        .map(|host| host.name.clone())
+        .collect();
     names.sort();
     names
 }
@@ -537,10 +585,21 @@ fn ptr_names(hosts: &Hosts, address: &str) -> Vec<Vec<u8>> {
 fn bulk_hosts() -> Hosts {
     let mut hosts = Hosts::new();
     hosts.begin_bulk(BULK_PACKET_BYTES, 1000, 1000).unwrap();
-    assert!(!hosts.read(BULK_PREFIX, 2, 37, false, |_| None).allocation_failed);
-    assert!(!hosts.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
+    assert!(
+        !hosts
+            .read(BULK_PREFIX, 2, 37, false, |_| None)
+            .allocation_failed
+    );
+    assert!(
+        !hosts
+            .read(BULK_SUFFIX, 3, 37, false, |_| None)
+            .allocation_failed
+    );
     hosts.finish_bulk();
-    assert_eq!(ptr_names(&hosts, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
+    assert_eq!(
+        ptr_names(&hosts, "192.0.2.1"),
+        [b"x.test".to_vec(), b"y.test".to_vec()]
+    );
     hosts
 }
 
@@ -550,7 +609,11 @@ fn completed_generation_snapshots_do_not_keep_bulk_ingestion_links() {
         let mut parent = Hosts::new();
         parent.set_round_robin(!no_round_robin);
         parent.begin_bulk(BULK_PACKET_BYTES, 1000, 1000).unwrap();
-        assert!(!parent.read(BULK_PREFIX, 2, 37, false, |_| None).allocation_failed);
+        assert!(
+            !parent
+                .read(BULK_PREFIX, 2, 37, false, |_| None)
+                .allocation_failed
+        );
         // Only completed generations may reach a TCP reader. Publishing a
         // completed copy must not destroy the separate loader's cross-source
         // history, or retain that history in the published copy's snapshots.
@@ -558,14 +621,31 @@ fn completed_generation_snapshots_do_not_keep_bulk_ingestion_links() {
         published.finish_bulk();
         let mut child = published.tcp_snapshot();
         assert_eq!(published.entries().as_ptr(), child.entries().as_ptr());
-        assert!(!parent.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
-        assert!(!child.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
-        assert_eq!(ptr_names(&parent, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
-        assert_eq!(ptr_names(&child, "192.0.2.1"), [b"x.test".to_vec()],
-            "the TCP reader must use incremental ownership, with no ingestion sidecar");
+        assert!(
+            !parent
+                .read(BULK_SUFFIX, 3, 37, false, |_| None)
+                .allocation_failed
+        );
+        assert!(
+            !child
+                .read(BULK_SUFFIX, 3, 37, false, |_| None)
+                .allocation_failed
+        );
+        assert_eq!(
+            ptr_names(&parent, "192.0.2.1"),
+            [b"x.test".to_vec(), b"y.test".to_vec()]
+        );
+        assert_eq!(
+            ptr_names(&child, "192.0.2.1"),
+            [b"x.test".to_vec()],
+            "the TCP reader must use incremental ownership, with no ingestion sidecar"
+        );
         parent.finish_bulk();
         parent.read(b"192.0.2.1 later.test\n", 4, 37, false, |_| None);
-        assert_eq!(ptr_names(&parent, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
+        assert_eq!(
+            ptr_names(&parent, "192.0.2.1"),
+            [b"x.test".to_vec(), b"y.test".to_vec()]
+        );
     }
 }
 
@@ -576,7 +656,9 @@ fn fallible_bulk_copy_preserves_the_loading_owners_links() {
             let mut loading = Hosts::new();
             loading.begin_bulk(BULK_PACKET_BYTES, 1000, 1000).unwrap();
             if retained_lease {
-                loading.add_bulk_lease(b"a.test", "192.0.2.1".parse().unwrap(), true, false).unwrap();
+                loading
+                    .add_bulk_lease(b"a.test", "192.0.2.1".parse().unwrap(), true, false)
+                    .unwrap();
             }
             let expected = if retained_lease {
                 vec![b"x.test".to_vec()]
@@ -596,7 +678,11 @@ fn fallible_bulk_copy_preserves_the_loading_owners_links() {
                 assert_eq!(loading.entries().as_ptr(), pointer);
                 assert_eq!(loading.len(), 4);
                 if let Ok(mut copy) = result {
-                    assert!(!copy.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
+                    assert!(
+                        !copy
+                            .read(BULK_SUFFIX, 3, 37, false, |_| None)
+                            .allocation_failed
+                    );
                     copy.finish_bulk();
                     assert_eq!(ptr_names(&copy, "192.0.2.1"), expected);
                     completed = true;
@@ -604,7 +690,11 @@ fn fallible_bulk_copy_preserves_the_loading_owners_links() {
                 }
             }
             assert!(completed);
-            assert!(!loading.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
+            assert!(
+                !loading
+                    .read(BULK_SUFFIX, 3, 37, false, |_| None)
+                    .allocation_failed
+            );
             loading.finish_bulk();
             assert_eq!(ptr_names(&loading, "192.0.2.1"), expected);
         }
@@ -626,7 +716,10 @@ fn bulk_generation_failures_never_replace_existing_multiple_ptr_owners() {
                     let mut replacement = Hosts::new();
                     replacement.begin_bulk(BULK_PACKET_BYTES, 1000, 1000)?;
                     for (source, input) in [(2, BULK_PREFIX), (3, BULK_SUFFIX)] {
-                        if replacement.read(input, source, 37, false, |_| None).allocation_failed {
+                        if replacement
+                            .read(input, source, 37, false, |_| None)
+                            .allocation_failed
+                        {
                             return Err(dnsmasq_rs::hosts::IngestionError);
                         }
                     }
@@ -639,14 +732,24 @@ fn bulk_generation_failures_never_replace_existing_multiple_ptr_owners() {
                 } else {
                     with_failure(failure, action)
                 };
-                assert_eq!(result.is_err(), failed, "allocation {failure}, shared={shared}, persistent={persistent}");
+                assert_eq!(
+                    result.is_err(),
+                    failed,
+                    "allocation {failure}, shared={shared}, persistent={persistent}"
+                );
                 assert_eq!(local.entries().as_ptr(), old_pointer);
                 for old in [&local, &daemon].into_iter().chain(held.iter()) {
-                    assert_eq!(ptr_names(old, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
+                    assert_eq!(
+                        ptr_names(old, "192.0.2.1"),
+                        [b"x.test".to_vec(), b"y.test".to_vec()]
+                    );
                 }
                 if let Ok((replacement, published)) = result {
                     assert_eq!(replacement.entries(), published.entries());
-                    assert_eq!(ptr_names(&replacement, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
+                    assert_eq!(
+                        ptr_names(&replacement, "192.0.2.1"),
+                        [b"x.test".to_vec(), b"y.test".to_vec()]
+                    );
                     completed = true;
                     break;
                 }
@@ -666,13 +769,22 @@ fn deleting_either_multiple_ptr_source_is_atomic_under_allocation_failure() {
                 let daemon = local.try_clone().unwrap();
                 let held = shared.then(|| local.tcp_snapshot());
                 let old_pointer = local.entries().as_ptr();
-                let expected = if source == 2 { b"y.test".as_slice() } else { b"x.test".as_slice() };
+                let expected = if source == 2 {
+                    b"y.test".as_slice()
+                } else {
+                    b"x.test".as_slice()
+                };
                 let mut completed = false;
                 for failure in 0..512 {
                     let action = || {
-                        let (replacement, removed) = local.try_replace_source(source, b"/deleted", Vec::new(), 37)?;
+                        let (replacement, removed) =
+                            local.try_replace_source(source, b"/deleted", Vec::new(), 37)?;
                         let published = replacement.try_clone()?;
-                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((replacement, published, removed))
+                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((
+                            replacement,
+                            published,
+                            removed,
+                        ))
                     };
                     let (result, failed) = if persistent {
                         with_persistent_failure(failure, action)
@@ -682,13 +794,19 @@ fn deleting_either_multiple_ptr_source_is_atomic_under_allocation_failure() {
                     assert_eq!(result.is_err(), failed, "allocation {failure}, source={source}, shared={shared}, persistent={persistent}");
                     assert_eq!(local.entries().as_ptr(), old_pointer);
                     for old in [&local, &daemon].into_iter().chain(held.iter()) {
-                        assert_eq!(ptr_names(old, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
+                        assert_eq!(
+                            ptr_names(old, "192.0.2.1"),
+                            [b"x.test".to_vec(), b"y.test".to_vec()]
+                        );
                     }
                     if let Ok((replacement, published, removed)) = result {
                         assert_eq!(removed, if source == 2 { 4 } else { 2 });
                         assert_eq!(replacement.entries(), published.entries());
                         assert_eq!(ptr_names(&replacement, "192.0.2.1"), [expected.to_vec()]);
-                        assert!(!replacement.entries().iter().any(|host| host.source == source));
+                        assert!(!replacement
+                            .entries()
+                            .iter()
+                            .any(|host| host.source == source));
                         completed = true;
                         break;
                     }
@@ -726,20 +844,39 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
     }
     let lease = (0..10000)
         .map(|id| format!("a{id}.test"))
-        .find(|name| [b"ready.test".as_slice(), b"old.test", b"x.test"]
-            .into_iter().all(|blocker| !shares_bucket(name.as_bytes(), blocker)))
+        .find(|name| {
+            [b"ready.test".as_slice(), b"old.test", b"x.test"]
+                .into_iter()
+                .all(|blocker| !shares_bucket(name.as_bytes(), blocker))
+        })
         .expect("bounded name pool has a separate bucket");
-    let prefix = std::str::from_utf8(BULK_PREFIX).unwrap().replace("a.test", &lease);
+    let prefix = std::str::from_utf8(BULK_PREFIX)
+        .unwrap()
+        .replace("a.test", &lease);
 
     let mut config = DnsConfig::default();
-    config.apply(&lex_line(b"host-record=ready.test,192.0.2.41").unwrap().unwrap()).unwrap();
+    config
+        .apply(
+            &lex_line(b"host-record=ready.test,192.0.2.41")
+                .unwrap()
+                .unwrap(),
+        )
+        .unwrap();
     for expires in [None, Some(3600)] {
         for shared in [false, true] {
             for persistent in [false, true] {
                 let mut old = configured_hosts(&config, 37);
-                let retained = LeaseNames::build(&[DnsLeaseRecord {
-                    name: lease.as_bytes(), address: "192.0.2.1".parse().unwrap(), expires,
-                }], &mut old, &[], LeasePolicy::default(), &mut ());
+                let retained = LeaseNames::build(
+                    &[DnsLeaseRecord {
+                        name: lease.as_bytes(),
+                        address: "192.0.2.1".parse().unwrap(),
+                        expires,
+                    }],
+                    &mut old,
+                    &[],
+                    LeasePolicy::default(),
+                    &mut (),
+                );
                 assert_eq!(retained.active_entries().count(), 1);
                 assert!(retained.entries()[0].reverse);
                 let old_input = retained.entries()[0].clone();
@@ -749,10 +886,18 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
                 for failure in 0..512 {
                     let action = || {
                         let mut replacement = configured_hosts_bulk(
-                            &config, 37, BULK_PACKET_BYTES, 1000, 1000, &retained,
+                            &config,
+                            37,
+                            BULK_PACKET_BYTES,
+                            1000,
+                            1000,
+                            &retained,
                         )?;
                         for (source, input) in [(2, prefix.as_bytes()), (3, BULK_SUFFIX)] {
-                            if replacement.read(input, source, 37, false, |_| None).allocation_failed {
+                            if replacement
+                                .read(input, source, 37, false, |_| None)
+                                .allocation_failed
+                            {
                                 return Err(dnsmasq_rs::hosts::IngestionError);
                             }
                         }
@@ -770,21 +915,33 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
                     assert_eq!(old.entries().as_ptr(), pointer);
                     assert_eq!(old.len(), 1);
                     assert_eq!(retained.entries(), std::slice::from_ref(&old_input));
-                    if let Some(held) = &held { assert_eq!(held.entries(), old.entries()); }
+                    if let Some(held) = &held {
+                        assert_eq!(held.entries(), old.entries());
+                    }
                     if let Ok((mut replacement, published)) = result {
                         let expected = if expires.is_some() {
                             vec![b"x.test".to_vec()]
                         } else {
                             vec![b"x.test".to_vec(), b"y.test".to_vec()]
                         };
-                        assert_eq!(ptr_names(&replacement, "192.0.2.1"), expected, "fixture lease={lease}");
+                        assert_eq!(
+                            ptr_names(&replacement, "192.0.2.1"),
+                            expected,
+                            "fixture lease={lease}"
+                        );
                         assert_eq!(ptr_names(&published, "192.0.2.1"), expected);
                         assert_eq!(replacement.len(), 7, "DHCP shadows are not published hosts");
                         let leases = retained.rebuild(&mut replacement, &[], &mut ());
-                        assert_eq!(leases.lookup(lease.as_bytes(), 0).count(), 0,
-                            "same-name static host suppresses the old lease after bulk loading");
-                        assert_eq!(ptr_names(&replacement, "192.0.2.1"), expected,
-                            "post-HUP lease removal must not rewrite bulk PTR ownership");
+                        assert_eq!(
+                            leases.lookup(lease.as_bytes(), 0).count(),
+                            0,
+                            "same-name static host suppresses the old lease after bulk loading"
+                        );
+                        assert_eq!(
+                            ptr_names(&replacement, "192.0.2.1"),
+                            expected,
+                            "post-HUP lease removal must not rewrite bulk PTR ownership"
+                        );
                         completed = true;
                         break;
                     }
@@ -804,8 +961,13 @@ fn failed_query_page_copy_keeps_the_shared_chain_and_complete_answer() {
     }
     for persistent in [false, true] {
         let mut parent = Hosts::new();
-        parent.read(b"192.0.2.1 many.test\n192.0.2.2 many.test\n192.0.2.3 many.test\n",
-            2, 37, false, |_| None);
+        parent.read(
+            b"192.0.2.1 many.test\n192.0.2.2 many.test\n192.0.2.3 many.test\n",
+            2,
+            37,
+            false,
+            |_| None,
+        );
         let mut reference = parent.try_clone().unwrap();
         let expected = answer(&mut reference);
         let mut child = parent.tcp_snapshot();
@@ -819,12 +981,22 @@ fn failed_query_page_copy_keeps_the_shared_chain_and_complete_answer() {
             ([first, expected], failed)
         };
         FAIL_MIN_BYTES.with(|minimum| minimum.set(0));
-        assert!(failed, "a shared global chain page must exercise the copy failure");
+        assert!(
+            failed,
+            "a shared global chain page must exercise the copy failure"
+        );
         assert_eq!(actual, [expected, expected]);
-        assert_eq!(answer(&mut child), expected,
-            "a failed page copy must not publish part of a rotation");
+        assert_eq!(
+            answer(&mut child),
+            expected,
+            "a failed page copy must not publish part of a rotation"
+        );
         assert_eq!(answer(&mut child), answer(&mut reference));
-        assert_eq!(answer(&mut parent), expected, "the TCP child cannot change its parent's chain");
+        assert_eq!(
+            answer(&mut parent),
+            expected,
+            "the TCP child cannot change its parent's chain"
+        );
     }
 }
 
@@ -838,9 +1010,17 @@ fn incremental_retained_lease_ownership_is_atomic_at_every_allocation_failure() 
             for persistent in [false, true] {
                 let mut local = Hosts::new();
                 local.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 37, 1);
-                let leases = LeaseNames::build(&[DnsLeaseRecord {
-                    name: b"lease.test", address: "192.0.2.1".parse().unwrap(), expires,
-                }], &mut local, &[], LeasePolicy::default(), &mut ());
+                let leases = LeaseNames::build(
+                    &[DnsLeaseRecord {
+                        name: b"lease.test",
+                        address: "192.0.2.1".parse().unwrap(),
+                        expires,
+                    }],
+                    &mut local,
+                    &[],
+                    LeasePolicy::default(),
+                    &mut (),
+                );
                 let held = shared.then(|| local.tcp_snapshot());
                 let pointer = local.entries().as_ptr();
                 let mut completed = false;
@@ -851,16 +1031,27 @@ fn incremental_retained_lease_ownership_is_atomic_at_every_allocation_failure() 
                     ];
                     let action = || {
                         let (mut replacement, removed) = local.try_replace_source_with_leases(
-                            2, b"/hostsdir/hosts", records, 37,
-                            leases.active_entries().map(|lease| (
-                                lease.name.as_ref(), IpAddr::V4(lease.address),
-                                lease.reverse, lease.expires.is_none(),
-                            )),
+                            2,
+                            b"/hostsdir/hosts",
+                            records,
+                            37,
+                            leases.active_entries().map(|lease| {
+                                (
+                                    lease.name.as_ref(),
+                                    IpAddr::V4(lease.address),
+                                    lease.reverse,
+                                    lease.expires.is_none(),
+                                )
+                            }),
                             [2],
                         )?;
                         replacement.finish_bulk();
                         let published = replacement.try_clone()?;
-                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((replacement, published, removed))
+                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((
+                            replacement,
+                            published,
+                            removed,
+                        ))
                     };
                     let (result, failed) = if persistent {
                         with_persistent_failure(failure, action)
@@ -872,7 +1063,9 @@ fn incremental_retained_lease_ownership_is_atomic_at_every_allocation_failure() 
                     assert_eq!(local.entries().as_ptr(), pointer);
                     assert_eq!(local.len(), 1);
                     assert_eq!(leases.lookup(b"lease.test", 0).count(), 1);
-                    if let Some(held) = &held { assert_eq!(held.entries(), local.entries()); }
+                    if let Some(held) = &held {
+                        assert_eq!(held.entries(), local.entries());
+                    }
                     if let Ok((replacement, published, removed)) = result {
                         assert_eq!(removed, 0);
                         let expected = if expires.is_none() {

@@ -197,18 +197,30 @@ mod tests {
     fn admission_preserves_binary_pointer_and_expanded_name_boundaries() {
         let packet = |name: &[u8]| {
             let mut bytes = vec![0; HEADER_LEN];
-            Header { id: 7, flags: 0x100, questions: 1, ..Default::default() }
-                .write(&mut bytes).unwrap();
+            Header {
+                id: 7,
+                flags: 0x100,
+                questions: 1,
+                ..Default::default()
+            }
+            .write(&mut bytes)
+            .unwrap();
             bytes.extend_from_slice(name);
             bytes.extend_from_slice(&[0, 1, 0, 1]);
             bytes
         };
         assert_eq!(inspect(&packet(&[0]), 1232), Admission::Continue);
-        assert_eq!(inspect(&packet(&[5, 0, 1, b'.', 255, b'A', 0]), 1232), Admission::Continue);
+        assert_eq!(
+            inspect(&packet(&[5, 0, 1, b'.', 255, b'A', 0]), 1232),
+            Admission::Continue
+        );
         let mut forward = packet(&[0xc0, 18]);
         forward.extend_from_slice(&[1, b'x', 0]);
-        assert_eq!(inspect(&forward, 1232), Admission::Continue,
-            "the question cursor follows its encoded pointer, not its target");
+        assert_eq!(
+            inspect(&forward, 1232),
+            Admission::Continue,
+            "the question cursor follows its encoded pointer, not its target"
+        );
 
         let mut maximum = Vec::new();
         for length in [63, 63, 63, 61] {
@@ -219,7 +231,11 @@ mod tests {
         assert_eq!(inspect(&packet(&maximum), 1232), Admission::Continue);
         maximum[192] = 62;
         maximum.insert(maximum.len() - 1, b'x');
-        for invalid in [packet(&maximum), packet(&[0xc0, 12]), packet(&[65, 8, 255, 0])] {
+        for invalid in [
+            packet(&maximum),
+            packet(&[0xc0, 12]),
+            packet(&[65, 8, 255, 0]),
+        ] {
             let Admission::Reply(reply) = inspect(&invalid, 1232) else {
                 panic!("invalid but skippable questions must retain REFUSED");
             };

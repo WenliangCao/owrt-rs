@@ -3,15 +3,24 @@
 #[path = "../src/readiness.rs"]
 mod readiness;
 
-use owrt_ubus::{blob::BlobBuf, msg::{attr, ty, Header}, Connection, Incoming};
+use owrt_ubus::{
+    blob::BlobBuf,
+    msg::{attr, ty, Header},
+    Connection, Incoming,
+};
 use std::io::{Read, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::time::Instant;
 
 #[repr(C)]
-struct Timespec { sec: i64, nsec: i64 }
-extern "C" { fn clock_gettime(clock: i32, time: *mut Timespec) -> i32; }
+struct Timespec {
+    sec: i64,
+    nsec: i64,
+}
+extern "C" {
+    fn clock_gettime(clock: i32, time: *mut Timespec) -> i32;
+}
 fn thread_cpu_ns() -> u64 {
     let mut time = Timespec { sec: 0, nsec: 0 };
     // SAFETY: Linux CLOCK_THREAD_CPUTIME_ID and a writable 64-bit timespec.
@@ -24,7 +33,16 @@ fn run(n: u32, burst: u32, drain: bool) -> (f64, f64, u32, u32) {
     let listener = UnixListener::bind(&path).unwrap();
     let peer = std::thread::spawn(move || {
         let (mut socket, _) = listener.accept().unwrap();
-        socket.write_all(&Header { ty: ty::HELLO, seq: 0, peer: 1 }.encode()).unwrap();
+        socket
+            .write_all(
+                &Header {
+                    ty: ty::HELLO,
+                    seq: 0,
+                    peer: 1,
+                }
+                .encode(),
+            )
+            .unwrap();
         socket.write_all(&4u32.to_be_bytes()).unwrap();
         let mut data = BlobBuf::new();
         data.msg_string("ubus_rpc_session", "00000000000000000000000000000000");
@@ -32,12 +50,22 @@ fn run(n: u32, burst: u32, drain: bool) -> (f64, f64, u32, u32) {
         data.msg_string("object", "uci");
         data.msg_string("function", "get");
         let mut frame = BlobBuf::new();
-        frame.put_u32(attr::OBJID, 42).put_string(attr::METHOD, "access")
-            .put_string(attr::USER, "root").put_string(attr::GROUP, "root")
+        frame
+            .put_u32(attr::OBJID, 42)
+            .put_string(attr::METHOD, "access")
+            .put_string(attr::USER, "root")
+            .put_string(attr::GROUP, "root")
             .put(attr::DATA, data.payload());
         let mut batch = Vec::new();
         for _ in 0..burst {
-            batch.extend_from_slice(&Header { ty: ty::INVOKE, seq: 2, peer: 3 }.encode());
+            batch.extend_from_slice(
+                &Header {
+                    ty: ty::INVOKE,
+                    seq: 2,
+                    peer: 3,
+                }
+                .encode(),
+            );
             batch.extend_from_slice(frame.as_bytes());
         }
         let mut body = vec![0; 256];
@@ -48,7 +76,8 @@ fn run(n: u32, burst: u32, drain: bool) -> (f64, f64, u32, u32) {
                     let mut head = [0; 12];
                     socket.read_exact(&mut head).unwrap();
                     assert_eq!(head[1], kind);
-                    let len = (u32::from_be_bytes(head[8..].try_into().unwrap()) & 0x00ff_ffff) as usize;
+                    let len =
+                        (u32::from_be_bytes(head[8..].try_into().unwrap()) & 0x00ff_ffff) as usize;
                     socket.read_exact(&mut body[..len - 4]).unwrap();
                 }
             }
@@ -67,9 +96,13 @@ fn run(n: u32, burst: u32, drain: bool) -> (f64, f64, u32, u32) {
     for _ in 0..n {
         let immediate = if drain && budget > 0 {
             let value = conn.incoming_if_started().unwrap();
-            if value.is_none() { misses += 1; }
+            if value.is_none() {
+                misses += 1;
+            }
             value
-        } else { None };
+        } else {
+            None
+        };
         let msg = if let Some(msg) = immediate {
             budget -= 1;
             msg
@@ -79,7 +112,9 @@ fn run(n: u32, burst: u32, drain: bool) -> (f64, f64, u32, u32) {
             budget = 31;
             conn.read_incoming().unwrap()
         };
-        let Incoming::Invoke(req) = msg else { panic!("INVOKE") };
+        let Incoming::Invoke(req) = msg else {
+            panic!("INVOKE")
+        };
         assert_eq!(req.method, "access");
         assert_eq!(req.user.as_deref(), Some("root"));
         assert_eq!(req.group.as_deref(), Some("root"));
@@ -94,15 +129,25 @@ fn run(n: u32, burst: u32, drain: bool) -> (f64, f64, u32, u32) {
 }
 
 fn main() {
-    let n: u32 = std::env::args().nth(1).unwrap_or_else(|| "100000".into()).parse().unwrap();
+    let n: u32 = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "100000".into())
+        .parse()
+        .unwrap();
     assert!(n > 0 && n.is_multiple_of(32));
     println!("round,burst,strategy,iterations,thread_cpu_ns,wall_ns,waits,empty_probes");
     for round in 1..=5 {
         for burst in [1, 4, 32] {
-            for drain in if round % 2 == 1 { [false, true] } else { [true, false] } {
+            for drain in if round % 2 == 1 {
+                [false, true]
+            } else {
+                [true, false]
+            } {
                 let (cpu, wall, waits, misses) = run(n, burst, drain);
-                println!("{round},{burst},{},{n},{cpu:.2},{wall:.2},{waits},{misses}",
-                    if drain { "drain" } else { "wait" });
+                println!(
+                    "{round},{burst},{},{n},{cpu:.2},{wall:.2},{waits},{misses}",
+                    if drain { "drain" } else { "wait" }
+                );
             }
         }
     }

@@ -8,7 +8,9 @@ use crate::val::Num;
 pub fn quote(s: &str, force: bool) -> String {
     // /^([0-9A-Fa-f:.\/-]+)( \. [0-9A-Fa-f:.\/-]+)*$/
     let plain = |t: &str| {
-        !t.is_empty() && t.chars().all(|c| c.is_ascii_hexdigit() || matches!(c, ':' | '.' | '/' | '-'))
+        !t.is_empty()
+            && t.chars()
+                .all(|c| c.is_ascii_hexdigit() || matches!(c, ':' | '.' | '/' | '-'))
     };
     let matches = s.split(" . ").all(plain);
     if force || !matches {
@@ -159,7 +161,11 @@ impl Fw4 {
         addr.starts_with("127.") || addr == "::1" || addr == "::1/128"
     }
 
-    pub fn filter_loopback_devs(&self, devs: Option<&Vec<String>>, invert: bool) -> Option<Vec<String>> {
+    pub fn filter_loopback_devs(
+        &self,
+        devs: Option<&Vec<String>>,
+        invert: bool,
+    ) -> Option<Vec<String>> {
         let out: Vec<String> = devs?
             .iter()
             .filter(|d| self.is_loopback_dev(d) == invert)
@@ -172,7 +178,11 @@ impl Fw4 {
         }
     }
 
-    pub fn filter_loopback_addrs(&self, addrs: Option<&Vec<String>>, invert: bool) -> Option<Vec<String>> {
+    pub fn filter_loopback_addrs(
+        &self,
+        addrs: Option<&Vec<String>>,
+        invert: bool,
+    ) -> Option<Vec<String>> {
         let out: Vec<String> = addrs?
             .iter()
             .filter(|a| self.is_loopback_addr(a) == invert)
@@ -233,7 +243,10 @@ impl Fw4 {
     }
 
     pub fn redirects<'a>(&'a self, chain: &'a str) -> impl Iterator<Item = &'a Redirect> + 'a {
-        self.state.redirects.iter().filter(move |r| r.chain == chain)
+        self.state
+            .redirects
+            .iter()
+            .filter(move |r| r.chain == chain)
     }
 
     /// `fw4.includes(position, chain)` output, appended to `out`: the leading
@@ -270,7 +283,9 @@ impl Fw4 {
             Err(error) => {
                 self.raw_warn(&format!(
                     "Unable to load file '{}' for set '{}': {}\n",
-                    path, set.name, crate::input::fs_error(&error)
+                    path,
+                    set.name,
+                    crate::input::fs_error(&error)
                 ));
                 return None;
             }
@@ -332,12 +347,31 @@ mod tests {
         assert_eq!(set(&["a".into(), "a".into()], false), "a");
         assert_eq!(set(&["lan".into(), "lan".into()], false), "\"lan\"");
         assert_eq!(set(&["a".into(), "b".into()], false), "{ a, b }");
-        assert_eq!(set(&["lan".into(), "wan".into()], false), "{ \"lan\", \"wan\" }");
+        assert_eq!(
+            set(&["lan".into(), "wan".into()], false),
+            "{ \"lan\", \"wan\" }"
+        );
         assert_eq!(set(&["eth0".into()], true), "{ \"eth0\" }");
         assert_eq!(set(&[], true), "{  }");
-        let a = Addr { family: 4, addr: "10.0.0.5".into(), mask: Some("255.255.255.0".into()), bits: Some(24), addr2: None, range: false, invert: false };
+        let a = Addr {
+            family: 4,
+            addr: "10.0.0.5".into(),
+            mask: Some("255.255.255.0".into()),
+            bits: Some(24),
+            addr2: None,
+            range: false,
+            invert: false,
+        };
         assert_eq!(cidr(&a), "10.0.0.0/24");
-        let a = Addr { family: 4, addr: "10.0.0.0".into(), mask: Some("255.0.255.0".into()), bits: Some(-1), addr2: None, range: false, invert: false };
+        let a = Addr {
+            family: 4,
+            addr: "10.0.0.0".into(),
+            mask: Some("255.0.255.0".into()),
+            bits: Some(-1),
+            addr2: None,
+            range: false,
+            invert: false,
+        };
         assert_eq!(cidr(&a), "10.0.0.0/255.0.255.0");
         assert_eq!(nfproto(0, true), "IPv4/IPv6");
         assert_eq!(hex(4294967290), "0xfffffffa");

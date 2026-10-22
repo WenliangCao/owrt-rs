@@ -6,7 +6,11 @@ use std::os::fd::{AsFd, OwnedFd, RawFd};
 pub type Ucred = owrt_platform::ubusd::Ucred;
 
 /// Only the owned metadata fields consumed by ACL policy, not a foreign ABI.
-pub struct Stat { pub mode: u32, pub uid: u32, pub gid: u32 }
+pub struct Stat {
+    pub mode: u32,
+    pub uid: u32,
+    pub gid: u32,
+}
 pub const S_IFMT: u32 = 0o170000;
 pub const S_IFREG: u32 = 0o100000;
 pub const S_IWGRP: u32 = 0o020;
@@ -47,17 +51,27 @@ pub fn random_id(min: u32) -> io::Result<u32> {
 pub fn listen_unix(path: &str) -> io::Result<OwnedFd> {
     if let Some(dir) = path.rfind('/').map(|i| &path[..i]) {
         if !dir.is_empty() {
-            let _ = rustix::fs::mkdirat(rustix::fs::CWD, c_prefix(dir), rustix::fs::Mode::from_raw_mode(0o755));
+            let _ = rustix::fs::mkdirat(
+                rustix::fs::CWD,
+                c_prefix(dir),
+                rustix::fs::Mode::from_raw_mode(0o755),
+            );
         }
     }
     remove_file(path);
     if path.len() >= 108 {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "socket path too long"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "socket path too long",
+        ));
     }
     let address = rustix::net::SocketAddrUnix::new(path)?;
-    let socket = rustix::net::socket_with(rustix::net::AddressFamily::UNIX,
+    let socket = rustix::net::socket_with(
+        rustix::net::AddressFamily::UNIX,
         rustix::net::SocketType::STREAM,
-        rustix::net::SocketFlags::CLOEXEC | rustix::net::SocketFlags::NONBLOCK, None)?;
+        rustix::net::SocketFlags::CLOEXEC | rustix::net::SocketFlags::NONBLOCK,
+        None,
+    )?;
     // This is still single-threaded daemon startup; retain bind's mask scope.
     let previous = rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o111));
     let bound = rustix::net::bind(&socket, &address);
@@ -67,15 +81,24 @@ pub fn listen_unix(path: &str) -> io::Result<OwnedFd> {
     Ok(socket)
 }
 
-fn c_prefix(value: &str) -> &str { value.split('\0').next().unwrap_or_default() }
+fn c_prefix(value: &str) -> &str {
+    value.split('\0').next().unwrap_or_default()
+}
 
 pub fn remove_file(path: &str) {
-    let _ = rustix::fs::unlinkat(rustix::fs::CWD, c_prefix(path), rustix::fs::AtFlags::empty());
+    let _ = rustix::fs::unlinkat(
+        rustix::fs::CWD,
+        c_prefix(path),
+        rustix::fs::AtFlags::empty(),
+    );
 }
 
 /// accept4 with CLOEXEC|NONBLOCK. `Ok(None)` means the backlog is drained.
 pub fn accept(fd: impl AsFd) -> io::Result<Option<OwnedFd>> {
-    match rustix::net::accept_with(fd, rustix::net::SocketFlags::CLOEXEC | rustix::net::SocketFlags::NONBLOCK) {
+    match rustix::net::accept_with(
+        fd,
+        rustix::net::SocketFlags::CLOEXEC | rustix::net::SocketFlags::NONBLOCK,
+    ) {
         Ok(client) => Ok(Some(client)),
         Err(rustix::io::Errno::AGAIN) => Ok(None),
         Err(error) => Err(error.into()),
@@ -90,7 +113,11 @@ pub fn group_id(name: &str) -> Option<u32> {
 }
 pub fn stat_of(path: &str) -> Option<Stat> {
     let stat = rustix::fs::stat(c_prefix(path)).ok()?;
-    Some(Stat { mode: stat.st_mode, uid: stat.st_uid, gid: stat.st_gid })
+    Some(Stat {
+        mode: stat.st_mode,
+        uid: stat.st_uid,
+        gid: stat.st_gid,
+    })
 }
 
 /// The supplementary groups of `pid`, from /proc/<pid>/status, capped the way
@@ -128,6 +155,10 @@ pub fn sendmsg_three(sock: RawFd, parts: [&[u8]; 3]) -> io::Result<usize> {
 }
 
 /// One recvmsg; caller retains the original short-read/EINTR/backpressure policy.
-pub fn recvmsg_fd(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<(usize, Option<OwnedFd>)> {
+pub fn recvmsg_fd(
+    sock: RawFd,
+    buf: &mut [u8],
+    want_fd: bool,
+) -> io::Result<(usize, Option<OwnedFd>)> {
     owrt_platform::ipc::recv_into(sock, buf, want_fd, false)
 }

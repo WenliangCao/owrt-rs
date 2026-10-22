@@ -67,15 +67,16 @@ impl QueryPolicy {
             return Ok(None);
         }
         let known = !private_reverse
-            && (cached_name || local.is_some_and(|local| {
-                known_forwarded_domain_with_leases(
-                    &local.config,
-                    &local.hosts,
-                    routing_name,
-                    &local.leases,
-                    super::service::unix_now(),
-                )
-            }));
+            && (cached_name
+                || local.is_some_and(|local| {
+                    known_forwarded_domain_with_leases(
+                        &local.config,
+                        &local.hosts,
+                        routing_name,
+                        &local.leases,
+                        super::service::unix_now(),
+                    )
+                }));
         if let Some(events) = events {
             use crate::query_logging::{self as log, QueryEvent};
             if private_reverse {
@@ -178,12 +179,27 @@ mod tests {
             for cached_name in [false, true] {
                 for alias in [false, true] {
                     let query = query(if alias { "alias.test" } else { "terminal" }, 28, 1);
-                    let packet = policy.reply_with_cache(
-                        &query, &routing, Some(&local), 1232, tcp,
-                        alias.then_some(&cursor), cached_name, None,
-                    ).unwrap().unwrap();
-                    assert_eq!(Header::parse(&packet).unwrap().rcode(), if cached_name { 0 } else { 3 });
-                    assert_eq!(Question::parse(&packet, 12).unwrap(), Question::parse(&query, 12).unwrap());
+                    let packet = policy
+                        .reply_with_cache(
+                            &query,
+                            &routing,
+                            Some(&local),
+                            1232,
+                            tcp,
+                            alias.then_some(&cursor),
+                            cached_name,
+                            None,
+                        )
+                        .unwrap()
+                        .unwrap();
+                    assert_eq!(
+                        Header::parse(&packet).unwrap().rcode(),
+                        if cached_name { 0 } else { 3 }
+                    );
+                    assert_eq!(
+                        Question::parse(&packet, 12).unwrap(),
+                        Question::parse(&query, 12).unwrap()
+                    );
                 }
             }
         }

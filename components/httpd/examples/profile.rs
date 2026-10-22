@@ -4,12 +4,12 @@
 //! each stage counts allocations, timeout syscalls and transport writes.
 #![allow(dead_code)]
 
+#[path = "../src/bridge.rs"]
+mod bridge;
 #[path = "../src/files.rs"]
 mod files;
 #[path = "../src/http.rs"]
 mod http;
-#[path = "../src/bridge.rs"]
-mod bridge;
 
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::RefCell;
@@ -113,8 +113,11 @@ fn measure(name: &str, n: u64, filter: &str, mut run: impl FnMut()) {
     COUNT.store(false, Relaxed);
     println!(
         "{name},{n},{ns:.2},{},{},{},{},{}",
-        ALLOCS.load(Relaxed), REALLOCS.load(Relaxed), BYTES.load(Relaxed),
-        TIMEOUTS.load(Relaxed), WRITES.load(Relaxed)
+        ALLOCS.load(Relaxed),
+        REALLOCS.load(Relaxed),
+        BYTES.load(Relaxed),
+        TIMEOUTS.load(Relaxed),
+        WRITES.load(Relaxed)
     );
 }
 
@@ -151,11 +154,16 @@ fn serve_to(output: &mut http::Out<'_, Discard>, request: &http::Request, pi: &f
 fn profile_reply(n: u64, filter: &str, label: &str, fields: &[u8]) {
     let value = owrt_ubus::convert::fields_to_json(fields).unwrap();
     for capacity in [128, fields.len() + 128] {
-        measure(&format!("rpc_{label}_reply_capacity_{capacity}"), n, filter, || {
-            let mut out = Vec::with_capacity(capacity);
-            owrt_ubus::convert::append_fields_json(black_box(fields), &mut out).unwrap();
-            black_box(out);
-        });
+        measure(
+            &format!("rpc_{label}_reply_capacity_{capacity}"),
+            n,
+            filter,
+            || {
+                let mut out = Vec::with_capacity(capacity);
+                owrt_ubus::convert::append_fields_json(black_box(fields), &mut out).unwrap();
+                black_box(out);
+            },
+        );
     }
     let mut direct = Vec::new();
     owrt_ubus::convert::append_fields_json(fields, &mut direct).unwrap();
@@ -172,7 +180,11 @@ fn profile_reply(n: u64, filter: &str, label: &str, fields: &[u8]) {
         black_box(value.to_bytes());
     });
     measure(&format!("rpc_{label}_reply_convert"), n, filter, || {
-        black_box(owrt_ubus::convert::fields_to_json(black_box(fields)).unwrap().to_bytes());
+        black_box(
+            owrt_ubus::convert::fields_to_json(black_box(fields))
+                .unwrap()
+                .to_bytes(),
+        );
     });
 }
 
@@ -184,8 +196,13 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
     request.url = "/ubus".into();
     request.content_length = Some(body.len());
     let bridge = bridge::Bridge {
-        socket: None, noauth: false, cors: false, timeout_ms: 30000,
-        events_retry: 1000, record_calls: false, idle: Mutex::new(Vec::new()),
+        socket: None,
+        noauth: false,
+        cors: false,
+        timeout_ms: 30000,
+        events_retry: 1000,
+        record_calls: false,
+        idle: Mutex::new(Vec::new()),
         calls: Mutex::new(Vec::new()),
     };
     // Validate a real authorized call before profiling. Never print the session
@@ -199,8 +216,14 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
     }
     let bytes = recorded.borrow();
     let expected = b"\"result\":[0,{\"configs\":";
-    assert!(bytes.get_ref().get_ref().windows(expected.len()).any(|part| part == expected),
-            "RPC profiling fixture did not produce a successful UCI result");
+    assert!(
+        bytes
+            .get_ref()
+            .get_ref()
+            .windows(expected.len())
+            .any(|part| part == expected),
+        "RPC profiling fixture did not produce a successful UCI result"
+    );
     drop(bytes);
     let input = RefCell::new(BufReader::new(Cursor::new(body.as_slice())));
     measure("rpc_body_collect", n, filter, || {
@@ -216,7 +239,10 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
     // These stages use one already-connected transport. Lookup stays fresh in
     // the real bridge; pre-resolved IDs here only separate transaction costs.
     let parsed = owrt_ubus::json::parse_prefix_bytes(&body).unwrap();
-    let params = parsed.get("params").and_then(owrt_ubus::json::Json::as_array).unwrap();
+    let params = parsed
+        .get("params")
+        .and_then(owrt_ubus::json::Json::as_array)
+        .unwrap();
     let sid = params[0].as_str().unwrap();
     let object = params[1].as_str().unwrap();
     let function = params[2].as_str().unwrap();
@@ -224,7 +250,9 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
     let object_id = conn.lookup_id(object, bridge.timeout_ms)?;
     let session_id = conn.lookup_id("session", bridge.timeout_ms)?;
     let mut access = owrt_ubus::BlobBuf::new();
-    access.msg_string("ubus_rpc_session", sid).msg_string("object", object)
+    access
+        .msg_string("ubus_rpc_session", sid)
+        .msg_string("object", object)
         .msg_string("function", function);
     let mut args = owrt_ubus::BlobBuf::new();
     if let owrt_ubus::json::Json::Object(fields) = &params[3] {
@@ -234,16 +262,33 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
     }
     args.msg_string("ubus_rpc_session", sid);
     measure("rpc_target_lookup", n, filter, || {
-        assert_eq!(conn.lookup_id(object, bridge.timeout_ms).unwrap(), object_id);
+        assert_eq!(
+            conn.lookup_id(object, bridge.timeout_ms).unwrap(),
+            object_id
+        );
     });
     measure("rpc_session_lookup", n, filter, || {
-        assert_eq!(conn.lookup_id("session", bridge.timeout_ms).unwrap(), session_id);
+        assert_eq!(
+            conn.lookup_id("session", bridge.timeout_ms).unwrap(),
+            session_id
+        );
     });
     measure("rpc_access_invoke", n, filter, || {
-        black_box(conn.invoke(session_id, "access", access.payload(), bridge.timeout_ms / 2).unwrap());
+        black_box(
+            conn.invoke(
+                session_id,
+                "access",
+                access.payload(),
+                bridge.timeout_ms / 2,
+            )
+            .unwrap(),
+        );
     });
     measure("rpc_target_invoke", n, filter, || {
-        black_box(conn.invoke(object_id, function, args.payload(), bridge.timeout_ms).unwrap());
+        black_box(
+            conn.invoke(object_id, function, args.payload(), bridge.timeout_ms)
+                .unwrap(),
+        );
     });
     let reply = conn.invoke(object_id, function, args.payload(), bridge.timeout_ms)?;
     profile_reply(n, filter, "small", &reply.fields());
@@ -253,28 +298,41 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
         large.msg_string(&format!("field{index}"), &text);
     }
     profile_reply(n, filter, "32k", large.payload());
-    for (name, pattern) in [("plain120", "x".repeat(120).into_bytes()),
+    for (name, pattern) in [
+        ("plain120", "x".repeat(120).into_bytes()),
         ("escaped120", b"a\\\"\n\r\t".repeat(20)),
-        ("utf8", "你好，路由器 🌐".repeat(10).into_bytes())] {
+        ("utf8", "你好，路由器 🌐".repeat(10).into_bytes()),
+    ] {
         let mut sample = owrt_ubus::BlobBuf::new();
         let array = sample.msg_open_array("values");
-        for _ in 0..256 { sample.msg_string_bytes("", &pattern); }
+        for _ in 0..256 {
+            sample.msg_string_bytes("", &pattern);
+        }
         sample.msg_close(array);
         profile_reply(n, filter, name, sample.payload());
     }
-    for (name, position) in [("escape_early", 0), ("escape_middle", 512), ("escape_late", 999)] {
+    for (name, position) in [
+        ("escape_early", 0),
+        ("escape_middle", 512),
+        ("escape_late", 999),
+    ] {
         let mut text = vec![b'x'; 1000];
         text[position] = b'"';
         let mut sample = owrt_ubus::BlobBuf::new();
-        for index in 0..32 { sample.msg_string_bytes(&format!("field{index}"), &text); }
+        for index in 0..32 {
+            sample.msg_string_bytes(&format!("field{index}"), &text);
+        }
         profile_reply(n, filter, name, sample.payload());
     }
     for (name, control) in [("integers", false), ("control_bytes", true)] {
         let mut sample = owrt_ubus::BlobBuf::new();
         let array = sample.msg_open_array("values");
         for index in 0..1024 {
-            if control { sample.msg_string_bytes("", &[1, 2, 3, 4, 5, 6, 7, 0x0b, 0x0c, 0x1f]); }
-            else { sample.msg_i64("", i64::MIN.wrapping_add(index * 1_000_000_007)); }
+            if control {
+                sample.msg_string_bytes("", &[1, 2, 3, 4, 5, 6, 7, 0x0b, 0x0c, 0x1f]);
+            } else {
+                sample.msg_i64("", i64::MIN.wrapping_add(index * 1_000_000_007));
+            }
         }
         sample.msg_close(array);
         profile_reply(n, filter, name, sample.payload());
@@ -291,7 +349,10 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    let n: u64 = args.get(1).map(|s| s.parse().expect("iterations")).unwrap_or(20000);
+    let n: u64 = args
+        .get(1)
+        .map(|s| s.parse().expect("iterations"))
+        .unwrap_or(20000);
     assert!(n > 0);
     let filter = args.get(2).map(String::as_str).unwrap_or("");
     println!("stage,iterations,ns_per_op,allocs,reallocs,requested_bytes,timeout_syscalls,transport_writes");
@@ -314,28 +375,53 @@ fn main() -> io::Result<()> {
         ("mime_html", "/index.html"),
         ("mime_tar_gz", "/archive.tar.gz"),
     ] {
-        measure(name, n, filter, || { black_box(files::mime_type(black_box(path))); });
+        measure(name, n, filter, || {
+            black_box(files::mime_type(black_box(path)));
+        });
     }
-    measure("parse_buffered", n, filter, || { black_box(parse(&mut input, None)); });
-    measure("parse_buffered_deadline", n, filter, || { black_box(parse(&mut input, Some(socket.as_raw_fd()))); });
-    measure("lookup", n, filter, || { black_box(lookup(&root)); });
-    measure("date", n, filter, || { black_box(http::http_date(black_box(1789038000))); });
+    measure("parse_buffered", n, filter, || {
+        black_box(parse(&mut input, None));
+    });
+    measure("parse_buffered_deadline", n, filter, || {
+        black_box(parse(&mut input, Some(socket.as_raw_fd())));
+    });
+    measure("lookup", n, filter, || {
+        black_box(lookup(&root));
+    });
+    measure("date", n, filter, || {
+        black_box(http::http_date(black_box(1789038000)));
+    });
     measure("serve_static", n, filter, || serve(&client, &request, &pi));
-    measure("lookup_serve_static", n, filter, || serve(&client, &request, &lookup(&root)));
+    measure("lookup_serve_static", n, filter, || {
+        serve(&client, &request, &lookup(&root))
+    });
     measure("parse_lookup_serve_static", n, filter, || {
-        serve(&client, &parse(&mut input, Some(socket.as_raw_fd())), &lookup(&root));
+        serve(
+            &client,
+            &parse(&mut input, Some(socket.as_raw_fd())),
+            &lookup(&root),
+        );
     });
     let mut output = http::Out::new(&client, -1, 16384, Duration::from_secs(30));
-    measure("serve_static_reused", n, filter, || serve_to(&mut output, &request, &pi));
+    measure("serve_static_reused", n, filter, || {
+        serve_to(&mut output, &request, &pi)
+    });
     measure("parse_lookup_serve_static_reused", n, filter, || {
-        serve_to(&mut output, &parse(&mut input, Some(socket.as_raw_fd())), &lookup(&root));
+        serve_to(
+            &mut output,
+            &parse(&mut input, Some(socket.as_raw_fd())),
+            &lookup(&root),
+        );
     });
     let mut heads = http::HeadBuffer::default();
     measure("parse_reused_deadline", n, filter, || {
         assert!(input.buffer().is_empty());
         input.get_mut().set_position(0);
         let deadline = http::HeadDeadline::new(socket.as_raw_fd(), Duration::from_secs(30));
-        let http::ParseOutcome::Request(request) = heads.read_request(&mut input, true, Some(&deadline)).unwrap() else {
+        let http::ParseOutcome::Request(request) = heads
+            .read_request(&mut input, true, Some(&deadline))
+            .unwrap()
+        else {
             panic!("profile request rejected")
         };
         heads.recycle(black_box(request));
@@ -344,7 +430,10 @@ fn main() -> io::Result<()> {
         assert!(input.buffer().is_empty());
         input.get_mut().set_position(0);
         let deadline = http::HeadDeadline::new(socket.as_raw_fd(), Duration::from_secs(30));
-        let http::ParseOutcome::Request(request) = heads.read_request(&mut input, true, Some(&deadline)).unwrap() else {
+        let http::ParseOutcome::Request(request) = heads
+            .read_request(&mut input, true, Some(&deadline))
+            .unwrap()
+        else {
             panic!("profile request rejected")
         };
         serve_to(&mut output, &request, &lookup(&root));

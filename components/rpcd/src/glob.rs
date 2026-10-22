@@ -14,8 +14,13 @@ pub fn fnmatch_escaped(pattern: &[u8], name: &[u8]) -> bool {
 fn match_with_flags(pattern: &[u8], name: &[u8], flags: i32) -> bool {
     let pattern = pattern.split(|b| *b == 0).next().unwrap_or_default();
     let name = name.split(|b| *b == 0).next().unwrap_or_default();
-    if pattern == b"*" { return true; }
-    if !pattern.iter().any(|&b| matches!(b, b'*' | b'?' | b'[') || (flags == 0 && b == b'\\')) {
+    if pattern == b"*" {
+        return true;
+    }
+    if !pattern
+        .iter()
+        .any(|&b| matches!(b, b'*' | b'?' | b'[') || (flags == 0 && b == b'\\'))
+    {
         return pattern == name;
     }
     // FNM_NOESCAPE makes a wildcard-free prefix literal, and a single trailing
@@ -38,7 +43,9 @@ fn match_with_flags(pattern: &[u8], name: &[u8], flags: i32) -> bool {
         n[..name.len()].copy_from_slice(name);
         return owrt_platform::rpcd::fnmatch(
             std::ffi::CStr::from_bytes_until_nul(&p).unwrap(),
-            std::ffi::CStr::from_bytes_until_nul(&n).unwrap(), flags);
+            std::ffi::CStr::from_bytes_until_nul(&n).unwrap(),
+            flags,
+        );
     }
     let pattern = std::ffi::CString::new(pattern).unwrap();
     let name = std::ffi::CString::new(name).unwrap();
@@ -56,13 +63,23 @@ pub fn glob(pattern: &str) -> Vec<String> {
     for comp in pattern.split('/').filter(|c| !c.is_empty()) {
         let mut next = Vec::new();
         for base in &results {
-            let dir = if base.is_empty() { if absolute { "/".to_owned() } else { ".".to_owned() } } else { base.clone() };
+            let dir = if base.is_empty() {
+                if absolute {
+                    "/".to_owned()
+                } else {
+                    ".".to_owned()
+                }
+            } else {
+                base.clone()
+            };
             if has_magic(comp) {
                 if let Ok(rd) = std::fs::read_dir(&dir) {
                     let mut names: Vec<String> = rd
                         .flatten()
                         .map(|e| e.file_name().to_string_lossy().into_owned())
-                        .filter(|n| !n.starts_with('.') || comp.starts_with('.') || comp.starts_with("\\."))
+                        .filter(|n| {
+                            !n.starts_with('.') || comp.starts_with('.') || comp.starts_with("\\.")
+                        })
                         .filter(|n| fnmatch_escaped(comp.as_bytes(), n.as_bytes()))
                         .collect();
                     names.sort();
@@ -88,7 +105,11 @@ pub fn glob(pattern: &str) -> Vec<String> {
 
 fn join(base: &str, name: &str, absolute: bool) -> String {
     if base.is_empty() {
-        if absolute { format!("/{name}") } else { name.to_owned() }
+        if absolute {
+            format!("/{name}")
+        } else {
+            name.to_owned()
+        }
     } else {
         format!("{base}/{name}")
     }

@@ -2,9 +2,11 @@
 //! Real Client constructors and socket pairs, but no event loop or traffic:
 //! these numbers are neither daemon RSS nor CPU performance evidence.
 #![allow(dead_code)]
-#[path = "../src/client.rs"] mod client;
-#[path = "../src/sys.rs"] mod sys;
+#[path = "../src/client.rs"]
+mod client;
 mod heap_support;
+#[path = "../src/sys.rs"]
+mod sys;
 
 use client::Client;
 use std::collections::HashMap;
@@ -21,9 +23,16 @@ fn measure<V>(layout: &str, count: usize, store: fn(Client) -> V) {
         let (sock, other) = UnixStream::pair().unwrap();
         *peer = Some(other);
         let before = heap_support::live();
-        let client = Client::new(sock.into(), sys::Ucred {
-            pid: std::process::id() as i32, uid: 0, gid: 0,
-        }, "root".into(), "root".into());
+        let client = Client::new(
+            sock.into(),
+            sys::Ucred {
+                pid: std::process::id() as i32,
+                uid: 0,
+                gid: 0,
+            },
+            "root".into(),
+            "root".into(),
+        );
         credentials += heap_support::live() - before;
         let before = heap_support::live();
         let value = store(client);
@@ -36,10 +45,17 @@ fn measure<V>(layout: &str, count: usize, store: fn(Client) -> V) {
     let table = retained - credentials - wrappers;
     clients.clear();
     let cleared = heap_support::live() - baseline;
-    assert_eq!(cleared, table, "cleared map must retain only table allocation");
+    assert_eq!(
+        cleared, table,
+        "cleared map must retain only table allocation"
+    );
     drop(clients);
     drop(peers);
-    assert_eq!(heap_support::live(), baseline, "client allocations survived drop");
+    assert_eq!(
+        heap_support::live(),
+        baseline,
+        "client allocations survived drop"
+    );
     println!("{layout},{count},{capacity},{},{credentials},{wrappers},{table},{retained},{peak},{cleared}",
              std::mem::size_of::<(u32, V)>());
 }

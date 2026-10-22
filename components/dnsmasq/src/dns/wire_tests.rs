@@ -87,7 +87,10 @@ fn validation_preserves_decoded_cursor_and_error_boundaries() {
     assert_eq!(validate_name(&[0xc0, 0], 0, 0), Err(WireError::PointerLoop));
     assert_eq!(validate_name(&[0xc0, 2, 0], 0, 0), Ok(2));
     assert_eq!(validate_name(&[0xc0, 3], 0, 0), Err(WireError::Truncated));
-    assert_eq!(validate_name(&[65, 8, 255, 0], 0, 0), Err(WireError::LabelType));
+    assert_eq!(
+        validate_name(&[65, 8, 255, 0], 0, 0),
+        Err(WireError::LabelType)
+    );
     assert_eq!(validate_name(&[5, 0, 1, b'.', 255, b'A', 0], 0, 0), Ok(7));
 
     let mut maximum = Vec::new();

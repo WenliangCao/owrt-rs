@@ -45,8 +45,11 @@ unsafe impl GlobalAlloc for Heap {
         let next = unsafe { System.realloc(ptr, layout, size) };
         if !next.is_null() {
             REALLOCS.fetch_add(1, Relaxed);
-            if size >= layout.size() { add(size - layout.size()); }
-            else { LIVE.fetch_sub(layout.size() - size, Relaxed); }
+            if size >= layout.size() {
+                add(size - layout.size());
+            } else {
+                LIVE.fetch_sub(layout.size() - size, Relaxed);
+            }
         }
         next
     }
@@ -55,11 +58,19 @@ unsafe impl GlobalAlloc for Heap {
 #[global_allocator]
 static ALLOCATOR: Heap = Heap;
 
-pub fn live() -> usize { LIVE.load(Relaxed) }
-pub fn reset_peak() { PEAK.store(live(), Relaxed); }
-pub fn peak() -> usize { PEAK.load(Relaxed) }
+pub fn live() -> usize {
+    LIVE.load(Relaxed)
+}
+pub fn reset_peak() {
+    PEAK.store(live(), Relaxed);
+}
+pub fn peak() -> usize {
+    PEAK.load(Relaxed)
+}
 pub fn reset_calls() {
     ALLOCS.store(0, Relaxed);
     REALLOCS.store(0, Relaxed);
 }
-pub fn calls() -> (usize, usize) { (ALLOCS.load(Relaxed), REALLOCS.load(Relaxed)) }
+pub fn calls() -> (usize, usize) {
+    (ALLOCS.load(Relaxed), REALLOCS.load(Relaxed))
+}

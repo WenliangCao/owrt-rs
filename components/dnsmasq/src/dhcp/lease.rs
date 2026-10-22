@@ -238,7 +238,9 @@ impl std::error::Error for LeaseError {}
 impl std::fmt::Display for RestoreError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::NonemptyStore => formatter.write_str("cannot restore into a nonempty lease store"),
+            Self::NonemptyStore => {
+                formatter.write_str("cannot restore into a nonempty lease store")
+            }
             Self::Lease(error) => write!(formatter, "cannot restore lease: {error}"),
         }
     }
@@ -1029,17 +1031,26 @@ mod tests {
                 self.bytes.extend_from_slice(&bytes[..count]);
                 Ok(count)
             }
-            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
         }
         for length in [0, 1, 6, 16, 63, 64, 65, 255, 256, 1025] {
             let input: Vec<_> = (0..length).map(|byte| byte as u8).collect();
-            let expected = input.iter().map(|byte| format!("{byte:02x}"))
-                .collect::<Vec<_>>().join(":").into_bytes();
+            let expected = input
+                .iter()
+                .map(|byte| format!("{byte:02x}"))
+                .collect::<Vec<_>>()
+                .join(":")
+                .into_bytes();
             let mut actual = Vec::new();
             write_hex(&mut actual, &input).unwrap();
             assert_eq!(actual, expected);
             for limit in [0, 1, 190, 191, 192, 193, expected.len()] {
-                let mut writer = Limited { bytes: Vec::new(), limit };
+                let mut writer = Limited {
+                    bytes: Vec::new(),
+                    limit,
+                };
                 let result = write_hex(&mut writer, &input);
                 assert_eq!(writer.bytes, expected[..limit.min(expected.len())]);
                 assert_eq!(result.is_ok(), limit >= expected.len());
@@ -1139,7 +1150,10 @@ mod tests {
         }
         for _ in 0..1024 {
             store.set_script_backlog(Some(queue.pending_deletions()));
-            assert_eq!(store.allocate(address(1), client(1, None)), Err(LeaseError::Full));
+            assert_eq!(
+                store.allocate(address(1), client(1, None)),
+                Err(LeaseError::Full)
+            );
         }
         assert!(store.is_empty());
         assert_eq!(queue.pending_deletions(), 64);
@@ -1162,11 +1176,17 @@ mod tests {
         assert_eq!(store.get(address(1)).unwrap().expires, Some(220));
         let removed = store.prune(Some(address(1)), 100);
         assert_eq!(removed.len(), 1);
-        assert_eq!(store.allocate(address(2), client(1, None)), Err(LeaseError::Full));
+        assert_eq!(
+            store.allocate(address(2), client(1, None)),
+            Err(LeaseError::Full)
+        );
         store.set_script_backlog(Some(63));
         store.allocate(address(2), client(1, None)).unwrap();
         store.prune(Some(address(2)), 100);
-        assert_eq!(store.allocate(address(1), client(1, None)), Err(LeaseError::Full));
+        assert_eq!(
+            store.allocate(address(1), client(1, None)),
+            Err(LeaseError::Full)
+        );
         store.set_script_backlog(None);
         store.allocate(address(1), client(1, None)).unwrap();
     }
@@ -1176,15 +1196,24 @@ mod tests {
         let mut store = LeaseStore::new(150);
         store.set_script_backlog(Some(299));
         store.allocate(address(1), client(1, None)).unwrap();
-        assert_eq!(store.allocate(address(2), client(2, None)), Err(LeaseError::Full));
+        assert_eq!(
+            store.allocate(address(2), client(2, None)),
+            Err(LeaseError::Full)
+        );
         store.set_script_backlog(Some(298));
         store.allocate(address(2), client(2, None)).unwrap();
         store.set_script_backlog(Some(usize::MAX));
-        assert_eq!(store.allocate(address(3), client(3, None)), Err(LeaseError::Full));
+        assert_eq!(
+            store.allocate(address(3), client(3, None)),
+            Err(LeaseError::Full)
+        );
         let mut largest = LeaseStore::new(usize::MAX);
         largest.set_script_backlog(Some(usize::MAX - 1));
         largest.allocate(address(1), client(1, None)).unwrap();
-        assert_eq!(largest.allocate(address(2), client(2, None)), Err(LeaseError::Full));
+        assert_eq!(
+            largest.allocate(address(2), client(2, None)),
+            Err(LeaseError::Full)
+        );
     }
 
     #[test]
@@ -1205,7 +1234,10 @@ mod tests {
         queue.add_pruned(store.prune(None, 220));
         assert!(store.is_empty());
         assert_eq!(queue.pending_deletions(), 64);
-        assert_eq!(store.allocate(address(1), client(1, None)), Err(LeaseError::Full));
+        assert_eq!(
+            store.allocate(address(1), client(1, None)),
+            Err(LeaseError::Full)
+        );
         let mut delivered = BTreeSet::new();
         while let Some(event) = queue.next(&mut store, ScriptOptions::default()) {
             assert_eq!(event.action, ScriptAction::Delete);

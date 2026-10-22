@@ -8,19 +8,25 @@
 // The hand-written libc layouts below are verified for these deployment and
 // CI targets. Refuse other ABIs instead of exposing safe functions backed by
 // unverified struct sizes (notably time_t, timeval, ifreq and msghdr).
-#[cfg(not(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64"))))]
+#[cfg(not(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+)))]
 compile_error!("owrt-platform supports only Linux aarch64 and x86_64 ABIs");
 
 #[cfg(target_os = "linux")]
-pub mod procd;
-#[cfg(target_os = "linux")]
 pub mod netifd;
+#[cfg(target_os = "linux")]
+pub mod procd;
 #[cfg(target_os = "linux")]
 pub mod rpcd;
 
-pub mod unix;
-#[cfg(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64")))]
+#[cfg(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+))]
 pub mod directory;
+pub mod unix;
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub mod ipc;
@@ -31,9 +37,9 @@ pub mod readiness;
 #[cfg(target_os = "linux")]
 pub mod ubusd;
 
-pub mod text;
 #[cfg(target_os = "linux")]
 pub mod httpd;
+pub mod text;
 
 #[cfg(target_os = "linux")]
 pub mod identity;

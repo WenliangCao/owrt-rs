@@ -108,8 +108,12 @@ impl QueryEvent {
             return None;
         }
         if header.opcode() != 0 {
-            let mut event = Self::address(QUERY | CONFIG | if auth { AUTHORITATIVE } else { 0 },
-                                          b"", client.ip(), None);
+            let mut event = Self::address(
+                QUERY | CONFIG | if auth { AUTHORITATIVE } else { 0 },
+                b"",
+                client.ip(),
+                None,
+            );
             event.name = None;
             event.kind = u16::from(header.opcode());
             return Some(event);
@@ -118,8 +122,12 @@ impl QueryEvent {
             return None;
         }
         let question = crate::dns::forward::Question::parse(packet).ok()?;
-        let mut event = Self::address(QUERY | if auth { AUTH | AUTHORITATIVE } else { 0 },
-                                      &question.name.dnsmasq_bytes(), client.ip(), None);
+        let mut event = Self::address(
+            QUERY | if auth { AUTH | AUTHORITATIVE } else { 0 },
+            &question.name.dnsmasq_bytes(),
+            client.ip(),
+            None,
+        );
         event.kind = question.rrtype;
         Some(event)
     }

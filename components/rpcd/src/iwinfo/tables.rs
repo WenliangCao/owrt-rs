@@ -8,7 +8,8 @@ pub const IWINFO_80211_NAMES: [&str; 8] = ["a", "b", "g", "n", "ac", "ad", "ax",
 pub const IWINFO_BAND_NAMES: [&str; 4] = ["2.4 GHz", "5 GHz", "6 GHz", "60 GHz"];
 
 pub const IWINFO_CIPHER_NAMES: [&str; 11] = [
-    "NONE", "WEP-40", "TKIP", "WRAP", "CCMP", "WEP-104", "AES-OCB", "CKIP", "GCMP", "CCMP-256", "GCMP-256",
+    "NONE", "WEP-40", "TKIP", "WRAP", "CCMP", "WEP-104", "AES-OCB", "CKIP", "GCMP", "CCMP-256",
+    "GCMP-256",
 ];
 
 pub const IWINFO_KMGMT_NAMES: [&str; 5] = ["NONE", "802.1X", "PSK", "SAE", "OWE"];
@@ -29,12 +30,20 @@ pub const IWINFO_OPMODE_NAMES: [&str; 10] = [
 ];
 
 pub const IWINFO_HTMODE_NAMES: [&str; 19] = [
-    "HT20", "HT40", "VHT20", "VHT40", "VHT80", "VHT80+80", "VHT160", "NOHT", "HE20", "HE40", "HE80", "HE80+80",
-    "HE160", "EHT20", "EHT40", "EHT80", "EHT80+80", "EHT160", "EHT320",
+    "HT20", "HT40", "VHT20", "VHT40", "VHT80", "VHT80+80", "VHT160", "NOHT", "HE20", "HE40",
+    "HE80", "HE80+80", "HE160", "EHT20", "EHT40", "EHT80", "EHT80+80", "EHT160", "EHT320",
 ];
 
 pub const IWINFO_FREQ_FLAG_NAMES: [&str; 9] = [
-    "NO_10MHZ", "NO_20MHZ", "NO_HT40+", "NO_HT40-", "NO_80MHZ", "NO_160MHZ", "NO_HE", "NO_IR", "INDOOR_ONLY",
+    "NO_10MHZ",
+    "NO_20MHZ",
+    "NO_HT40+",
+    "NO_HT40-",
+    "NO_80MHZ",
+    "NO_160MHZ",
+    "NO_HE",
+    "NO_IR",
+    "INDOOR_ONLY",
 ];
 
 pub const HT_SECONDARY_OFFSET: [&str; 4] = ["no secondary", "above", "[reserved!]", "below"];
@@ -306,7 +315,10 @@ pub const IWINFO_ISO3166_NAMES: [Iso3166Label; 247] = [
 
 /// Label lookup by the packed two-letter code (`'U' << 8 | 'S'`).
 pub fn iso3166_name(iso3166: u16) -> Option<&'static str> {
-    IWINFO_ISO3166_NAMES.iter().find(|l| l.iso3166 == iso3166).map(|l| l.name)
+    IWINFO_ISO3166_NAMES
+        .iter()
+        .find(|l| l.iso3166 == iso3166)
+        .map(|l| l.name)
 }
 
 #[cfg(test)]
@@ -318,7 +330,10 @@ mod tests {
         assert_eq!(IWINFO_ISO3166_NAMES[0].name, "World");
         assert_eq!(IWINFO_ISO3166_NAMES[0].iso3166, 0x3030);
         assert_eq!(IWINFO_ISO3166_NAMES[246].name, "Zimbabwe");
-        assert_eq!(iso3166_name(u16::from_be_bytes(*b"US")), Some("United States"));
+        assert_eq!(
+            iso3166_name(u16::from_be_bytes(*b"US")),
+            Some("United States")
+        );
         assert_eq!(iso3166_name(u16::from_be_bytes(*b"DE")), Some("Germany"));
         assert_eq!(iso3166_name(u16::from_be_bytes(*b"XX")), None);
         // ordered by code, as the C table is

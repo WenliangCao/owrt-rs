@@ -20,34 +20,73 @@ pub struct Ready {
     pub revents: i16,
 }
 
-#[cfg(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64")))]
-pub use linux::Poller;
-#[cfg(not(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64"))))]
+#[cfg(not(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+)))]
 pub use fallback::Poller;
+#[cfg(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+))]
+pub use linux::Poller;
 
-#[cfg(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64")))]
+#[cfg(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+))]
 mod linux {
     use super::Ready;
+    use owrt_platform::readiness::{self, Control};
+    use rustix::event::{epoll, Timespec};
     use std::io;
     use std::os::fd::{OwnedFd, RawFd};
-    use rustix::event::{epoll, Timespec};
-    use owrt_platform::readiness::{self, Control};
 
     const BATCH: usize = 32;
     const POLL_BITS: u32 = 0x001 | 0x004 | 0x008 | 0x010;
-    pub struct Poller { epoll: OwnedFd, events: Vec<epoll::Event> }
+    pub struct Poller {
+        epoll: OwnedFd,
+        events: Vec<epoll::Event>,
+    }
 
     impl Poller {
         pub fn new() -> io::Result<Self> {
             let epoll = epoll::create(epoll::CreateFlags::CLOEXEC)?;
-            let event = epoll::Event { flags: epoll::EventFlags::empty(), data: epoll::EventData::new_u64(0) };
-            Ok(Self { epoll, events: vec![event; BATCH] })
+            let event = epoll::Event {
+                flags: epoll::EventFlags::empty(),
+                data: epoll::EventData::new_u64(0),
+            };
+            Ok(Self {
+                epoll,
+                events: vec![event; BATCH],
+            })
         }
-        fn ctl(&self, operation: Control, fd: RawFd, token: u64, read: bool, write: bool) -> io::Result<()> {
-            let flags = (if read { epoll::EventFlags::IN } else { epoll::EventFlags::empty() })
-                | if write { epoll::EventFlags::OUT } else { epoll::EventFlags::empty() };
-            readiness::control(&self.epoll, operation, fd,
-                &epoll::Event { flags, data: epoll::EventData::new_u64(token) })
+        fn ctl(
+            &self,
+            operation: Control,
+            fd: RawFd,
+            token: u64,
+            read: bool,
+            write: bool,
+        ) -> io::Result<()> {
+            let flags = (if read {
+                epoll::EventFlags::IN
+            } else {
+                epoll::EventFlags::empty()
+            }) | if write {
+                epoll::EventFlags::OUT
+            } else {
+                epoll::EventFlags::empty()
+            };
+            readiness::control(
+                &self.epoll,
+                operation,
+                fd,
+                &epoll::Event {
+                    flags,
+                    data: epoll::EventData::new_u64(token),
+                },
+            )
         }
         pub fn add(&mut self, fd: RawFd, token: u64, write: bool) -> io::Result<()> {
             self.ctl(Control::Add, fd, token, true, write)
@@ -55,7 +94,13 @@ mod linux {
         pub fn set_write(&mut self, fd: RawFd, token: u64, write: bool) -> io::Result<()> {
             self.set_interest(fd, token, true, write)
         }
-        pub fn set_interest(&mut self, fd: RawFd, token: u64, read: bool, write: bool) -> io::Result<()> {
+        pub fn set_interest(
+            &mut self,
+            fd: RawFd,
+            token: u64,
+            read: bool,
+            write: bool,
+        ) -> io::Result<()> {
             self.ctl(Control::Modify, fd, token, read, write)
         }
         pub fn remove(&mut self, fd: RawFd) -> io::Result<()> {
@@ -64,7 +109,8 @@ mod linux {
         pub fn wait(&mut self, timeout_ms: i32, ready: &mut Vec<Ready>) -> io::Result<()> {
             ready.clear();
             let timeout = (timeout_ms >= 0).then(|| Timespec {
-                tv_sec: (timeout_ms / 1000) as _, tv_nsec: ((timeout_ms % 1000) * 1_000_000) as _,
+                tv_sec: (timeout_ms / 1000) as _,
+                tv_nsec: ((timeout_ms % 1000) * 1_000_000) as _,
             });
             let n = loop {
                 match epoll::wait(&self.epoll, &mut self.events[..], timeout.as_ref()) {
@@ -75,14 +121,20 @@ mod linux {
             for event in &self.events[..n] {
                 let flags = event.flags;
                 let data = event.data;
-                ready.push(Ready { token: data.u64(), revents: (flags.bits() & POLL_BITS) as i16 });
+                ready.push(Ready {
+                    token: data.u64(),
+                    revents: (flags.bits() & POLL_BITS) as i16,
+                });
             }
             Ok(())
         }
     }
 }
 
-#[cfg(not(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64"))))]
+#[cfg(not(all(
+    target_os = "linux",
+    any(target_arch = "aarch64", target_arch = "x86_64")
+)))]
 mod fallback {
     use super::Ready;
     use crate::sys::{self, PollFd, POLLIN, POLLOUT};
@@ -97,12 +149,19 @@ mod fallback {
 
     impl Poller {
         pub fn new() -> io::Result<Self> {
-            Ok(Poller { fds: Vec::new(), tokens: Vec::new() })
+            Ok(Poller {
+                fds: Vec::new(),
+                tokens: Vec::new(),
+            })
         }
 
         pub fn add(&mut self, fd: RawFd, token: u64, write: bool) -> io::Result<()> {
             let events = POLLIN | if write { POLLOUT } else { 0 };
-            self.fds.push(PollFd { fd, events, revents: 0 });
+            self.fds.push(PollFd {
+                fd,
+                events,
+                revents: 0,
+            });
             self.tokens.push(token);
             Ok(())
         }
@@ -111,9 +170,18 @@ mod fallback {
             self.set_interest(fd, token, true, write)
         }
 
-        pub fn set_interest(&mut self, fd: RawFd, _token: u64, read: bool, write: bool) -> io::Result<()> {
+        pub fn set_interest(
+            &mut self,
+            fd: RawFd,
+            _token: u64,
+            read: bool,
+            write: bool,
+        ) -> io::Result<()> {
             let Some(entry) = self.fds.iter_mut().find(|p| p.fd == fd) else {
-                return Err(io::Error::new(io::ErrorKind::NotFound, "descriptor not registered"));
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    "descriptor not registered",
+                ));
             };
             entry.events = (if read { POLLIN } else { 0 }) | if write { POLLOUT } else { 0 };
             Ok(())
@@ -121,7 +189,10 @@ mod fallback {
 
         pub fn remove(&mut self, fd: RawFd) -> io::Result<()> {
             let Some(index) = self.fds.iter().position(|p| p.fd == fd) else {
-                return Err(io::Error::new(io::ErrorKind::NotFound, "descriptor not registered"));
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    "descriptor not registered",
+                ));
             };
             self.fds.swap_remove(index);
             self.tokens.swap_remove(index);
@@ -133,7 +204,10 @@ mod fallback {
             sys::poll_fds(&mut self.fds, timeout_ms)?;
             for (p, &token) in self.fds.iter().zip(&self.tokens) {
                 if p.revents != 0 {
-                    ready.push(Ready { token, revents: p.revents });
+                    ready.push(Ready {
+                        token,
+                        revents: p.revents,
+                    });
                 }
             }
             Ok(())
@@ -178,7 +252,10 @@ mod tests {
         peer_b.write_all(b"y").unwrap();
         drop(peer_a);
         let ready = wait(&mut poller, 1000);
-        assert_eq!(ready.iter().map(|r| r.token).collect::<Vec<_>>(), vec![7, 9]);
+        assert_eq!(
+            ready.iter().map(|r| r.token).collect::<Vec<_>>(),
+            vec![7, 9]
+        );
         assert_ne!(ready[0].revents & (POLLIN | POLLHUP), 0);
     }
 

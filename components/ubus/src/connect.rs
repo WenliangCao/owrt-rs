@@ -26,17 +26,22 @@ pub(crate) fn stream(
 #[cfg(target_os = "linux")]
 mod linux {
     use super::*;
-    use std::os::fd::AsRawFd;
-    use rustix::net;
-    use std::time::Duration;
     use crate::sys::{PollFd, POLLOUT};
+    use rustix::net;
+    use std::os::fd::AsRawFd;
+    use std::time::Duration;
 
     fn remaining(deadline: Instant, cancelled: Option<fn() -> bool>) -> io::Result<Duration> {
         crate::sys::check_cancelled(cancelled)?;
         let remaining = deadline.saturating_duration_since(Instant::now());
         if remaining.is_zero() {
-            Err(io::Error::new(io::ErrorKind::TimedOut, "ubus connect deadline elapsed"))
-        } else { Ok(remaining) }
+            Err(io::Error::new(
+                io::ErrorKind::TimedOut,
+                "ubus connect deadline elapsed",
+            ))
+        } else {
+            Ok(remaining)
+        }
     }
 
     pub(super) fn stream(
@@ -45,11 +50,18 @@ mod linux {
         cancelled: Option<fn() -> bool>,
     ) -> io::Result<UnixStream> {
         if path.as_bytes().contains(&0) || path.len() >= 108 {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid unix socket path"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid unix socket path",
+            ));
         }
         let address = net::SocketAddrUnix::new(path)?;
-        let socket = net::socket_with(net::AddressFamily::UNIX, net::SocketType::STREAM,
-            net::SocketFlags::NONBLOCK | net::SocketFlags::CLOEXEC, None)?;
+        let socket = net::socket_with(
+            net::AddressFamily::UNIX,
+            net::SocketType::STREAM,
+            net::SocketFlags::NONBLOCK | net::SocketFlags::CLOEXEC,
+            None,
+        )?;
         loop {
             remaining(deadline, cancelled)?;
             let error = match net::connect(&socket, &address) {
@@ -65,8 +77,13 @@ mod linux {
                         remaining(deadline, cancelled)?.min(Duration::from_millis(1)),
                     );
                 }
-                Some(115) | Some(114) => { // EINPROGRESS / EALREADY
-                    let mut fd = PollFd { fd: socket.as_raw_fd(), events: POLLOUT, revents: 0 };
+                Some(115) | Some(114) => {
+                    // EINPROGRESS / EALREADY
+                    let mut fd = PollFd {
+                        fd: socket.as_raw_fd(),
+                        events: POLLOUT,
+                        revents: 0,
+                    };
                     loop {
                         let mut timeout = remaining(deadline, cancelled)?
                             .as_millis()
@@ -75,7 +92,8 @@ mod linux {
                         if cancelled.is_some() {
                             timeout = timeout.min(10);
                         }
-                        match owrt_platform::unix::poll_once(std::slice::from_mut(&mut fd), timeout) {
+                        match owrt_platform::unix::poll_once(std::slice::from_mut(&mut fd), timeout)
+                        {
                             Ok(0) => continue,
                             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
                             Err(error) => return Err(error),
@@ -99,7 +117,7 @@ mod linux {
 #[cfg(all(test, target_os = "linux"))]
 mod tests {
     use super::*;
-    use crate::{Connection, Header, BlobBuf, ty};
+    use crate::{ty, BlobBuf, Connection, Header};
     use std::io::{Read, Write};
     use std::os::unix::net::UnixListener;
     use std::path::PathBuf;
@@ -107,20 +125,40 @@ mod tests {
     use std::time::Duration;
 
     static NEXT: AtomicUsize = AtomicUsize::new(0);
-    struct Fixture { path: PathBuf, listener: UnixListener }
+    struct Fixture {
+        path: PathBuf,
+        listener: UnixListener,
+    }
     impl Fixture {
         fn new() -> Self {
-            let path = std::env::temp_dir().join(format!("r93-connect-{}-{}.sock", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
-            Self { listener: UnixListener::bind(&path).unwrap(), path }
+            let path = std::env::temp_dir().join(format!(
+                "r93-connect-{}-{}.sock",
+                std::process::id(),
+                NEXT.fetch_add(1, Ordering::Relaxed)
+            ));
+            Self {
+                listener: UnixListener::bind(&path).unwrap(),
+                path,
+            }
         }
-        fn path(&self) -> &str { self.path.to_str().unwrap() }
+        fn path(&self) -> &str {
+            self.path.to_str().unwrap()
+        }
     }
     impl Drop for Fixture {
-        fn drop(&mut self) { let _ = std::fs::remove_file(&self.path); }
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.path);
+        }
     }
 
     fn hello() -> Vec<u8> {
-        let mut wire = Header { ty: ty::HELLO, seq: 0, peer: 1234 }.encode().to_vec();
+        let mut wire = Header {
+            ty: ty::HELLO,
+            seq: 0,
+            peer: 1234,
+        }
+        .encode()
+        .to_vec();
         wire.extend_from_slice(BlobBuf::new().as_bytes());
         wire
     }
@@ -199,17 +237,27 @@ mod tests {
                 let (mut accepted, _) = listener.accept().unwrap();
                 let mut blob = BlobBuf::new();
                 blob.put_u32(crate::attr::STATUS, 0);
-                let mut wire = Header { ty: ty::HELLO, seq: 0, peer: 1234 }.encode().to_vec();
+                let mut wire = Header {
+                    ty: ty::HELLO,
+                    seq: 0,
+                    peer: 1234,
+                }
+                .encode()
+                .to_vec();
                 wire.extend_from_slice(blob.as_bytes());
                 accepted.write_all(&wire[..prefix]).unwrap();
                 // The timed-out constructor owns no live connection after
                 // returning: the accepted peer must see EOF without cleanup.
-                accepted.set_read_timeout(Some(Duration::from_millis(300))).unwrap();
+                accepted
+                    .set_read_timeout(Some(Duration::from_millis(300)))
+                    .unwrap();
                 assert_eq!(accepted.read(&mut [0]).unwrap(), 0);
             });
             let started = Instant::now();
-            let error = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(30))
-                .err().expect("HELLO must time out");
+            let error =
+                Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(30))
+                    .err()
+                    .expect("HELLO must time out");
             assert_eq!(error.kind(), io::ErrorKind::TimedOut);
             assert!(started.elapsed() < Duration::from_millis(200));
             peer.join().unwrap();
@@ -227,14 +275,39 @@ mod tests {
                 std::thread::sleep(Duration::from_millis(2));
             }
         });
-        let connection = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(200)).unwrap();
+        let connection =
+            Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(200)).unwrap();
         assert_eq!(connection.local_id(), 1234);
         peer.join().unwrap();
-        assert_eq!(Connection::connect_timeout(Some(fixture.path()), Duration::ZERO).err().unwrap().kind(), io::ErrorKind::TimedOut);
-        assert_eq!(Connection::connect(Some("invalid\0path")).err().unwrap().kind(), io::ErrorKind::InvalidInput);
-        assert_eq!(Connection::connect(Some(&"x".repeat(108))).err().unwrap().kind(), io::ErrorKind::InvalidInput);
+        assert_eq!(
+            Connection::connect_timeout(Some(fixture.path()), Duration::ZERO)
+                .err()
+                .unwrap()
+                .kind(),
+            io::ErrorKind::TimedOut
+        );
+        assert_eq!(
+            Connection::connect(Some("invalid\0path"))
+                .err()
+                .unwrap()
+                .kind(),
+            io::ErrorKind::InvalidInput
+        );
+        assert_eq!(
+            Connection::connect(Some(&"x".repeat(108)))
+                .err()
+                .unwrap()
+                .kind(),
+            io::ErrorKind::InvalidInput
+        );
         let missing = fixture.path.with_extension("missing");
-        assert_eq!(Connection::connect(Some(missing.to_str().unwrap())).err().unwrap().kind(), io::ErrorKind::NotFound);
+        assert_eq!(
+            Connection::connect(Some(missing.to_str().unwrap()))
+                .err()
+                .unwrap()
+                .kind(),
+            io::ErrorKind::NotFound
+        );
     }
 
     #[test]
@@ -244,7 +317,8 @@ mod tests {
         let filler = UnixStream::connect(fixture.path()).unwrap();
         let started = Instant::now();
         let error = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(30))
-            .err().expect("full backlog must time out");
+            .err()
+            .expect("full backlog must time out");
         assert_eq!(error.kind(), io::ErrorKind::TimedOut);
         assert!(started.elapsed() < Duration::from_millis(200));
         // Free the backlog while another connect is retrying, then send a
@@ -256,7 +330,12 @@ mod tests {
             let (mut accepted, _) = listener.accept().unwrap();
             accepted.write_all(&hello()).unwrap();
         });
-        assert_eq!(Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(200)).unwrap().local_id(), 1234);
+        assert_eq!(
+            Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(200))
+                .unwrap()
+                .local_id(),
+            1234
+        );
         peer.join().unwrap();
         drop(filler);
 
@@ -272,7 +351,8 @@ mod tests {
             let _ = accepted.write_all(&hello());
         });
         let error = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(60))
-            .err().expect("HELLO must share admission's deadline");
+            .err()
+            .expect("HELLO must share admission's deadline");
         assert_eq!(error.kind(), io::ErrorKind::TimedOut);
         peer.join().unwrap();
         drop(filler);

@@ -54,9 +54,12 @@ pub struct Context<'a> {
 
 impl std::fmt::Debug for Context<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Context").field("packages", &self.root.len())
-            .field("flags", &self.flags).field("err", &self.err)
-            .field("pctx", &self.pctx).field("budgeted", &self.io_budget.is_some())
+        f.debug_struct("Context")
+            .field("packages", &self.root.len())
+            .field("flags", &self.flags)
+            .field("err", &self.err)
+            .field("pctx", &self.pctx)
+            .field("budgeted", &self.io_budget.is_some())
             .finish_non_exhaustive()
     }
 }
@@ -86,7 +89,10 @@ impl<'a> Context<'a> {
     /// Start one cooperative load budget, shared by base and delta file locks,
     /// reads and parsing. It does not preempt a kernel filesystem operation.
     pub fn set_io_budget(&mut self, timeout: Duration, cancelled: &'a AtomicBool) {
-        self.io_budget = Some(IoBudget { deadline: Instant::now() + timeout, cancelled });
+        self.io_budget = Some(IoBudget {
+            deadline: Instant::now() + timeout,
+            cancelled,
+        });
     }
 
     pub fn check_io_budget(&self) -> Result<()> {
@@ -114,8 +120,10 @@ impl<'a> Context<'a> {
                 Err(_) => return Err(Error::Io),
             }
             // Only a contended lock sleeps; uncontended loads do not poll.
-            std::thread::sleep(Duration::from_millis(10).min(
-                budget.deadline.saturating_duration_since(Instant::now())));
+            std::thread::sleep(
+                Duration::from_millis(10)
+                    .min(budget.deadline.saturating_duration_since(Instant::now())),
+            );
         }
     }
 
@@ -126,7 +134,11 @@ impl<'a> Context<'a> {
 
     /// uci_set_conf2dir: empty disables the override directory.
     pub fn set_conf2dir(&mut self, dir: &str) {
-        self.conf2dir = if dir.is_empty() { None } else { Some(dir.to_owned()) };
+        self.conf2dir = if dir.is_empty() {
+            None
+        } else {
+            Some(dir.to_owned())
+        };
     }
 
     /// uci_lookup_list(&ctx->root, name)

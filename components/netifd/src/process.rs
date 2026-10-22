@@ -33,9 +33,10 @@ use std::sync::Mutex;
 static RETIRED: Mutex<Vec<Child>> = Mutex::new(Vec::new());
 
 pub fn reap_retired() {
-    RETIRED.lock().expect("retired child list lock poisoned").retain_mut(|child| {
-        matches!(child.try_wait(), Ok(None))
-    });
+    RETIRED
+        .lock()
+        .expect("retired child list lock poisoned")
+        .retain_mut(|child| matches!(child.try_wait(), Ok(None)));
 }
 
 /// One supervised child. Dropping this does NOT kill the child; call `kill`.
@@ -78,13 +79,22 @@ impl Process {
         }
         let child = c.spawn()?;
         // Preserve the existing best-effort nonblocking setup.
-        for fd in [child.stdout.as_ref().map(AsFd::as_fd), child.stderr.as_ref().map(AsFd::as_fd)]
-            .into_iter().flatten() {
+        for fd in [
+            child.stdout.as_ref().map(AsFd::as_fd),
+            child.stderr.as_ref().map(AsFd::as_fd),
+        ]
+        .into_iter()
+        .flatten()
+        {
             if let Ok(flags) = rustix::fs::fcntl_getfl(fd) {
                 let _ = rustix::fs::fcntl_setfl(fd, flags | rustix::fs::OFlags::NONBLOCK);
             }
         }
-        Ok(Self { child, argv0: cmd.clone(), partial: String::new() })
+        Ok(Self {
+            child,
+            argv0: cmd.clone(),
+            partial: String::new(),
+        })
     }
 
     /// Complete lines the child has printed since the last call. Partial
@@ -177,7 +187,6 @@ impl Process {
     pub fn signal(&self, sig: u32) -> io::Result<()> {
         let sig = if sig > 31 { SIGTERM } else { sig as i32 };
         owrt_platform::netifd::signal_child(self.child.id(), sig)
-
     }
 
     /// `netifd_kill_process`: SIGKILL, without a blocking wait. Called before starting a new
@@ -190,7 +199,10 @@ impl Process {
         if matches!(self.child.try_wait(), Ok(None)) {
             self.child.stdout.take();
             self.child.stderr.take();
-            RETIRED.lock().expect("retired child list lock poisoned").push(self.child);
+            RETIRED
+                .lock()
+                .expect("retired child list lock poisoned")
+                .push(self.child);
         }
     }
 }
@@ -287,9 +299,12 @@ mod tests {
     fn wait_stopped(pid: u32) {
         use rustix::process::{waitid, Pid, WaitId, WaitIdOptions};
         let pid = Pid::from_raw(pid as i32).expect("spawned child pid");
-        waitid(WaitId::Pid(pid), WaitIdOptions::STOPPED | WaitIdOptions::NOWAIT)
-            .unwrap()
-            .expect("child reached the synchronization point");
+        waitid(
+            WaitId::Pid(pid),
+            WaitIdOptions::STOPPED | WaitIdOptions::NOWAIT,
+        )
+        .unwrap()
+        .expect("child reached the synchronization point");
     }
 
     #[test]
@@ -332,8 +347,11 @@ mod tests {
     fn the_environment_is_added_not_replaced() {
         let mut s = Slot::default();
         // PATH is inherited, MYVAR is added
-        s.start(&sh("test -n \"$PATH\" && echo \"$MYVAR\""), &[("MYVAR".into(), "set".into())])
-            .unwrap();
+        s.start(
+            &sh("test -n \"$PATH\" && echo \"$MYVAR\""),
+            &[("MYVAR".into(), "set".into())],
+        )
+        .unwrap();
         let mut out = String::new();
         for _ in 0..200 {
             if let Some((_, _, o)) = s.reap() {
@@ -381,12 +399,17 @@ mod tests {
         // R81 F09: `netifd_kill_process` uses SIGKILL. A helper that traps TERM
         // (or is stuck in D state) must not hold the event loop.
         let mut s = Slot::default();
-        s.start(&sh("trap '' TERM; kill -STOP $$; exec sleep 30"), &[]).unwrap();
+        s.start(&sh("trap '' TERM; kill -STOP $$; exec sleep 30"), &[])
+            .unwrap();
         let pid = s.pid().unwrap();
         wait_stopped(pid);
         let t = std::time::Instant::now();
         s.terminate();
-        assert!(t.elapsed() < std::time::Duration::from_secs(2), "took {:?}", t.elapsed());
+        assert!(
+            t.elapsed() < std::time::Duration::from_secs(2),
+            "took {:?}",
+            t.elapsed()
+        );
         assert!(!s.is_running());
         for _ in 0..200 {
             reap_retired();
@@ -410,7 +433,8 @@ mod tests {
         let mut s = Slot::default();
         // the shape that matters: a helper that prints and then keeps running,
         // like `udhcpc -f -t 0` after dhcp.script has reported a lease
-        s.start(&sh("echo early; echo late >&2; sleep 30"), &[]).unwrap();
+        s.start(&sh("echo early; echo late >&2; sleep 30"), &[])
+            .unwrap();
         let mut seen: Vec<String> = Vec::new();
         for _ in 0..300 {
             seen.extend(s.poll_lines());
@@ -428,11 +452,18 @@ mod tests {
     #[test]
     fn a_partial_line_is_held_back_until_its_newline() {
         let mut s = Slot::default();
-        s.start(&sh("printf half; kill -STOP $$; printf 'done\n'; exec sleep 30"), &[]).unwrap();
+        s.start(
+            &sh("printf half; kill -STOP $$; printf 'done\n'; exec sleep 30"),
+            &[],
+        )
+        .unwrap();
         wait_stopped(s.pid().unwrap());
-        assert!(s.poll_lines().is_empty(), "an unterminated line must stay buffered");
+        assert!(
+            s.poll_lines().is_empty(),
+            "an unterminated line must stay buffered"
+        );
         s.signal(18).unwrap(); // SIGCONT: release the writer after checking the prefix.
-        // "half" alone must never be logged as a line of its own
+                               // "half" alone must never be logged as a line of its own
         let mut seen: Vec<String> = Vec::new();
         for _ in 0..200 {
             for l in s.poll_lines() {

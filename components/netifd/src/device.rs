@@ -159,9 +159,12 @@ pub fn merge_settings(configured: &Settings, orig: &Settings) -> Settings {
 
 fn open_sysctl(path: &CStr) -> io::Result<std::fs::File> {
     loop {
-        match rustix::fs::openat(rustix::fs::CWD, path,
+        match rustix::fs::openat(
+            rustix::fs::CWD,
+            path,
             rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::CLOEXEC,
-            rustix::fs::Mode::empty()) {
+            rustix::fs::Mode::empty(),
+        ) {
             Ok(fd) => return Ok(std::fs::File::from(fd)),
             Err(rustix::io::Errno::INTR) => continue,
             Err(error) => return Err(error.into()),
@@ -253,14 +256,70 @@ pub fn read_settings(ifname: &str, e: &Ethtool, ifc: &sys::IfIoctl) -> Settings 
     }
     from_sysctl!(s, "ipv4/conf", ifname, "rp_filter", rpfilter, opt::RPFILTER);
     from_sysctl!(bool s, "ipv4/conf", ifname, "accept_local", acceptlocal, opt::ACCEPTLOCAL);
-    from_sysctl!(s, "ipv4/conf", ifname, "force_igmp_version", igmpversion, opt::IGMPVERSION);
-    from_sysctl!(s, "ipv6/conf", ifname, "force_mld_version", mldversion, opt::MLDVERSION);
-    from_sysctl!(s, "ipv4/neigh", ifname, "base_reachable_time_ms", neigh4reachabletime, opt::NEIGHREACHABLETIME);
-    from_sysctl!(s, "ipv6/neigh", ifname, "base_reachable_time_ms", neigh6reachabletime, opt::NEIGHREACHABLETIME);
-    from_sysctl!(s, "ipv4/neigh", ifname, "locktime", neigh4locktime, opt::NEIGHLOCKTIME);
-    from_sysctl!(s, "ipv4/neigh", ifname, "gc_stale_time", neigh4gcstaletime, opt::NEIGHGCSTALETIME);
-    from_sysctl!(s, "ipv6/neigh", ifname, "gc_stale_time", neigh6gcstaletime, opt::NEIGHGCSTALETIME);
-    from_sysctl!(s, "ipv6/conf", ifname, "dad_transmits", dadtransmits, opt::DADTRANSMITS);
+    from_sysctl!(
+        s,
+        "ipv4/conf",
+        ifname,
+        "force_igmp_version",
+        igmpversion,
+        opt::IGMPVERSION
+    );
+    from_sysctl!(
+        s,
+        "ipv6/conf",
+        ifname,
+        "force_mld_version",
+        mldversion,
+        opt::MLDVERSION
+    );
+    from_sysctl!(
+        s,
+        "ipv4/neigh",
+        ifname,
+        "base_reachable_time_ms",
+        neigh4reachabletime,
+        opt::NEIGHREACHABLETIME
+    );
+    from_sysctl!(
+        s,
+        "ipv6/neigh",
+        ifname,
+        "base_reachable_time_ms",
+        neigh6reachabletime,
+        opt::NEIGHREACHABLETIME
+    );
+    from_sysctl!(
+        s,
+        "ipv4/neigh",
+        ifname,
+        "locktime",
+        neigh4locktime,
+        opt::NEIGHLOCKTIME
+    );
+    from_sysctl!(
+        s,
+        "ipv4/neigh",
+        ifname,
+        "gc_stale_time",
+        neigh4gcstaletime,
+        opt::NEIGHGCSTALETIME
+    );
+    from_sysctl!(
+        s,
+        "ipv6/neigh",
+        ifname,
+        "gc_stale_time",
+        neigh6gcstaletime,
+        opt::NEIGHGCSTALETIME
+    );
+    from_sysctl!(
+        s,
+        "ipv6/conf",
+        ifname,
+        "dad_transmits",
+        dadtransmits,
+        opt::DADTRANSMITS
+    );
     from_sysctl!(bool s, "ipv4/conf", ifname, "send_redirects", sendredirects, opt::SENDREDIRECTS);
     from_sysctl!(bool s, "ipv4/conf", ifname, "drop_unicast_in_l2_multicast", drop_v4_unicast_in_l2_multicast, opt::DROP_V4_UNICAST_IN_L2_MULTICAST);
     from_sysctl!(bool s, "ipv6/conf", ifname, "drop_unicast_in_l2_multicast", drop_v6_unicast_in_l2_multicast, opt::DROP_V6_UNICAST_IN_L2_MULTICAST);
@@ -530,7 +589,10 @@ impl Device {
         }
         b.msg_close(fc);
 
-        b.msg_bool("hw-tc-offload", e.feature_value(&self.ifname, "hw-tc-offload"));
+        b.msg_bool(
+            "hw-tc-offload",
+            e.feature_value(&self.ifname, "hw-tc-offload"),
+        );
         if let Some(dt) = ethtool::devtype(&self.ifname) {
             b.msg_string("devtype", &dt);
         }
@@ -585,16 +647,22 @@ impl BridgeState {
 
 /// `format_macaddr`: lowercase, colon-separated.
 pub fn format_macaddr(m: &[u8; 6]) -> String {
-    format!("{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}", m[0], m[1], m[2], m[3], m[4], m[5])
+    format!(
+        "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+        m[0], m[1], m[2], m[3], m[4], m[5]
+    )
 }
 
 /// `if_indextoname`, via sysfs so no libc call is needed.
 pub fn if_indextoname(index: u32) -> Option<String> {
-    std::fs::read_dir("/sys/class/net").ok()?.flatten().find_map(|e| {
-        let name = e.file_name().to_string_lossy().into_owned();
-        let idx = std::fs::read_to_string(format!("/sys/class/net/{name}/ifindex")).ok()?;
-        (idx.trim().parse::<u32>().ok()? == index).then_some(name)
-    })
+    std::fs::read_dir("/sys/class/net")
+        .ok()?
+        .flatten()
+        .find_map(|e| {
+            let name = e.file_name().to_string_lossy().into_owned();
+            let idx = std::fs::read_to_string(format!("/sys/class/net/{name}/ifindex")).ok()?;
+            (idx.trim().parse::<u32>().ok()? == index).then_some(name)
+        })
 }
 
 /// The device registry. netifd keeps devices in an AVL tree keyed by name, so
@@ -671,8 +739,16 @@ mod tests {
     fn sysctl_open_keeps_close_on_exec_and_open_errors() {
         let file = open_sysctl(c"/proc/sys/kernel/osrelease").unwrap();
         let flags = rustix::io::fcntl_getfd(&file).unwrap();
-        assert!(flags.contains(rustix::io::FdFlags::CLOEXEC), "FD_CLOEXEC must remain set");
-        assert_eq!(open_sysctl(c"/proc/sys/h7b-nonexistent").unwrap_err().kind(), io::ErrorKind::NotFound);
+        assert!(
+            flags.contains(rustix::io::FdFlags::CLOEXEC),
+            "FD_CLOEXEC must remain set"
+        );
+        assert_eq!(
+            open_sysctl(c"/proc/sys/h7b-nonexistent")
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::NotFound
+        );
     }
 
     #[test]
@@ -692,9 +768,16 @@ mod tests {
 
     #[test]
     fn merge_prefers_configured_and_unions_the_flags() {
-        let mut cfg = Settings { mtu: 1400, ..Default::default() };
+        let mut cfg = Settings {
+            mtu: 1400,
+            ..Default::default()
+        };
         cfg.flags |= opt::MTU;
-        let mut orig = Settings { mtu: 1500, txqueuelen: 1000, ..Default::default() };
+        let mut orig = Settings {
+            mtu: 1500,
+            txqueuelen: 1000,
+            ..Default::default()
+        };
         orig.flags |= opt::MTU | opt::TXQUEUELEN;
 
         let m = merge_settings(&cfg, &orig);
@@ -706,7 +789,10 @@ mod tests {
     #[test]
     fn a_flag_only_the_system_set_still_shows() {
         let cfg = Settings::default();
-        let mut orig = Settings { rpfilter: 2, ..Default::default() };
+        let mut orig = Settings {
+            rpfilter: 2,
+            ..Default::default()
+        };
         orig.flags |= opt::RPFILTER;
         let m = merge_settings(&cfg, &orig);
         assert!(m.has(opt::RPFILTER));
@@ -720,7 +806,9 @@ mod tests {
         let t = b.msg_open_table("wan");
         d.dump_status(&mut b, None, None);
         b.msg_close(t);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact();
         assert!(json.contains("\"external\""), "{json}");
         assert!(json.contains("\"present\""), "{json}");
         assert!(json.contains("\"type\""), "{json}");
@@ -736,7 +824,9 @@ mod tests {
         d.settings.mtu = 1500;
         let mut b = BlobBuf::new();
         d.dump_status(&mut b, None, None);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact();
         assert!(json.contains("\"carrier\""), "{json}");
         assert!(!json.contains("\"mtu\""), "{json}");
         // statistics is always opened, even when empty
@@ -773,7 +863,9 @@ mod tests {
 
         let mut b = BlobBuf::new();
         d.dump_status(&mut b, None, None);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact();
         let order: Vec<&str> = [
             "external",
             "present",
@@ -813,7 +905,9 @@ mod tests {
         d.orig_settings.neigh6gcstaletime = 60;
         let mut b = BlobBuf::new();
         d.dump_status(&mut b, None, None);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact();
         assert!(json.contains("neigh4gcstaletime"), "{json}");
         assert!(json.contains("neigh6gcstaletime"), "{json}");
     }
@@ -832,7 +926,9 @@ mod tests {
         );
         let mut b = BlobBuf::new();
         r.dump_all(&mut b, None);
-        let json = owrt_ubus::convert::fields_to_json(b.payload()).unwrap().to_compact();
+        let json = owrt_ubus::convert::fields_to_json(b.payload())
+            .unwrap()
+            .to_compact();
         let i_br = json.find("br-lan").unwrap();
         let i_lo = json.find("\"lo\"").unwrap();
         let i_wan = json.find("\"wan\"").unwrap();
@@ -842,6 +938,9 @@ mod tests {
 
     #[test]
     fn macaddr_is_lowercase_hex() {
-        assert_eq!(format_macaddr(&[0x02, 0xab, 0xcd, 0xef, 0x12, 0x34]), "02:ab:cd:ef:12:34");
+        assert_eq!(
+            format_macaddr(&[0x02, 0xab, 0xcd, 0xef, 0x12, 0x34]),
+            "02:ab:cd:ef:12:34"
+        );
     }
 }

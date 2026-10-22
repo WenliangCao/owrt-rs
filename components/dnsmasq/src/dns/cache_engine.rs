@@ -116,24 +116,46 @@ impl CacheContext<'_> {
         limit: usize,
         dnssec_requested: bool,
     ) -> Result<CachedAnswer, CacheError> {
-        Self::answer_records_filtered(self.cache, question, header, now, local, limit,
-            dnssec_requested, self.filter_rr.contains(&question.rrtype), None)
+        Self::answer_records_filtered(
+            self.cache,
+            question,
+            header,
+            now,
+            local,
+            limit,
+            dnssec_requested,
+            self.filter_rr.contains(&question.rrtype),
+            None,
+        )
     }
 
     /// A plain fresh address answer can reuse the received packet. None leaves
     /// packet/cache/local state unchanged; no fallible work remains after LRU.
     pub(super) fn try_plain_udp_in_place(
-        cache: &mut Cache, packet: &mut [u8], query_len: usize,
-        local: &mut LocalDnsService, now: i64, scratch: &mut Vec<u8>,
+        cache: &mut Cache,
+        packet: &mut [u8],
+        query_len: usize,
+        local: &mut LocalDnsService,
+        now: i64,
+        scratch: &mut Vec<u8>,
     ) -> Option<usize> {
-        if local.query_logging || local.config.edns.active() || scratch.capacity() == 0
+        if local.query_logging
+            || local.config.edns.active()
+            || scratch.capacity() == 0
             || query_len > usize::from(local.edns_packet_max.max(512))
-        { return None; }
+        {
+            return None;
+        }
         let query = packet.get(..query_len)?;
         let header = Header::parse(query).ok()?;
-        if header.flags != 0x0100 || header.questions != 1 || header.answers != 0
-            || header.authorities != 0 || header.additionals != 0
-        { return None; }
+        if header.flags != 0x0100
+            || header.questions != 1
+            || header.answers != 0
+            || header.authorities != 0
+            || header.additionals != 0
+        {
+            return None;
+        }
         let fixed = query_len.checked_sub(4)?;
         let question = super::forward::Question {
             name: Name::from_uncompressed_reusing(query.get(12..fixed)?, scratch)?,
@@ -142,22 +164,36 @@ impl CacheContext<'_> {
         };
         let result = (|| {
             let (kind, data_len) = match question.rrtype {
-                1 => (Kind::Ipv4, 4), 28 => (Kind::Ipv6, 16), _ => return None,
+                1 => (Kind::Ipv4, 4),
+                28 => (Kind::Ipv6, 16),
+                _ => return None,
             };
             let answer_len = query_len.checked_add(12 + data_len)?;
-            if question.class != 1 || local.config.filter_rr.contains(&question.rrtype)
-                || answer_len > local.max_udp.min(512) || answer_len > packet.len()
-            { return None; }
+            if question.class != 1
+                || local.config.filter_rr.contains(&question.rrtype)
+                || answer_len > local.max_udp.min(512)
+                || answer_len > packet.len()
+            {
+                return None;
+            }
             let (_, lookup) = cache.inspect_name(&question.name, now);
             cache.single_fresh_address_id_with_hint(&question.name, kind, now, lookup.as_ref())?;
             let answerer = super::local::LocalAnswerer {
-                config: &local.config, hosts: &mut local.hosts,
-                local_ttl: local.local_ttl, max_packet: 512,
+                config: &local.config,
+                hosts: &mut local.hosts,
+                local_ttl: local.local_ttl,
+                max_packet: 512,
             };
             if !answerer.plain_cached_address_is_unclaimed(
-                &question, &local.leases, now, &local.interfaces,
-            ) { return None; }
-            let id = cache.single_fresh_address_with_hint(&question.name, kind, now, lookup.as_ref())
+                &question,
+                &local.leases,
+                now,
+                &local.interfaces,
+            ) {
+                return None;
+            }
+            let id = cache
+                .single_fresh_address_with_hint(&question.name, kind, now, lookup.as_ref())
                 .expect("read-only checks preserve the selected address");
             let entry = cache.get(id).expect("selected address remains live");
             let ttl = entry.reply_ttl(now, cache.policy());
@@ -197,7 +233,12 @@ impl CacheContext<'_> {
         if super::local::interface_forward_name_parsed(&local.config, header, question).is_some()
             && !cache.has_nxdomain(&question.name, now)
         {
-            return Ok(CachedAnswer { packet: None, stale: false, filtered: false, forward_name: None });
+            return Ok(CachedAnswer {
+                packet: None,
+                stale: false,
+                filtered: false,
+                forward_name: None,
+            });
         }
         // answer_request overwrites the Additional section with its own OPT.
         // Request signatures, OPT version/flags and opaque options do not
@@ -249,7 +290,13 @@ impl CacheContext<'_> {
                         _ => None,
                     };
                     if let Some(kind) = kind {
-                        cache.lookup_with_hint(&question.name, &[kind], now, round_robin, name_lookup);
+                        cache.lookup_with_hint(
+                            &question.name,
+                            &[kind],
+                            now,
+                            round_robin,
+                            name_lookup,
+                        );
                     }
                     cache.lookup_with_hint(
                         &question.name,
@@ -334,19 +381,37 @@ impl CacheContext<'_> {
         filtered_type: bool,
         name_lookup: Option<&super::cache::NameLookup<'_>>,
     ) -> Result<CachedAnswer, CacheError> {
-        let kind = match question.rrtype { 1 => Some(Kind::Ipv4), 28 => Some(Kind::Ipv6), _ => None };
-        if question.class == 1 && header.opcode() == 0 && header.flags & 0x8100 == 0x0100
-            && header.questions == 1 && header.answers == 0 && header.authorities == 0
-            && !dnssec_requested && !filtered_type
+        let kind = match question.rrtype {
+            1 => Some(Kind::Ipv4),
+            28 => Some(Kind::Ipv6),
+            _ => None,
+        };
+        if question.class == 1
+            && header.opcode() == 0
+            && header.flags & 0x8100 == 0x0100
+            && header.questions == 1
+            && header.answers == 0
+            && header.authorities == 0
+            && !dnssec_requested
+            && !filtered_type
         {
-            if let Some(id) = kind.and_then(|kind| cache.single_fresh_address_with_hint(
-                &question.name, kind, now, name_lookup,
-            )) {
+            if let Some(id) = kind.and_then(|kind| {
+                cache.single_fresh_address_with_hint(&question.name, kind, now, name_lookup)
+            }) {
                 return Self::answer_fresh_address(cache, question, header, now, local, limit, id);
             }
         }
-        Self::answer_records_general(cache, question, header, now, local, limit,
-            dnssec_requested, filtered_type, name_lookup)
+        Self::answer_records_general(
+            cache,
+            question,
+            header,
+            now,
+            local,
+            limit,
+            dnssec_requested,
+            filtered_type,
+            name_lookup,
+        )
     }
 
     // Only a selected fresh hit needs this writer frame. Keep it out of the
@@ -361,14 +426,23 @@ impl CacheContext<'_> {
         limit: usize,
         id: super::cache::EntryId,
     ) -> Result<CachedAnswer, CacheError> {
-        let mut writer = PacketWriter::with_buffer(header.id, (header.flags & 0x0110) | 0x8080,
-            limit, std::mem::take(&mut local.cached_reply_buffer))?;
+        let mut writer = PacketWriter::with_buffer(
+            header.id,
+            (header.flags & 0x0110) | 0x8080,
+            limit,
+            std::mem::take(&mut local.cached_reply_buffer),
+        )?;
         writer.question(&question.name, question.rrtype, question.class)?;
         record_cached(local, cache, id, now);
         let entry = cache.get(id).expect("selected fresh address remains live");
-        match writer.record_at(Section::Answer, 12, question.rrtype, 1,
-            entry.reply_ttl(now, cache.policy()), &entry.record.data)
-        {
+        match writer.record_at(
+            Section::Answer,
+            12,
+            question.rrtype,
+            1,
+            entry.reply_ttl(now, cache.policy()),
+            &entry.record.data,
+        ) {
             Ok(()) | Err(WireError::Full) => Ok(finish_cached_answer(writer, false)?),
             Err(error) => Err(error.into()),
         }
@@ -890,10 +964,7 @@ impl CacheContext<'_> {
                                     stale,
                                 )?);
                             }
-                            if question.rrtype != 255
-                                && filtered_type
-                                && !dnssec_requested
-                            {
+                            if question.rrtype != 255 && filtered_type && !dnssec_requested {
                                 record_filter(local, &terminal_name, kind);
                                 return Ok(finish_filtered_answer(writer, stale)?);
                             }
@@ -1052,7 +1123,8 @@ impl CacheContext<'_> {
             return Ok(finish_filtered_answer(writer, stale)?);
         }
         Ok(CachedAnswer {
-                forward_name,            filtered: false,
+            forward_name,
+            filtered: false,
             packet: None,
             stale,
         })
@@ -1943,27 +2015,42 @@ fn append_local_terminal(
             // verbatim: decoding a raw pointer against this scratch packet
             // would rewrite or reject bytes C emits unchanged.
             let data = record.rdata;
-            let pointer = owner_pointer(&answer.packet, record.start).and_then(|scratch| {
-                if scratch == 12 {
-                    return Some(owner_offset);
-                }
-                spans
-                    .iter()
-                    .find(|(start, end, _)| (*start..*end).contains(&scratch))
-                    .and_then(|(start, _, copied)| u16::try_from(copied + scratch - start).ok())
-            })
-            // A pointer holds 14 bits; a later name falls back to full form.
-            .filter(|offset| *offset < 0x4000);
+            let pointer = owner_pointer(&answer.packet, record.start)
+                .and_then(|scratch| {
+                    if scratch == 12 {
+                        return Some(owner_offset);
+                    }
+                    spans
+                        .iter()
+                        .find(|(start, end, _)| (*start..*end).contains(&scratch))
+                        .and_then(|(start, _, copied)| u16::try_from(copied + scratch - start).ok())
+                })
+                // A pointer holds 14 bits; a later name falls back to full form.
+                .filter(|offset| *offset < 0x4000);
             let start = writer.position();
             // record_at validates before appending, so an unusable pointer
             // falls back to the full owner instead of dropping the answer.
             let mut pointer = pointer;
             let result = match pointer.map(|offset| {
-                writer.record_at(section, offset, record.rrtype, record.class, record.ttl, data)
+                writer.record_at(
+                    section,
+                    offset,
+                    record.rrtype,
+                    record.class,
+                    record.ttl,
+                    data,
+                )
             }) {
                 Some(Err(WireError::InvalidName)) | None => {
                     pointer = None;
-                    writer.record(section, &owner, record.rrtype, record.class, record.ttl, data)
+                    writer.record(
+                        section,
+                        &owner,
+                        record.rrtype,
+                        record.class,
+                        record.ttl,
+                        data,
+                    )
                 }
                 Some(result) => result,
             };
@@ -1972,7 +2059,11 @@ fn append_local_terminal(
                 Err(WireError::Full) => return Ok(Some(message.header.flags | 0x0200)),
                 Err(error) => return Err(error.into()),
             }
-            let owner_len = if pointer.is_some() { 2 } else { owner.as_wire().len() };
+            let owner_len = if pointer.is_some() {
+                2
+            } else {
+                owner.as_wire().len()
+            };
             if pointer.is_none() && owner_pointer(&answer.packet, record.start).is_none() {
                 spans.push((record.start, record.fixed, start));
             }
@@ -2146,44 +2237,104 @@ mod tests {
 
     #[test]
     fn fresh_address_reply_matches_general_flags_ttl_limits_and_logging() {
-        for rrtype in [1,28] {
-            for now in [100,159,160] {
-                for flags in [0,0x0100,0x0110] {
-                    for dnssec in [false,true] {
-                        for filtered in [false,true] {
-                            for limit in [12,25,26,41,42,53,54,512] {
+        for rrtype in [1, 28] {
+            for now in [100, 159, 160] {
+                for flags in [0, 0x0100, 0x0110] {
+                    for dnssec in [false, true] {
+                        for filtered in [false, true] {
+                            for limit in [12, 25, 26, 41, 42, 53, 54, 512] {
                                 let name = Name::from_ascii("HiT.test").unwrap();
-                                let kind = if rrtype==1 { Kind::Ipv4 } else { Kind::Ipv6 };
-                                let question = super::super::forward::Question { name, rrtype, class: 1 };
-                                let header = Header { id: 7, flags, questions: 1, ..Header::default() };
+                                let kind = if rrtype == 1 { Kind::Ipv4 } else { Kind::Ipv6 };
+                                let question = super::super::forward::Question {
+                                    name,
+                                    rrtype,
+                                    class: 1,
+                                };
+                                let header = Header {
+                                    id: 7,
+                                    flags,
+                                    questions: 1,
+                                    ..Header::default()
+                                };
                                 let make = || {
-                                    let mut cache = Cache::new(4,Default::default());
+                                    let mut cache = Cache::new(4, Default::default());
                                     cache.start_insert();
-                                    cache.insert(Record { name: Name::from_ascii("hit.test").unwrap(),
-                                        kind, negative: false, data: if rrtype==1 { vec![192,0,2,7] } else { vec![7;16] } },100,60).unwrap();
+                                    cache
+                                        .insert(
+                                            Record {
+                                                name: Name::from_ascii("hit.test").unwrap(),
+                                                kind,
+                                                negative: false,
+                                                data: if rrtype == 1 {
+                                                    vec![192, 0, 2, 7]
+                                                } else {
+                                                    vec![7; 16]
+                                                },
+                                            },
+                                            100,
+                                            60,
+                                        )
+                                        .unwrap();
                                     assert!(cache.commit());
                                     cache
                                 };
-                                let mut reference = make(); let mut candidate = make();
-                                let (_, left_hint) = reference.inspect_name(&question.name,now);
-                                let (_, right_hint) = candidate.inspect_name(&question.name,now);
-                                let mut left = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
-                                let mut right = LocalDnsService::new(DnsConfig::default(),Hosts::new(),60,1232);
-                                left.query_logging=true;right.query_logging=true;
+                                let mut reference = make();
+                                let mut candidate = make();
+                                let (_, left_hint) = reference.inspect_name(&question.name, now);
+                                let (_, right_hint) = candidate.inspect_name(&question.name, now);
+                                let mut left = LocalDnsService::new(
+                                    DnsConfig::default(),
+                                    Hosts::new(),
+                                    60,
+                                    1232,
+                                );
+                                let mut right = LocalDnsService::new(
+                                    DnsConfig::default(),
+                                    Hosts::new(),
+                                    60,
+                                    1232,
+                                );
+                                left.query_logging = true;
+                                right.query_logging = true;
                                 // Previous packet contents must not survive a
                                 // reused writer, including error/TC boundaries.
                                 right.recycle_cached_reply(vec![0xff; 128]);
-                                let a = CacheContext::answer_records_general(&mut reference,&question,header,now,
-                                    &mut left,limit,dnssec,filtered,left_hint.as_ref());
-                                let b = CacheContext::answer_records_filtered(&mut candidate,&question,header,now,
-                                    &mut right,limit,dnssec,filtered,right_hint.as_ref());
-                                match (a,b) {
-                                    (Ok(a),Ok(b)) => assert_eq!((a.packet,a.stale,a.filtered,a.forward_name),
-                                                               (b.packet,b.stale,b.filtered,b.forward_name)),
-                                    (Err(a),Err(b)) => assert_eq!(format!("{a:?}"),format!("{b:?}")),
+                                let a = CacheContext::answer_records_general(
+                                    &mut reference,
+                                    &question,
+                                    header,
+                                    now,
+                                    &mut left,
+                                    limit,
+                                    dnssec,
+                                    filtered,
+                                    left_hint.as_ref(),
+                                );
+                                let b = CacheContext::answer_records_filtered(
+                                    &mut candidate,
+                                    &question,
+                                    header,
+                                    now,
+                                    &mut right,
+                                    limit,
+                                    dnssec,
+                                    filtered,
+                                    right_hint.as_ref(),
+                                );
+                                match (a, b) {
+                                    (Ok(a), Ok(b)) => assert_eq!(
+                                        (a.packet, a.stale, a.filtered, a.forward_name),
+                                        (b.packet, b.stale, b.filtered, b.forward_name)
+                                    ),
+                                    (Err(a), Err(b)) => {
+                                        assert_eq!(format!("{a:?}"), format!("{b:?}"))
+                                    }
                                     _ => panic!("fresh/general success boundary differs"),
                                 }
-                                assert_eq!(format!("{:?}",left.take_query_events()), format!("{:?}",right.take_query_events()));
+                                assert_eq!(
+                                    format!("{:?}", left.take_query_events()),
+                                    format!("{:?}", right.take_query_events())
+                                );
                             }
                         }
                     }
@@ -2251,7 +2402,14 @@ mod tests {
         let request = request.finish();
         let question = super::super::forward::Question::parse(&request).unwrap();
         let answer = context
-            .answer_tcp(&request, Header::parse(&request).unwrap(), &question, 101, &mut local, 1232)
+            .answer_tcp(
+                &request,
+                Header::parse(&request).unwrap(),
+                &question,
+                101,
+                &mut local,
+                1232,
+            )
             .unwrap()
             .packet
             .unwrap();
@@ -2748,7 +2906,14 @@ mod tests {
             class: 1,
         };
         let answer = context
-            .answer_tcp(&query, Header::parse(&query).unwrap(), &question, 103, &mut parent_local, 1232)
+            .answer_tcp(
+                &query,
+                Header::parse(&query).unwrap(),
+                &question,
+                103,
+                &mut parent_local,
+                1232,
+            )
             .unwrap()
             .packet
             .unwrap();

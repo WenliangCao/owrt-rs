@@ -97,7 +97,9 @@ impl Header {
 pub struct Name(Vec<u8>);
 
 impl Name {
-    pub(super) fn into_wire_buffer(self) -> Vec<u8> { self.0 }
+    pub(super) fn into_wire_buffer(self) -> Vec<u8> {
+        self.0
+    }
 
     pub fn root() -> Self {
         Self(vec![0])
@@ -231,7 +233,10 @@ pub(super) fn decode_name_with_aliasing(
 /// Reuse a normal UDP owner's name allocation. On failure the caller keeps
 /// the partial scratch; only a successful walk creates a valid owned Name.
 pub(super) fn decode_name_reusing(
-    packet: &[u8], start: usize, extra: usize, scratch: &mut Vec<u8>,
+    packet: &[u8],
+    start: usize,
+    extra: usize,
+    scratch: &mut Vec<u8>,
 ) -> Result<(Name, usize), WireError> {
     scratch.clear();
     if scratch.capacity() < 32 {
@@ -736,7 +741,10 @@ impl PacketWriter {
     }
 
     pub(crate) fn with_buffer(
-        id: u16, flags: u16, limit: usize, mut packet: Vec<u8>,
+        id: u16,
+        flags: u16,
+        limit: usize,
+        mut packet: Vec<u8>,
     ) -> Result<Self, WireError> {
         if limit < HEADER_LEN {
             return Err(WireError::Full);

@@ -124,8 +124,7 @@ pub struct RateEntry {
 
 /// struct iwinfo_assoclist_entry; the `char[16]` fields keep their C layout
 /// (NUL-terminated, see `cstr`).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub struct AssoclistEntry {
     pub mac: [u8; 6],
     pub signal: i8,
@@ -157,7 +156,6 @@ pub struct AssoclistEntry {
     pub peer_ps: [u8; 16],
     pub nonpeer_ps: [u8; 16],
 }
-
 
 /// struct iwinfo_survey_entry
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -282,7 +280,13 @@ pub struct HardwareId {
 
 impl Default for HardwareId {
     fn default() -> Self {
-        HardwareId { vendor_id: 0, device_id: 0, subsystem_vendor_id: 0, subsystem_device_id: 0, compatible: [0; 128] }
+        HardwareId {
+            vendor_id: 0,
+            device_id: 0,
+            subsystem_vendor_id: 0,
+            subsystem_device_id: 0,
+            compatible: [0; 128],
+        }
     }
 }
 

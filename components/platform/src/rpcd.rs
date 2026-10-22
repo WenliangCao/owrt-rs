@@ -183,7 +183,16 @@ pub fn interface_ioctl(
 pub fn netlink_membership(fd: impl AsFd, group: i32) -> io::Result<()> {
     // SAFETY: fixed SOL_NETLINK/ADD_MEMBERSHIP reads one live integer. rustix
     // 1.1.5 does not expose this socket option.
-    if unsafe { setsockopt(fd.as_fd().as_raw_fd(), 270, 1, (&group as *const i32).cast(), 4) } < 0 {
+    if unsafe {
+        setsockopt(
+            fd.as_fd().as_raw_fd(),
+            270,
+            1,
+            (&group as *const i32).cast(),
+            4,
+        )
+    } < 0
+    {
         Err(io::Error::last_os_error())
     } else {
         Ok(())

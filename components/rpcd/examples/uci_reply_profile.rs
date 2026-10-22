@@ -5,22 +5,22 @@
 #![cfg(not(test))]
 #![allow(dead_code)]
 
-#[path = "../src/session.rs"]
-mod session;
-#[path = "../src/uciobj.rs"]
-mod uciobj;
 #[path = "../src/delayed.rs"]
 mod delayed;
 #[path = "../src/glob.rs"]
 mod glob;
-#[path = "../src/util.rs"]
-#[allow(unused_imports)]
-mod util;
 mod profile_support;
 #[path = "../src/reply.rs"]
 mod reply;
+#[path = "../src/session.rs"]
+mod session;
+#[path = "../src/uciobj.rs"]
+mod uciobj;
+#[path = "../src/util.rs"]
+#[allow(unused_imports)]
+mod util;
 
-use owrt_ubus::{BlobBuf, Connection, Header, ty};
+use owrt_ubus::{ty, BlobBuf, Connection, Header};
 use profile_support::measure;
 use std::cell::RefCell;
 use std::hint::black_box;
@@ -38,14 +38,26 @@ pub struct Ctx {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let n = args.get(1).map(|s| s.parse().expect("iterations")).unwrap_or(20000);
+    let n = args
+        .get(1)
+        .map(|s| s.parse().expect("iterations"))
+        .unwrap_or(20000);
     let filter = args.get(2).map(String::as_str).unwrap_or("");
     assert!(n > 0);
     let path = std::env::temp_dir().join(format!("uci-reply-profile-{}", std::process::id()));
     let listener = UnixListener::bind(&path).unwrap();
     let peer = std::thread::spawn(move || {
         let (mut socket, _) = listener.accept().unwrap();
-        socket.write_all(&Header { ty: ty::HELLO, seq: 0, peer: 42 }.encode()).unwrap();
+        socket
+            .write_all(
+                &Header {
+                    ty: ty::HELLO,
+                    seq: 0,
+                    peer: 42,
+                }
+                .encode(),
+            )
+            .unwrap();
         socket.write_all(&[0, 0, 0, 4]).unwrap();
         let mut byte = [0u8];
         // The measured handlers must not use the supplied Connection.

@@ -84,14 +84,18 @@ fn reply_fields(conn: &mut Connection, req: &Request, fields: &[u8]) -> io::Resu
     if fields.len().is_multiple_of(4) && fields.len() <= owrt_ubus::msg::MAX_MSGLEN - 16 {
         conn.reply_data_status(req, fields, status::OK)
     } else {
-        conn.reply_data(req, fields).and_then(|()| conn.reply_status(req, status::OK, None))
+        conn.reply_data(req, fields)
+            .and_then(|()| conn.reply_status(req, status::OK, None))
     }
 }
 
 /// A blobmsg array of strings, or a single string as a one-element list.
 fn string_list(f: &blob::Field) -> Vec<String> {
     if f.ty == MsgType::Array as u32 {
-        return f.children().filter_map(|c| c.as_str().map(|s| s.to_string())).collect();
+        return f
+            .children()
+            .filter_map(|c| c.as_str().map(|s| s.to_string()))
+            .collect();
     }
     f.as_str().map(|s| vec![s.to_string()]).unwrap_or_default()
 }
@@ -115,15 +119,37 @@ struct Change {
 }
 
 /// `proto_static`'s config_params (proto.c).
-const STATIC_PARAMS: &[&str] =
-    &["ipaddr", "ip6addr", "netmask", "broadcast", "gateway", "ip6gw", "ip6prefix", "ip6deprecated"];
+const STATIC_PARAMS: &[&str] = &[
+    "ipaddr",
+    "ip6addr",
+    "netmask",
+    "broadcast",
+    "gateway",
+    "ip6gw",
+    "ip6prefix",
+    "ip6deprecated",
+];
 
 /// `device_attr_list` names an interface section may carry
 /// (`interface_device_config_changed`).
 const IFACE_DEVICE_OPTS: &[&str] = &[
-    "mtu", "mtu6", "macaddr", "txqueuelen", "ipv6", "promisc", "multicast", "rpfilter",
-    "acceptlocal", "igmpversion", "mldversion", "neighreachabletime", "neighgcstaletime",
-    "neighlocktime", "dadtransmits", "sendredirects", "enabled",
+    "mtu",
+    "mtu6",
+    "macaddr",
+    "txqueuelen",
+    "ipv6",
+    "promisc",
+    "multicast",
+    "rpfilter",
+    "acceptlocal",
+    "igmpversion",
+    "mldversion",
+    "neighreachabletime",
+    "neighgcstaletime",
+    "neighlocktime",
+    "dadtransmits",
+    "sendredirects",
+    "enabled",
 ];
 
 fn raw_get<'a>(c: &'a config::InterfaceConfig, name: &str) -> Option<&'a Vec<String>> {
@@ -188,7 +214,11 @@ fn set_route_info(r: &mut interface::Route, metric: u32, ip4table: u32, ip6table
         r.metric = metric;
     }
     if r.flags & interface::devroute::TABLE == 0 {
-        r.table = if r.target.is_ipv6() { ip6table } else { ip4table };
+        r.table = if r.target.is_ipv6() {
+            ip6table
+        } else {
+            ip4table
+        };
         if r.table != 0 {
             r.flags |= interface::devroute::SRCTABLE;
         }
@@ -213,13 +243,27 @@ struct HostDep {
 fn in_prefix(addr: IpAddr, prefix: IpAddr, len: u8) -> bool {
     match (addr, prefix) {
         (IpAddr::V4(a), IpAddr::V4(p)) => {
-            let (a, p) = (u32::from_be_bytes(a.octets()), u32::from_be_bytes(p.octets()));
-            let m = if len == 0 { 0 } else { u32::MAX << (32 - len.min(32)) };
+            let (a, p) = (
+                u32::from_be_bytes(a.octets()),
+                u32::from_be_bytes(p.octets()),
+            );
+            let m = if len == 0 {
+                0
+            } else {
+                u32::MAX << (32 - len.min(32))
+            };
             a & m == p & m
         }
         (IpAddr::V6(a), IpAddr::V6(p)) => {
-            let (a, p) = (u128::from_be_bytes(a.octets()), u128::from_be_bytes(p.octets()));
-            let m = if len == 0 { 0 } else { u128::MAX << (128 - len.min(128)) };
+            let (a, p) = (
+                u128::from_be_bytes(a.octets()),
+                u128::from_be_bytes(p.octets()),
+            );
+            let m = if len == 0 {
+                0
+            } else {
+                u128::MAX << (128 - len.min(128))
+            };
             a & m == p & m
         }
         _ => false,
@@ -245,7 +289,8 @@ fn status_prefixes(
                         .filter(|a| {
                             a.owner.as_ref().is_some_and(|(owner, addr, length)| {
                                 owner.as_deref() == Some(name)
-                                    && *addr == p.addr && *length == p.length
+                                    && *addr == p.addr
+                                    && *length == p.length
                             })
                         })
                         .map(move |a| (i.name.clone(), a.addr, a.length))
@@ -359,12 +404,7 @@ struct Netifd {
 }
 
 impl Netifd {
-    fn new(
-        confdir: &str,
-        socket: Option<&str>,
-        hotplug: &str,
-        protodir: &str,
-    ) -> io::Result<Self> {
+    fn new(confdir: &str, socket: Option<&str>, hotplug: &str, protodir: &str) -> io::Result<Self> {
         let events = netlink::Netlink::open(
             // RTNLGRP_LINK only, as system-linux.c's rtnl_event socket: the C
             // acts on RTM_NEWLINK/DELLINK and nothing else. Subscribing to the
@@ -464,7 +504,8 @@ impl Netifd {
         }
         if !first && !new.errors.is_empty() {
             let what: Vec<String> = new.errors.iter().map(|e| e.to_string()).collect();
-            logging::log!(Warning,
+            logging::log!(
+                Warning,
                 "refusing this reload -- {} problem(s); the running \
                  configuration is untouched",
                 what.len()
@@ -476,9 +517,18 @@ impl Netifd {
         // bridge_config_init flushes configured members that left the UCI
         // list. Dynamic wireless members are not in the old list and survive.
         let mut removed_port = false;
-        for bridge in old.devices.iter().filter(|d| d.kind.as_deref() == Some("bridge")) {
-            let retained = self.cfg.devices.iter().find(|d| d.name == bridge.name)
-                .map(|d| d.ports.clone()).unwrap_or_default();
+        for bridge in old
+            .devices
+            .iter()
+            .filter(|d| d.kind.as_deref() == Some("bridge"))
+        {
+            let retained = self
+                .cfg
+                .devices
+                .iter()
+                .find(|d| d.name == bridge.name)
+                .map(|d| d.ports.clone())
+                .unwrap_or_default();
             for port in bridge.ports.iter().filter(|p| !retained.contains(p)) {
                 self.bridge_port_detach(&bridge.name, port);
                 removed_port = true;
@@ -599,9 +649,7 @@ impl Netifd {
                         routes_changed = old_keys != new_keys;
                     }
                     if ch.reload {
-                        logging::log!(Debug,
-                            "Reload interface '{name}' because of config changes"
-                        );
+                        logging::log!(Debug, "Reload interface '{name}' because of config changes");
                         // proto_shell keeps its own config until the old
                         // protocol is freed. A second reload during teardown
                         // must still use the first running configuration.
@@ -638,7 +686,11 @@ impl Netifd {
     /// interface's own metric and tables filled in (`interface_set_route_info`).
     fn config_routes_for(&self, name: &str) -> Vec<interface::Route> {
         let (metric, t4, t6) = match self.cfg.interfaces.iter().find(|c| c.name == name) {
-            Some(ic) => (ic.metric, ic.ip4table.unwrap_or(0), ic.ip6table.unwrap_or(0)),
+            Some(ic) => (
+                ic.metric,
+                ic.ip4table.unwrap_or(0),
+                ic.ip6table.unwrap_or(0),
+            ),
             None => (0, 0, 0),
         };
         let mut out: Vec<interface::Route> = self
@@ -661,15 +713,26 @@ impl Netifd {
     /// static routes of an interface enter the kernel when it comes up. A
     /// route with no interface (DEVROUTE_NODEV) is installed with no device.
     fn apply_config_routes(&mut self, name: &str, devidx: u32) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         let mut routes = std::mem::take(&mut self.interfaces[idx].config_ip.routes);
         for r in &mut routes {
             if r.enabled {
                 continue;
             }
-            let di = if r.flags & interface::devroute::NODEV != 0 { 0 } else { devidx };
+            let di = if r.flags & interface::devroute::NODEV != 0 {
+                0
+            } else {
+                devidx
+            };
             if let Err(e) = self.sys.add_route(di, &sys_route(r)) {
-                logging::log!(Warning, "{name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
+                logging::log!(
+                    Warning,
+                    "{name}: cannot add the route to {}/{}: {e}",
+                    r.target,
+                    r.mask
+                );
             }
             // `route->enabled = _enabled` whatever the kernel said
             r.enabled = true;
@@ -684,7 +747,11 @@ impl Netifd {
             if !r.enabled {
                 continue;
             }
-            let di = if r.flags & interface::devroute::NODEV != 0 { 0 } else { devidx };
+            let di = if r.flags & interface::devroute::NODEV != 0 {
+                0
+            } else {
+                devidx
+            };
             let _ = self.sys.del_route(di, &sys_route(r));
         }
     }
@@ -693,10 +760,11 @@ impl Netifd {
     /// what left the config leaves the kernel, what entered it is installed
     /// if the interface is up.
     fn replace_config_routes(&mut self, name: &str, new: Vec<interface::Route>) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         let up = self.interfaces[idx].state == State::Up;
-        let devidx = self
-            .interfaces[idx]
+        let devidx = self.interfaces[idx]
             .l3_device
             .as_deref()
             .and_then(|d| self.sys.if_index(d).ok())
@@ -715,11 +783,15 @@ impl Netifd {
     /// `no_defaultroute` -- without a teardown and without re-running the
     /// protocol (R81 F05).
     fn reload_ip(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         if self.interfaces[idx].state != State::Up {
             return;
         }
-        let Some(dev) = self.interfaces[idx].l3_device.clone() else { return };
+        let Some(dev) = self.interfaces[idx].l3_device.clone() else {
+            return;
+        };
         let di = match self.sys.if_index(&dev) {
             Ok(i) if i != 0 => i,
             _ => return,
@@ -768,7 +840,11 @@ impl Netifd {
                 set_route_info(r, metric, t4, t6);
                 r.enabled = !(is_proto && nodef && r.mask == 0);
                 if r.enabled {
-                    let d = if r.flags & interface::devroute::NODEV != 0 { 0 } else { di };
+                    let d = if r.flags & interface::devroute::NODEV != 0 {
+                        0
+                    } else {
+                        di
+                    };
                     r.failed = self.sys.add_route(d, &sys_route(r)).is_err();
                 }
             }
@@ -793,7 +869,9 @@ impl Netifd {
         self.prefixes
             .iter()
             .filter(|p| {
-                let Some(owner) = p.iface.as_deref() else { return true };
+                let Some(owner) = p.iface.as_deref() else {
+                    return true;
+                };
                 !self
                     .interfaces
                     .iter()
@@ -817,7 +895,9 @@ impl Netifd {
     /// the state machine was still tearing down, and an ifup-failed the C
     /// never sends went out.
     fn set_config_state(&mut self, name: &str, cs: interface::ConfigState) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         self.interfaces[idx].config_state = cs;
         if self.interfaces[idx].state == State::Down {
             self.handle_config_change(name);
@@ -836,7 +916,9 @@ impl Netifd {
         let Some(nc) = self.cfg.interfaces.iter().find(|c| c.name == name).cloned() else {
             return;
         };
-        let Some(i) = self.iface_index(name) else { return };
+        let Some(i) = self.iface_index(name) else {
+            return;
+        };
         let autostart = self.interfaces[i].autostart;
         let mut fresh = self.new_interface(&nc);
         fresh.autostart = autostart;
@@ -879,11 +961,16 @@ impl Netifd {
             .collect();
         for name in names {
             self.proto_state(&name).checkup_at = None;
-            let Some(idx) = self.iface_index(&name) else { continue };
+            let Some(idx) = self.iface_index(&name) else {
+                continue;
+            };
             if !self.interfaces[idx].autostart || self.interfaces[idx].state == State::Up {
                 continue;
             }
-            logging::log!(Notice, "Interface '{name}' is not up after the checkup interval");
+            logging::log!(
+                Notice,
+                "Interface '{name}' is not up after the checkup interval"
+            );
             self.proto_cmd(&name, proto::Cmd::Teardown);
         }
     }
@@ -992,7 +1079,8 @@ impl Netifd {
             if let Some(i) = self.iface_index(&name) {
                 if self.interfaces[i].enabled != enabled {
                     self.interfaces[i].enabled = enabled;
-                    logging::log!(Notice,
+                    logging::log!(
+                        Notice,
                         "Interface '{name}' is {}",
                         if enabled { "enabled" } else { "disabled" }
                     );
@@ -1004,7 +1092,9 @@ impl Netifd {
     /// `device_release`: the device goes down when the last user lets go, and
     /// its parent is released before it does.
     fn device_release(&mut self, name: &str) {
-        let Some(pos) = self.claims.iter().position(|(n, _)| n == name) else { return };
+        let Some(pos) = self.claims.iter().position(|(n, _)| n == name) else {
+            return;
+        };
         self.claims[pos].1 -= 1;
         if self.claims[pos].1 > 0 {
             return;
@@ -1031,20 +1121,34 @@ impl Netifd {
     /// Claim `dev` on `iface`'s behalf, as its main or L3 device. Re-claiming
     /// the same device in the same slot is not a second claim.
     fn iface_claim(&mut self, iface: &str, dev: &str, l3: bool) {
-        let held = if l3 { &self.claimed_l3 } else { &self.claimed_main };
+        let held = if l3 {
+            &self.claimed_l3
+        } else {
+            &self.claimed_main
+        };
         if held.iter().any(|(i, d)| i == iface && d == dev) {
             return;
         }
         // a slot that held a different device releases it first
         self.iface_unclaim(iface, l3);
-        let slot = if l3 { &mut self.claimed_l3 } else { &mut self.claimed_main };
+        let slot = if l3 {
+            &mut self.claimed_l3
+        } else {
+            &mut self.claimed_main
+        };
         slot.push((iface.to_string(), dev.to_string()));
         self.device_claim(dev);
     }
 
     fn iface_unclaim(&mut self, iface: &str, l3: bool) {
-        let slot = if l3 { &mut self.claimed_l3 } else { &mut self.claimed_main };
-        let Some(pos) = slot.iter().position(|(i, _)| i == iface) else { return };
+        let slot = if l3 {
+            &mut self.claimed_l3
+        } else {
+            &mut self.claimed_main
+        };
+        let Some(pos) = slot.iter().position(|(i, _)| i == iface) else {
+            return;
+        };
         let (_, dev) = slot.remove(pos);
         self.device_release(&dev);
         // `device_remove_user` ends with `device_free_unused()`. That is the
@@ -1054,20 +1158,22 @@ impl Netifd {
         self.free_unused_devices();
     }
 
-
     fn handler_for(&self, proto: &str) -> Option<&proto::Handler> {
         self.handlers.iter().find(|h| h.name == proto)
     }
 
     fn proto_config(&self, name: &str) -> Option<&config::InterfaceConfig> {
-        self.protos.iter().find(|(n, _)| n == name)
+        self.protos
+            .iter()
+            .find(|(n, _)| n == name)
             .and_then(|(_, st)| st.teardown_config.as_deref())
             .or_else(|| self.cfg.interfaces.iter().find(|ic| ic.name == name))
     }
 
     fn proto_state(&mut self, name: &str) -> &mut proto::ProtoState {
         if !self.protos.iter().any(|(n, _)| n == name) {
-            self.protos.push((name.to_string(), proto::ProtoState::new()));
+            self.protos
+                .push((name.to_string(), proto::ProtoState::new()));
         }
         let i = self.protos.iter().position(|(n, _)| n == name).unwrap();
         &mut self.protos[i].1
@@ -1112,16 +1218,14 @@ impl Netifd {
         let mut pending: Vec<Device> = Vec::new();
         for m in &msgs {
             let attrs = m.attrs(16);
-            let Some(name) = netlink::attr_str(&attrs, sys::IFLA_IFNAME) else { continue };
+            let Some(name) = netlink::attr_str(&attrs, sys::IFLA_IFNAME) else {
+                continue;
+            };
             if !known.iter().any(|k| k == name) {
                 continue;
             }
-            let flags = u32::from_le_bytes([
-                m.payload[8],
-                m.payload[9],
-                m.payload[10],
-                m.payload[11],
-            ]);
+            let flags =
+                u32::from_le_bytes([m.payload[8], m.payload[9], m.payload[10], m.payload[11]]);
             let kind = self.link_kind(&attrs);
             let mut d = self
                 .devices
@@ -1176,7 +1280,11 @@ impl Netifd {
         let hdr = sys::ifinfomsg(sys::AF_UNSPEC, 0, 0, 0);
         let mut a = netlink::Attrs::new();
         a.str0(sys::IFLA_IFNAME, ifname);
-        let msg = self.sys.nl.dump_one(sys::RTM_GETLINK, &hdr, a.as_bytes()).ok()??;
+        let msg = self
+            .sys
+            .nl
+            .dump_one(sys::RTM_GETLINK, &hdr, a.as_bytes())
+            .ok()??;
         let attrs = msg.attrs(16);
         let li = netlink::attr(&attrs, sys::IFLA_LINKINFO)
             .or_else(|| netlink::attr(&attrs, sys::IFLA_LINKINFO | netlink::NLA_F_NESTED))?;
@@ -1231,8 +1339,12 @@ impl Netifd {
                     logging::log!(Warning, "cannot create bridge {}: {e}", dc.name);
                     continue;
                 }
-            } else if self.devices.get(&dc.name).and_then(|d| d.bridge.as_ref())
-                .map(|b| &b.config) != Some(&brcfg)
+            } else if self
+                .devices
+                .get(&dc.name)
+                .and_then(|d| d.bridge.as_ref())
+                .map(|b| &b.config)
+                != Some(&brcfg)
             {
                 // C bridge_reload reapplies changed options on restart.
                 // Update the existing bridge without replacing its members.
@@ -1251,8 +1363,11 @@ impl Netifd {
             self.apply_device_config(&dc, br);
 
             // Reload must preserve dynamic wireless members and their claims.
-            let mut members = self.devices.get(&dc.name)
-                .and_then(|d| d.bridge.as_ref()).map(|b| b.members.clone())
+            let mut members = self
+                .devices
+                .get(&dc.name)
+                .and_then(|d| d.bridge.as_ref())
+                .map(|b| b.members.clone())
                 .unwrap_or_default();
             for port in &dc.ports {
                 if members.contains(port) {
@@ -1282,12 +1397,9 @@ impl Netifd {
                             .iter()
                             .any(|d| &d.name == port && d.ipv6.is_some());
                         if !explicit {
-                            let path =
-                                format!("/proc/sys/net/ipv6/conf/{port}/disable_ipv6");
+                            let path = format!("/proc/sys/net/ipv6/conf/{port}/disable_ipv6");
                             if let Err(e) = std::fs::write(&path, "1") {
-                                logging::log!(Warning,
-                                    "cannot disable IPv6 on {port}: {e}"
-                                );
+                                logging::log!(Warning, "cannot disable IPv6 on {port}: {e}");
                             }
                         }
                         members.push(port.clone());
@@ -1312,7 +1424,9 @@ impl Netifd {
             if dc.kind.is_some() {
                 continue;
             }
-            let Ok(idx) = self.sys.if_index(&dc.name) else { continue };
+            let Ok(idx) = self.sys.if_index(&dc.name) else {
+                continue;
+            };
             if idx == 0 {
                 logging::log!(Warning, "device {} is absent", dc.name);
                 continue;
@@ -1329,7 +1443,12 @@ impl Netifd {
     /// still get that MAC, or the box comes up with the kernel's MAC instead
     /// of the configured one (the WAN MAC an ISP may pin to).
     fn apply_device_settings(&mut self, name: &str, idx: u32) {
-        let Some(dc) = self.cfg.devices.iter().find(|d| d.name == name && d.kind.is_none()).cloned()
+        let Some(dc) = self
+            .cfg
+            .devices
+            .iter()
+            .find(|d| d.name == name && d.kind.is_none())
+            .cloned()
         else {
             return;
         };
@@ -1360,11 +1479,19 @@ impl Netifd {
             let _ = sys::sysctl_set(&p, if v { "0" } else { "1" });
         }
         if let Some(v) = dc.promisc {
-            let (add, rem) = if v { (sys::IFF_PROMISC, 0) } else { (0, sys::IFF_PROMISC) };
+            let (add, rem) = if v {
+                (sys::IFF_PROMISC, 0)
+            } else {
+                (0, sys::IFF_PROMISC)
+            };
             let _ = self.sys.set_link_flags(idx, add, rem);
         }
         if let Some(v) = dc.multicast {
-            let (add, rem) = if v { (sys::IFF_MULTICAST, 0) } else { (0, sys::IFF_MULTICAST) };
+            let (add, rem) = if v {
+                (sys::IFF_MULTICAST, 0)
+            } else {
+                (0, sys::IFF_MULTICAST)
+            };
             let _ = self.sys.set_link_flags(idx, add, rem);
         }
     }
@@ -1372,8 +1499,16 @@ impl Netifd {
     /// Reload only the ULA from `globals`. Protocol-owned delegations survive
     /// an unrelated configuration reload, including a change to `delegate`.
     fn build_prefixes(&mut self) {
-        let fresh = self.cfg.globals.ula_prefix.filter(|(_, len)| (1..=64).contains(len));
-        let old = self.prefixes.iter().find(|p| p.iface.is_none()).map(|p| (p.addr, p.length));
+        let fresh = self
+            .cfg
+            .globals
+            .ula_prefix
+            .filter(|(_, len)| (1..=64).contains(len));
+        let old = self
+            .prefixes
+            .iter()
+            .find(|p| p.iface.is_none())
+            .map(|p| (p.addr, p.length));
         if old == fresh {
             return;
         }
@@ -1403,8 +1538,11 @@ impl Netifd {
         // `available` reflects whether the device is present, not whether
         // the interface was started -- and for a bridge, "present" means it
         // has a present member, not that the bridge netdev exists.
-        i.available =
-            ic.device.as_deref().map(|d| self.device_present_now(d)).unwrap_or(false);
+        i.available = ic
+            .device
+            .as_deref()
+            .map(|d| self.device_present_now(d))
+            .unwrap_or(false);
         i.autostart = ic.auto.unwrap_or(true);
         i.metric = ic.metric;
         i.dns_metric = ic.dns_metric;
@@ -1431,7 +1569,12 @@ impl Netifd {
         // netifd keeps interfaces in a vlist keyed by name
         self.interfaces.sort_by(|a, b| a.name.cmp(&b.name));
 
-        for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
+        for name in self
+            .interfaces
+            .iter()
+            .map(|i| i.name.clone())
+            .collect::<Vec<_>>()
+        {
             if let Err(e) = self.register_interface(&name) {
                 logging::log!(Warning, "cannot register {name}: {e}");
             }
@@ -1442,7 +1585,12 @@ impl Netifd {
         // interfaces come up in name order, which is how r54 caught this;
         // earlier harnesses agreed by accident because their interfaces
         // finished coming up in a different order anyway.
-        for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
+        for name in self
+            .interfaces
+            .iter()
+            .map(|i| i.name.clone())
+            .collect::<Vec<_>>()
+        {
             let autostart = self
                 .cfg
                 .interfaces
@@ -1483,7 +1631,9 @@ impl Netifd {
     /// device reports carrier -- which is why an interface whose peer is down
     /// stays in DOWN rather than sitting in SETUP forever.
     fn iface_up(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         // autostart is set by every caller, before the state check
         self.interfaces[idx].autostart = true;
         if self.interfaces[idx].state != State::Down {
@@ -1541,7 +1691,9 @@ impl Netifd {
         let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
             return;
         };
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
 
         logging::log!(Notice, "Interface '{name}' is setting up now");
         if !IMPLEMENTED_PROTOS.contains(&ic.proto.as_str()) {
@@ -1554,7 +1706,8 @@ impl Netifd {
                 code: "PROTO_NOT_SUPPORTED".into(),
                 data: vec![ic.proto.clone()],
             });
-            logging::log!(Warning,
+            logging::log!(
+                Warning,
                 "interface {name} uses proto '{}', which this build cannot run; \
                  leaving it down",
                 ic.proto
@@ -1605,8 +1758,7 @@ impl Netifd {
         let mut applied_any = false;
         let mut ipset = interface::IpSettings::default();
         for (a, m) in &ic.ipv4 {
-            let sa =
-                sys::Address::new(IpAddr::V4(*a), *m).with_default_broadcast();
+            let sa = sys::Address::new(IpAddr::V4(*a), *m).with_default_broadcast();
             match self.sys.add_address(devidx, &sa) {
                 Ok(()) => {
                     ipset.addresses.push(Address::new(IpAddr::V4(*a), *m));
@@ -1633,11 +1785,8 @@ impl Netifd {
             r.table = ic.ip4table.unwrap_or(sys::RT_TABLE_MAIN);
             match self.sys.add_route(devidx, &r) {
                 Ok(()) => {
-                    let mut ir = interface::Route::new(
-                        "0.0.0.0".parse().unwrap(),
-                        0,
-                        IpAddr::V4(gw),
-                    );
+                    let mut ir =
+                        interface::Route::new("0.0.0.0".parse().unwrap(), 0, IpAddr::V4(gw));
                     ir.metric = ic.metric;
                     ir.table = ic.ip4table.unwrap_or(0);
                     ipset.routes.push(ir);
@@ -1652,8 +1801,7 @@ impl Netifd {
             r.table = ic.ip6table.unwrap_or(sys::RT_TABLE_MAIN);
             match self.sys.add_route(devidx, &r) {
                 Ok(()) => {
-                    let mut ir =
-                        interface::Route::new("::".parse().unwrap(), 0, IpAddr::V6(gw));
+                    let mut ir = interface::Route::new("::".parse().unwrap(), 0, IpAddr::V6(gw));
                     ir.metric = ic.metric;
                     ir.table = ic.ip6table.unwrap_or(0);
                     ipset.routes.push(ir);
@@ -1699,7 +1847,9 @@ impl Netifd {
         let Some(ic) = self.proto_config(name).cloned() else {
             return;
         };
-        let Some(handler) = self.handler_for(&ic.proto).cloned() else { return };
+        let Some(handler) = self.handler_for(&ic.proto).cloned() else {
+            return;
+        };
         let plan = {
             let st = self.proto_state(name);
             proto::plan(st, cmd, &handler)
@@ -1734,16 +1884,13 @@ impl Netifd {
                 if action == "setup" {
                     self.host_deps.retain(|d| d.owner != name);
                 }
-                let opts: Vec<(String, Vec<String>)> =
-                    ic.raw.iter().map(|r| (r.name.clone(), r.values.clone())).collect();
+                let opts: Vec<(String, Vec<String>)> = ic
+                    .raw
+                    .iter()
+                    .map(|r| (r.name.clone(), r.values.clone()))
+                    .collect();
                 let config = proto::config_json(&handler, &opts);
-                let argv = proto::argv(
-                    &handler,
-                    action,
-                    name,
-                    &config,
-                    ic.device.as_deref(),
-                );
+                let argv = proto::argv(&handler, action, name, &config, ic.device.as_deref());
                 let dir = self.protodir.clone();
                 let st = self.proto_state(name);
                 st.script_start_failed = false;
@@ -1762,7 +1909,11 @@ impl Netifd {
         let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
             return;
         };
-        let devidx = ic.device.as_deref().map(|d| self.sys.if_index(d).unwrap_or(0)).unwrap_or(0);
+        let devidx = ic
+            .device
+            .as_deref()
+            .map(|d| self.sys.if_index(d).unwrap_or(0))
+            .unwrap_or(0);
         if devidx == 0 {
             if let Some(idx) = self.iface_index(name) {
                 self.interfaces[idx].errors.push(interface::IfaceError {
@@ -1846,7 +1997,8 @@ impl Netifd {
                     .unwrap_or_default()
                     .into_iter()
                     .filter_map(|e| {
-                        e.split_once('=').map(|(k, v)| (k.to_string(), v.to_string()))
+                        e.split_once('=')
+                            .map(|(k, v)| (k.to_string(), v.to_string()))
                     })
                     .collect();
                 let st = self.proto_state(name);
@@ -1863,9 +2015,12 @@ impl Netifd {
                 let sig = find("signal").and_then(|f| f.as_u32()).unwrap_or(u32::MAX);
                 let st = self.proto_state(name);
                 if st.task.is_running() {
-                    let effective = if sig > 31 { process::SIGTERM as u32 } else { sig };
-                    if effective == process::SIGTERM as u32
-                        || effective == process::SIGKILL as u32
+                    let effective = if sig > 31 {
+                        process::SIGTERM as u32
+                    } else {
+                        sig
+                    };
+                    if effective == process::SIGTERM as u32 || effective == process::SIGKILL as u32
                     {
                         st.task_killed = true;
                     }
@@ -1963,7 +2118,12 @@ impl Netifd {
             // In the pinned C callback, v6 is still false in the old-address
             // branch: IPv6 /64 offlink null routes survive a protocol-only
             // withdrawal. Full interface disable removes them separately.
-            if a.addr.is_ipv4() && !new.addresses.iter().any(|n| same_address(n, a) && n.offlink) {
+            if a.addr.is_ipv4()
+                && !new
+                    .addresses
+                    .iter()
+                    .any(|n| same_address(n, a) && n.offlink)
+            {
                 let mut sa = sys::Address::new(a.addr, a.mask);
                 sa.offlink = a.offlink;
                 if let Some(route) = sys::offlink_route(&sa) {
@@ -1985,7 +2145,11 @@ impl Netifd {
             let _ = self.sys.del_route(devidx, &sys_route(r));
         }
         for n in &old.neighbors {
-            if new.neighbors.iter().any(|x| x.addr == n.addr && x.proxy == n.proxy) {
+            if new
+                .neighbors
+                .iter()
+                .any(|x| x.addr == n.addr && x.proxy == n.proxy)
+            {
                 continue;
             }
             let sn = sys::Neighbor {
@@ -2005,10 +2169,14 @@ impl Netifd {
         };
         // Reject malformed handler data before applying any kernel/state
         // changes, including earlier fields from the same update.
-        let incoming_data = find("data").into_iter().flat_map(|t| t.children())
+        let incoming_data = find("data")
+            .into_iter()
+            .flat_map(|t| t.children())
             .map(|field| owrt_ubus::convert::field_to_json(&field).map(|value| (field.name, value)))
             .collect::<Result<Vec<_>, _>>();
-        let Ok(incoming_data) = incoming_data else { return status::INVALID_ARGUMENT };
+        let Ok(incoming_data) = incoming_data else {
+            return status::INVALID_ARGUMENT;
+        };
 
         // `keep` asks netifd to add to what is already applied rather than
         // replace it. It is forced off unless the interface is already up with
@@ -2018,14 +2186,18 @@ impl Netifd {
         // (`dev_create` 2 rather than 1, i.e. create it as an external
         // device). This build does not create devices on demand here, so it
         // has no further effect and is accepted rather than refused.
-        let _addr_ext = find("address-external").and_then(|f| f.as_bool()).unwrap_or(false);
+        let _addr_ext = find("address-external")
+            .and_then(|f| f.as_bool())
+            .unwrap_or(false);
         if find("tunnel").is_some() {
             logging::log!(Warning, "{name}: proto-created tunnels are out of scope");
             return status::NOT_SUPPORTED;
         }
         let already_up = self
             .iface_index(name)
-            .map(|i| self.interfaces[i].state == State::Up && self.interfaces[i].l3_device.is_some())
+            .map(|i| {
+                self.interfaces[i].state == State::Up && self.interfaces[i].l3_device.is_some()
+            })
             .unwrap_or(false);
         if !already_up {
             keep = false;
@@ -2037,10 +2209,15 @@ impl Netifd {
             keep = false;
         }
         let l3 = named.or_else(|| ic.device.clone());
-        let Some(l3) = l3 else { return status::INVALID_ARGUMENT };
+        let Some(l3) = l3 else {
+            return status::INVALID_ARGUMENT;
+        };
         let devidx = self.sys.if_index(&l3).unwrap_or(0);
         if devidx == 0 {
-            logging::log!(Warning, "{name}: proto reported device {l3}, which does not exist");
+            logging::log!(
+                Warning,
+                "{name}: proto reported device {l3}, which does not exist"
+            );
             return status::INVALID_ARGUMENT;
         }
         // Entries were installed on the old L3 device. An identical lease
@@ -2114,16 +2291,21 @@ impl Netifd {
                 ia.broadcast = sa.broadcast;
                 ia.offlink = a.offlink;
                 let unchanged = same_device
-                    && previous.addresses.iter().any(|old| keep_proto_address(old, &ia, base));
+                    && previous
+                        .addresses
+                        .iter()
+                        .any(|old| keep_proto_address(old, &ia, base));
                 if !unchanged {
                     // IPv4 CREATE|REPLACE does not change an existing peer or
                     // broadcast. The C callback removes the old address when
                     // keep=false, but only refreshes in place for lifetimes.
                     if let Some(old) = previous.addresses.iter().find(|old| {
-                        same_device && same_proto_address(old, &ia)
-                            && (old.failed || (a.ip.is_ipv4()
-                                && (old.broadcast != ia.broadcast
-                                    || old.point_to_point != ia.point_to_point)))
+                        same_device
+                            && same_proto_address(old, &ia)
+                            && (old.failed
+                                || (a.ip.is_ipv4()
+                                    && (old.broadcast != ia.broadcast
+                                        || old.point_to_point != ia.point_to_point)))
                     }) {
                         let mut remove = sys::Address::new(old.addr, old.mask);
                         remove.broadcast = old.broadcast;
@@ -2140,17 +2322,26 @@ impl Netifd {
                     }
                     if !a.offlink {
                         self.replace_subnet_route(devidx, &sa, &ic);
-                    } else if !previous.addresses.iter().any(|old| {
-                        old.addr == a.ip && old.mask == a.mask && old.offlink
-                    }) {
+                    } else if !previous
+                        .addresses
+                        .iter()
+                        .any(|old| old.addr == a.ip && old.mask == a.mask && old.offlink)
+                    {
                         if let Some(route) = sys::offlink_route(&sa) {
                             if let Err(e) = self.sys.add_route(0, &route) {
-                                logging::log!(Warning, "{name}: cannot add offlink null route: {e}");
+                                logging::log!(
+                                    Warning,
+                                    "{name}: cannot add offlink null route: {e}"
+                                );
                             }
                         }
                     }
                 }
-                if let Some(old) = ipset.addresses.iter_mut().find(|old| same_proto_address(old, &ia)) {
+                if let Some(old) = ipset
+                    .addresses
+                    .iter_mut()
+                    .find(|old| same_proto_address(old, &ia))
+                {
                     *old = ia;
                 } else {
                     ipset.addresses.push(ia);
@@ -2174,7 +2365,10 @@ impl Netifd {
             for item in list.children() {
                 let Some(text) = item.as_str() else { continue };
                 let Some(p) = proto::parse_prefix6(text) else {
-                    logging::log!(Warning, "{name}: proto sent a prefix this build rejects: {text}");
+                    logging::log!(
+                        Warning,
+                        "{name}: proto sent a prefix this build rejects: {text}"
+                    );
                     continue;
                 };
                 // netifd stores DEADLINES, not lifetimes: `parse_prefix_option`
@@ -2211,7 +2405,9 @@ impl Netifd {
                 if counts[v6 as usize] == 0 {
                     continue;
                 }
-                let Some(gw) = find(key).and_then(|f| f.as_str()) else { continue };
+                let Some(gw) = find(key).and_then(|f| f.as_str()) else {
+                    continue;
+                };
                 let Ok(nexthop) = gw.parse::<IpAddr>() else {
                     logging::log!(Warning, "{name}: proto sent a bad {key} '{gw}'");
                     self.iface_error(name, "proto", "INVALID_GATEWAY", &[gw]);
@@ -2234,10 +2430,17 @@ impl Netifd {
                     r.table = t;
                     r.flags |= interface::devroute::SRCTABLE;
                 }
-                let unique = !seen_routes.iter().any(|seen| interface::route_order(seen, &r).is_eq());
-                let old = (same_device && unique).then(|| previous.routes.iter().find(|old| {
-                    interface::route_order(old, &r).is_eq()
-                })).flatten();
+                let unique = !seen_routes
+                    .iter()
+                    .any(|seen| interface::route_order(seen, &r).is_eq());
+                let old = (same_device && unique)
+                    .then(|| {
+                        previous
+                            .routes
+                            .iter()
+                            .find(|old| interface::route_order(old, &r).is_eq())
+                    })
+                    .flatten();
                 self.add_iface_route(name, devidx, &r, &mut ipset, old);
                 seen_routes.push(r);
             }
@@ -2247,11 +2450,20 @@ impl Netifd {
         for (key, v6) in [("routes", false), ("routes6", true)] {
             let Some(list) = find(key) else { continue };
             for item in list.children() {
-                let Some(r) = proto::parse_route_item(&item, v6) else { continue };
-                let unique = !seen_routes.iter().any(|seen| interface::route_order(seen, &r).is_eq());
-                let old = (same_device && unique).then(|| previous.routes.iter().find(|old| {
-                    interface::route_order(old, &r).is_eq()
-                })).flatten();
+                let Some(r) = proto::parse_route_item(&item, v6) else {
+                    continue;
+                };
+                let unique = !seen_routes
+                    .iter()
+                    .any(|seen| interface::route_order(seen, &r).is_eq());
+                let old = (same_device && unique)
+                    .then(|| {
+                        previous
+                            .routes
+                            .iter()
+                            .find(|old| interface::route_order(old, &r).is_eq())
+                    })
+                    .flatten();
                 self.add_iface_route(name, devidx, &r, &mut ipset, old);
                 seen_routes.push(r);
             }
@@ -2260,7 +2472,9 @@ impl Netifd {
         for (key, v6) in [("neighbor", false), ("neighbor6", true)] {
             let Some(list) = find(key) else { continue };
             for item in list.children() {
-                let Some(n) = proto::parse_neighbor_item(&item, v6) else { continue };
+                let Some(n) = proto::parse_neighbor_item(&item, v6) else {
+                    continue;
+                };
                 let sn = sys::Neighbor {
                     addr: n.addr,
                     mac: n.mac,
@@ -2281,9 +2495,11 @@ impl Netifd {
                 Err(_) => logging::log!(Warning, "{name}: proto sent a bad dns '{d}'"),
             }
         }
-        ipset
-            .dns_search
-            .extend(find("dns_search").map(|f| string_list(&f)).unwrap_or_default());
+        ipset.dns_search.extend(
+            find("dns_search")
+                .map(|f| string_list(&f))
+                .unwrap_or_default(),
+        );
         ipset.no_delegation = ic.delegate == Some(false);
 
         // `interface_update_complete`: vlist_flush drops the entries this
@@ -2303,11 +2519,23 @@ impl Netifd {
         // `["addresses"]` forever: nothing a static interface does ever
         // reaches `interface_update_start`.
         let changed_addrs = previous.addresses.len() != ipset.addresses.len()
-            || !previous.addresses.iter().all(|a| ipset.addresses.iter().any(|n| same_address(n, a)))
-            || !ipset.addresses.iter().all(|a| previous.addresses.iter().any(|n| same_address(n, a)));
+            || !previous
+                .addresses
+                .iter()
+                .all(|a| ipset.addresses.iter().any(|n| same_address(n, a)))
+            || !ipset
+                .addresses
+                .iter()
+                .all(|a| previous.addresses.iter().any(|n| same_address(n, a)));
         let changed_routes = previous.routes.len() != ipset.routes.len()
-            || !previous.routes.iter().all(|r| ipset.routes.iter().any(|n| same_route(n, r)))
-            || !ipset.routes.iter().all(|r| previous.routes.iter().any(|n| same_route(n, r)));
+            || !previous
+                .routes
+                .iter()
+                .all(|r| ipset.routes.iter().any(|n| same_route(n, r)))
+            || !ipset
+                .routes
+                .iter()
+                .all(|r| previous.routes.iter().any(|n| same_route(n, r)));
         if std::env::var_os("NETIFD_RS_DEBUG_UPDATED").is_some() {
             eprintln!(
                 "DBG {name}: keep={keep} prev a={} r={} new a={} r={} ca={} cr={}",
@@ -2406,7 +2634,9 @@ impl Netifd {
     /// it does fire, the interface goes back to SETUP -- not DOWN -- because
     /// the helper is still running and may get a lease.
     fn link_lost(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         if self.interfaces[idx].state != State::Up {
             return;
         }
@@ -2434,14 +2664,21 @@ impl Netifd {
         } else if !old.is_some_and(|old| keep_proto_route(old, r, now())) {
             let k = sys_route(r);
             if let Err(e) = self.sys.add_route(devidx, &k) {
-                logging::log!(Warning, "{name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
+                logging::log!(
+                    Warning,
+                    "{name}: cannot add the route to {}/{}: {e}",
+                    r.target,
+                    r.mask
+                );
                 // A prior occurrence in this notification may have succeeded.
                 // Failed REPLACE leaves that route in the kernel; retain its
                 // successful state so a later withdrawal can still remove it.
                 return;
             }
         }
-        ipset.routes.retain(|entry| !interface::route_order(entry, r).is_eq());
+        ipset
+            .routes
+            .retain(|entry| !interface::route_order(entry, r).is_eq());
         ipset.routes.push(applied);
     }
 
@@ -2472,7 +2709,11 @@ impl Netifd {
         // for an exit that cannot come, and because handlers are serialised
         // every other radio is stuck behind it. The r60 stub prints almost
         // nothing, so it never showed this.
-        let who = self.wcur.as_ref().map(|(n, _)| n.clone()).unwrap_or_default();
+        let who = self
+            .wcur
+            .as_ref()
+            .map(|(n, _)| n.clone())
+            .unwrap_or_default();
         if let Some(pid) = self.wslot.pid() {
             for line in self.wslot.poll_lines() {
                 logging::log!(Notice, "{who} ({pid}): {line}");
@@ -2518,7 +2759,9 @@ impl Netifd {
                     };
                     slot.pid().zip(slot.reap())
                 };
-                let Some((pid, (argv0, status, output))) = exited else { continue };
+                let Some((pid, (argv0, status, output))) = exited else {
+                    continue;
+                };
                 for line in output.lines().filter(|l| !l.trim().is_empty()) {
                     logging::log!(Notice, "{name} ({pid}): {line}");
                 }
@@ -2540,11 +2783,12 @@ impl Netifd {
     /// having exited (or, from the teardown deadline, to both having been
     /// killed). Shared by the reaper and the deadline pump.
     fn finish_proto_task(&mut self, name: &str, which: proto::Which) {
-        let Some(ic) = self.proto_config(name).cloned()
-        else {
+        let Some(ic) = self.proto_config(name).cloned() else {
             return;
         };
-        let Some(handler) = self.handler_for(&ic.proto).cloned() else { return };
+        let Some(handler) = self.handler_for(&ic.proto).cloned() else {
+            return;
+        };
         // `proto_ext_checkup_attach` reads `checkup_interval` out of
         // the config blob handed to the protocol -- which carries
         // only the parameters the handler declares. No handler on
@@ -2552,10 +2796,15 @@ impl Netifd {
         // setting the option in UCI has no effect. Reading it
         // straight from UCI instead armed a teardown the C never
         // performs, and the interface then retried in a loop.
-        let declared = proto::IFACE_ATTRS.iter().any(|(n, _)| *n == "checkup_interval")
+        let declared = proto::IFACE_ATTRS
+            .iter()
+            .any(|(n, _)| *n == "checkup_interval")
             || handler.config.iter().any(|(n, _)| n == "checkup_interval");
-        let checkup =
-            if declared { ic.checkup_interval.unwrap_or(0) } else { 0 };
+        let checkup = if declared {
+            ic.checkup_interval.unwrap_or(0)
+        } else {
+            0
+        };
         let effects = {
             let st = self.proto_state(name);
             proto::task_finish(st, which, &handler, checkup)
@@ -2602,7 +2851,11 @@ impl Netifd {
         ic: &config::InterfaceConfig,
     ) {
         let v6 = addr.ip.is_ipv6();
-        let table = if v6 { ic.ip6table.unwrap_or(0) } else { ic.ip4table.unwrap_or(0) };
+        let table = if v6 {
+            ic.ip6table.unwrap_or(0)
+        } else {
+            ic.ip4table.unwrap_or(0)
+        };
         // `if (iface->metric || a_new->policy_table)`: with neither set there
         // is nothing to change, and netifd leaves the kernel's route alone.
         if ic.metric == 0 && table == 0 {
@@ -2617,9 +2870,12 @@ impl Netifd {
         let mut r = sys::subnet_route(addr, ic.metric, table);
         r.proto = None;
         if let Err(e) = self.sys.add_route(devidx, &r) {
-            logging::log!(Warning,
+            logging::log!(
+                Warning,
                 "{}: cannot take over the {}/{} prefix route: {e}",
-                ic.name, addr.ip, addr.mask
+                ic.name,
+                addr.ip,
+                addr.mask
             );
         }
     }
@@ -2664,11 +2920,14 @@ impl Netifd {
 
         for (name, local, len, valid, owner) in before {
             if let Some(o) = &owner {
-                if live.contains(o) && self.iface_index(&name).is_some_and(|i| {
-                    self.interfaces[i].prefix_assignments.iter().any(|a| {
-                        a.owner.as_ref() == Some(o) && a.local == Some((local, len))
+                if live.contains(o)
+                    && self.iface_index(&name).is_some_and(|i| {
+                        self.interfaces[i]
+                            .prefix_assignments
+                            .iter()
+                            .any(|a| a.owner.as_ref() == Some(o) && a.local == Some((local, len)))
                     })
-                }) {
+                {
                     continue;
                 }
             } else {
@@ -2686,16 +2945,28 @@ impl Netifd {
                     continue;
                 }
             }
-            let dev = self.iface_index(&name).and_then(|i| self.interfaces[i].l3_device.clone());
+            let dev = self
+                .iface_index(&name)
+                .and_then(|i| self.interfaces[i].l3_device.clone());
             let Some(dev) = dev else { continue };
-            let Ok(di) = self.sys.if_index(&dev) else { continue };
+            let Ok(di) = self.sys.if_index(&dev) else {
+                continue;
+            };
             if di == 0 {
                 continue;
             }
-            let delegated = owner.as_ref().is_some_and(|(uplink, _, _)| uplink.is_some());
-            let valid = owner.as_ref().and_then(|o| self.prefixes.iter().find(|p| {
-                (&p.iface, p.addr, p.length) == (&o.0, o.1, o.2)
-            })).map(|p| p.valid_until).unwrap_or(valid);
+            let delegated = owner
+                .as_ref()
+                .is_some_and(|(uplink, _, _)| uplink.is_some());
+            let valid = owner
+                .as_ref()
+                .and_then(|o| {
+                    self.prefixes
+                        .iter()
+                        .find(|p| (&p.iface, p.addr, p.length) == (&o.0, o.1, o.2))
+                })
+                .map(|p| p.valid_until)
+                .unwrap_or(valid);
             self.withdraw_assignment(di, local, len, valid, delegated.then_some(dev.as_str()));
         }
     }
@@ -2717,8 +2988,11 @@ impl Netifd {
             .collect();
         reqs.sort_by(|a, b| a.name.cmp(&b.name));
 
-        let previous: Vec<_> = self.interfaces.iter_mut()
-            .map(|i| std::mem::take(&mut i.prefix_assignments)).collect();
+        let previous: Vec<_> = self
+            .interfaces
+            .iter_mut()
+            .map(|i| std::mem::take(&mut i.prefix_assignments))
+            .collect();
         for p in &self.prefixes {
             // `interface_update_prefix` installs an unreachable route for the
             // whole prefix, at the lowest possible priority, so a packet for
@@ -2727,7 +3001,12 @@ impl Netifd {
             null.metric = i32::MAX as u32;
             null.nodev = true;
             if let Err(e) = self.sys.add_route(0, &null) {
-                logging::log!(Warning, "cannot add the {}/{} null route: {e}", p.addr, p.length);
+                logging::log!(
+                    Warning,
+                    "cannot add the {}/{} null route: {e}",
+                    p.addr,
+                    p.length
+                );
             }
         }
         let prefixes = self.delegating_prefixes();
@@ -2735,21 +3014,24 @@ impl Netifd {
             for a in ip::assign(p, &reqs) {
                 let addr = ip::assignment_address(p, a.assigned);
                 let local = ip::local_address(addr, "::1".parse().unwrap());
-                let Some(idx) = self.iface_index(&a.name) else { continue };
+                let Some(idx) = self.iface_index(&a.name) else {
+                    continue;
+                };
                 let up = self.interfaces[idx].state == State::Up;
                 let l3 = self.interfaces[idx].l3_device.clone();
                 let was_enabled = previous[idx].iter().any(|old| {
                     old.local == Some((local, a.length))
                         && old.owner.as_ref() == Some(&(p.iface.clone(), p.addr, p.length))
                 });
-                let valid = !p.valid_until.is_some_and(|v| (v as u64).saturating_sub(1) <= now());
+                let valid = !p
+                    .valid_until
+                    .is_some_and(|v| (v as u64).saturating_sub(1) <= now());
                 let mut enabled = was_enabled && valid;
                 if up && valid {
                     if let Some(dev) = &l3 {
                         if let Ok(di) = self.sys.if_index(dev) {
                             if di != 0 {
-                                let mut sa =
-                                    sys::Address::new(IpAddr::V6(local), a.length);
+                                let mut sa = sys::Address::new(IpAddr::V6(local), a.length);
                                 // `interface_set_prefix_address`, add path:
                                 // DEVADDR_OFFLINK plus netifd's own route. I
                                 // briefly removed both after r62 showed the C
@@ -2765,20 +3047,30 @@ impl Netifd {
                                 // does; a deadline already past means zero
                                 let base = now();
                                 let left = |d: Option<u32>| -> Option<u32> {
-                                    d.map(|x| (x as u64).saturating_sub(base).min(u32::MAX as u64) as u32)
+                                    d.map(|x| {
+                                        (x as u64).saturating_sub(base).min(u32::MAX as u64) as u32
+                                    })
                                 };
                                 sa.preferred = left(p.preferred_until);
                                 sa.valid = left(p.valid_until);
                                 if let Err(e) = self.sys.add_address(di, &sa) {
-                                    logging::log!(Warning,
+                                    logging::log!(
+                                        Warning,
                                         "{}: cannot add {local}/{}: {e}",
-                                        a.name, a.length
+                                        a.name,
+                                        a.length
                                     );
                                 } else {
                                     enabled = true;
                                     if p.iface.is_some() && !was_enabled {
-                                        if let Err(e) = self.sys.prefix_reject(dev, local, a.length, true) {
-                                            logging::log!(Warning, "{}: cannot add prefix source rule: {e}", a.name);
+                                        if let Err(e) =
+                                            self.sys.prefix_reject(dev, local, a.length, true)
+                                        {
+                                            logging::log!(
+                                                Warning,
+                                                "{}: cannot add prefix source rule: {e}",
+                                                a.name
+                                            );
                                         }
                                     }
                                     // the on-link route for the assignment, never
@@ -2786,15 +3078,16 @@ impl Netifd {
                                     let rmask = a.length.max(64);
                                     let mut pr =
                                         sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
-                                    let ic =
-                                        self.cfg.interfaces.iter().find(|i| i.name == a.name);
+                                    let ic = self.cfg.interfaces.iter().find(|i| i.name == a.name);
                                     pr.metric = ic.map(|i| i.metric).unwrap_or(0);
                                     let t = ic.and_then(|i| i.ip6table).unwrap_or(0);
                                     pr.table = if t != 0 { t } else { sys::RT_TABLE_MAIN };
                                     if let Err(e) = self.sys.add_route(di, &pr) {
-                                        logging::log!(Warning,
+                                        logging::log!(
+                                            Warning,
                                             "{}: cannot add the {}/{rmask} route: {e}",
-                                            a.name, pr.target
+                                            a.name,
+                                            pr.target
                                         );
                                     }
                                 }
@@ -2802,16 +3095,20 @@ impl Netifd {
                         }
                     }
                 }
-                self.interfaces[idx].prefix_assignments.push(
-                    interface::PrefixAssignment {
+                self.interfaces[idx]
+                    .prefix_assignments
+                    .push(interface::PrefixAssignment {
                         addr,
                         length: a.length,
                         preferred_until: p.preferred_until,
                         valid_until: p.valid_until,
-                        local: if up && enabled { Some((local, a.length)) } else { None },
+                        local: if up && enabled {
+                            Some((local, a.length))
+                        } else {
+                            None
+                        },
                         owner: Some((p.iface.clone(), p.addr, p.length)),
-                    },
-                );
+                    });
             }
         }
     }
@@ -2820,7 +3117,9 @@ impl Netifd {
     /// interfaces have nothing asynchronous to wait for, so both halves happen
     /// here.
     fn iface_down(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         // `interface_set_down` clears autostart first, which is what stops
         // `interface_handle_config_change` bringing it straight back up.
         // `interface_set_down(NULL)` -- what a restart uses -- does not, so
@@ -2831,7 +3130,9 @@ impl Netifd {
 
     /// `__interface_set_down`, without touching autostart.
     fn set_down(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         let prev = self.interfaces[idx].state;
         // A DOWN interface can still hold its main device while waiting for
         // carrier. Explicit ifdown must release that claim as the C does.
@@ -2851,7 +3152,9 @@ impl Netifd {
     /// IFEV_DOWN on the way in, so a carrier loss produces one ifdown where
     /// an explicit ifdown of an up interface produces two.
     fn begin_teardown(&mut self, name: &str, emit_down: bool) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         self.interfaces[idx].state = State::Teardown;
         if emit_down {
             self.emit_event(name, Event::Down);
@@ -2884,9 +3187,7 @@ impl Netifd {
         self.cfg
             .devices
             .iter()
-            .find(|d| {
-                d.kind.as_deref() == Some("bridge") && d.ports.iter().any(|p| p == port)
-            })
+            .find(|d| d.kind.as_deref() == Some("bridge") && d.ports.iter().any(|p| p == port))
             .map(|d| d.name.clone())
     }
 
@@ -2920,7 +3221,9 @@ impl Netifd {
         if let Some(b) = self.devices.get(name).and_then(|d| d.bridge.as_ref()) {
             members.extend(b.members.iter().cloned());
         }
-        members.iter().any(|p| self.sys.if_index(p).unwrap_or(0) != 0)
+        members
+            .iter()
+            .any(|p| self.sys.if_index(p).unwrap_or(0) != 0)
     }
 
     /// `bridge_member_cb(DEV_EVENT_ADD)` + `bridge_enable_member` for a port
@@ -2952,8 +3255,11 @@ impl Netifd {
             logging::log!(Warning, "cannot add {port} to {br}: {e}");
             return;
         }
-        let explicit =
-            self.cfg.devices.iter().any(|d| d.name == port && d.ipv6.is_some());
+        let explicit = self
+            .cfg
+            .devices
+            .iter()
+            .any(|d| d.name == port && d.ipv6.is_some());
         if !explicit {
             let path = format!("/proc/sys/net/ipv6/conf/{port}/disable_ipv6");
             if let Err(e) = std::fs::write(&path, "1") {
@@ -2986,7 +3292,12 @@ impl Netifd {
         if !member {
             return status::NOT_FOUND;
         }
-        if self.cfg.devices.iter().any(|d| d.name == br && d.ports.iter().any(|p| p == port)) {
+        if self
+            .cfg
+            .devices
+            .iter()
+            .any(|d| d.name == br && d.ports.iter().any(|p| p == port))
+        {
             return 0;
         }
         if let Ok(pi) = self.sys.if_index(port) {
@@ -3036,7 +3347,12 @@ impl Netifd {
             .filter(|d| d.kind.as_deref() == Some("bridge"))
             .map(|d| d.name.clone())
             .collect();
-        for name in watch.iter().filter(|n| !bridges.contains(n)).cloned().collect::<Vec<_>>() {
+        for name in watch
+            .iter()
+            .filter(|n| !bridges.contains(n))
+            .cloned()
+            .collect::<Vec<_>>()
+        {
             let now = self.sys.if_index(&name).unwrap_or(0) != 0;
             let was = self.present.contains(&name);
             if now == was {
@@ -3119,7 +3435,9 @@ impl Netifd {
     /// state is flushed at once rather than waiting for the script, because
     /// there is nothing left to tear down on.
     fn set_available(&mut self, name: &str, avail: bool) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         if self.interfaces[idx].available == avail {
             return;
         }
@@ -3150,7 +3468,12 @@ impl Netifd {
     /// Used on netlink events, where the C is also reacting to whatever the
     /// kernel just reported.
     fn update_link_states(&mut self) {
-        for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
+        for name in self
+            .interfaces
+            .iter()
+            .map(|i| i.name.clone())
+            .collect::<Vec<_>>()
+        {
             self.update_link_state(&name);
         }
     }
@@ -3160,9 +3483,17 @@ impl Netifd {
     /// interface: doing that let a later interface come up during an earlier
     /// one's bring-up, which reordered the startup ifup sequence.
     fn update_link_state(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
-        let Some(dev) = self.interfaces[idx].device.clone() else { return };
-        let active = self.devices.get(&dev).map(|d| d.link_active).unwrap_or(false);
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
+        let Some(dev) = self.interfaces[idx].device.clone() else {
+            return;
+        };
+        let active = self
+            .devices
+            .get(&dev)
+            .map(|d| d.link_active)
+            .unwrap_or(false);
         self.set_link_state(name, active);
     }
 
@@ -3172,7 +3503,11 @@ impl Netifd {
         // `iface->link_state` starts false, so the first time a link is seen
         // up that IS a transition -- swallowing it left the interface waiting
         // for a second carrier event that never came.
-        let prev = self.link_state.iter().find(|(n, _)| n == name).map(|(_, s)| *s);
+        let prev = self
+            .link_state
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, s)| *s);
         if prev.unwrap_or(false) == new_state {
             return;
         }
@@ -3180,7 +3515,8 @@ impl Netifd {
             Some(slot) => slot.1 = new_state,
             None => self.link_state.push((name.to_string(), new_state)),
         }
-        logging::log!(Notice,
+        logging::log!(
+            Notice,
             "Interface '{name}' has link connectivity {}",
             if new_state { "" } else { "loss" }
         );
@@ -3191,15 +3527,28 @@ impl Netifd {
     /// getting it back brings the interface up again if it is still set to
     /// autostart.
     fn check_state(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
-        let carrier =
-            self.link_state.iter().find(|(n, _)| n == name).map(|(_, s)| *s).unwrap_or(false);
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
+        let carrier = self
+            .link_state
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, s)| *s)
+            .unwrap_or(false);
         // proto-static defaults force_link to true. A LAN with no cable
         // still needs its address before wireless can attach to its bridge.
-        let force = self.cfg.interfaces.iter().find(|c| c.name == name)
+        let force = self
+            .cfg
+            .interfaces
+            .iter()
+            .find(|c| c.name == name)
             .is_some_and(|c| c.force_link.unwrap_or(c.proto == "static"));
-        let auth = self.interfaces[idx].device.as_deref()
-            .and_then(|d| self.devices.get(d)).is_some_and(|d| d.settings.auth);
+        let auth = self.interfaces[idx]
+            .device
+            .as_deref()
+            .and_then(|d| self.devices.get(d))
+            .is_some_and(|d| d.settings.auth);
         let link = carrier || (force && !auth);
         let enabled = self.interfaces[idx].enabled;
         match self.interfaces[idx].state {
@@ -3386,8 +3735,14 @@ impl Netifd {
     /// only usable while some host, or some other interface, is reachable.
     fn add_host_dependency(&mut self, name: &str, fields: &[blob::Field]) -> i32 {
         let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
-        let ifname = find("ifname").and_then(|f| f.as_str()).unwrap_or("").to_string();
-        let host = find("host").and_then(|f| f.as_str()).unwrap_or("").to_string();
+        let ifname = find("ifname")
+            .and_then(|f| f.as_str())
+            .unwrap_or("")
+            .to_string();
+        let host = find("host")
+            .and_then(|f| f.as_str())
+            .unwrap_or("")
+            .to_string();
 
         // "no host but an interface" is a dependency on that interface alone
         let mut dep = HostDep {
@@ -3471,9 +3826,7 @@ impl Netifd {
                         ready.push(dep.owner.clone());
                     }
                 }
-                Event::Down | Event::UpFailed
-                    if dep.satisfied_by.as_deref() == Some(name) =>
-                {
+                Event::Down | Event::UpFailed if dep.satisfied_by.as_deref() == Some(name) => {
                     dep.satisfied_by = None;
                     if !lost.contains(&dep.owner) {
                         lost.push(dep.owner.clone());
@@ -3487,7 +3840,11 @@ impl Netifd {
             self.check_dependencies(&owner);
         }
         for owner in lost {
-            if self.protos.iter().any(|(n, st)| n == &owner && st.sm == proto::Sm::Idle) {
+            if self
+                .protos
+                .iter()
+                .any(|(n, st)| n == &owner && st.sm == proto::Sm::Idle)
+            {
                 self.link_lost(&owner);
                 self.proto_cmd(&owner, proto::Cmd::Teardown);
             }
@@ -3508,7 +3865,9 @@ impl Netifd {
         };
         let v6 = find("v6").and_then(|f| f.as_bool()).unwrap_or(false);
         let exclude = find("exclude").and_then(|f| f.as_bool()).unwrap_or(false);
-        let named = find("interface").and_then(|f| f.as_str()).map(|s| s.to_string());
+        let named = find("interface")
+            .and_then(|f| f.as_str())
+            .map(|s| s.to_string());
 
         let addr: IpAddr = match v6 {
             false => target.parse::<std::net::Ipv4Addr>().map(IpAddr::V4),
@@ -3518,7 +3877,11 @@ impl Netifd {
 
         // `exclude` turns the named interface from the one to search into the
         // one to skip
-        let (only, skip) = if exclude { (None, named) } else { (named, None) };
+        let (only, skip) = if exclude {
+            (None, named)
+        } else {
+            (named, None)
+        };
         self.target_route(addr, v6, only, skip)
     }
 
@@ -3541,13 +3904,17 @@ impl Netifd {
             if Some(&name) == skip.as_ref() {
                 continue;
             }
-            let Some(idx) = self.iface_index(&name) else { continue };
+            let Some(idx) = self.iface_index(&name) else {
+                continue;
+            };
             let i = &self.interfaces[idx];
             // "look for locally addressable target first": an address whose
             // own subnet covers the target answers immediately
-            if i.proto_ip.addresses.iter().any(|a| {
-                a.enabled && a.addr.is_ipv6() == v6 && in_prefix(addr, a.addr, a.mask)
-            }) {
+            if i.proto_ip
+                .addresses
+                .iter()
+                .any(|a| a.enabled && a.addr.is_ipv6() == v6 && in_prefix(addr, a.addr, a.mask))
+            {
                 return Ok(name);
             }
             // otherwise keep the longest-prefix route across every interface
@@ -3560,7 +3927,9 @@ impl Netifd {
                 }
             }
         }
-        let Some((_, name, nexthop)) = best else { return Err(status::NOT_FOUND) };
+        let Some((_, name, nexthop)) = best else {
+            return Err(status::NOT_FOUND);
+        };
         // the unspecified address is a request for "who has the default
         // route", and gets no host route of its own
         let unspecified = match addr {
@@ -3582,7 +3951,10 @@ impl Netifd {
                         self.add_iface_route(&name, di, &r, &mut ipset, None);
                         if let Some(idx) = self.iface_index(&name) {
                             self.interfaces[idx].proto_ip = ipset;
-                            self.interfaces[idx].proto_ip.routes.sort_by(interface::route_order);
+                            self.interfaces[idx]
+                                .proto_ip
+                                .routes
+                                .sort_by(interface::route_order);
                         }
                     }
                 }
@@ -3597,15 +3969,23 @@ impl Netifd {
     /// all, which is how r55 caught this -- and only counts as a change when
     /// a value actually differs.
     fn set_data(&mut self, name: &str, data: &[u8]) -> i32 {
-        let Some(idx) = self.iface_index(name) else { return status::NOT_FOUND };
+        let Some(idx) = self.iface_index(name) else {
+            return status::NOT_FOUND;
+        };
         let incoming = blob::fields(data)
             .map(|field| owrt_ubus::convert::field_to_json(&field).map(|value| (field.name, value)))
             .collect::<Result<Vec<_>, _>>();
-        let Ok(incoming) = incoming else { return status::INVALID_ARGUMENT };
+        let Ok(incoming) = incoming else {
+            return status::INVALID_ARGUMENT;
+        };
         self.interfaces[idx].updated = 0;
         for (name, v) in incoming {
             let key = name.to_string();
-            match self.interfaces[idx].data.iter_mut().find(|(n, _)| *n == key) {
+            match self.interfaces[idx]
+                .data
+                .iter_mut()
+                .find(|(n, _)| *n == key)
+            {
                 Some(slot) => {
                     if slot.1 != v {
                         slot.1 = v;
@@ -3637,7 +4017,9 @@ impl Netifd {
     /// IFEV_UP_FAILED, which does not, so a protocol that cannot come up does
     /// not spin.
     fn handle_config_change(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         match std::mem::take(&mut self.interfaces[idx].config_state) {
             interface::ConfigState::Normal => {}
             interface::ConfigState::Reload => self.do_reload(name),
@@ -3690,7 +4072,11 @@ impl Netifd {
         });
         let mut out = String::new();
         for i in ifs {
-            let dev = i.l3_device.clone().or_else(|| i.device.clone()).unwrap_or_default();
+            let dev = i
+                .l3_device
+                .clone()
+                .or_else(|| i.device.clone())
+                .unwrap_or_default();
             out.push_str(&format!("# Interface {}\n", i.name));
             write_resolv_entries(&mut out, &i.config_ip, &dev);
             if !i.proto_ip.no_dns {
@@ -3698,7 +4084,10 @@ impl Netifd {
             }
         }
         let path = &self.resolvconf;
-        if std::fs::read(path).map(|old| old == out.as_bytes()).unwrap_or(false) {
+        if std::fs::read(path)
+            .map(|old| old == out.as_bytes())
+            .unwrap_or(false)
+        {
             return;
         }
         let tmp = format!("{path}.tmp");
@@ -3712,7 +4101,9 @@ impl Netifd {
     }
 
     fn mark_interface_down(&mut self, name: &str) {
-        let Some(idx) = self.iface_index(name) else { return };
+        let Some(idx) = self.iface_index(name) else {
+            return;
+        };
         let prev = self.interfaces[idx].state;
         if prev == State::Down {
             return;
@@ -3747,11 +4138,17 @@ impl Netifd {
                         if !r.enabled {
                             continue;
                         }
-                        let d = if r.flags & interface::devroute::NODEV != 0 { 0 } else { di };
+                        let d = if r.flags & interface::devroute::NODEV != 0 {
+                            0
+                        } else {
+                            di
+                        };
                         if let Err(e) = self.sys.del_route(d, &sys_route(r)) {
-                            logging::log!(Warning,
+                            logging::log!(
+                                Warning,
                                 "{name}: cannot remove the route to {}/{}: {e}",
-                                r.target, r.mask
+                                r.target,
+                                r.mask
                             );
                         }
                     }
@@ -3771,16 +4168,27 @@ impl Netifd {
                             let _ = self.sys.del_route(0, &route);
                         }
                         if let Err(e) = self.sys.del_address(di, &sa) {
-                            logging::log!(Warning,
+                            logging::log!(
+                                Warning,
                                 "{name}: cannot remove {}/{}: {e}",
-                                a.addr, a.mask
+                                a.addr,
+                                a.mask
                             );
                         }
                     }
                     for a in &assigns {
                         if let Some((local, len)) = a.local {
-                            let delegated = a.owner.as_ref().is_some_and(|(uplink, _, _)| uplink.is_some());
-                            self.withdraw_assignment(di, local, len, a.valid_until, delegated.then_some(dev.as_str()));
+                            let delegated = a
+                                .owner
+                                .as_ref()
+                                .is_some_and(|(uplink, _, _)| uplink.is_some());
+                            self.withdraw_assignment(
+                                di,
+                                local,
+                                len,
+                                a.valid_until,
+                                delegated.then_some(dev.as_str()),
+                            );
                         }
                     }
                 }
@@ -3835,8 +4243,14 @@ impl Netifd {
         }
 
         // `netifd_ubus_interface_notify(iface, ev != IFEV_DOWN)`
-        let method = if matches!(ev, Event::Down) { "interface.down" } else { "interface.update" };
-        let Some(i) = self.interfaces.iter().find(|i| i.name == name) else { return };
+        let method = if matches!(ev, Event::Down) {
+            "interface.down"
+        } else {
+            "interface.update"
+        };
+        let Some(i) = self.interfaces.iter().find(|i| i.name == name) else {
+            return;
+        };
         let mut b = BlobBuf::new();
         b.msg_string("interface", name);
         self.dump_interface_status(&mut b, i);
@@ -3876,7 +4290,11 @@ impl Netifd {
         // why a static teardown's two IFEV_DOWNs are one hotplug call, while
         // a shell protocol's two, separated by the teardown script, are two.
         let queued = self.hotplug_queue.iter().position(|(n, _)| n == name);
-        let running = self.hotplug_current.as_ref().filter(|(n, _)| n == name).map(|(_, e)| *e);
+        let running = self
+            .hotplug_current
+            .as_ref()
+            .filter(|(n, _)| n == name)
+            .map(|(_, e)| *e);
         match (running, queued) {
             (Some(_), Some(i)) => {
                 // an update never displaces a real state change
@@ -3963,7 +4381,11 @@ impl Netifd {
         let hdr = sys::ifinfomsg(sys::AF_UNSPEC, 0, 0, 0);
         let mut a = netlink::Attrs::new();
         a.str0(sys::IFLA_IFNAME, ifname);
-        let msg = self.sys.nl.dump_one(sys::RTM_GETLINK, &hdr, a.as_bytes()).ok()??;
+        let msg = self
+            .sys
+            .nl
+            .dump_one(sys::RTM_GETLINK, &hdr, a.as_bytes())
+            .ok()??;
         let attrs = msg.attrs(16);
         ethtool::stats64_counters(netlink::attr(&attrs, sys::IFLA_STATS64)?)
     }
@@ -4084,8 +4506,11 @@ impl Netifd {
                 self.conn.reply_status(req, code, None)
             }
             (ubus::Target::Network, "restart") => {
-                for name in
-                    self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>()
+                for name in self
+                    .interfaces
+                    .iter()
+                    .map(|i| i.name.clone())
+                    .collect::<Vec<_>>()
                 {
                     self.set_down(&name);
                 }
@@ -4093,20 +4518,18 @@ impl Netifd {
                 self.conn.reply_status(req, status::OK, None)
             }
             // `netifd_add_host_route`
-            (ubus::Target::Network, "add_host_route") => {
-                match self.add_host_route(&req.data) {
-                    Ok(iface) => {
-                        let mut b = BlobBuf::new();
-                        b.msg_string("interface", &iface);
-                        let fields = b.payload().to_vec();
-                        if let Err(e) = self.conn.reply_data(req, &fields) {
-                            logging::log!(Warning, "cannot reply to add_host_route: {e}");
-                        }
-                        self.conn.reply_status(req, status::OK, None)
+            (ubus::Target::Network, "add_host_route") => match self.add_host_route(&req.data) {
+                Ok(iface) => {
+                    let mut b = BlobBuf::new();
+                    b.msg_string("interface", &iface);
+                    let fields = b.payload().to_vec();
+                    if let Err(e) = self.conn.reply_data(req, &fields) {
+                        logging::log!(Warning, "cannot reply to add_host_route: {e}");
                     }
-                    Err(code) => self.conn.reply_status(req, code, None),
+                    self.conn.reply_status(req, status::OK, None)
                 }
-            }
+                Err(code) => self.conn.reply_status(req, code, None),
+            },
             // `netifd_netns_updown` needs a netns fd passed by the caller
             // (`ubus_request_get_caller_fd`) and answers INVALID_ARGUMENT
             // without one. This build never receives fds and does not do
@@ -4139,8 +4562,7 @@ impl Netifd {
                     Some(n) => {
                         if self.devices.get(&n).is_none() {
                             self.reply = Some(b);
-                            let _ =
-                                self.conn.reply_status(req, status::INVALID_ARGUMENT, None);
+                            let _ = self.conn.reply_status(req, status::INVALID_ARGUMENT, None);
                             return;
                         }
                         let stats = self.link_stats(&n);
@@ -4157,7 +4579,9 @@ impl Netifd {
                             .collect();
                         for name in names {
                             let stats = self.link_stats(&name);
-                            let Some(d) = self.devices.get(&name) else { continue };
+                            let Some(d) = self.devices.get(&name) else {
+                                continue;
+                            };
                             let t = b.msg_open_table(&d.ifname);
                             self.dump_device(&mut b, d, stats.as_ref());
                             b.msg_close(t);
@@ -4181,9 +4605,7 @@ impl Netifd {
             }
             // `netifd_handle_stp_init` has nothing to initialise without an
             // STP daemon to talk to, and answers OK.
-            (ubus::Target::Device, "stp_init") => {
-                self.conn.reply_status(req, status::OK, None)
-            }
+            (ubus::Target::Device, "stp_init") => self.conn.reply_status(req, status::OK, None),
             (ubus::Target::Device, m) => ubus::not_supported(&mut self.conn, req, m),
             (ubus::Target::Interface(_), "dump") => {
                 let mut b = self.take_reply();
@@ -4328,7 +4750,9 @@ impl Netifd {
                 let name = name.to_string();
                 let fields = self.prepare_interface_bridge(&name).unwrap_or_default();
                 let mut b = BlobBuf::new();
-                if let Some((_, owrt_ubus::json::Json::Str(br))) = fields.iter().find(|(k, _)| k == "bridge") {
+                if let Some((_, owrt_ubus::json::Json::Str(br))) =
+                    fields.iter().find(|(k, _)| k == "bridge")
+                {
                     b.msg_string("bridge", br);
                 }
                 if let Err(e) = self.conn.reply_data(req, b.payload()) {
@@ -4342,9 +4766,7 @@ impl Netifd {
                 self.conn.reply_status(req, code, None)
             }
             (ubus::Target::Interface(_), m) => ubus::not_supported(&mut self.conn, req, m),
-            (ubus::Target::Unknown, _) => {
-                self.conn.reply_status(req, status::NOT_FOUND, None)
-            }
+            (ubus::Target::Unknown, _) => self.conn.reply_status(req, status::NOT_FOUND, None),
         };
         if let Err(e) = r {
             logging::log!(Warning, "reply failed: {e}");
@@ -4390,7 +4812,11 @@ impl Netifd {
     fn drain_netlink(&mut self) {
         match self.events.recv_events() {
             // `cb_rtnl_event`: only link add/remove/change is a device event
-            Ok(msgs) if msgs.iter().any(|m| m.ty == sys::RTM_NEWLINK || m.ty == sys::RTM_DELLINK) => {
+            Ok(msgs)
+                if msgs
+                    .iter()
+                    .any(|m| m.ty == sys::RTM_NEWLINK || m.ty == sys::RTM_DELLINK) =>
+            {
                 self.netlink_resync = true;
             }
             Ok(_) => {}
@@ -4521,7 +4947,10 @@ impl Netifd {
             .map(|(n, _)| n.clone())
             .collect();
         for name in names {
-            logging::log!(Warning, "{name}: teardown timed out, killing the protocol handler");
+            logging::log!(
+                Warning,
+                "{name}: teardown timed out, killing the protocol handler"
+            );
             let st = self.proto_state(&name);
             st.teardown_deadline = None;
             st.script.terminate();
@@ -4549,12 +4978,28 @@ impl Netifd {
             self.drain_bus();
             // While the bus is gone its fd is not polled -- it is closed, and
             // polling it would spin. Everything else keeps running.
-            let ubus_fd = if self.bus_down { -1 } else { self.conn.as_raw_fd() };
+            let ubus_fd = if self.bus_down {
+                -1
+            } else {
+                self.conn.as_raw_fd()
+            };
             let nl_fd = self.events.as_raw_fd();
             let mut fds = [
-                PollFd { fd: ubus_fd, events: POLLIN, revents: 0 },
-                PollFd { fd: nl_fd, events: POLLIN, revents: 0 },
-                PollFd { fd: self.sigchld.as_raw_fd(), events: POLLIN, revents: 0 },
+                PollFd {
+                    fd: ubus_fd,
+                    events: POLLIN,
+                    revents: 0,
+                },
+                PollFd {
+                    fd: nl_fd,
+                    events: POLLIN,
+                    revents: 0,
+                },
+                PollFd {
+                    fd: self.sigchld.as_raw_fd(),
+                    events: POLLIN,
+                    revents: 0,
+                },
             ];
             // the timeout is a backstop now that SIGCHLD wakes us, or the
             // nearest proto teardown deadline when that is sooner
@@ -4624,7 +5069,18 @@ fn write_resolv_entries(out: &mut String, ip: &interface::IpSettings, dev: &str)
 /// gets there. See the note on `flush_stale_ip`.
 /// The config_ip route vlist key plus the fields a re-parse can change.
 fn route_key(r: &interface::Route) -> (IpAddr, u8, IpAddr, u32, u32, u32, u32, u32, IpAddr, u8) {
-    (r.target, r.mask, r.nexthop, r.flags, r.metric, r.table, r.mtu, r.ty, r.source, r.sourcemask)
+    (
+        r.target,
+        r.mask,
+        r.nexthop,
+        r.flags,
+        r.metric,
+        r.table,
+        r.mtu,
+        r.ty,
+        r.source,
+        r.sourcemask,
+    )
 }
 
 fn same_route(a: &interface::Route, b: &interface::Route) -> bool {
@@ -4731,7 +5187,12 @@ impl Netifd {
                 config_change: false,
             })
             .collect();
-        for name in self.wradios.iter().map(|r| r.name.clone()).collect::<Vec<_>>() {
+        for name in self
+            .wradios
+            .iter()
+            .map(|r| r.name.clone())
+            .collect::<Vec<_>>()
+        {
             self.wireless_setup(&name);
         }
     }
@@ -4784,7 +5245,9 @@ impl Netifd {
         // Move their immutable bytes instead of re-encoding or shifting that
         // work to the next status request.
         for radio in &mut fresh {
-            if let Some(old) = self.wconfig.iter_mut()
+            if let Some(old) = self
+                .wconfig
+                .iter_mut()
                 .find(|old| old.name == radio.name && !changed.contains(&radio.name))
             {
                 radio.status_config = std::mem::take(&mut old.status_config);
@@ -4798,8 +5261,9 @@ impl Netifd {
         self.wconfig = fresh;
         // A deleted radio still owns a handler and bridge ports until its
         // teardown completes. Dropping it here skips both kinds of cleanup.
-        self.wradios.retain(|r| self.wconfig.iter().any(|c| c.name == r.name)
-            || r.state != wireless::WState::Down);
+        self.wradios.retain(|r| {
+            self.wconfig.iter().any(|c| c.name == r.name) || r.state != wireless::WState::Down
+        });
         for name in &added {
             self.wradios.push(WRadio {
                 name: name.clone(),
@@ -4855,7 +5319,14 @@ impl Netifd {
     /// deprecated, so connections still using it survive a renumber and it
     /// ages out on its own. Our own route goes first, and re-adding without
     /// NOPREFIXROUTE is what makes the kernel install one of its own.
-    fn withdraw_assignment(&mut self, di: u32, local: Ipv6Addr, len: u8, valid: Option<u32>, reject_dev: Option<&str>) {
+    fn withdraw_assignment(
+        &mut self,
+        di: u32,
+        local: Ipv6Addr,
+        len: u8,
+        valid: Option<u32>,
+        reject_dev: Option<&str>,
+    ) {
         if let Some(dev) = reject_dev {
             let _ = self.sys.prefix_reject(dev, local, len, false);
         }
@@ -4887,11 +5358,20 @@ impl Netifd {
     fn set_delegated_prefixes(&mut self, iface: &str, fresh: Vec<ip::DevicePrefix>) -> bool {
         // interface_update_prefix sets IUF_PREFIX for added/removed entries,
         // or when a renewal changes either deadline on an existing entry.
-        let old: Vec<_> = self.prefixes.iter().filter(|p| p.iface.as_deref() == Some(iface)).collect();
-        let changed = old.len() != fresh.len() || fresh.iter().any(|n| {
-            !old.iter().any(|p| p.addr == n.addr && p.length == n.length
-                && p.preferred_until == n.preferred_until && p.valid_until == n.valid_until)
-        });
+        let old: Vec<_> = self
+            .prefixes
+            .iter()
+            .filter(|p| p.iface.as_deref() == Some(iface))
+            .collect();
+        let changed = old.len() != fresh.len()
+            || fresh.iter().any(|n| {
+                !old.iter().any(|p| {
+                    p.addr == n.addr
+                        && p.length == n.length
+                        && p.preferred_until == n.preferred_until
+                        && p.valid_until == n.valid_until
+                })
+            });
         // The null route belongs to the parent prefix, and the C removes it in
         // the same `node_old` branch that withdraws the assignments
         // (`system_del_route(NULL, &route)`). This has to be decided against
@@ -4901,7 +5381,11 @@ impl Netifd {
             .prefixes
             .iter()
             .filter(|p| p.iface.as_deref() == Some(iface))
-            .filter(|p| !fresh.iter().any(|n| n.addr == p.addr && n.length == p.length))
+            .filter(|p| {
+                !fresh
+                    .iter()
+                    .any(|n| n.addr == p.addr && n.length == p.length)
+            })
             .map(|p| (p.addr, p.length))
             .collect();
         for (addr, length) in departing {
@@ -4928,22 +5412,29 @@ impl Netifd {
             return;
         }
         self.prefix_expiry_checked = t;
-        let expired: Vec<(String, Ipv6Addr, u8)> = self.prefixes.iter()
+        let expired: Vec<(String, Ipv6Addr, u8)> = self
+            .prefixes
+            .iter()
             .filter_map(|p| {
                 let owner = p.iface.as_ref()?;
                 let deadline = p.valid_until?;
-                if (deadline as u64) >= t || !self.iface_index(owner)
-                    .is_some_and(|i| self.interfaces[i].state == State::Up) {
+                if (deadline as u64) >= t
+                    || !self
+                        .iface_index(owner)
+                        .is_some_and(|i| self.interfaces[i].state == State::Up)
+                {
                     return None;
                 }
                 Some((owner.clone(), p.addr, p.length))
-            }).collect();
+            })
+            .collect();
         if expired.is_empty() {
             return;
         }
         for (owner, addr, length) in &expired {
-            self.prefixes.retain(|p| !(p.iface.as_ref() == Some(owner)
-                && p.addr == *addr && p.length == *length));
+            self.prefixes.retain(|p| {
+                !(p.iface.as_ref() == Some(owner) && p.addr == *addr && p.length == *length)
+            });
             let mut null = sys::Route::v6(*addr, *length);
             null.metric = i32::MAX as u32;
             null.nodev = true;
@@ -5013,10 +5504,24 @@ impl Netifd {
 
     /// `uc_netifd_interface_get_bridge` and `bridge_hotplug_prepare`.
     /// A valid non-bridge network returns an empty object and stops the search.
-    fn prepare_interface_bridge(&mut self, network: &str) -> Option<Vec<(String, owrt_ubus::json::Json)>> {
+    fn prepare_interface_bridge(
+        &mut self,
+        network: &str,
+    ) -> Option<Vec<(String, owrt_ubus::json::Json)>> {
         use owrt_ubus::json::Json;
-        let dev = self.cfg.interfaces.iter().find(|i| i.name == network)?.device.clone()?;
-        if !self.cfg.devices.iter().any(|d| d.name == dev && d.kind.as_deref() == Some("bridge")) {
+        let dev = self
+            .cfg
+            .interfaces
+            .iter()
+            .find(|i| i.name == network)?
+            .device
+            .clone()?;
+        if !self
+            .cfg
+            .devices
+            .iter()
+            .any(|d| d.name == dev && d.kind.as_deref() == Some("bridge"))
+        {
             return Some(Vec::new());
         }
         if !self.prepared_bridges.contains(&dev) {
@@ -5038,7 +5543,10 @@ impl Netifd {
         ];
         if let Some(d) = self.devices.get(&dev) {
             if d.settings.has(device::opt::MULTICAST_TO_UNICAST) {
-                fields.push(("multicast_to_unicast".into(), Json::Bool(d.settings.multicast_to_unicast)));
+                fields.push((
+                    "multicast_to_unicast".into(),
+                    Json::Bool(d.settings.multicast_to_unicast),
+                ));
             }
         }
         Some(fields)
@@ -5046,10 +5554,16 @@ impl Netifd {
 
     fn wireless_prepare_vif(&mut self, vif: &mut owrt_ubus::json::Json) {
         use owrt_ubus::json::Json;
-        let networks = vif.get("config").and_then(|c| c.get("network"))
-            .and_then(Json::as_array).unwrap_or(&[]).to_vec();
+        let networks = vif
+            .get("config")
+            .and_then(|c| c.get("network"))
+            .and_then(Json::as_array)
+            .unwrap_or(&[])
+            .to_vec();
         for net in networks.iter().filter_map(Json::as_str) {
-            let Some(fields) = self.prepare_interface_bridge(net) else { continue };
+            let Some(fields) = self.prepare_interface_bridge(net) else {
+                continue;
+            };
             if let Json::Object(obj) = vif {
                 obj.extend(fields);
             }
@@ -5069,8 +5583,12 @@ impl Netifd {
     /// the kernel port; netifd must still own its membership and settings.
     fn wireless_mark_up(&mut self, name: &str) {
         use owrt_ubus::json::Json;
-        let Some(r) = self.wradios.iter().find(|r| r.name == name).cloned() else { return };
-        let Some(Json::Object(vifs)) = r.handler_config.get("interfaces") else { return };
+        let Some(r) = self.wradios.iter().find(|r| r.name == name).cloned() else {
+            return;
+        };
+        let Some(Json::Object(vifs)) = r.handler_config.get("interfaces") else {
+            return;
+        };
         let mut records = Vec::new();
         for (_, vif) in vifs {
             records.push((vif, None));
@@ -5079,13 +5597,24 @@ impl Netifd {
             }
         }
         for (record, parent) in records {
-            let Some(section) = record.get("name").and_then(Json::as_str) else { continue };
-            let key = parent.and_then(|vif| vif.get("name")).and_then(Json::as_str)
-                .map(|vif| format!("{vif}/{section}")).unwrap_or_else(|| section.to_string());
-            let Some((_, port)) = r.ifnames.iter().find(|(s, _)| *s == key) else { continue };
+            let Some(section) = record.get("name").and_then(Json::as_str) else {
+                continue;
+            };
+            let key = parent
+                .and_then(|vif| vif.get("name"))
+                .and_then(Json::as_str)
+                .map(|vif| format!("{vif}/{section}"))
+                .unwrap_or_else(|| section.to_string());
+            let Some((_, port)) = r.ifnames.iter().find(|(s, _)| *s == key) else {
+                continue;
+            };
             let vlan = parent.is_some();
-            let Some(config) = record.get("config") else { continue };
-            let Some(networks) = config.get("network").and_then(Json::as_array) else { continue };
+            let Some(config) = record.get("config") else {
+                continue;
+            };
+            let Some(networks) = config.get("network").and_then(Json::as_array) else {
+                continue;
+            };
             if self.sys.if_index(port).unwrap_or(0) == 0 {
                 continue;
             }
@@ -5097,21 +5626,36 @@ impl Netifd {
                 d.external = true;
             }
             for net in networks.iter().filter_map(Json::as_str) {
-                let bridge = self.cfg.interfaces.iter().find(|c| c.name == net)
-                    .and_then(|c| c.device.clone()).filter(|dev| self.cfg.devices.iter()
-                        .any(|d| d.name == *dev && d.kind.as_deref() == Some("bridge")));
+                let bridge = self
+                    .cfg
+                    .interfaces
+                    .iter()
+                    .find(|c| c.name == net)
+                    .and_then(|c| c.device.clone())
+                    .filter(|dev| {
+                        self.cfg
+                            .devices
+                            .iter()
+                            .any(|d| d.name == *dev && d.kind.as_deref() == Some("bridge"))
+                    });
                 let Some(br) = bridge else { continue };
                 self.bridge_port_add(&br, port);
-                if !self.devices.get(&br).and_then(|d| d.bridge.as_ref())
-                    .is_some_and(|b| b.members.contains(port)) {
+                if !self
+                    .devices
+                    .get(&br)
+                    .and_then(|d| d.bridge.as_ref())
+                    .is_some_and(|b| b.members.contains(port))
+                {
                     continue;
                 }
                 let ap = vlan || config.get("mode").and_then(Json::as_str) == Some("ap");
                 let flag = |key| matches!(config.get(key), Some(Json::Bool(true)));
                 let proxy = !vlan && ap && flag("proxy_arp");
                 let isolated = !vlan && ap && flag("isolate");
-                let mcast = self.devices.get(&br).is_none_or(|d|
-                    !d.settings.has(device::opt::MULTICAST_TO_UNICAST) || d.settings.multicast_to_unicast) && ap;
+                let mcast = self.devices.get(&br).is_none_or(|d| {
+                    !d.settings.has(device::opt::MULTICAST_TO_UNICAST)
+                        || d.settings.multicast_to_unicast
+                }) && ap;
                 for (attr, enabled) in [
                     ("multicast_to_unicast", mcast),
                     ("hairpin_mode", (mcast || proxy) && !isolated),
@@ -5138,12 +5682,22 @@ impl Netifd {
     }
 
     fn wireless_remove_links(&mut self, name: &str) {
-        let links = self.wradio(name).map(|r| std::mem::take(&mut r.links)).unwrap_or_default();
+        let links = self
+            .wradio(name)
+            .map(|r| std::mem::take(&mut r.links))
+            .unwrap_or_default();
         for (br, port) in links {
-            let other = self.wradios.iter().any(|r| r.links.contains(&(br.clone(), port.clone())));
-            if other { continue; }
+            let other = self
+                .wradios
+                .iter()
+                .any(|r| r.links.contains(&(br.clone(), port.clone())));
+            if other {
+                continue;
+            }
             if let Ok(pi) = self.sys.if_index(&port) {
-                if pi != 0 { let _ = self.sys.bridge_setmaster(pi, 0); }
+                if pi != 0 {
+                    let _ = self.sys.bridge_setmaster(pi, 0);
+                }
             }
             self.bridge_port_del(&br, &port);
             self.device_release(&port);
@@ -5163,18 +5717,22 @@ impl Netifd {
         if self.wcur.is_some() {
             return;
         }
-        let Some((name, op)) = self.wqueue.pop_front() else { return };
+        let Some((name, op)) = self.wqueue.pop_front() else {
+            return;
+        };
         let cfg = self.wconfig.iter().find(|r| r.name == name).cloned();
         let kind = if op == "setup" {
             cfg.as_ref().and_then(|c| c.kind()).map(str::to_string)
         } else {
-            self.wradios.iter().find(|r| r.name == name)
+            self.wradios
+                .iter()
+                .find(|r| r.name == name)
                 .and_then(|r| r.handler_config.get("config"))
-                .and_then(|c| c.get("type")).and_then(owrt_ubus::json::Json::as_str)
+                .and_then(|c| c.get("type"))
+                .and_then(owrt_ubus::json::Json::as_str)
                 .map(str::to_string)
         };
-        let Some(h) = kind.and_then(|k| self.whandlers.iter().find(|h| h.name == k))
-        else {
+        let Some(h) = kind.and_then(|k| self.whandlers.iter().find(|h| h.name == k)) else {
             return;
         };
         let script = h.script.clone();
@@ -5187,17 +5745,25 @@ impl Netifd {
             .parent()
             .map(|d| d.to_string_lossy().into_owned())
             .unwrap_or_default();
-        let data = self.wradios.iter().find(|r| r.name == name)
+        let data = self
+            .wradios
+            .iter()
+            .find(|r| r.name == name)
             .filter(|r| !r.device_data.is_empty())
             .map(|r| wireless::device_data_record(&r.name, &r.device_data))
             .unwrap_or_else(|| "{}".to_string());
         let mut config = if op == "setup" {
             let Some(cfg) = cfg else { return };
-            let mut config = owrt_ubus::json::parse(&wireless::handler_json(&cfg, &self.whandlers, &data))
-                .expect("wireless projection is valid JSON");
+            let mut config =
+                owrt_ubus::json::parse(&wireless::handler_json(&cfg, &self.whandlers, &data))
+                    .expect("wireless projection is valid JSON");
             if let owrt_ubus::json::Json::Object(obj) = &mut config {
-                if let Some((_, owrt_ubus::json::Json::Object(vifs))) = obj.iter_mut().find(|(k, _)| k == "interfaces") {
-                    for (_, vif) in vifs { self.wireless_prepare_vif(vif); }
+                if let Some((_, owrt_ubus::json::Json::Object(vifs))) =
+                    obj.iter_mut().find(|(k, _)| k == "interfaces")
+                {
+                    for (_, vif) in vifs {
+                        self.wireless_prepare_vif(vif);
+                    }
                 }
             }
             if let Some(r) = self.wradio(&name) {
@@ -5206,7 +5772,9 @@ impl Netifd {
             }
             config
         } else {
-            self.wradio(&name).map(|r| r.handler_config.clone()).unwrap_or(owrt_ubus::json::Json::Null)
+            self.wradio(&name)
+                .map(|r| r.handler_config.clone())
+                .unwrap_or(owrt_ubus::json::Json::Null)
         };
         if let owrt_ubus::json::Json::Object(obj) = &mut config {
             if let Some((_, value)) = obj.iter_mut().find(|(k, _)| k == "data") {
@@ -5243,7 +5811,9 @@ impl Netifd {
         let Some((pid, (argv0, status, output))) = self.wslot.pid().zip(self.wslot.reap()) else {
             return;
         };
-        let Some((name, _)) = self.wcur.as_ref() else { return };
+        let Some((name, _)) = self.wcur.as_ref() else {
+            return;
+        };
         for line in output.lines().filter(|l| !l.trim().is_empty()) {
             logging::log!(Notice, "{name} ({pid}): {line}");
         }
@@ -5255,7 +5825,9 @@ impl Netifd {
 
     fn wireless_complete(&mut self) {
         self.wdeadline = None;
-        let Some((name, op)) = self.wcur.take() else { return };
+        let Some((name, op)) = self.wcur.take() else {
+            return;
+        };
         if op == "setup" {
             // A handler that reported its interfaces up left the state at Up,
             // and there is nothing to retry.
@@ -5302,7 +5874,9 @@ impl Netifd {
 impl Netifd {
     fn wireless_selector(&self, data: &[u8]) -> Result<Option<usize>, i32> {
         let device = ubus::wireless_read_device(data)?;
-        let Some(device) = device else { return Ok(None) };
+        let Some(device) = device else {
+            return Ok(None);
+        };
         if device.is_empty() {
             return Ok(None);
         }
@@ -5321,7 +5895,9 @@ impl Netifd {
             if selected.is_some_and(|wanted| wanted != index) {
                 continue;
             }
-            let Some(r) = self.wradios.iter().find(|r| r.name == cfg.name) else { continue };
+            let Some(r) = self.wradios.iter().find(|r| r.name == cfg.name) else {
+                continue;
+            };
             let st = wireless::RadioState {
                 up: r.state == wireless::WState::Up,
                 pending: matches!(
@@ -5338,12 +5914,20 @@ impl Netifd {
     /// `notify`. The handler scripts call this back while their setup runs.
     fn wireless_notify(&mut self, fields: &[blob::Field]) -> i32 {
         let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
-        let dev = find("device").and_then(|f| f.as_str()).unwrap_or("").to_string();
+        let dev = find("device")
+            .and_then(|f| f.as_str())
+            .unwrap_or("")
+            .to_string();
         if self.wradios.iter().all(|r| r.name != dev) {
             return status::NOT_FOUND;
         }
-        let cmd = find("command").and_then(|f| f.as_u32()).map(|n| n as i64).unwrap_or(-1);
-        let vif = find("interface").and_then(|f| f.as_str()).map(|s| s.to_string());
+        let cmd = find("command")
+            .and_then(|f| f.as_u32())
+            .map(|n| n as i64)
+            .unwrap_or(-1);
+        let vif = find("interface")
+            .and_then(|f| f.as_str())
+            .map(|s| s.to_string());
         let vlan = find("vlan").and_then(|f| f.as_str()).map(|s| s.to_string());
         match cmd {
             wireless::NOTIFY_UP => {
@@ -5352,7 +5936,9 @@ impl Netifd {
                 if vif.is_some() || vlan.is_some() {
                     return status::INVALID_ARGUMENT;
                 }
-                let Some(r) = self.wradio(&dev) else { return status::NOT_FOUND };
+                let Some(r) = self.wradio(&dev) else {
+                    return status::NOT_FOUND;
+                };
                 if r.state != wireless::WState::Setup {
                     return status::INVALID_ARGUMENT;
                 }
@@ -5365,11 +5951,17 @@ impl Netifd {
                 // piece of handler data `status` reports.
                 let Some(key) = vif else {
                     // no `interface`: this is the device-level record
-                    let fields = find("data").into_iter().flat_map(|f| f.children())
-                        .map(|field| owrt_ubus::convert::field_to_json(&field)
-                            .map(|value| (field.name.to_string(), value.to_compact())))
+                    let fields = find("data")
+                        .into_iter()
+                        .flat_map(|f| f.children())
+                        .map(|field| {
+                            owrt_ubus::convert::field_to_json(&field)
+                                .map(|value| (field.name.to_string(), value.to_compact()))
+                        })
                         .collect::<Result<Vec<_>, _>>();
-                    let Ok(fields) = fields else { return status::INVALID_ARGUMENT };
+                    let Ok(fields) = fields else {
+                        return status::INVALID_ARGUMENT;
+                    };
                     if let Some(r) = self.wradio(&dev) {
                         r.device_data = fields;
                     }
@@ -5377,23 +5969,39 @@ impl Netifd {
                 };
                 // Resolve against the exact handler generation, including
                 // wifi-vlan records, rather than the current UCI file.
-                let record = self.wradios.iter().find(|r| r.name == dev)
+                let record = self
+                    .wradios
+                    .iter()
+                    .find(|r| r.name == dev)
                     .and_then(|r| r.handler_config.get("interfaces"))
                     .and_then(|v| v.get(&key));
-                let Some(section) = record.and_then(|v| v.get("name"))
-                    .and_then(owrt_ubus::json::Json::as_str) else { return status::NOT_FOUND };
+                let Some(section) = record
+                    .and_then(|v| v.get("name"))
+                    .and_then(owrt_ubus::json::Json::as_str)
+                else {
+                    return status::NOT_FOUND;
+                };
                 // A wifi-vlan section can be shared by multiple vifs. Match
                 // wdev_set_data's parent/name key so their ifnames stay distinct.
                 let section = if let Some(vlan) = vlan {
-                    let Some(child) = record.and_then(|v| v.get("vlans"))
-                        .and_then(|v| v.get(&vlan)).and_then(|v| v.get("name"))
-                        .and_then(owrt_ubus::json::Json::as_str) else { return status::NOT_FOUND };
+                    let Some(child) = record
+                        .and_then(|v| v.get("vlans"))
+                        .and_then(|v| v.get(&vlan))
+                        .and_then(|v| v.get("name"))
+                        .and_then(owrt_ubus::json::Json::as_str)
+                    else {
+                        return status::NOT_FOUND;
+                    };
                     format!("{section}/{child}")
-                } else { section.to_string() };
+                } else {
+                    section.to_string()
+                };
                 let ifname = find("data")
                     .and_then(|f| f.children().into_iter().find(|c| c.name == "ifname"))
                     .and_then(|c| c.as_str().map(|s| s.to_string()));
-                let Some(ifname) = ifname else { return status::OK };
+                let Some(ifname) = ifname else {
+                    return status::OK;
+                };
                 if let Some(r) = self.wradio(&dev) {
                     match r.ifnames.iter_mut().find(|(s, _)| *s == section) {
                         Some(slot) => slot.1 = ifname,
@@ -5407,7 +6015,10 @@ impl Netifd {
                 // ucode also accepts `required` and `keep` and never looks at
                 // them, so neither does this.
                 let st = self.wradio(&dev).map(|r| r.state);
-                if !matches!(st, Some(wireless::WState::Setup) | Some(wireless::WState::Up)) {
+                if !matches!(
+                    st,
+                    Some(wireless::WState::Setup) | Some(wireless::WState::Up)
+                ) {
                     return status::OK;
                 }
                 let data = find("data");
@@ -5425,9 +6036,7 @@ impl Netifd {
                             r.procs.push((pid, exe));
                         }
                     }
-                    _ => logging::log!(Warning,
-                        "{dev}: process_add without a usable pid and exe"
-                    ),
+                    _ => logging::log!(Warning, "{dev}: process_add without a usable pid and exe"),
                 }
                 status::OK
             }
@@ -5534,7 +6143,11 @@ fn sys_route(r: &interface::Route) -> sys::Route {
     };
     k.nexthop = r.nexthop;
     k.metric = r.metric;
-    k.table = if r.table != 0 { r.table } else { sys::RT_TABLE_MAIN };
+    k.table = if r.table != 0 {
+        r.table
+    } else {
+        sys::RT_TABLE_MAIN
+    };
     k.mtu = (r.flags & interface::devroute::MTU != 0).then_some(r.mtu);
     if r.flags & interface::devroute::ONLINK != 0 {
         k.onlink = true;
@@ -5591,7 +6204,9 @@ fn main() {
             // exits before any netlink/ubus/config work, which also makes it
             // the inert identity probe p6_switch.sh uses on the device.
             "--dump-wireless" => {
-                let dir = args.next().unwrap_or_else(|| DEFAULT_WIRELESS_DIR.to_string());
+                let dir = args
+                    .next()
+                    .unwrap_or_else(|| DEFAULT_WIRELESS_DIR.to_string());
                 let _ = writeln!(std::io::stdout(), "{}", wireless::dump(&confdir, &dir));
                 return;
             }
@@ -5659,9 +6274,8 @@ mod proto_keep_tests {
 
     #[test]
     fn route_keep_uses_full_key_and_non_key_attributes_but_not_deadline() {
-        let old = interface::Route::new(
-            "0.0.0.0".parse().unwrap(), 0, "192.0.2.1".parse().unwrap(),
-        );
+        let old =
+            interface::Route::new("0.0.0.0".parse().unwrap(), 0, "192.0.2.1".parse().unwrap());
         assert!(keep_proto_route(&old, &old, 10));
         for mutate in [
             |r: &mut interface::Route| r.failed = true,
@@ -5690,22 +6304,25 @@ mod proto_keep_tests {
 #[cfg(test)]
 mod reload_tests {
     use super::*;
-#[test]
-fn loading_the_same_config_twice_reports_no_change() {
-    let dir = std::env::temp_dir().join(format!("r54test{}", std::process::id()));
-    std::fs::create_dir_all(&dir).unwrap();
-    std::fs::write(
+    #[test]
+    fn loading_the_same_config_twice_reports_no_change() {
+        let dir = std::env::temp_dir().join(format!("r54test{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(
         dir.join("network"),
         "config interface 'one'\n\toption device 'veth1'\n\toption proto 'static'\n\toption ipaddr '10.1.1.1/24'\n",
     )
     .unwrap();
-    let a = config::load(dir.to_str().unwrap()).unwrap();
-    let b = config::load(dir.to_str().unwrap()).unwrap();
-    let _ = std::fs::remove_dir_all(&dir);
-    let (x, y) = (&a.interfaces[0], &b.interfaces[0]);
-    let ch = classify_change(x, y, None);
-    assert!(!ch.reload && !ch.reload_ip && !ch.delegation && !ch.assignment, "{ch:?}\nA: {x:#?}\nB: {y:#?}");
-}
+        let a = config::load(dir.to_str().unwrap()).unwrap();
+        let b = config::load(dir.to_str().unwrap()).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+        let (x, y) = (&a.interfaces[0], &b.interfaces[0]);
+        let ch = classify_change(x, y, None);
+        assert!(
+            !ch.reload && !ch.reload_ip && !ch.delegation && !ch.assignment,
+            "{ch:?}\nA: {x:#?}\nB: {y:#?}"
+        );
+    }
 }
 
 #[cfg(test)]
@@ -5715,10 +6332,17 @@ mod prefix_status_tests {
 
     #[test]
     fn uplink_prefix_status_keeps_vlist_order_without_reordering_lan_assignments() {
-        let expected = [("2001:db8:1::", 56), ("2001:db8:1::", 64), ("2001:db8:2::", 64)];
-        let fresh = expected.iter().map(|(addr, len)| {
-            ip::DevicePrefix::new(addr.parse().unwrap(), *len, "wan6", Some("wan6"))
-        }).collect();
+        let expected = [
+            ("2001:db8:1::", 56),
+            ("2001:db8:1::", 64),
+            ("2001:db8:2::", 64),
+        ];
+        let fresh = expected
+            .iter()
+            .map(|(addr, len)| {
+                ip::DevicePrefix::new(addr.parse().unwrap(), *len, "wan6", Some("wan6"))
+            })
+            .collect();
         let mut prefixes = Vec::new();
         ip::replace_prefixes(&mut prefixes, Some("wan6"), fresh);
         let assignment_order = prefixes.clone();
@@ -5728,7 +6352,9 @@ mod prefix_status_tests {
         let mut buf = BlobBuf::new();
         wan.dump_status_with(&mut buf, 0, &view);
         let status = owrt_ubus::convert::fields_to_json(buf.payload()).unwrap();
-        let Some(Json::Array(rows)) = status.get("ipv6-prefix") else { panic!() };
+        let Some(Json::Array(rows)) = status.get("ipv6-prefix") else {
+            panic!()
+        };
         assert_eq!(rows.len(), expected.len());
         for (row, (addr, mask)) in rows.iter().zip(expected) {
             assert_eq!(row.get("address").and_then(Json::as_str), Some(addr));

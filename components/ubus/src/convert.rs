@@ -35,14 +35,23 @@ fn fields_to_json_at(payload: &[u8], depth: usize) -> Result<Json, String> {
 pub fn append_fields_json(payload: &[u8], out: &mut Vec<u8>) -> Result<(), String> {
     let start = out.len();
     let result = append_container(payload, out, true, 0);
-    if result.is_err() { out.truncate(start); }
+    if result.is_err() {
+        out.truncate(start);
+    }
     result
 }
 
-fn append_container(payload: &[u8], out: &mut Vec<u8>, object: bool, depth: usize) -> Result<(), String> {
+fn append_container(
+    payload: &[u8],
+    out: &mut Vec<u8>,
+    object: bool,
+    depth: usize,
+) -> Result<(), String> {
     out.push(if object { b'{' } else { b'[' });
     for (index, field) in blob::fields(payload).enumerate() {
-        if index != 0 { out.push(b','); }
+        if index != 0 {
+            out.push(b',');
+        }
         if object {
             crate::json::write_string(out, field.name.as_bytes());
             out.push(b':');
@@ -52,7 +61,9 @@ fn append_container(payload: &[u8], out: &mut Vec<u8>, object: bool, depth: usiz
                 check_container_depth(depth)?;
                 append_container(field.data, out, t == MsgType::Table as u32, depth + 1)?;
             }
-            t if t == MsgType::String as u32 => crate::json::write_string(out, field.as_bytes().unwrap_or(b"")),
+            t if t == MsgType::String as u32 => {
+                crate::json::write_string(out, field.as_bytes().unwrap_or(b""))
+            }
             _ => field_to_json_at(&field, depth)?.append_to(out),
         }
     }
@@ -72,8 +83,12 @@ fn field_to_json_at(field: &Field, depth: usize) -> Result<Json, String> {
         }
         t if t == MsgType::Array as u32 => {
             check_container_depth(depth)?;
-            Json::Array(field.children().map(|f| field_to_json_at(&f, depth + 1))
-                .collect::<Result<_, _>>()?)
+            Json::Array(
+                field
+                    .children()
+                    .map(|f| field_to_json_at(&f, depth + 1))
+                    .collect::<Result<_, _>>()?,
+            )
         }
         t if t == MsgType::String as u32 => {
             Json::from_string_bytes(field.as_bytes().unwrap_or(b"").to_vec())
@@ -155,9 +170,20 @@ mod tests {
     #[test]
     fn direct_serialization_preserves_nested_and_malformed_field_bytes() {
         let nested = Json::Object(vec![
-            ("quoted\"key".into(), Json::Array(vec![Json::Int(-55), Json::Bool(true),
-                Json::Null, Json::Float(1.25), Json::Bytes(b"raw\xff\n\t\\\"".to_vec())])),
-            ("table".into(), Json::Object(vec![("empty".into(), Json::Array(vec![]))])),
+            (
+                "quoted\"key".into(),
+                Json::Array(vec![
+                    Json::Int(-55),
+                    Json::Bool(true),
+                    Json::Null,
+                    Json::Float(1.25),
+                    Json::Bytes(b"raw\xff\n\t\\\"".to_vec()),
+                ]),
+            ),
+            (
+                "table".into(),
+                Json::Object(vec![("empty".into(), Json::Array(vec![]))]),
+            ),
         ]);
         let check = |payload: &[u8]| {
             let mut direct = b"prefix".to_vec();
@@ -191,7 +217,7 @@ mod tests {
             (i32::MAX as i64, MsgType::Int32),
             (i32::MAX as i64 + 1, MsgType::Int64),
             (3_000_000_000, MsgType::Int64),
-            (-(i32::MIN as i64) , MsgType::Int64),
+            (-(i32::MIN as i64), MsgType::Int64),
         ] {
             let payload = object_to_payload(&Json::Object(vec![("n".into(), Json::Int(v))]));
             let f = blob::fields(&payload).next().unwrap();
@@ -216,13 +242,19 @@ mod tests {
         assert_eq!(json.to_bytes(), b"\"caf\xe9\"");
         assert_eq!(crate::json::parse_bytes(&json.to_bytes()).unwrap(), json);
         let payload = object_to_payload(&Json::Object(vec![("ssid".into(), json)]));
-        assert_eq!(blob::fields(&payload).next().unwrap().as_bytes(), Some(&b"caf\xe9"[..]));
+        assert_eq!(
+            blob::fields(&payload).next().unwrap().as_bytes(),
+            Some(&b"caf\xe9"[..])
+        );
         // and valid UTF-8 still comes through untouched
         let mut b = BlobBuf::new();
         b.msg_string("ssid", "caf\u{e9}");
         let payload = b.into_payload();
         let f = blob::fields(&payload).next().unwrap();
-        assert_eq!(field_to_json(&f).unwrap(), Json::Str("caf\u{e9}".to_owned()));
+        assert_eq!(
+            field_to_json(&f).unwrap(),
+            Json::Str("caf\u{e9}".to_owned())
+        );
     }
 
     // INT16/INT32 decode is signed (iwinfo signal/noise are negative dBm).
@@ -242,10 +274,16 @@ mod tests {
                 let mut blob = BlobBuf::new();
                 let mut cookies = Vec::new();
                 for _ in 0..depth {
-                    cookies.push(if array { blob.msg_open_array("a") } else { blob.msg_open_table("a") });
+                    cookies.push(if array {
+                        blob.msg_open_array("a")
+                    } else {
+                        blob.msg_open_table("a")
+                    });
                 }
                 blob.msg_u32("value", 7);
-                for cookie in cookies.into_iter().rev() { blob.msg_close(cookie); }
+                for cookie in cookies.into_iter().rev() {
+                    blob.msg_close(cookie);
+                }
                 let payload = blob.payload();
                 let field = blob::fields(payload).next().unwrap();
                 let tree = fields_to_json(payload);

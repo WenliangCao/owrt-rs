@@ -1,12 +1,17 @@
 //! Requested heap and observed allocator calls for real event dispatch.
 //! Instrumented diagnostic only; never a timing or full memory measurement.
 #![allow(dead_code)]
-#[path = "../src/acl.rs"] mod acl;
-#[path = "../src/client.rs"] mod client;
-#[path = "../src/obj.rs"] mod obj;
-#[path = "../src/server.rs"] mod server;
-#[path = "../src/sys.rs"] mod sys;
+#[path = "../src/acl.rs"]
+mod acl;
+#[path = "../src/client.rs"]
+mod client;
 mod heap_support;
+#[path = "../src/obj.rs"]
+mod obj;
+#[path = "../src/server.rs"]
+mod server;
+#[path = "../src/sys.rs"]
+mod sys;
 
 use owrt_ubus::blob::{self, BlobBuf};
 use owrt_ubus::msg::{attr, ty, Header};
@@ -26,13 +31,30 @@ fn connection(queued: bool) -> (client::Client, UnixStream) {
         // SAFETY: Linux SOL_SOCKET/SO_SNDBUF with a live i32 and valid fd.
         assert_eq!(unsafe { setsockopt(sock.as_raw_fd(), 1, 7, &size, 4) }, 0);
     }
-    (client::Client::new(sock.into(), sys::Ucred::default(), "root".into(), "root".into()), peer)
+    (
+        client::Client::new(
+            sock.into(),
+            sys::Ucred::default(),
+            "root".into(),
+            "root".into(),
+        ),
+        peer,
+    )
 }
 
 fn invoke(s: &mut server::Server, owner: u32, blob: &[u8]) {
-    assert!(s.receive(owner, client::InMsg {
-        header: Header { ty: ty::INVOKE, seq: 100, peer: 0 }, blob: blob.to_vec().into(), fd: None,
-    }));
+    assert!(s.receive(
+        owner,
+        client::InMsg {
+            header: Header {
+                ty: ty::INVOKE,
+                seq: 100,
+                peer: 0
+            },
+            blob: blob.to_vec().into(),
+            fd: None,
+        }
+    ));
 }
 
 fn drain(s: &mut server::Server, owner: u32, peer: &mut UnixStream, out: &mut Vec<u8>) {
@@ -45,7 +67,10 @@ fn drain(s: &mut server::Server, owner: u32, peer: &mut UnixStream, out: &mut Ve
             match peer.read(&mut buf) {
                 Ok(0) => panic!("unexpected EOF"),
                 Ok(n) => {
-                    assert!(out.len() + n <= out.capacity(), "fixture must not allocate while draining");
+                    assert!(
+                        out.len() + n <= out.capacity(),
+                        "fixture must not allocate while draining"
+                    );
                     out.extend_from_slice(&buf[..n]);
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
@@ -53,7 +78,9 @@ fn drain(s: &mut server::Server, owner: u32, peer: &mut UnixStream, out: &mut Ve
             }
         }
         let c = s.clients.get_mut(&owner).unwrap();
-        if c.tx_empty() { break; }
+        if c.tx_empty() {
+            break;
+        }
         assert!(c.flush());
     }
     s.touched.clear();
@@ -132,8 +159,12 @@ fn main() {
                     let inflight = heap_support::live() - baseline;
                     let (allocs, reallocs) = heap_support::calls();
                     let queued = !s.clients[&2001].tx_empty();
-                    if payload_bytes == 32768 && matched == 1 { assert!(queued); }
-                    if payload_bytes == 16 { assert!(!queued); }
+                    if payload_bytes == 32768 && matched == 1 {
+                        assert!(queued);
+                    }
+                    if payload_bytes == 16 {
+                        assert!(!queued);
+                    }
                     drain(&mut s, 2000, &mut caller_peer, &mut replies);
                     status(&replies);
                     drain(&mut s, 2001, &mut listener_peer, &mut events);
@@ -141,7 +172,10 @@ fn main() {
                     let mut rest = events.as_slice();
                     for i in 0..listeners * matched {
                         let (h, actual) = frame(&mut rest);
-                        assert_eq!((h.ty, h.seq, h.peer), (ty::INVOKE, (n * listeners + i + 1) as u16, 0));
+                        assert_eq!(
+                            (h.ty, h.seq, h.peer),
+                            (ty::INVOKE, (n * listeners + i + 1) as u16, 0)
+                        );
                         expected[8..12].copy_from_slice(&(4000 + i).to_be_bytes());
                         assert_eq!(actual, expected.as_slice());
                     }
@@ -153,7 +187,11 @@ fn main() {
                 drop(s);
                 drop(caller_peer);
                 drop(listener_peer);
-                assert_eq!(heap_support::live(), baseline, "event state survived its owners");
+                assert_eq!(
+                    heap_support::live(),
+                    baseline,
+                    "event state survived its owners"
+                );
             }
         }
     }

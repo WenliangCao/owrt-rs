@@ -26,7 +26,9 @@ static STDERR: AtomicBool = AtomicBool::new(true);
 /// main.c uses atoi (including decimal prefixes and invalid input -> 0),
 /// clamps only the upper end and allows negative levels to disable logging.
 pub fn parse_level(text: &str) -> i32 {
-    let Ok(text) = CString::new(text) else { return 0 };
+    let Ok(text) = CString::new(text) else {
+        return 0;
+    };
     owrt_platform::netifd::atoi(&text).min(Level::Debug as i32)
 }
 

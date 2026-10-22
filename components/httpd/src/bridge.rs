@@ -7,8 +7,8 @@ use owrt_ubus::json::{self, Json};
 use owrt_ubus::{blob, BlobBuf, Connection};
 use std::borrow::Cow;
 use std::io::{self, Write};
-use std::sync::Mutex;
 use std::ops::{Deref, DerefMut};
+use std::sync::Mutex;
 
 pub const DEFAULT_SID: &str = "00000000000000000000000000000000";
 pub const MAX_POST: usize = 65536;
@@ -52,16 +52,29 @@ pub struct Bridge {
 
 impl Bridge {
     fn connect(&self) -> io::Result<Lease<'_>> {
-        let mut idle = self.idle.lock().expect("shared daemon state poisoned by a panic");
+        let mut idle = self
+            .idle
+            .lock()
+            .expect("shared daemon state poisoned by a panic");
         while let Some(conn) = idle.pop() {
-            if connected(&conn) { return Ok(Lease { conn: Some(conn), bridge: self }); }
+            if connected(&conn) {
+                return Ok(Lease {
+                    conn: Some(conn),
+                    bridge: self,
+                });
+            }
         }
         drop(idle);
-        Ok(Lease { conn: Some(Connection::connect(self.socket.as_deref())?), bridge: self })
+        Ok(Lease {
+            conn: Some(Connection::connect(self.socket.as_deref())?),
+            bridge: self,
+        })
     }
 
     fn record(&self, object: &str, method: &str) {
-        if !self.record_calls { return; }
+        if !self.record_calls {
+            return;
+        }
         if let Ok(mut calls) = self.calls.lock() {
             if let Some(entry) = calls
                 .iter_mut()
@@ -88,8 +101,12 @@ impl Bridge {
 }
 
 fn connected(conn: &Connection) -> bool {
-    use owrt_ubus::sys::{poll_fds, PollFd, POLLHUP, POLLERR};
-    let mut fds = [PollFd { fd: conn.as_raw_fd(), events: 0, revents: 0 }];
+    use owrt_ubus::sys::{poll_fds, PollFd, POLLERR, POLLHUP};
+    let mut fds = [PollFd {
+        fd: conn.as_raw_fd(),
+        events: 0,
+        revents: 0,
+    }];
     poll_fds(&mut fds, 0).is_ok() && fds[0].revents & (POLLHUP | POLLERR) == 0
 }
 
@@ -102,19 +119,33 @@ struct Lease<'a> {
 
 impl Deref for Lease<'_> {
     type Target = Connection;
-    fn deref(&self) -> &Connection { self.conn.as_ref().expect("live lease") }
+    fn deref(&self) -> &Connection {
+        self.conn.as_ref().expect("live lease")
+    }
 }
 impl DerefMut for Lease<'_> {
-    fn deref_mut(&mut self) -> &mut Connection { self.conn.as_mut().expect("live lease") }
+    fn deref_mut(&mut self) -> &mut Connection {
+        self.conn.as_mut().expect("live lease")
+    }
 }
 impl Drop for Lease<'_> {
     fn drop(&mut self) {
         // A reply that arrived after its call timed out sits in `pending`
         // and nothing on the bridge ever reads it; keeping such a connection
         // would retain one stale reply per timeout (R88 httpd H-06).
-        if let Some(conn) = self.conn.take().filter(|c| !c.has_pending() && connected(c)) {
-            let mut idle = self.bridge.idle.lock().expect("shared daemon state poisoned by a panic");
-            if idle.len() < 8 { idle.push(conn); }
+        if let Some(conn) = self
+            .conn
+            .take()
+            .filter(|c| !c.has_pending() && connected(c))
+        {
+            let mut idle = self
+                .bridge
+                .idle
+                .lock()
+                .expect("shared daemon state poisoned by a panic");
+            if idle.len() < 8 {
+                idle.push(conn);
+            }
         }
     }
 }
@@ -157,7 +188,11 @@ enum RpcResponse {
 fn append_rpc_header(out: &mut Vec<u8>, id: &Json, error: bool) {
     out.extend_from_slice(b"{\"jsonrpc\":\"2.0\",\"id\":");
     id.append_to(out);
-    out.extend_from_slice(if error { b",\"error\":" } else { b",\"result\":" });
+    out.extend_from_slice(if error {
+        b",\"error\":"
+    } else {
+        b",\"result\":"
+    });
 }
 
 impl RpcResponse {
@@ -173,19 +208,26 @@ impl RpcResponse {
     }
 
     fn into_bytes(self) -> Vec<u8> {
-        if let Self::Encoded(bytes) = self { return bytes; }
+        if let Self::Encoded(bytes) = self {
+            return bytes;
+        }
         let mut out = Vec::with_capacity(128);
         self.append_to(&mut out);
         out
     }
 }
 
-fn rpc_batch(responses: impl Iterator<Item = RpcResponse>, mut emit: impl FnMut(&[u8]) -> io::Result<()>) -> io::Result<()> {
+fn rpc_batch(
+    responses: impl Iterator<Item = RpcResponse>,
+    mut emit: impl FnMut(&[u8]) -> io::Result<()>,
+) -> io::Result<()> {
     let mut out = Vec::with_capacity(128);
     emit(b"[")?;
     for (index, response) in responses.enumerate() {
         out.clear();
-        if index != 0 { out.push(b','); }
+        if index != 0 {
+            out.push(b',');
+        }
         response.append_to(&mut out);
         // One reply at a time: a blocked HTTP writer stops evaluating later
         // RPCs instead of materialising a batch-sized response in memory.
@@ -196,22 +238,35 @@ fn rpc_batch(responses: impl Iterator<Item = RpcResponse>, mut emit: impl FnMut(
 
 fn rpc_error(id: Json, error: RpcError) -> RpcResponse {
     let (code, message) = error.code_message();
-    RpcResponse::Json { id, error: true, value: Json::Object(vec![
-        ("code".into(), Json::Int(code)),
-        ("message".into(), Json::Str(message.into())),
-    ]) }
+    RpcResponse::Json {
+        id,
+        error: true,
+        value: Json::Object(vec![
+            ("code".into(), Json::Int(code)),
+            ("message".into(), Json::Str(message.into())),
+        ]),
+    }
 }
 
 fn rpc_result(id: Json, result: Json) -> RpcResponse {
-    RpcResponse::Json { id, error: false, value: result }
+    RpcResponse::Json {
+        id,
+        error: false,
+        value: result,
+    }
 }
 
 /// Most replies carry a single DATA attr. Borrow that payload; multiple DATA
 /// attrs still use the exact concatenation semantics of Reply::fields().
 fn reply_fields(reply: &owrt_ubus::Reply) -> Cow<'_, [u8]> {
-    let mut fields = reply.data.iter().flat_map(|payload| blob::iter(payload))
+    let mut fields = reply
+        .data
+        .iter()
+        .flat_map(|payload| blob::iter(payload))
         .filter(|attr| attr.id == owrt_ubus::attr::DATA);
-    let Some(first) = fields.next() else { return Cow::Borrowed(&[]) };
+    let Some(first) = fields.next() else {
+        return Cow::Borrowed(&[]);
+    };
     if fields.next().is_none() {
         Cow::Borrowed(first.payload)
     } else {
@@ -234,9 +289,8 @@ fn allowed(
         .msg_string("object", object)
         .msg_string("function", function);
     match conn.invoke(session_id, "access", b.payload(), bridge.timeout_ms / 2) {
-        Ok(reply) => {
-            blob::fields(&reply_fields(&reply)).any(|f| f.name == "access" && f.as_bool() == Some(true))
-        }
+        Ok(reply) => blob::fields(&reply_fields(&reply))
+            .any(|f| f.name == "access" && f.as_bool() == Some(true)),
         Err(_) => false,
     }
 }
@@ -274,9 +328,12 @@ fn do_call(
     }
     b.msg_string("ubus_rpc_session", sid);
     match conn.invoke_status(objid, function, b.payload(), bridge.timeout_ms) {
-        Err(e) if e.kind() == io::ErrorKind::TimedOut
-            || owrt_ubus::conn::error_status(&e) == Some(owrt_ubus::status::TIMEOUT)
-            => rpc_error(id, RpcError::Timeout),
+        Err(e)
+            if e.kind() == io::ErrorKind::TimedOut
+                || owrt_ubus::conn::error_status(&e) == Some(owrt_ubus::status::TIMEOUT) =>
+        {
+            rpc_error(id, RpcError::Timeout)
+        }
         Err(_) => rpc_error(id, RpcError::Internal),
         Ok(reply) => rpc_call_result(id, legacy, &reply),
     }
@@ -284,10 +341,17 @@ fn do_call(
 
 fn rpc_call_result(id: Json, legacy: bool, reply: &owrt_ubus::Reply) -> RpcResponse {
     if !legacy && reply.status != 0 {
-        return RpcResponse::Json { id, error: true, value: Json::Object(vec![
-            ("code".into(), Json::Int(reply.status as i64)),
-            ("message".into(), Json::Str(owrt_ubus::status::name(reply.status))),
-        ]) };
+        return RpcResponse::Json {
+            id,
+            error: true,
+            value: Json::Object(vec![
+                ("code".into(), Json::Int(reply.status as i64)),
+                (
+                    "message".into(),
+                    Json::Str(owrt_ubus::status::name(reply.status)),
+                ),
+            ]),
+        };
     }
     let data = reply_fields(reply);
     let has_data = !data.is_empty();
@@ -302,7 +366,9 @@ fn rpc_call_result(id: Json, legacy: bool, reply: &owrt_ubus::Reply) -> RpcRespo
     if legacy {
         out.push(b'[');
         Json::Int(reply.status as i64).append_to(&mut out);
-        if has_data { out.push(b','); }
+        if has_data {
+            out.push(b',');
+        }
     }
     if has_data {
         if append_fields_json(&data, &mut out).is_err() {
@@ -311,7 +377,9 @@ fn rpc_call_result(id: Json, legacy: bool, reply: &owrt_ubus::Reply) -> RpcRespo
     } else if !legacy {
         out.extend_from_slice(b"null");
     }
-    if legacy { out.push(b']'); }
+    if legacy {
+        out.push(b']');
+    }
     out.push(b'}');
     RpcResponse::Encoded(out)
 }
@@ -381,7 +449,11 @@ fn handle_object(bridge: &Bridge, obj: &Json, legacy: bool) -> RpcResponse {
     }
 }
 
-fn cors_headers<W: Write>(resp: &mut Response<W>, bridge: &Bridge, request: &Request) -> io::Result<()> {
+fn cors_headers<W: Write>(
+    resp: &mut Response<W>,
+    bridge: &Bridge,
+    request: &Request,
+) -> io::Result<()> {
     if bridge.cors {
         if let Some(origin) = request.header("origin") {
             let ok = request
@@ -435,7 +507,14 @@ pub fn parse_error<W: Write>(
     resp: &mut Response<W>,
 ) -> io::Result<()> {
     resp.force_close();
-    send_json(resp, bridge, request, 200, "OK", error_only(RpcError::Parse))
+    send_json(
+        resp,
+        bridge,
+        request,
+        200,
+        "OK",
+        error_only(RpcError::Parse),
+    )
 }
 
 /// Entry point for any request under the ubus prefix.
@@ -496,18 +575,18 @@ pub fn handle<W: Sink>(
                         let code = owrt_ubus::conn::error_status(&error)
                             .unwrap_or(owrt_ubus::status::CONNECTION_FAILED);
                         send_json(
-                        resp,
-                        bridge,
-                        request,
-                        500,
-                        "Ubus Protocol Error",
-                        Json::Object(vec![
-                            ("code".into(), Json::Int(code as i64)),
-                            ("message".into(), Json::Str(owrt_ubus::status::name(code))),
-                        ])
-                        .to_bytes(),
-                    )
-                    },
+                            resp,
+                            bridge,
+                            request,
+                            500,
+                            "Ubus Protocol Error",
+                            Json::Object(vec![
+                                ("code".into(), Json::Int(code as i64)),
+                                ("message".into(), Json::Str(owrt_ubus::status::name(code))),
+                            ])
+                            .to_bytes(),
+                        )
+                    }
                 }
             } else {
                 resp.status(404, "Not Found")?;
@@ -536,10 +615,13 @@ pub fn handle<W: Sink>(
                         cors_headers(resp, bridge, request)?;
                         resp.header("Content-Type", "application/json")?;
                         resp.end_headers()?;
-                        rpc_batch(items.iter().map(|item| handle_object(bridge, item, true)), |bytes| {
-                            resp.body(bytes)?;
-                            resp.sink().flush()
-                        })?;
+                        rpc_batch(
+                            items.iter().map(|item| handle_object(bridge, item, true)),
+                            |bytes| {
+                                resp.body(bytes)?;
+                                resp.sink().flush()
+                            },
+                        )?;
                         resp.finish()
                     }
                     _ => send_json(
@@ -586,31 +668,81 @@ pub fn handle<W: Sink>(
     }
 }
 
-fn subscribe<W: Sink>(bridge: &Bridge, request: &Request, resp: &mut Response<W>, object: &str) -> io::Result<()> {
+fn subscribe<W: Sink>(
+    bridge: &Bridge,
+    request: &Request,
+    resp: &mut Response<W>,
+    object: &str,
+) -> io::Result<()> {
+    use owrt_ubus::sys::{poll_fds, PollFd, POLLERR, POLLHUP, POLLIN};
     use owrt_ubus::{attr, status, ty, Incoming};
-    use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLHUP, POLLERR};
     // A subscription owns its socket until the HTTP client disconnects. It
     // must never return a registered subscriber to the ordinary request pool.
     let mut conn = Connection::connect(bridge.socket.as_deref())?;
-    let sid = request.header("authorization").and_then(|value| {
-        value.get(..7).filter(|prefix| prefix.eq_ignore_ascii_case("Bearer ")).map(|_| &value[7..])
-    }).unwrap_or(DEFAULT_SID);
-    let error = |code: i32, message: String| Json::Object(vec![
-        ("code".into(), Json::Int(code as i64)), ("message".into(), Json::Str(message)),
-    ]).to_bytes();
+    let sid = request
+        .header("authorization")
+        .and_then(|value| {
+            value
+                .get(..7)
+                .filter(|prefix| prefix.eq_ignore_ascii_case("Bearer "))
+                .map(|_| &value[7..])
+        })
+        .unwrap_or(DEFAULT_SID);
+    let error = |code: i32, message: String| {
+        Json::Object(vec![
+            ("code".into(), Json::Int(code as i64)),
+            ("message".into(), Json::Str(message)),
+        ])
+        .to_bytes()
+    };
     if !bridge.noauth && !allowed(&mut conn, bridge, sid, object, ":subscribe") {
-        return send_json(resp, bridge, request, 200, "OK", error(-13, "Permission denied".into()));
+        return send_json(
+            resp,
+            bridge,
+            request,
+            200,
+            "OK",
+            error(-13, "Permission denied".into()),
+        );
     }
     let subscriber = match conn.add_anonymous_object(bridge.timeout_ms) {
         Ok(id) => id,
-        Err(_) => return send_json(resp, bridge, request, 200, "OK", error(status::UNKNOWN_ERROR, status::name(status::UNKNOWN_ERROR))),
+        Err(_) => {
+            return send_json(
+                resp,
+                bridge,
+                request,
+                200,
+                "OK",
+                error(status::UNKNOWN_ERROR, status::name(status::UNKNOWN_ERROR)),
+            )
+        }
     };
     let target = match conn.lookup_id(object, bridge.timeout_ms) {
         Ok(target) => target,
-        Err(_) => return send_json(resp, bridge, request, 200, "OK", error(status::NOT_FOUND, status::name(status::NOT_FOUND))),
+        Err(_) => {
+            return send_json(
+                resp,
+                bridge,
+                request,
+                200,
+                "OK",
+                error(status::NOT_FOUND, status::name(status::NOT_FOUND)),
+            )
+        }
     };
-    if conn.subscribe(subscriber, target, bridge.timeout_ms).is_err() {
-        return send_json(resp, bridge, request, 200, "OK", error(status::UNKNOWN_ERROR, status::name(status::UNKNOWN_ERROR)));
+    if conn
+        .subscribe(subscriber, target, bridge.timeout_ms)
+        .is_err()
+    {
+        return send_json(
+            resp,
+            bridge,
+            request,
+            200,
+            "OK",
+            error(status::UNKNOWN_ERROR, status::name(status::UNKNOWN_ERROR)),
+        );
     }
     resp.status(200, "OK")?;
     cors_headers(resp, bridge, request)?;
@@ -649,12 +781,23 @@ fn subscribe<W: Sink>(bridge: &Bridge, request: &Request, resp: &mut Response<W>
         }
         const POLLRDHUP: i16 = 0x2000;
         let mut fds = [
-            PollFd { fd: conn.as_raw_fd(), events: POLLIN, revents: 0 },
-            PollFd { fd: resp.sink().fd(), events: POLLRDHUP, revents: 0 },
+            PollFd {
+                fd: conn.as_raw_fd(),
+                events: POLLIN,
+                revents: 0,
+            },
+            PollFd {
+                fd: resp.sink().fd(),
+                events: POLLRDHUP,
+                revents: 0,
+            },
         ];
         poll_fds(&mut fds, -1)?;
         if fds[1].revents & (POLLRDHUP | POLLHUP | POLLERR) != 0 {
-            return Err(io::Error::new(io::ErrorKind::ConnectionAborted, "subscriber disconnected"));
+            return Err(io::Error::new(
+                io::ErrorKind::ConnectionAborted,
+                "subscriber disconnected",
+            ));
         }
     }
 }
@@ -672,22 +815,40 @@ mod tests {
 
         struct Fixture(std::path::PathBuf);
         impl Drop for Fixture {
-            fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
         }
-        let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let dir = std::env::temp_dir().join(format!("httpd-params-{}-{unique}", std::process::id()));
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir =
+            std::env::temp_dir().join(format!("httpd-params-{}-{unique}", std::process::id()));
         std::fs::create_dir(&dir).unwrap();
         let fixture = Fixture(dir);
         let path = fixture.0.join("bus.sock");
         let listener = UnixListener::bind(&path).unwrap();
         let worker = std::thread::spawn(move || {
             let (mut socket, _) = listener.accept().unwrap();
-            socket.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
-            let send = |socket: &mut std::os::unix::net::UnixStream, header: Header, body: &mut BlobBuf| {
+            socket
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
+            let send = |socket: &mut std::os::unix::net::UnixStream,
+                        header: Header,
+                        body: &mut BlobBuf| {
                 socket.write_all(&header.encode()).unwrap();
                 socket.write_all(body.as_bytes()).unwrap();
             };
-            send(&mut socket, Header { ty: ty::HELLO, seq: 0, peer: 123 }, &mut BlobBuf::new());
+            send(
+                &mut socket,
+                Header {
+                    ty: ty::HELLO,
+                    seq: 0,
+                    peer: 123,
+                },
+                &mut BlobBuf::new(),
+            );
             let mut invokes = 0;
             loop {
                 let mut prefix = [0u8; 12];
@@ -702,13 +863,23 @@ mod tests {
                 socket.read_exact(&mut body).unwrap();
                 if header.ty == ty::LOOKUP {
                     let mut data = BlobBuf::new();
-                    data.put_string(attr::OBJPATH, "test").put_u32(attr::OBJID, 42);
-                    send(&mut socket, Header { ty: ty::DATA, ..header }, &mut data);
+                    data.put_string(attr::OBJPATH, "test")
+                        .put_u32(attr::OBJID, 42);
+                    send(
+                        &mut socket,
+                        Header {
+                            ty: ty::DATA,
+                            ..header
+                        },
+                        &mut data,
+                    );
                 } else {
                     assert_eq!(header.ty, ty::INVOKE);
                     invokes += 1;
-                    if blob::iter(&body).find(|field| field.id == attr::METHOD)
-                        .and_then(|field| field.as_str()) == Some("timeout")
+                    if blob::iter(&body)
+                        .find(|field| field.id == attr::METHOD)
+                        .and_then(|field| field.as_str())
+                        == Some("timeout")
                     {
                         // Keep the transport open without answering; the
                         // real connection deadline must produce the RPC code.
@@ -717,52 +888,116 @@ mod tests {
                 }
                 let mut status = BlobBuf::new();
                 status.put_u32(attr::STATUS, 0);
-                send(&mut socket, Header { ty: ty::STATUS, ..header }, &mut status);
+                send(
+                    &mut socket,
+                    Header {
+                        ty: ty::STATUS,
+                        ..header
+                    },
+                    &mut status,
+                );
             }
             invokes
         });
         let mut bridge = Bridge {
-            socket: Some(path.to_str().unwrap().into()), noauth: true, cors: false,
-            timeout_ms: 1000, events_retry: 0, record_calls: true,
-            idle: Mutex::new(Vec::new()), calls: Mutex::new(Vec::new()),
+            socket: Some(path.to_str().unwrap().into()),
+            noauth: true,
+            cors: false,
+            timeout_ms: 1000,
+            events_retry: 0,
+            record_calls: true,
+            idle: Mutex::new(Vec::new()),
+            calls: Mutex::new(Vec::new()),
         };
-        for args in [Json::Null, Json::Bool(true), Json::Int(7), Json::Float(1.5),
-            Json::Str("scalar".into()), Json::Array(vec![]),
-            Json::Object(vec![("ubus_rpc_session".into(), Json::Str("injected".into()))])] {
-            let response = do_call(&bridge, Json::Int(9), DEFAULT_SID, "test", "method", &args, false).into_bytes();
+        for args in [
+            Json::Null,
+            Json::Bool(true),
+            Json::Int(7),
+            Json::Float(1.5),
+            Json::Str("scalar".into()),
+            Json::Array(vec![]),
+            Json::Object(vec![(
+                "ubus_rpc_session".into(),
+                Json::Str("injected".into()),
+            )]),
+        ] {
+            let response = do_call(
+                &bridge,
+                Json::Int(9),
+                DEFAULT_SID,
+                "test",
+                "method",
+                &args,
+                false,
+            )
+            .into_bytes();
             assert_eq!(response, br#"{"jsonrpc":"2.0","id":9,"error":{"code":-32602,"message":"Invalid parameters"}}"#);
         }
         assert!(bridge.call_inventory().is_empty());
-        let response = do_call(&bridge, Json::Int(10), DEFAULT_SID, "test", "method", &Json::Object(vec![]), false).into_bytes();
+        let response = do_call(
+            &bridge,
+            Json::Int(10),
+            DEFAULT_SID,
+            "test",
+            "method",
+            &Json::Object(vec![]),
+            false,
+        )
+        .into_bytes();
         assert_eq!(response, br#"{"jsonrpc":"2.0","id":10,"result":null}"#);
         assert_eq!(bridge.call_inventory(), "test method 1\n");
         bridge.timeout_ms = 100;
-        let response = do_call(&bridge, Json::Int(11), DEFAULT_SID, "test", "timeout", &Json::Object(vec![]), false).into_bytes();
+        let response = do_call(
+            &bridge,
+            Json::Int(11),
+            DEFAULT_SID,
+            "test",
+            "timeout",
+            &Json::Object(vec![]),
+            false,
+        )
+        .into_bytes();
         assert_eq!(response, br#"{"jsonrpc":"2.0","id":11,"error":{"code":-32003,"message":"ubus request timed out"}}"#);
         drop(bridge);
-        assert_eq!(worker.join().unwrap(), 2, "only the valid objects may invoke ubus");
+        assert_eq!(
+            worker.join().unwrap(),
+            2,
+            "only the valid objects may invoke ubus"
+        );
     }
 
     #[test]
     fn overly_nested_ubus_reply_returns_rpc_error_without_partial_json() {
         let mut fields = BlobBuf::new();
         let mut cookies = Vec::new();
-        for _ in 0..65 { cookies.push(fields.msg_open_table("a")); }
+        for _ in 0..65 {
+            cookies.push(fields.msg_open_table("a"));
+        }
         fields.msg_u32("value", 7);
-        for cookie in cookies.into_iter().rev() { fields.msg_close(cookie); }
+        for cookie in cookies.into_iter().rev() {
+            fields.msg_close(cookie);
+        }
         let mut data = BlobBuf::new();
         data.put(owrt_ubus::attr::DATA, fields.payload());
-        let reply = owrt_ubus::Reply { status: 0, data: vec![data.into_payload()], fd: None };
+        let reply = owrt_ubus::Reply {
+            status: 0,
+            data: vec![data.into_payload()],
+            fd: None,
+        };
         for legacy in [false, true] {
-            assert_eq!(rpc_call_result(Json::Int(1), legacy, &reply).into_bytes(),
-                       rpc_error(Json::Int(1), RpcError::Internal).into_bytes());
+            assert_eq!(
+                rpc_call_result(Json::Int(1), legacy, &reply).into_bytes(),
+                rpc_error(Json::Int(1), RpcError::Internal).into_bytes()
+            );
         }
     }
 
     #[test]
     fn rpc_envelopes_preserve_bytes_ids_errors_and_batch_order() {
-        let result = rpc_result(Json::Bytes(b"id\xff\"".to_vec()),
-                                Json::Array(vec![Json::Int(0), Json::Bytes(b"a\n\x80".to_vec())]));
+        let result = rpc_result(
+            Json::Bytes(b"id\xff\"".to_vec()),
+            Json::Array(vec![Json::Int(0), Json::Bytes(b"a\n\x80".to_vec())]),
+        );
         let expected = b"{\"jsonrpc\":\"2.0\",\"id\":\"id\xff\\\"\",\"result\":[0,\"a\\n\x80\"]}";
         let mut prefixed = b"prefix".to_vec();
         result.append_to(&mut prefixed);
@@ -771,21 +1006,33 @@ mod tests {
         assert_eq!(result.into_bytes(), expected);
 
         let failure = rpc_error(Json::Null, RpcError::Parse);
-        assert_eq!(rpc_error(Json::Null, RpcError::Parse).into_bytes(),
-                   br#"{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}"#);
+        assert_eq!(
+            rpc_error(Json::Null, RpcError::Parse).into_bytes(),
+            br#"{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}"#
+        );
         let collect = |items: Vec<RpcResponse>| {
             let mut out = Vec::new();
-            rpc_batch(items.into_iter(), |bytes| { out.extend_from_slice(bytes); Ok(()) }).unwrap();
+            rpc_batch(items.into_iter(), |bytes| {
+                out.extend_from_slice(bytes);
+                Ok(())
+            })
+            .unwrap();
             out
         };
         assert_eq!(collect(vec![]), b"[]");
         let batch = collect(vec![rpc_result(Json::Int(1), Json::Null), failure]);
         assert_eq!(batch,
                    br#"[{"jsonrpc":"2.0","id":1,"result":null},{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}]"#);
-        let large = rpc_result(Json::Array(vec![Json::Bool(true)]), Json::Str("x".repeat(8192)));
+        let large = rpc_result(
+            Json::Array(vec![Json::Bool(true)]),
+            Json::Str("x".repeat(8192)),
+        );
         let parsed = json::parse_bytes(&large.into_bytes()).unwrap();
         assert_eq!(parsed.get("id"), Some(&Json::Array(vec![Json::Bool(true)])));
-        assert_eq!(parsed.get("result").and_then(Json::as_str), Some("x".repeat(8192).as_str()));
+        assert_eq!(
+            parsed.get("result").and_then(Json::as_str),
+            Some("x".repeat(8192).as_str())
+        );
     }
 
     #[test]
@@ -798,24 +1045,46 @@ mod tests {
         data.put(attr::DATA, fields.payload());
         let mut malformed = BlobBuf::new();
         malformed.put(attr::DATA, &[0]);
-        for payloads in [vec![], vec![data.into_payload()], vec![malformed.into_payload()]] {
+        for payloads in [
+            vec![],
+            vec![data.into_payload()],
+            vec![malformed.into_payload()],
+        ] {
             for status in [0, owrt_ubus::status::PERMISSION_DENIED] {
                 for legacy in [false, true] {
-                    let reply = Reply { status, data: payloads.clone(), fd: None };
+                    let reply = Reply {
+                        status,
+                        data: payloads.clone(),
+                        fd: None,
+                    };
                     let fields = reply_fields(&reply);
                     let has_data = !fields.is_empty();
                     let expected = if !legacy && status != 0 {
-                        RpcResponse::Json { id: id.clone(), error: true, value: Json::Object(vec![
-                            ("code".into(), Json::Int(status as i64)),
-                            ("message".into(), Json::Str(owrt_ubus::status::name(status))),
-                        ]) }
+                        RpcResponse::Json {
+                            id: id.clone(),
+                            error: true,
+                            value: Json::Object(vec![
+                                ("code".into(), Json::Int(status as i64)),
+                                ("message".into(), Json::Str(owrt_ubus::status::name(status))),
+                            ]),
+                        }
                     } else if legacy {
                         let mut result = vec![Json::Int(status as i64)];
-                        if has_data { result.push(fields_to_json(&fields).unwrap()); }
+                        if has_data {
+                            result.push(fields_to_json(&fields).unwrap());
+                        }
                         rpc_result(id.clone(), Json::Array(result))
                     } else {
-                        rpc_result(id.clone(), if has_data { fields_to_json(&fields).unwrap() } else { Json::Null })
-                    }.into_bytes();
+                        rpc_result(
+                            id.clone(),
+                            if has_data {
+                                fields_to_json(&fields).unwrap()
+                            } else {
+                                Json::Null
+                            },
+                        )
+                    }
+                    .into_bytes();
                     let response = rpc_call_result(id.clone(), legacy, &reply);
                     let mut appended = b"prefix".to_vec();
                     response.append_to(&mut appended);
@@ -828,14 +1097,31 @@ mod tests {
         // the initial estimate must not reserve its entire received size.
         let mut malformed = BlobBuf::new();
         malformed.put(attr::DATA, &vec![0; 128 * 1024]);
-        let bytes = rpc_call_result(Json::Null, false,
-            &Reply { status: 0, data: vec![malformed.into_payload()], fd: None }).into_bytes();
+        let bytes = rpc_call_result(
+            Json::Null,
+            false,
+            &Reply {
+                status: 0,
+                data: vec![malformed.into_payload()],
+                fd: None,
+            },
+        )
+        .into_bytes();
         assert_eq!(bytes, br#"{"jsonrpc":"2.0","id":null,"result":{}}"#);
         assert!(bytes.capacity() <= 32 * 1024);
         // The encoded fast path returns its original allocation to the caller.
-        let response = rpc_call_result(Json::Int(1), true,
-            &Reply { status: 0, data: vec![], fd: None });
-        let RpcResponse::Encoded(ref bytes) = response else { panic!("call not encoded") };
+        let response = rpc_call_result(
+            Json::Int(1),
+            true,
+            &Reply {
+                status: 0,
+                data: vec![],
+                fd: None,
+            },
+        );
+        let RpcResponse::Encoded(ref bytes) = response else {
+            panic!("call not encoded")
+        };
         let allocation = bytes.as_ptr();
         let returned = response.into_bytes();
         assert_eq!(returned.as_ptr(), allocation);
@@ -853,7 +1139,11 @@ mod tests {
         let mut writes = 0;
         let result = rpc_batch(responses, |_| {
             writes += 1;
-            if writes == 2 { Err(io::Error::from(io::ErrorKind::BrokenPipe)) } else { Ok(()) }
+            if writes == 2 {
+                Err(io::Error::from(io::ErrorKind::BrokenPipe))
+            } else {
+                Ok(())
+            }
         });
         assert_eq!(result.unwrap_err().kind(), io::ErrorKind::BrokenPipe);
         assert_eq!(handled, 1);
@@ -865,7 +1155,11 @@ mod tests {
         let mut fields = BlobBuf::new();
         fields.msg_bool("access", true).msg_string("value", "data");
         let data = fields.payload();
-        let reply = |chunks: Vec<Vec<u8>>| Reply { status: 0, data: chunks, fd: None };
+        let reply = |chunks: Vec<Vec<u8>>| Reply {
+            status: 0,
+            data: chunks,
+            fd: None,
+        };
         let mut one = BlobBuf::new();
         one.put_u32(attr::OBJID, 17).put(attr::DATA, data);
         let single = reply(vec![one.into_payload()]);
@@ -877,12 +1171,17 @@ mod tests {
         // even across messages or alongside unrelated protocol attrs.
         for split in 0..=data.len() {
             let mut first = BlobBuf::new();
-            first.put(attr::DATA, &data[..split]).put_u32(attr::OBJID, 17);
+            first
+                .put(attr::DATA, &data[..split])
+                .put_u32(attr::OBJID, 17);
             let mut second = BlobBuf::new();
             second.put(attr::DATA, &data[split..]);
             let multiple = reply(vec![first.into_payload(), second.into_payload()]);
             assert_eq!(&*reply_fields(&multiple), data, "split at {split}");
-            assert_eq!(fields_to_json(&reply_fields(&multiple)).unwrap(), fields_to_json(data).unwrap());
+            assert_eq!(
+                fields_to_json(&reply_fields(&multiple)).unwrap(),
+                fields_to_json(data).unwrap()
+            );
         }
     }
 }

@@ -28,8 +28,14 @@ impl std::error::Error for ConfigError {}
 /// Section types netifd knows but this build does not implement. Naming them
 /// separately keeps the error specific ("bonding is not supported") rather
 /// than "unknown section".
-const OUT_OF_SCOPE: &[&str] =
-    &["rule", "rule6", "switch", "switch_vlan", "switch_port", "bridge-vlan"];
+const OUT_OF_SCOPE: &[&str] = &[
+    "rule",
+    "rule6",
+    "switch",
+    "switch_vlan",
+    "switch_port",
+    "bridge-vlan",
+];
 
 /// One `config route` / `config route6` section (`config_parse_route` →
 /// `interface_ip_add_route(NULL, ...)`): it lands in the named interface's
@@ -188,9 +194,10 @@ fn s_opt(s: &Section, name: &str) -> Option<String> {
 /// `blobmsg_parse` produces for `BLOBMSG_TYPE_ARRAY` from a plain option.
 fn l_opt(s: &Section, name: &str) -> Vec<String> {
     match opt(s, name) {
-        Some(OptionValue::List(v)) => {
-            v.iter().map(|x| String::from_utf8_lossy(x).into_owned()).collect()
-        }
+        Some(OptionValue::List(v)) => v
+            .iter()
+            .map(|x| String::from_utf8_lossy(x).into_owned())
+            .collect(),
         Some(OptionValue::Str(v)) => String::from_utf8_lossy(v)
             .split_whitespace()
             .map(|x| x.to_string())
@@ -203,7 +210,10 @@ fn l_opt(s: &Section, name: &str) -> Vec<String> {
 /// false. netifd goes through blobmsg_parse, which uses the same set.
 fn b_opt(s: &Section, name: &str) -> Option<bool> {
     let v = s_opt(s, name)?;
-    Some(matches!(v.as_str(), "1" | "on" | "true" | "enabled" | "yes"))
+    Some(matches!(
+        v.as_str(),
+        "1" | "on" | "true" | "enabled" | "yes"
+    ))
 }
 
 fn n_opt<T: std::str::FromStr>(s: &Section, name: &str) -> Option<T> {
@@ -267,10 +277,30 @@ fn parse_v6(spec: &str) -> Option<(Ipv6Addr, u8)> {
 /// Option names an `interface` section may carry that this build consumes.
 /// Anything else goes into `extra` for the proto handler.
 const KNOWN_IFACE_OPTS: &[&str] = &[
-    "device", "ifname", "proto", "auto", "disabled", "ipaddr", "netmask", "ip6addr", "gateway",
-    "ip6gw", "ip6assign", "ip6hint", "metric", "dns_metric", "checkup_interval",
-    "dns", "dns_search", "ip4table",
-    "ip6table", "delegate", "force_link", "defaultroute", "peerdns", "type",
+    "device",
+    "ifname",
+    "proto",
+    "auto",
+    "disabled",
+    "ipaddr",
+    "netmask",
+    "ip6addr",
+    "gateway",
+    "ip6gw",
+    "ip6assign",
+    "ip6hint",
+    "metric",
+    "dns_metric",
+    "checkup_interval",
+    "dns",
+    "dns_search",
+    "ip4table",
+    "ip6table",
+    "delegate",
+    "force_link",
+    "defaultroute",
+    "peerdns",
+    "type",
 ];
 
 /// Parse a loaded `network` package.
@@ -330,7 +360,11 @@ fn parse_device(s: &Section, c: &mut Config, where_: &str) {
             return;
         }
     }
-    let mut d = DeviceConfig { name, kind, ..Default::default() };
+    let mut d = DeviceConfig {
+        name,
+        kind,
+        ..Default::default()
+    };
     d.ports = l_opt(s, "ports");
     if d.ports.is_empty() {
         // `ifname` is the pre-21.02 spelling and still accepted
@@ -380,7 +414,11 @@ fn parse_netmask_str(s: &str, v6: bool) -> u32 {
     match s.parse::<Ipv4Addr>() {
         Ok(nm) => {
             let inv = !u32::from_be_bytes(nm.octets());
-            32 - if inv == 0 { 0 } else { 32 - inv.leading_zeros() }
+            32 - if inv == 0 {
+                0
+            } else {
+                32 - inv.leading_zeros()
+            }
         }
         Err(_) => u32::MAX,
     }
@@ -389,14 +427,20 @@ fn parse_netmask_str(s: &str, v6: bool) -> u32 {
 fn parse_route(s: &Section, v6: bool, c: &mut Config, where_: &str) {
     use crate::interface::{devroute, Route};
     let warn = |c: &mut Config, m: String| {
-        c.warnings.push(ConfigError { section: where_.to_string(), message: m })
+        c.warnings.push(ConfigError {
+            section: where_.to_string(),
+            message: m,
+        })
     };
     if b_opt(s, "disabled").unwrap_or(false) {
         return;
     }
     let max: u32 = if v6 { 128 } else { 32 };
-    let unspec: IpAddr =
-        if v6 { IpAddr::V6(Ipv6Addr::UNSPECIFIED) } else { IpAddr::V4(Ipv4Addr::UNSPECIFIED) };
+    let unspec: IpAddr = if v6 {
+        IpAddr::V6(Ipv6Addr::UNSPECIFIED)
+    } else {
+        IpAddr::V4(Ipv4Addr::UNSPECIFIED)
+    };
     let parse_ip = |s: &str| -> Option<IpAddr> {
         if v6 {
             s.parse::<Ipv6Addr>().ok().map(IpAddr::V6)
@@ -435,7 +479,11 @@ fn parse_route(s: &Section, v6: bool, c: &mut Config, where_: &str) {
         // "Mask out IPv4 host bits"
         if let (IpAddr::V4(v4), true) = (target, !v6 && mask < 32) {
             let bits = u32::from_be_bytes(v4.octets());
-            let keep = if mask == 0 { 0 } else { u32::MAX << (32 - mask) };
+            let keep = if mask == 0 {
+                0
+            } else {
+                u32::MAX << (32 - mask)
+            };
             target = IpAddr::V4(Ipv4Addr::from(bits & keep));
         }
     }
@@ -507,7 +555,10 @@ fn parse_route(s: &Section, v6: bool, c: &mut Config, where_: &str) {
         r.flags |= devroute::PROTO;
     }
     if s_opt(s, "valid").is_some() {
-        warn(c, "route option 'valid' is not carried by this build".into());
+        warn(
+            c,
+            "route option 'valid' is not carried by this build".into(),
+        );
     }
     let interface = match s_opt(s, "interface") {
         Some(i) => i,
@@ -516,11 +567,17 @@ fn parse_route(s: &Section, v6: bool, c: &mut Config, where_: &str) {
             "loopback".to_string()
         }
     };
-    c.routes.push(StaticRoute { interface, route: r });
+    c.routes.push(StaticRoute {
+        interface,
+        route: r,
+    });
 }
 
 fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
-    let mut i = InterfaceConfig { name: s.name.clone(), ..Default::default() };
+    let mut i = InterfaceConfig {
+        name: s.name.clone(),
+        ..Default::default()
+    };
     i.proto = s_opt(s, "proto").unwrap_or_default();
     if i.proto.is_empty() {
         c.warnings.push(ConfigError {
@@ -547,7 +604,8 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
                     section: where_.to_string(),
                     message: format!("ipaddr '{a}' is not an IPv4 address"),
                 });
-                i.static_error.get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
+                i.static_error
+                    .get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
             }
         }
     }
@@ -559,7 +617,8 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
                     section: where_.to_string(),
                     message: format!("ip6addr '{a}' is not an IPv6 address"),
                 });
-                i.static_error.get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
+                i.static_error
+                    .get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
             }
         }
     }
@@ -642,17 +701,28 @@ mod tests {
     #[test]
     fn configuration_debug_does_not_disclose_protocol_credentials() {
         let secret = "pppoe-password-that-must-not-be-logged";
-        let raw = RawOpt { name: "password".into(), values: vec![secret.into()], is_list: false };
-        let mut config = InterfaceConfig { name: "wan".into(), proto: "pppoe".into(), ..Default::default() };
+        let raw = RawOpt {
+            name: "password".into(),
+            values: vec![secret.into()],
+            is_list: false,
+        };
+        let mut config = InterfaceConfig {
+            name: "wan".into(),
+            proto: "pppoe".into(),
+            ..Default::default()
+        };
         config.extra.insert("password".into(), vec![secret.into()]);
         config.raw.push(raw.clone());
-        for debug in [format!("{raw:?}"), format!("{config:?}"), format!("{config:#?}")] {
+        for debug in [
+            format!("{raw:?}"),
+            format!("{config:?}"),
+            format!("{config:#?}"),
+        ] {
             assert!(!debug.contains(secret), "credential leaked: {debug}");
         }
         assert_eq!(config.extra["password"], [secret]);
         assert_eq!(config.raw[0].values, [secret]);
     }
-
 
     fn pkg(text: &str) -> Package {
         // tests run in parallel and each writes its own `network` file, so the
@@ -689,24 +759,38 @@ mod tests {
 
     #[test]
     fn an_unsupported_device_type_is_a_warning_and_a_skip() {
-        let c = parse(&pkg("config device\n\toption name 'bond0'\n\toption type 'bonding'\n"));
+        let c = parse(&pkg(
+            "config device\n\toption name 'bond0'\n\toption type 'bonding'\n",
+        ));
         assert!(c.devices.is_empty());
         assert_eq!(c.warnings.len(), 1);
-        assert!(c.warnings[0].message.contains("bonding"), "{:?}", c.warnings);
+        assert!(
+            c.warnings[0].message.contains("bonding"),
+            "{:?}",
+            c.warnings
+        );
     }
 
     #[test]
     fn out_of_scope_sections_name_themselves() {
         let c = parse(&pkg("config rule\n\toption lookup '100'\n"));
         assert_eq!(c.warnings.len(), 1);
-        assert!(c.warnings[0].message.contains("'rule' is not supported"), "{:?}", c.warnings);
+        assert!(
+            c.warnings[0].message.contains("'rule' is not supported"),
+            "{:?}",
+            c.warnings
+        );
     }
 
     #[test]
     fn an_unknown_section_type_is_reported_separately() {
         let c = parse(&pkg("config wombat 'x'\n"));
         assert_eq!(c.warnings.len(), 1);
-        assert!(c.warnings[0].message.contains("unknown section type"), "{:?}", c.warnings);
+        assert!(
+            c.warnings[0].message.contains("unknown section type"),
+            "{:?}",
+            c.warnings
+        );
     }
 
     #[test]
@@ -717,14 +801,25 @@ mod tests {
              \toption netmask '255.255.255.0'\n",
         ));
         assert!(c.warnings.is_empty(), "{:?}", c.warnings);
-        assert_eq!(c.interfaces[0].ipv4, vec![("192.168.1.1".parse().unwrap(), 24)]);
-        assert_eq!(c.interfaces[1].ipv4, vec![("10.0.0.1".parse().unwrap(), 24)]);
+        assert_eq!(
+            c.interfaces[0].ipv4,
+            vec![("192.168.1.1".parse().unwrap(), 24)]
+        );
+        assert_eq!(
+            c.interfaces[1].ipv4,
+            vec![("10.0.0.1".parse().unwrap(), 24)]
+        );
     }
 
     #[test]
     fn a_bare_ipaddr_with_no_netmask_is_a_host_route() {
-        let c = parse(&pkg("config interface lan\n\toption proto 'static'\n\toption ipaddr '10.0.0.1'\n"));
-        assert_eq!(c.interfaces[0].ipv4, vec![("10.0.0.1".parse().unwrap(), 32)]);
+        let c = parse(&pkg(
+            "config interface lan\n\toption proto 'static'\n\toption ipaddr '10.0.0.1'\n",
+        ));
+        assert_eq!(
+            c.interfaces[0].ipv4,
+            vec![("10.0.0.1".parse().unwrap(), 32)]
+        );
     }
 
     #[test]
@@ -760,9 +855,14 @@ mod tests {
 
     #[test]
     fn uci_boolean_spellings_all_work() {
-        for (text, want) in
-            [("1", true), ("on", true), ("true", true), ("yes", true), ("0", false), ("off", false)]
-        {
+        for (text, want) in [
+            ("1", true),
+            ("on", true),
+            ("true", true),
+            ("yes", true),
+            ("0", false),
+            ("off", false),
+        ] {
             let c = parse(&pkg(&format!(
                 "config interface lan\n\toption proto 'static'\n\toption auto '{text}'\n"
             )));
@@ -779,7 +879,10 @@ mod tests {
         assert!(c.warnings.is_empty(), "{:?}", c.warnings);
         let e = &c.interfaces[0].extra;
         assert_eq!(e.get("hostname").unwrap(), &vec!["router".to_string()]);
-        assert_eq!(e.get("reqopts").unwrap(), &vec!["43".to_string(), "121".to_string()]);
+        assert_eq!(
+            e.get("reqopts").unwrap(),
+            &vec!["43".to_string(), "121".to_string()]
+        );
         assert!(!e.contains_key("proto"));
     }
 
@@ -813,7 +916,10 @@ mod tests {
              \toption packet_steering '1'\n",
         ));
         assert!(c.warnings.is_empty(), "{:?}", c.warnings);
-        assert_eq!(c.globals.ula_prefix, Some(("fdfd:3b1d:1c26::".parse().unwrap(), 48)));
+        assert_eq!(
+            c.globals.ula_prefix,
+            Some(("fdfd:3b1d:1c26::".parse().unwrap(), 48))
+        );
         assert_eq!(c.globals.packet_steering, Some(1));
     }
 

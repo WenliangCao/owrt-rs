@@ -10,7 +10,6 @@ use std::sync::mpsc::{self, RecvTimeoutError};
 use std::thread;
 use std::time::{Duration, Instant};
 
-
 pub enum Outcome {
     Exited(ExitStatus),
     TimedOut,
@@ -39,7 +38,10 @@ pub fn wait(child: &mut Child, timeout: Duration) -> io::Result<Outcome> {
                 }
             }
             if started.elapsed() >= timeout {
-                let _ = rustix::process::kill_process(rustix::process::Pid::from_raw(pid).unwrap(), rustix::process::Signal::KILL);
+                let _ = rustix::process::kill_process(
+                    rustix::process::Pid::from_raw(pid).unwrap(),
+                    rustix::process::Signal::KILL,
+                );
                 let _ = rx.recv();
                 return Ok(Outcome::TimedOut);
             }
@@ -53,8 +55,12 @@ fn wait_polling(pid: i32, timeout: Duration, started: Instant) -> io::Result<Out
     let pid = rustix::process::Pid::from_raw(pid).unwrap();
     loop {
         match rustix::process::waitpid(Some(pid), rustix::process::WaitOptions::NOHANG) {
-            Ok(Some((_, status))) => return Ok(Outcome::Exited(std::os::unix::process::ExitStatusExt::from_raw(status.as_raw()))),
-            Ok(None) => {},
+            Ok(Some((_, status))) => {
+                return Ok(Outcome::Exited(
+                    std::os::unix::process::ExitStatusExt::from_raw(status.as_raw()),
+                ))
+            }
+            Ok(None) => {}
             Err(error) => return Err(error.into()),
         }
         if started.elapsed() >= timeout {

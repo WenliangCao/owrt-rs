@@ -932,7 +932,9 @@ impl DnsConfig {
                     },
                     IpAddr::V6(address),
                 ) => {
-                    let shift = 128u8.checked_sub(*prefix).ok_or(Error("bad prefix length"))?;
+                    let shift = 128u8
+                        .checked_sub(*prefix)
+                        .ok_or(Error("bad prefix length"))?;
                     let mask = u128::MAX.checked_shl(u32::from(shift)).unwrap_or(0);
                     u128::from(address) & mask == u128::from(*prefix_address) & mask
                 }
@@ -988,17 +990,29 @@ mod tests {
         let mut config = DnsConfig {
             conditional_domains: vec![ConditionalDomain {
                 domain: b"example.test".to_vec(),
-                selector: DomainSelector::Prefix6 { address, prefix: 129 },
+                selector: DomainSelector::Prefix6 {
+                    address,
+                    prefix: 129,
+                },
             }],
             ..Default::default()
         };
         assert_eq!(config.validate_ready(), Err(Error("bad prefix length")));
         assert!(crate::config::dhcp::NameDomains::new(&config).is_err());
-        assert_eq!(config.domain_for_address(address.into()), Err(Error("bad prefix length")));
-        config.conditional_domains[0].selector = DomainSelector::Prefix6 { address, prefix: 128 };
+        assert_eq!(
+            config.domain_for_address(address.into()),
+            Err(Error("bad prefix length"))
+        );
+        config.conditional_domains[0].selector = DomainSelector::Prefix6 {
+            address,
+            prefix: 128,
+        };
         let domains = crate::config::dhcp::NameDomains::new(&config).unwrap();
         // The /128 only applies to this exact address and cannot match IPv4.
-        assert_eq!(config.domain_for_address(address.into()), Ok(Some(b"example.test".as_slice())));
+        assert_eq!(
+            config.domain_for_address(address.into()),
+            Ok(Some(b"example.test".as_slice()))
+        );
         assert_eq!(domains.for_address(Ipv4Addr::LOCALHOST), None);
     }
 

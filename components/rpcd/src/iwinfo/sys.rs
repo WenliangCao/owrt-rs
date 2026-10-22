@@ -1,7 +1,6 @@
 //! Fixed iwinfo constants and owned ifreq bytes; syscalls use rustix or the
 //! shared platform boundary. No foreign pointers enter the business layer.
 
-
 pub const AF_UNIX: i32 = 1;
 pub const AF_INET: i32 = 2;
 pub const AF_NETLINK: i32 = 16;
@@ -42,7 +41,10 @@ pub struct Ifreq {
 impl Ifreq {
     /// `strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1)` on a zeroed struct.
     pub fn new(ifname: &str) -> Ifreq {
-        let mut r = Ifreq { name: [0; IFNAMSIZ], data: [0; 24] };
+        let mut r = Ifreq {
+            name: [0; IFNAMSIZ],
+            data: [0; 24],
+        };
         let b = ifname.as_bytes();
         let n = b.len().min(IFNAMSIZ - 1);
         r.name[..n].copy_from_slice(&b[..n]);

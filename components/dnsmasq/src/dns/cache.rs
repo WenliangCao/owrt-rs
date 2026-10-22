@@ -399,7 +399,8 @@ impl Cache {
     }
 
     pub(crate) fn entries(&self) -> impl Iterator<Item = &Entry> {
-        (0..self.slots.len()).filter_map(|slot| self.entry(slot))
+        (0..self.slots.len())
+            .filter_map(|slot| self.entry(slot))
             .filter(|entry| entry.committed)
     }
 
@@ -525,7 +526,11 @@ impl Cache {
     /// has_cname does. Keep the query name borrowed until this synchronous
     /// answer operation ends; object/root identities also reject replacement
     /// or movement of the owning cache. Saturation permanently disables reuse.
-    pub(super) fn inspect_name<'a>(&self, name: &'a Name, now: i64) -> (bool, Option<NameLookup<'a>>) {
+    pub(super) fn inspect_name<'a>(
+        &self,
+        name: &'a Name,
+        now: i64,
+    ) -> (bool, Option<NameLookup<'a>>) {
         let canonical;
         let key = if name.as_wire().iter().any(u8::is_ascii_uppercase) {
             canonical = name.canonical_wire();
@@ -534,10 +539,13 @@ impl Cache {
             name.as_wire()
         };
         let indices = self.names_for(key);
-        let cname = indices.is_some_and(|slots| slots.iter().any(|&slot| {
-            self.entry(slot).is_some_and(|entry| entry.record.kind == Kind::Cname)
-                && !self.invalid(slot, now)
-        }));
+        let cname = indices.is_some_and(|slots| {
+            slots.iter().any(|&slot| {
+                self.entry(slot)
+                    .is_some_and(|entry| entry.record.kind == Kind::Cname)
+                    && !self.invalid(slot, now)
+            })
+        });
         if self.name_revision == u64::MAX {
             return (cname, None);
         }
@@ -545,12 +553,20 @@ impl Cache {
             None | Some(SlotIndices::Empty) => NameSelection::Missing,
             Some(SlotIndices::One(slot)) => NameSelection::One(self.id(*slot)),
             Some(SlotIndices::Many(slots)) => {
-                let [first, second] = slots.as_slice() else { return (cname, None) };
+                let [first, second] = slots.as_slice() else {
+                    return (cname, None);
+                };
                 let (ipv4, ipv6) = match (self.entry(*first), self.entry(*second)) {
-                    (Some(a), Some(b)) if a.record.kind == Kind::Ipv4 && b.record.kind == Kind::Ipv6 =>
-                        (*first, *second),
-                    (Some(a), Some(b)) if a.record.kind == Kind::Ipv6 && b.record.kind == Kind::Ipv4 =>
-                        (*second, *first),
+                    (Some(a), Some(b))
+                        if a.record.kind == Kind::Ipv4 && b.record.kind == Kind::Ipv6 =>
+                    {
+                        (*first, *second)
+                    }
+                    (Some(a), Some(b))
+                        if a.record.kind == Kind::Ipv6 && b.record.kind == Kind::Ipv4 =>
+                    {
+                        (*second, *first)
+                    }
                     _ => return (cname, None),
                 };
                 // Ordinary lookup expires every name member before selecting
@@ -558,24 +574,36 @@ impl Cache {
                 // so that the general path retains those expiry side effects.
                 if !self.fresh_address_slot(ipv4, Kind::Ipv4, now)
                     || !self.fresh_address_slot(ipv6, Kind::Ipv6, now)
-                { return (cname, None); }
-                NameSelection::AddressPair { ipv4: self.id(ipv4), ipv6: self.id(ipv6) }
-            },
+                {
+                    return (cname, None);
+                }
+                NameSelection::AddressPair {
+                    ipv4: self.id(ipv4),
+                    ipv6: self.id(ipv6),
+                }
+            }
         };
-        (cname, Some(NameLookup {
-            name,
-            owner: self as *const Self as usize,
-            roots: self.names.as_ptr() as usize,
-            revision: self.name_revision,
-            selection,
-        }))
+        (
+            cname,
+            Some(NameLookup {
+                name,
+                owner: self as *const Self as usize,
+                roots: self.names.as_ptr() as usize,
+                revision: self.name_revision,
+                selection,
+            }),
+        )
     }
 
     /// The common one-address hit can keep its ID on the stack. A rejected
     /// hint changes nothing; the ordinary lookup still owns all fallback,
     /// expiry, negative, CNAME and RRset behavior.
     pub(super) fn single_fresh_address_with_hint(
-        &mut self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
+        &mut self,
+        name: &Name,
+        kind: Kind,
+        now: i64,
+        hint: Option<&NameLookup<'_>>,
     ) -> Option<EntryId> {
         let id = self.single_fresh_address_id_with_hint(name, kind, now, hint)?;
         // Exactly the existing single-slot lookup promotion, without a Vec.
@@ -586,7 +614,11 @@ impl Cache {
 
     /// Read-only eligibility for a query-local shortcut before local ownership.
     pub(super) fn single_fresh_address_id_with_hint(
-        &self, name: &Name, kind: Kind, now: i64, hint: Option<&NameLookup<'_>>,
+        &self,
+        name: &Name,
+        kind: Kind,
+        now: i64,
+        hint: Option<&NameLookup<'_>>,
     ) -> Option<EntryId> {
         let hint = hint?;
         if !std::ptr::eq(name, hint.name)
@@ -594,7 +626,9 @@ impl Cache {
             || hint.roots != self.names.as_ptr() as usize
             || hint.revision != self.name_revision
             || self.name_revision == u64::MAX
-        { return None; }
+        {
+            return None;
+        }
         let id = match hint.selection {
             NameSelection::One(id) => id,
             NameSelection::AddressPair { ipv4, ipv6 } => {
@@ -604,25 +638,47 @@ impl Cache {
                 self.get(ipv6)?;
                 if !self.fresh_address_slot(ipv4.slot, Kind::Ipv4, now)
                     || !self.fresh_address_slot(ipv6.slot, Kind::Ipv6, now)
-                { return None; }
-                match kind { Kind::Ipv4 => ipv4, Kind::Ipv6 => ipv6, _ => return None }
-            },
+                {
+                    return None;
+                }
+                match kind {
+                    Kind::Ipv4 => ipv4,
+                    Kind::Ipv6 => ipv6,
+                    _ => return None,
+                }
+            }
             NameSelection::Missing => return None,
         };
-        let expected_length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return None };
+        let expected_length = match kind {
+            Kind::Ipv4 => 4,
+            Kind::Ipv6 => 16,
+            _ => return None,
+        };
         let entry = self.get(id)?;
-        if entry.record.kind != kind || entry.record.negative
-            || entry.record.data.len() != expected_length || entry.is_stale(now)
+        if entry.record.kind != kind
+            || entry.record.negative
+            || entry.record.data.len() != expected_length
+            || entry.is_stale(now)
             || !self.is_valid(id, now)
-        { return None; }
+        {
+            return None;
+        }
         Some(id)
     }
 
     fn fresh_address_slot(&self, slot: usize, kind: Kind, now: i64) -> bool {
-        let length = match kind { Kind::Ipv4 => 4, Kind::Ipv6 => 16, _ => return false };
-        self.entry(slot).is_some_and(|entry| entry.record.kind == kind
-            && !entry.record.negative && entry.record.data.len() == length
-            && !entry.is_stale(now) && !self.invalid(slot, now))
+        let length = match kind {
+            Kind::Ipv4 => 4,
+            Kind::Ipv6 => 16,
+            _ => return false,
+        };
+        self.entry(slot).is_some_and(|entry| {
+            entry.record.kind == kind
+                && !entry.record.negative
+                && entry.record.data.len() == length
+                && !entry.is_stale(now)
+                && !self.invalid(slot, now)
+        })
     }
 
     pub(super) fn lookup_with_hint(
@@ -648,7 +704,10 @@ impl Cache {
                 // intact so it has no extra per-record dispatch or calls.
                 if self.invalid(id.slot, now) {
                     self.remove(id.slot);
-                } else if kinds.iter().any(|kind| self.entry(id.slot).unwrap().record.kind.matches(*kind)) {
+                } else if kinds
+                    .iter()
+                    .any(|kind| self.entry(id.slot).unwrap().record.kind.matches(*kind))
+                {
                     self.unlink(id.slot);
                     self.link_head(id.slot);
                     found.push(self.id(id.slot));
@@ -905,7 +964,9 @@ impl Cache {
                 let victims = if victim_kind.is_reverse() {
                     self.reverse_chain.clone()
                 } else {
-                    self.names_for(&victim_key).map(|indices| indices.to_vec()).unwrap_or_default()
+                    self.names_for(&victim_key)
+                        .map(|indices| indices.to_vec())
+                        .unwrap_or_default()
                 };
                 for victim in victims {
                     let entry = self.entry(victim).unwrap();
@@ -1097,7 +1158,11 @@ impl Cache {
                 entry.committed = true;
                 (
                     entry.record.name.canonical_wire(),
-                    entry.record.kind.is_reverse().then(|| entry.record.name.clone()),
+                    entry
+                        .record
+                        .kind
+                        .is_reverse()
+                        .then(|| entry.record.name.clone()),
                     entry.expires,
                 )
             };

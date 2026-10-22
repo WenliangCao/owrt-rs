@@ -92,7 +92,10 @@ pub fn configured_hosts_bulk(
     for record in &config.host_records {
         for name in &record.names {
             let ttl = record.ttl.unwrap_or(local_ttl);
-            for address in record.address4.map(IpAddr::V4).into_iter()
+            for address in record
+                .address4
+                .map(IpAddr::V4)
+                .into_iter()
                 .chain(record.address6.map(IpAddr::V6))
             {
                 hosts.insert_checked(
@@ -232,8 +235,16 @@ impl<'a> LocalAnswerer<'a> {
         let question = super::forward::Question::parse_with_header(query, header)
             .map_err(|_| AnswerError::Malformed)?;
         self.answer_parsed_with_query_events(
-            query, header, &question, lease_names, now, local_network,
-            cache, interfaces, logging, &mut None,
+            query,
+            header,
+            &question,
+            lease_names,
+            now,
+            local_network,
+            cache,
+            interfaces,
+            logging,
+            &mut None,
         )
     }
 
@@ -304,21 +315,21 @@ impl<'a> LocalAnswerer<'a> {
         // considered; the name is replaced with the terminal target and the
         // requested RR type is looked up there.  This also applies to unknown
         // RR types, which still receive a CNAME-only answer.
-        let has_cname = class_in
-            && !self.config.records.cnames.is_empty()
-            && {
-                let key = question.name.canonical_wire();
-                self.config.records.cnames.iter()
-                    .any(|record| dotted_key_matches(&record.alias, &key))
-            };
-        if !has_cname && class_in
-            && cache
-                .as_deref()
-                .is_some_and(|cache| {
-                    let (cname, lookup) = cache.inspect_name(&question.name, now);
-                    *name_lookup = lookup;
-                    cname
-                })
+        let has_cname = class_in && !self.config.records.cnames.is_empty() && {
+            let key = question.name.canonical_wire();
+            self.config
+                .records
+                .cnames
+                .iter()
+                .any(|record| dotted_key_matches(&record.alias, &key))
+        };
+        if !has_cname
+            && class_in
+            && cache.as_deref().is_some_and(|cache| {
+                let (cname, lookup) = cache.inspect_name(&question.name, now);
+                *name_lookup = lookup;
+                cname
+            })
         {
             // rfc1035.c:1754-1806 follows cached CNAMEs before TXT and other
             // local records. Let CacheContext use that chain, including its
@@ -329,16 +340,39 @@ impl<'a> LocalAnswerer<'a> {
         }
         if !has_cname && class_in {
             let address_kind = match question.rrtype {
-                TYPE_A => Some(Kind::Ipv4), TYPE_AAAA => Some(Kind::Ipv6), _ => None,
+                TYPE_A => Some(Kind::Ipv4),
+                TYPE_AAAA => Some(Kind::Ipv6),
+                _ => None,
             };
-            if address_kind.is_some_and(|kind| cache.as_deref().is_some_and(|cache| {
-                cache.single_fresh_address_id_with_hint(&question.name, kind, now, name_lookup.as_ref()).is_some()
-            })) && self.cached_address_is_unclaimed(question, dotted_name.as_deref(), leases) {
+            if address_kind.is_some_and(|kind| {
+                cache.as_deref().is_some_and(|cache| {
+                    cache
+                        .single_fresh_address_id_with_hint(
+                            &question.name,
+                            kind,
+                            now,
+                            name_lookup.as_ref(),
+                        )
+                        .is_some()
+                })
+            }) && self.cached_address_is_unclaimed(question, dotted_name.as_deref(), leases)
+            {
                 return Ok(None);
             }
         }
-        self.answer_local_records(query, header, question, lease_names, now, local_network,
-            cache, interfaces, logging, has_cname, dotted_name)
+        self.answer_local_records(
+            query,
+            header,
+            question,
+            lease_names,
+            now,
+            local_network,
+            cache,
+            interfaces,
+            logging,
+            has_cname,
+            dotted_name,
+        )
     }
 
     // Eligible fresh hits and cached CNAMEs have already returned. Keep record
@@ -466,8 +500,13 @@ impl<'a> LocalAnswerer<'a> {
         // record candidates. The owner can defer this answer behind its cache.
         if !owned && !has_cname {
             return self.answer_forward_rule(
-                header, question, &question.name, lease_names, now,
-                cache.as_deref(), logging,
+                header,
+                question,
+                &question.name,
+                lease_names,
+                now,
+                cache.as_deref(),
+                logging,
             );
         }
         if !owned {
@@ -486,11 +525,7 @@ impl<'a> LocalAnswerer<'a> {
             } else {
                 0x0400
             }
-            | if notimp {
-                4
-            } else {
-                0
-            }
+            | if notimp { 4 } else { 0 }
             | (header.flags & (0x0100 | 0x0040 | 0x0010));
         let mut writer = PacketWriter::new(header.id, flags, limit)?;
         writer.question(&question.name, question.rrtype, question.class)?;
@@ -585,7 +620,12 @@ impl<'a> LocalAnswerer<'a> {
                         .first()
                         .copied()
                     {
-                        match super::cache_reply::append_negative_authority(&mut writer, cache, id, now) {
+                        match super::cache_reply::append_negative_authority(
+                            &mut writer,
+                            cache,
+                            id,
+                            now,
+                        ) {
                             Ok(_) => {}
                             Err(WireError::Full) => truncated = true,
                             Err(error) => return Err(error.into()),
@@ -624,19 +664,32 @@ impl<'a> LocalAnswerer<'a> {
     }
 
     pub(super) fn plain_cached_address_is_unclaimed(
-        &self, question: &super::forward::Question, leases: &LeaseNames, now: i64,
+        &self,
+        question: &super::forward::Question,
+        leases: &LeaseNames,
+        now: i64,
         interfaces: &super::interface_records::InterfaceRecords,
     ) -> bool {
         let mut scratch = [0; 253];
-        let Some(length) = query_dotted_name(&question.name, &mut scratch) else { return false };
+        let Some(length) = query_dotted_name(&question.name, &mut scratch) else {
+            return false;
+        };
         let name = &scratch[..length];
         // Let the general lookup perform sticky expiry before any shortcut.
         // CNAMEs are excluded below, so only this original name is traversed.
         !leases.has_expired_name(name, now)
-            && self.cached_address_is_unclaimed(question, Some(name), LeaseView {
-                synth: &self.config.synth_domains, names: leases, now,
-                local_ttl: self.local_ttl, local_network: None, interfaces,
-            })
+            && self.cached_address_is_unclaimed(
+                question,
+                Some(name),
+                LeaseView {
+                    synth: &self.config.synth_domains,
+                    names: leases,
+                    now,
+                    local_ttl: self.local_ttl,
+                    local_network: None,
+                    interfaces,
+                },
+            )
     }
 
     // Only an existing fresh address reaches this check. Paths without such
@@ -644,7 +697,10 @@ impl<'a> LocalAnswerer<'a> {
     // Lease expiry has already run, and its converted name can be reused.
     #[inline(never)]
     fn cached_address_is_unclaimed(
-        &self, question: &super::forward::Question, dotted_name: Option<&[u8]>, leases: LeaseView<'_>,
+        &self,
+        question: &super::forward::Question,
+        dotted_name: Option<&[u8]>,
+        leases: LeaseView<'_>,
     ) -> bool {
         if !self.config.records.cnames.is_empty()
             || self.config.records.has_raw_type(question.rrtype)
@@ -652,12 +708,16 @@ impl<'a> LocalAnswerer<'a> {
             || !self.config.interface_records.rules.is_empty()
             || !self.config.synth_domains.domains.is_empty()
             || !self.hosts.is_published()
-        { return false; }
+        {
+            return false;
+        }
         let mut scratch = [0; 253];
         let name = match dotted_name {
             Some(name) => name,
             None => {
-                let Some(length) = query_dotted_name(&question.name, &mut scratch) else { return false };
+                let Some(length) = query_dotted_name(&question.name, &mut scratch) else {
+                    return false;
+                };
                 &scratch[..length]
             }
         };
@@ -667,11 +727,15 @@ impl<'a> LocalAnswerer<'a> {
         // scratch omits C's binary label escapes, so those names retain the
         // general matcher whenever a local rule exists.
         for rule in &self.config.rules {
-            if matches!(rule.target,
-                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly)
-                && (name.contains(&0) || name.contains(&1)
-                    || matches_domain_bytes(name, &rule.domain))
-            { return false; }
+            if matches!(
+                rule.target,
+                RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly
+            ) && (name.contains(&0)
+                || name.contains(&1)
+                || matches_domain_bytes(name, &rule.domain))
+            {
+                return false;
+            }
         }
         !self.hosts.name_exists(name) && leases.names.lookup(name, leases.now).next().is_none()
     }
@@ -693,13 +757,19 @@ impl<'a> LocalAnswerer<'a> {
         let mut rows = Vec::new();
         let mut notices = QueryEvents::new(logging);
         let (owned, local_only, _) = select_local_rules(
-            self.config, name, question.class, question.rrtype,
-            self.local_ttl, &mut rows, &mut notices,
+            self.config,
+            name,
+            question.class,
+            question.rrtype,
+            self.local_ttl,
+            &mut rows,
+            &mut notices,
         );
         if !owned && !local_only {
             return Ok(None);
         }
-        let nxdomain = !owned && local_only
+        let nxdomain = !owned
+            && local_only
             && !has_descendant_local(self.config, self.hosts, name)
             && !cache.is_some_and(|cache| cache.contains_forward_name(name, now))
             && !wire_to_dotted(name).is_some_and(|name| leases.name_exists(&name, now));
@@ -712,20 +782,30 @@ impl<'a> LocalAnswerer<'a> {
             };
             notices.label(
                 qlog::CONFIG | qlog::NEGATIVE | family | if nxdomain { qlog::NXDOMAIN } else { 0 },
-                &name.dnsmasq_bytes(), None, 0,
+                &name.dnsmasq_bytes(),
+                None,
+                0,
             );
         }
-        let flags = 0x8080 | (header.flags & 0x0150)
+        let flags = 0x8080
+            | (header.flags & 0x0150)
             | if rows.is_empty() { 0 } else { 0x0400 }
             | if nxdomain { 3 } else { 0 };
-        let mut writer = PacketWriter::new(header.id, flags, self.max_packet.max(super::wire::HEADER_LEN))?;
+        let mut writer = PacketWriter::new(
+            header.id,
+            flags,
+            self.max_packet.max(super::wire::HEADER_LEN),
+        )?;
         writer.question(&question.name, question.rrtype, question.class)?;
         let question_end = writer.position();
         let mut truncated = false;
         for (rrtype, ttl, data) in rows {
             match writer.record_at(Section::Answer, 12, rrtype, CLASS_IN, ttl, &data) {
                 Ok(()) => {}
-                Err(WireError::Full) => { truncated = true; break; }
+                Err(WireError::Full) => {
+                    truncated = true;
+                    break;
+                }
                 Err(error) => return Err(error.into()),
             }
         }
@@ -738,7 +818,11 @@ impl<'a> LocalAnswerer<'a> {
             header.write(&mut packet)?;
             notices.label(0, b"reply", Some(b"truncated"), 0);
         }
-        Ok(Some(LocalAnswer { packet, forward_rule: true, query_events: notices.events }))
+        Ok(Some(LocalAnswer {
+            packet,
+            forward_rule: true,
+            query_events: notices.events,
+        }))
     }
 }
 
@@ -966,7 +1050,9 @@ fn dotted_key_matches(name: &[u8], key: &[u8]) -> bool {
         return key == [0];
     }
     let valid = name.len() <= 253
-        && name.split(|&byte| byte == b'.').all(|label| !label.is_empty() && label.len() <= 63);
+        && name
+            .split(|&byte| byte == b'.')
+            .all(|label| !label.is_empty() && label.len() <= 63);
     if !valid {
         return key.is_empty();
     }
@@ -976,9 +1062,7 @@ fn dotted_key_matches(name: &[u8], key: &[u8]) -> bool {
     let mut pos = 0;
     for label in name.split(|&byte| byte == b'.') {
         let end = pos + label.len() + 1;
-        if key[pos] != label.len() as u8
-            || !key[pos + 1..end].eq_ignore_ascii_case(label)
-        {
+        if key[pos] != label.len() as u8 || !key[pos + 1..end].eq_ignore_ascii_case(label) {
             return false;
         }
         pos = end;
@@ -1254,7 +1338,11 @@ fn add_local_records_for_name(
         || !records.mx.is_empty()
         || !records.srv.is_empty()
         || !records.naptr.is_empty();
-    let key = if needs_key { dotted_key(name) } else { Vec::new() };
+    let key = if needs_key {
+        dotted_key(name)
+    } else {
+        Vec::new()
+    };
     let mut rows = Vec::new();
     let mut owned = false;
     let mut synthetic_reverse_name = None;
@@ -1654,9 +1742,12 @@ fn select_local_rules(
 ) -> (bool, bool, bool) {
     // Upstream-only rules cannot supply local rows or notices. Their domain
     // selection belongs to the forwarder; avoid building local score tiers.
-    if !config.rules.iter().any(|rule| matches!(rule.target,
-        RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly))
-    {
+    if !config.rules.iter().any(|rule| {
+        matches!(
+            rule.target,
+            RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly
+        )
+    }) {
         return (false, false, false);
     }
     let class_in = class == CLASS_IN;
@@ -1782,8 +1873,12 @@ fn matches_domain_bytes(query: &[u8], pattern: &DomainPattern) -> bool {
     if suffix.is_empty() {
         return true;
     }
-    let Some(start) = query.len().checked_sub(suffix.len()) else { return false };
-    if !query[start..].eq_ignore_ascii_case(suffix) { return false; }
+    let Some(start) = query.len().checked_sub(suffix.len()) else {
+        return false;
+    };
+    if !query[start..].eq_ignore_ascii_case(suffix) {
+        return false;
+    }
     if pattern.wildcard {
         !pattern.wildcard_dot || start != 0
     } else {
@@ -1914,38 +2009,68 @@ mod tests {
         // The pre-4cd1d7c6 predicate is the independent reference. In
         // particular, compare escaped names rather than unescaped dotted keys.
         let previous = |name: &Name, pattern: &DomainPattern| {
-            if !pattern.dotless && pattern.suffix.is_empty() { return true; }
+            if !pattern.dotless && pattern.suffix.is_empty() {
+                return true;
+            }
             let query = name.dnsmasq_bytes().to_ascii_lowercase();
             let suffix = pattern.suffix.to_ascii_lowercase();
-            if pattern.dotless && (query.is_empty() || query.contains(&b'.')) { return false; }
-            if suffix.is_empty() { return true; }
+            if pattern.dotless && (query.is_empty() || query.contains(&b'.')) {
+                return false;
+            }
+            if suffix.is_empty() {
+                return true;
+            }
             if pattern.wildcard {
-                (if pattern.wildcard_dot { query.len() > suffix.len() }
-                 else { query.len() >= suffix.len() }) && query.ends_with(&suffix)
+                (if pattern.wildcard_dot {
+                    query.len() > suffix.len()
+                } else {
+                    query.len() >= suffix.len()
+                }) && query.ends_with(&suffix)
             } else {
-                query == suffix || (query.len() > suffix.len() && query.ends_with(&suffix)
-                    && query[query.len() - suffix.len() - 1] == b'.')
+                query == suffix
+                    || (query.len() > suffix.len()
+                        && query.ends_with(&suffix)
+                        && query[query.len() - suffix.len() - 1] == b'.')
             }
         };
         let mut config = DnsConfig::default();
-        for directive in ["local=//", "local=/#/", "local=/TEST/", "local=/*test/",
-                          "local=/*.test/", "local=/*./", "local=/.test/", "local=/aZ/"] {
+        for directive in [
+            "local=//",
+            "local=/#/",
+            "local=/TEST/",
+            "local=/*test/",
+            "local=/*.test/",
+            "local=/*./",
+            "local=/.test/",
+            "local=/aZ/",
+        ] {
             apply(&mut config, directive.as_bytes());
         }
-        let mut names = vec![Name::root(), Name::from_ascii("test").unwrap(),
-            Name::from_ascii("badTEST").unwrap(), Name::from_ascii("x.TeSt").unwrap()];
+        let mut names = vec![
+            Name::root(),
+            Name::from_ascii("test").unwrap(),
+            Name::from_ascii("badTEST").unwrap(),
+            Name::from_ascii("x.TeSt").unwrap(),
+        ];
         for byte in 0..=255 {
             for suffix in [false, true] {
                 let mut wire = vec![3, b'a', byte, b'Z'];
-                if suffix { wire.extend_from_slice(b"\x04TeSt"); }
+                if suffix {
+                    wire.extend_from_slice(b"\x04TeSt");
+                }
                 wire.push(0);
                 names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
             }
         }
         for name in names {
             for rule in &config.rules {
-                assert_eq!(matches_domain(&name, &rule.domain), previous(&name, &rule.domain),
-                    "name={:?} pattern={:?}", name.as_wire(), rule.domain);
+                assert_eq!(
+                    matches_domain(&name, &rule.domain),
+                    previous(&name, &rule.domain),
+                    "name={:?} pattern={:?}",
+                    name.as_wire(),
+                    rule.domain
+                );
             }
         }
     }
@@ -1961,7 +2086,13 @@ mod tests {
                 names.push(super::super::wire::decode_name(&wire, 0, 0).unwrap().0);
             }
         }
-        let longest = ["A".repeat(63), "b".repeat(63), "C".repeat(63), "d".repeat(61)].join(".");
+        let longest = [
+            "A".repeat(63),
+            "b".repeat(63),
+            "C".repeat(63),
+            "d".repeat(61),
+        ]
+        .join(".");
         assert_eq!(longest.len(), 253);
         names.push(Name::from_ascii(&longest).unwrap());
         let mut buffer = [0x7f; 253];
@@ -1975,14 +2106,22 @@ mod tests {
     #[test]
     fn cname_alias_comparison_matches_allocated_keys() {
         let mut names = vec![
-            Vec::new(), b".".to_vec(), b"a.".to_vec(), b".a".to_vec(),
-            b"a..b".to_vec(), b"Alias.Example".to_vec(), b"alias.example".to_vec(),
-            vec![b'a'; 63], vec![b'a'; 64],
+            Vec::new(),
+            b".".to_vec(),
+            b"a.".to_vec(),
+            b".a".to_vec(),
+            b"a..b".to_vec(),
+            b"Alias.Example".to_vec(),
+            b"alias.example".to_vec(),
+            vec![b'a'; 63],
+            vec![b'a'; 64],
         ];
         for last in [61, 62] {
             let mut name = Vec::new();
             for length in [63, 63, 63, last] {
-                if !name.is_empty() { name.push(b'.'); }
+                if !name.is_empty() {
+                    name.push(b'.');
+                }
                 name.extend(std::iter::repeat_n(b'a', length));
             }
             names.push(name);
@@ -1993,7 +2132,11 @@ mod tests {
         let keys: Vec<_> = names.iter().map(|name| dotted_key(name)).collect();
         for (name, expected) in names.iter().zip(&keys) {
             for key in &keys {
-                assert_eq!(dotted_key_matches(name, key), expected == key, "{name:?} vs {key:?}");
+                assert_eq!(
+                    dotted_key_matches(name, key),
+                    expected == key,
+                    "{name:?} vs {key:?}"
+                );
             }
         }
     }
@@ -2027,7 +2170,12 @@ mod tests {
 
     #[test]
     fn forward_rule_limit_uses_original_question_not_short_cursor() {
-        let long_name = format!("{}.{}.{}.example", "a".repeat(63), "b".repeat(63), "c".repeat(63));
+        let long_name = format!(
+            "{}.{}.{}.example",
+            "a".repeat(63),
+            "b".repeat(63),
+            "c".repeat(63)
+        );
         let short = query("t", TYPE_AAAA);
         let long = query(&long_name, TYPE_AAAA);
         for limit in [512, 65535] {
@@ -2039,20 +2187,33 @@ mod tests {
             config.rules.resize(count, config.rules[0].clone());
             let mut hosts = Hosts::new();
             let answerer = LocalAnswerer {
-                config: &config, hosts: &mut hosts, local_ttl: 0, max_packet: limit,
+                config: &config,
+                hosts: &mut hosts,
+                local_ttl: 0,
+                max_packet: limit,
             };
             for (query, truncated) in [(&short, false), (&long, true)] {
                 let header = Header::parse(query).unwrap();
                 let question = super::super::forward::Question::parse(query).unwrap();
-                let answer = answerer.answer_forward_rule(
-                    header, &question, &Name::from_ascii("t").unwrap(),
-                    &LeaseNames::default(), 100, None, false,
-                ).unwrap().unwrap();
+                let answer = answerer
+                    .answer_forward_rule(
+                        header,
+                        &question,
+                        &Name::from_ascii("t").unwrap(),
+                        &LeaseNames::default(),
+                        100,
+                        None,
+                        false,
+                    )
+                    .unwrap()
+                    .unwrap();
                 let header = Header::parse(&answer.packet).unwrap();
                 assert_eq!(header.flags & 0x0200 != 0, truncated);
                 assert_eq!(header.answers as usize, if truncated { 0 } else { count });
                 assert!(answer.packet.len() <= limit);
-                if truncated { assert_eq!(answer.packet.len(), query.len()); }
+                if truncated {
+                    assert_eq!(answer.packet.len(), query.len());
+                }
             }
         }
     }
@@ -2134,18 +2295,31 @@ mod tests {
         }
         let mut with_raw = direct.clone();
         apply(&mut with_raw, b"dns-rr=unrelated.test,1,c0000263");
-        apply(&mut with_raw, b"dns-rr=unrelated.test,28,20010db8000000000000000000000063");
+        apply(
+            &mut with_raw,
+            b"dns-rr=unrelated.test,28,20010db8000000000000000000000063",
+        );
         let mut direct_hosts = configured_hosts(&direct, 37);
         let mut raw_hosts = configured_hosts(&with_raw, 37);
         for name in ["host.test", "alias.test", "missing.test"] {
             for qtype in [TYPE_A, TYPE_AAAA, TYPE_A, TYPE_TXT, TYPE_MX, 255, TYPE_AAAA] {
                 let packet = query(name, qtype);
                 let answer = LocalAnswerer {
-                    config: &direct, hosts: &mut direct_hosts, local_ttl: 37, max_packet: 1232,
-                }.answer(&packet).unwrap();
+                    config: &direct,
+                    hosts: &mut direct_hosts,
+                    local_ttl: 37,
+                    max_packet: 1232,
+                }
+                .answer(&packet)
+                .unwrap();
                 let fallback = LocalAnswerer {
-                    config: &with_raw, hosts: &mut raw_hosts, local_ttl: 37, max_packet: 1232,
-                }.answer(&packet).unwrap();
+                    config: &with_raw,
+                    hosts: &mut raw_hosts,
+                    local_ttl: 37,
+                    max_packet: 1232,
+                }
+                .answer(&packet)
+                .unwrap();
                 assert_eq!(answer, fallback, "{name} type {qtype}");
             }
         }
@@ -2165,20 +2339,50 @@ mod tests {
         }
         let mut hosts = configured_hosts(&config, 37);
         for (name, rrtype, expected) in [
-            ("raw.test", TYPE_A, vec![vec![192, 0, 2, 99], vec![192, 0, 2, 1]]),
-            ("raw.test", TYPE_AAAA, vec![
-                "2001:db8::63".parse::<Ipv6Addr>().unwrap().octets().to_vec(),
-                "2001:db8::1".parse::<Ipv6Addr>().unwrap().octets().to_vec(),
-            ]),
-            ("192-0-2-7.synthetic.test", TYPE_A, vec![vec![192, 0, 2, 99]]),
+            (
+                "raw.test",
+                TYPE_A,
+                vec![vec![192, 0, 2, 99], vec![192, 0, 2, 1]],
+            ),
+            (
+                "raw.test",
+                TYPE_AAAA,
+                vec![
+                    "2001:db8::63"
+                        .parse::<Ipv6Addr>()
+                        .unwrap()
+                        .octets()
+                        .to_vec(),
+                    "2001:db8::1".parse::<Ipv6Addr>().unwrap().octets().to_vec(),
+                ],
+            ),
+            (
+                "192-0-2-7.synthetic.test",
+                TYPE_A,
+                vec![vec![192, 0, 2, 99]],
+            ),
         ] {
             let packet = LocalAnswerer {
-                config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 1232,
-            }.answer(&query(name, rrtype)).unwrap().unwrap();
+                config: &config,
+                hosts: &mut hosts,
+                local_ttl: 37,
+                max_packet: 1232,
+            }
+            .answer(&query(name, rrtype))
+            .unwrap()
+            .unwrap();
             let message = super::super::wire::Message::parse(&packet).unwrap();
-            let actual: Vec<_> = message.records(Section::Answer)
-                .map(|row| (row.rrtype, row.rdata.to_vec())).collect();
-            assert_eq!(actual, expected.into_iter().map(|data| (rrtype, data)).collect::<Vec<_>>());
+            let actual: Vec<_> = message
+                .records(Section::Answer)
+                .map(|row| (row.rrtype, row.rdata.to_vec()))
+                .collect();
+            assert_eq!(
+                actual,
+                expected
+                    .into_iter()
+                    .map(|data| (rrtype, data))
+                    .collect::<Vec<_>>()
+            );
         }
     }
 
@@ -2203,18 +2407,34 @@ mod tests {
             let mut hosts = configured_hosts(config, 37);
             for qtype in [1, 16, 28, 255, 257, 65400, 65401] {
                 let response = LocalAnswerer {
-                    config, hosts: &mut hosts, local_ttl: 37, max_packet: 1232,
-                }.answer(&query("RaW.TeSt.", qtype)).unwrap();
-                let expected = all_types.iter().copied()
+                    config,
+                    hosts: &mut hosts,
+                    local_ttl: 37,
+                    max_packet: 1232,
+                }
+                .answer(&query("RaW.TeSt.", qtype))
+                .unwrap();
+                let expected = all_types
+                    .iter()
+                    .copied()
                     .filter(|rr_type| qtype == 255 || qtype == *rr_type)
                     .collect::<Vec<_>>();
                 assert_eq!(response.is_some(), !expected.is_empty());
                 if let Some(response) = response {
                     let message = super::super::wire::Message::parse(&response).unwrap();
                     let records = message.records(Section::Answer).collect::<Vec<_>>();
-                    assert_eq!(records.iter().map(|record| record.rrtype).collect::<Vec<_>>(), expected);
-                    let custom = records.iter().filter(|record| record.rrtype == 65401)
-                        .map(|record| record.rdata).collect::<Vec<_>>();
+                    assert_eq!(
+                        records
+                            .iter()
+                            .map(|record| record.rrtype)
+                            .collect::<Vec<_>>(),
+                        expected
+                    );
+                    let custom = records
+                        .iter()
+                        .filter(|record| record.rrtype == 65401)
+                        .map(|record| record.rdata)
+                        .collect::<Vec<_>>();
                     if qtype == 65401 || qtype == 255 {
                         assert_eq!(custom, [&[0x12, 0x34][..], &[0xab, 0xcd][..]]);
                     }
@@ -2309,10 +2529,12 @@ mod tests {
             ("192.0.2.1", "192.0.2.2", "192.0.3.186", "192.0.3.185")
         };
         let mut config = DnsConfig::default();
-        apply(&mut config, format!("host-record={first},{address},90").as_bytes());
-        let mut hosts = configured_hosts_bulk(
-            &config, 37, 1497, 1000, 1000, &LeaseNames::default(),
-        ).unwrap();
+        apply(
+            &mut config,
+            format!("host-record={first},{address},90").as_bytes(),
+        );
+        let mut hosts =
+            configured_hosts_bulk(&config, 37, 1497, 1000, 1000, &LeaseNames::default()).unwrap();
         hosts.set_source_name(7, b"/fixture/repeated.hosts".to_vec());
         // The collision shares the configured address's C reverse bucket.
         // The second a.test lookup cuts its temporary chain, so the later
@@ -2332,14 +2554,19 @@ mod tests {
     fn repeated_address_ptr_emits_all_owners_with_their_ttls_and_sources() {
         for (ipv6, name, address) in [
             (false, "1.2.0.192.in-addr.arpa", "192.0.2.1"),
-            (true, "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa", "2001:db8::1"),
+            (
+                true,
+                "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa",
+                "2001:db8::1",
+            ),
         ] {
             let address: IpAddr = address.parse().unwrap();
             let mut hosts = repeated_ptr_hosts(ipv6, "x.test", "y.test");
             // Preserve the hosts iterator's order; separately verify its
             // complete membership instead of treating an arbitrary order as
             // the fixed output of C's process-specific name hash.
-            let ordered = hosts.reverse_all(address)
+            let ordered = hosts
+                .reverse_all(address)
                 .map(|host| (host.name.clone(), host.ttl, host.configured))
                 .collect::<Vec<_>>();
             assert_eq!(ordered.len(), 2);
@@ -2348,30 +2575,54 @@ mod tests {
             let config = DnsConfig::default();
             for qtype in [TYPE_PTR, 255] {
                 let response = LocalAnswerer {
-                    config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 512,
-                }.answer_with_query_events(
-                    &query(name, qtype), &mut Arc::new(LeaseNames::default()),
-                    100, None, None, &Default::default(), true,
-                ).unwrap().unwrap();
+                    config: &config,
+                    hosts: &mut hosts,
+                    local_ttl: 37,
+                    max_packet: 512,
+                }
+                .answer_with_query_events(
+                    &query(name, qtype),
+                    &mut Arc::new(LeaseNames::default()),
+                    100,
+                    None,
+                    None,
+                    &Default::default(),
+                    true,
+                )
+                .unwrap()
+                .unwrap();
                 let message = super::super::wire::Message::parse(&response.packet).unwrap();
                 assert_eq!(message.header.flags, 0x8580);
                 let records = message.records(Section::Answer).collect::<Vec<_>>();
                 assert_eq!(records.len(), 2);
                 assert_eq!(response.query_events.len(), 2);
-                for ((record, event), (target, ttl, configured)) in records.iter()
-                    .zip(&response.query_events).zip(&ordered)
+                for ((record, event), (target, ttl, configured)) in
+                    records.iter().zip(&response.query_events).zip(&ordered)
                 {
-                    assert_eq!((record.rrtype, record.class, record.ttl), (TYPE_PTR, CLASS_IN, *ttl));
+                    assert_eq!(
+                        (record.rrtype, record.class, record.ttl),
+                        (TYPE_PTR, CLASS_IN, *ttl)
+                    );
                     assert_eq!(record.rdata, wire_name(target).unwrap());
                     assert_eq!(event.name.as_deref(), Some(target.as_slice()));
-                    assert_eq!(event.flags, qlog::REVERSE
-                        | if ipv6 { qlog::IPV6 } else { qlog::IPV4 }
-                        | if *configured { qlog::CONFIG } else { qlog::HOSTS });
-                    assert_eq!(event.argument.as_deref(), if *configured {
-                        None
-                    } else {
-                        Some(b"/fixture/repeated.hosts".as_slice())
-                    });
+                    assert_eq!(
+                        event.flags,
+                        qlog::REVERSE
+                            | if ipv6 { qlog::IPV6 } else { qlog::IPV4 }
+                            | if *configured {
+                                qlog::CONFIG
+                            } else {
+                                qlog::HOSTS
+                            }
+                    );
+                    assert_eq!(
+                        event.argument.as_deref(),
+                        if *configured {
+                            None
+                        } else {
+                            Some(b"/fixture/repeated.hosts".as_slice())
+                        }
+                    );
                 }
             }
         }
@@ -2381,13 +2632,18 @@ mod tests {
     fn multiple_hosts_ptr_keeps_explicit_and_interface_precedence() {
         use super::super::interface_records::{InterfaceAddress, InterfaceRecords};
         let mut config = DnsConfig::default();
-        apply(&mut config, b"ptr-record=1.2.0.192.in-addr.arpa,explicit.test");
+        apply(
+            &mut config,
+            b"ptr-record=1.2.0.192.in-addr.arpa,explicit.test",
+        );
         apply(&mut config, b"interface-name=interface.test,fixture0/4");
         let interface = InterfaceRecords::from_addresses(
             &config.interface_records.rules,
             &[InterfaceAddress {
-                label: b"fixture0".to_vec(), address: "192.0.2.1".parse().unwrap(),
-                prefix: 24, flags: 0,
+                label: b"fixture0".to_vec(),
+                address: "192.0.2.1".parse().unwrap(),
+                prefix: 24,
+                flags: 0,
             }],
         );
         for (interfaces, target) in [
@@ -2396,11 +2652,21 @@ mod tests {
         ] {
             let mut hosts = repeated_ptr_hosts(false, "x.test", "y.test");
             let response = LocalAnswerer {
-                config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 512,
-            }.answer_on_network_with_interface_cache(
+                config: &config,
+                hosts: &mut hosts,
+                local_ttl: 37,
+                max_packet: 512,
+            }
+            .answer_on_network_with_interface_cache(
                 &query("1.2.0.192.in-addr.arpa", TYPE_PTR),
-                &mut Arc::new(LeaseNames::default()), 100, None, None, &interfaces,
-            ).unwrap().unwrap();
+                &mut Arc::new(LeaseNames::default()),
+                100,
+                None,
+                None,
+                &interfaces,
+            )
+            .unwrap()
+            .unwrap();
             let message = super::super::wire::Message::parse(&response.packet).unwrap();
             let records = message.records(Section::Answer).collect::<Vec<_>>();
             assert_eq!(records.len(), 1);
@@ -2418,7 +2684,10 @@ mod tests {
         let config = DnsConfig::default();
         let request = query("1.2.0.192.in-addr.arpa", TYPE_PTR);
         let mut answerer = LocalAnswerer {
-            config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 65535,
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 37,
+            max_packet: 65535,
         };
         let full = answerer.answer(&request).unwrap().unwrap();
         assert!(full.len() > 512);
@@ -3411,8 +3680,11 @@ pub(crate) fn interface_forward_name_parsed(
     question: &super::forward::Question,
 ) -> Option<Vec<u8>> {
     if config.interface_records.rules.is_empty()
-        || header.opcode() != 0 || header.flags & 0x8000 != 0 || header.questions != 1
-        || question.class != 1 || !matches!(question.rrtype, 1 | 28 | 255)
+        || header.opcode() != 0
+        || header.flags & 0x8000 != 0
+        || header.questions != 1
+        || question.class != 1
+        || !matches!(question.rrtype, 1 | 28 | 255)
     {
         return None;
     }

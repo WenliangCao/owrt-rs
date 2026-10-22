@@ -320,16 +320,29 @@ pub fn nl80211_init() -> i32 {
     if nls().is_some() {
         return 0;
     }
-    let Ok(fd) = rustix::net::socket(rustix::net::AddressFamily::NETLINK,
-        rustix::net::SocketType::RAW, Some(rustix::net::netlink::GENERIC)) else { return -ENOMEM; };
+    let Ok(fd) = rustix::net::socket(
+        rustix::net::AddressFamily::NETLINK,
+        rustix::net::SocketType::RAW,
+        Some(rustix::net::netlink::GENERIC),
+    ) else {
+        return -ENOMEM;
+    };
     if rustix::net::bind(&fd, &rustix::net::netlink::SocketAddrNetlink::new(0, 0)).is_err() {
         return -ENOLINK;
     }
-    if rustix::io::fcntl_getfd(&fd).and_then(|flags| rustix::io::fcntl_setfd(&fd, flags | rustix::io::FdFlags::CLOEXEC)).is_err() {
+    if rustix::io::fcntl_getfd(&fd)
+        .and_then(|flags| rustix::io::fcntl_setfd(&fd, flags | rustix::io::FdFlags::CLOEXEC))
+        .is_err()
+    {
         return -EINVAL;
     }
     let fd = Rc::new(fd);
-    let mut st = Nls { fd, nl80211: 0, nlctrl: GENL_ID_CTRL, seq: 1 };
+    let mut st = Nls {
+        fd,
+        nl80211: 0,
+        nlctrl: GENL_ID_CTRL,
+        seq: 1,
+    };
     match genl_ctrl_resolve(&mut st, "nl80211") {
         Some(id) => st.nl80211 = id,
         None => return -ENOENT,
@@ -348,7 +361,12 @@ pub fn nl80211_close() {
 /// error/finish/ack callbacks write to (`*ret = err->error` / `*ret = 0`),
 /// `expect_seq` None disables the sequence check (nl80211_wait_seq_check).
 /// Returns libnl's nl_recvmsgs() result, which the callers ignore.
-pub fn recvmsgs(st: &Nls, expect_seq: Option<u32>, err: &mut i32, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
+pub fn recvmsgs(
+    st: &Nls,
+    expect_seq: Option<u32>,
+    err: &mut i32,
+    cb: &mut dyn FnMut(&Nlmsg),
+) -> i32 {
     thread_local! {
         // One receive buffer per thread, allocated once: a fresh zeroed 64 KiB
         // vector per recv() cost measurably on the router (two recvs per request).
@@ -360,8 +378,15 @@ pub fn recvmsgs(st: &Nls, expect_seq: Option<u32>, err: &mut i32, cb: &mut dyn F
     })
 }
 
-fn recvmsgs_into(buf: &mut [u8], st: &Nls, expect_seq: Option<u32>, err: &mut i32, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
-    let (_, n) = match rustix::net::recv(st.fd.as_ref(), &mut *buf, rustix::net::RecvFlags::empty()) {
+fn recvmsgs_into(
+    buf: &mut [u8],
+    st: &Nls,
+    expect_seq: Option<u32>,
+    err: &mut i32,
+    cb: &mut dyn FnMut(&Nlmsg),
+) -> i32 {
+    let (_, n) = match rustix::net::recv(st.fd.as_ref(), &mut *buf, rustix::net::RecvFlags::empty())
+    {
         Ok(result) => result,
         Err(error) => return -error.raw_os_error(),
     };
@@ -371,7 +396,9 @@ fn recvmsgs_into(buf: &mut [u8], st: &Nls, expect_seq: Option<u32>, err: &mut i3
         if len < NLMSG_HDRLEN || off + len > n {
             break; // nlmsg_ok() failed
         }
-        let msg = Nlmsg { data: &buf[off..off + len] };
+        let msg = Nlmsg {
+            data: &buf[off..off + len],
+        };
         if let Some(seq) = expect_seq {
             if msg.seq() != seq {
                 return -NLE_SEQ_MISMATCH;
@@ -388,7 +415,12 @@ fn recvmsgs_into(buf: &mut [u8], st: &Nls, expect_seq: Option<u32>, err: &mut i3
                 if len < NLMSG_HDRLEN + NLMSGERR_LEN {
                     return -NLE_MSG_TRUNC;
                 }
-                let e = i32::from_ne_bytes([buf[off + 16], buf[off + 17], buf[off + 18], buf[off + 19]]);
+                let e = i32::from_ne_bytes([
+                    buf[off + 16],
+                    buf[off + 17],
+                    buf[off + 18],
+                    buf[off + 19],
+                ]);
                 // nl80211_msg_error: *ret = err->error, NL_STOP
                 // nl80211_msg_ack:   *ret = 0,          NL_STOP
                 *err = e;
@@ -408,7 +440,12 @@ fn send_on(st: &mut Nls, mut msg: Msg, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
     st.seq = st.seq.wrapping_add(1);
     msg.complete(seq, 0);
     let dst = rustix::net::netlink::SocketAddrNetlink::new(0, 0);
-    if let Err(error) = rustix::net::sendto(st.fd.as_ref(), &msg.buf, rustix::net::SendFlags::empty(), &dst) {
+    if let Err(error) = rustix::net::sendto(
+        st.fd.as_ref(),
+        &msg.buf,
+        rustix::net::SendFlags::empty(),
+        &dst,
+    ) {
         return -error.raw_os_error();
     }
     let mut err = 1;
@@ -432,7 +469,10 @@ pub fn nl80211_send(msg: Msg, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
     // Callbacks never touch the state, only the sequence counter moved.
     NLS.with(|c| {
         let mut current = c.borrow_mut();
-        if current.as_ref().is_some_and(|cur| Rc::ptr_eq(&cur.fd, &st.fd)) {
+        if current
+            .as_ref()
+            .is_some_and(|cur| Rc::ptr_eq(&cur.fd, &st.fd))
+        {
             *current = Some(st);
         }
     });

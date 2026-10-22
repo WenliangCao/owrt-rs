@@ -40,12 +40,15 @@ fn name_allowed(config: &DnsConfig, name: &[u8], loopback: bool) -> bool {
         || config.interfaces.iter().any(|pattern| name_matches(pattern, name, loopback))
         // network.c:501 adds loopback names whenever an interface list exists.
         || !config.interfaces.is_empty() && loopback)
-        && !config.excluded_interfaces.iter()
+        && !config
+            .excluded_interfaces
+            .iter()
             .any(|pattern| name_matches(pattern, name, loopback))
 }
 pub fn selected(config: &DnsConfig, interface: &DnsInterface) -> bool {
     if config.listen_addresses.contains(&interface.address)
-        || config.auth.selected(interface.address, &interface.name) {
+        || config.auth.selected(interface.address, &interface.name)
+    {
         return true;
     }
     if config
@@ -229,7 +232,8 @@ fn local_source(config: &DnsConfig, interfaces: &[DnsInterface], peer: IpAddr) -
 pub fn udp_needs_ingress_name(config: &DnsConfig, destination: IpAddr) -> bool {
     !config.listen_addresses.contains(&destination)
         && !(config.bind_interfaces && !config.bind_dynamic && destination.is_ipv4())
-        && (!config.interfaces.is_empty() || !config.excluded_interfaces.is_empty()
+        && (!config.interfaces.is_empty()
+            || !config.excluded_interfaces.is_empty()
             || !config.listen_addresses.is_empty())
 }
 
@@ -238,20 +242,32 @@ pub fn udp_source_allowed(config: &DnsConfig, interfaces: &[DnsInterface], peer:
 }
 
 /// network.c:iface_check uses the current kernel name, not an old index list.
-pub fn udp_acl_name(config: &DnsConfig, destination: IpAddr, name: &[u8], loopback: bool,
-                    auth: bool) -> bool {
+pub fn udp_acl_name(
+    config: &DnsConfig,
+    destination: IpAddr,
+    name: &[u8],
+    loopback: bool,
+    auth: bool,
+) -> bool {
     if config.listen_addresses.contains(&destination)
-        || auth && config.auth.selected(destination, name) {
+        || auth && config.auth.selected(destination, name)
+    {
         return true; // A literal match wins over except-interface.
     }
     name_allowed(config, name, loopback)
 }
 
 /// Only a failed iface_check caller reaches these published-list exceptions.
-pub fn udp_acl_exception(config: &DnsConfig, interfaces: &[DnsInterface], destination: IpAddr,
-                         ingress: u32, loopback: bool) -> bool {
+pub fn udp_acl_exception(
+    config: &DnsConfig,
+    interfaces: &[DnsInterface],
+    destination: IpAddr,
+    ingress: u32,
+    loopback: bool,
+) -> bool {
     interfaces.iter().any(|candidate| {
-        candidate.address == destination && selected(config, candidate)
+        candidate.address == destination
+            && selected(config, candidate)
             && (loopback || destination.is_ipv4() && candidate.index == ingress)
     })
 }
@@ -353,7 +369,13 @@ pub fn admit(
             .iter()
             .filter(|interface| interface.index == ingress)
             .any(|interface| {
-                let allowed = udp_acl_name(config, destination, interface.link_name(), interface.loopback, true);
+                let allowed = udp_acl_name(
+                    config,
+                    destination,
+                    interface.link_name(),
+                    interface.loopback,
+                    true,
+                );
                 // C's loopback and label exceptions retain locally originated DNS
                 // queries to a configured address even when ingress is loopback.
                 allowed
@@ -383,7 +405,9 @@ pub struct DnsSocket {
     socket: std::net::UdpSocket,
 }
 impl std::os::fd::AsFd for DnsSocket {
-    fn as_fd(&self) -> std::os::fd::BorrowedFd<'_> { self.socket.as_fd() }
+    fn as_fd(&self) -> std::os::fd::BorrowedFd<'_> {
+        self.socket.as_fd()
+    }
 }
 
 impl DnsSocket {
@@ -492,16 +516,25 @@ pub fn tcp_bind(address: SocketAddr) -> io::Result<TcpListener> {
     {
         use rustix::net::{self, AddressFamily, SocketFlags, SocketType};
         let fd = net::socket_with(
-            if address.is_ipv4() { AddressFamily::INET } else { AddressFamily::INET6 },
-            SocketType::STREAM, SocketFlags::CLOEXEC | SocketFlags::NONBLOCK, None,
-        ).map_err(|error| crate::net::socket_creation_error(error.into()))?;
+            if address.is_ipv4() {
+                AddressFamily::INET
+            } else {
+                AddressFamily::INET6
+            },
+            SocketType::STREAM,
+            SocketFlags::CLOEXEC | SocketFlags::NONBLOCK,
+            None,
+        )
+        .map_err(|error| crate::net::socket_creation_error(error.into()))?;
         let listener = TcpListener::from(fd);
         net::sockopt::set_socket_reuseaddr(&listener, true)?;
         if address.is_ipv6() {
             net::sockopt::set_ipv6_v6only(&listener, true)?;
         }
         let mut address = address;
-        if let SocketAddr::V6(address) = &mut address { address.set_flowinfo(0); }
+        if let SocketAddr::V6(address) = &mut address {
+            address.set_flowinfo(0);
+        }
         net::bind(&listener, &address)?;
         net::listen(&listener, 32)?;
         Ok(listener)
@@ -527,7 +560,9 @@ mod tests {
 
         assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
         let interfaces = snapshot().unwrap();
-        assert!(interfaces.iter().any(|interface| interface.address == Ipv4Addr::LOCALHOST));
+        assert!(interfaces
+            .iter()
+            .any(|interface| interface.address == Ipv4Addr::LOCALHOST));
         for (bind, target, bound, dynamic, configured, no_pktinfo) in [
             ("127.0.0.1:0", "127.0.0.1", true, false, true, true),
             ("127.0.0.1:0", "127.0.0.1", false, false, true, false),
@@ -551,18 +586,36 @@ mod tests {
                 DnsSocket::bind(bind.parse().unwrap()).unwrap()
             };
             let address = server.local_addr().unwrap();
-            let enabled = dnsmasq_platform::socket_options::packet_info_enabled(&server, address.is_ipv6()).unwrap();
-            assert_eq!(enabled, !no_pktinfo, "{bind} bound={bound} dynamic={dynamic}");
-            let client = UdpSocket::bind(if address.is_ipv4() { "127.0.0.1:0" } else { "[::1]:0" }).unwrap();
-            client.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+            let enabled =
+                dnsmasq_platform::socket_options::packet_info_enabled(&server, address.is_ipv6())
+                    .unwrap();
+            assert_eq!(
+                enabled, !no_pktinfo,
+                "{bind} bound={bound} dynamic={dynamic}"
+            );
+            let client = UdpSocket::bind(if address.is_ipv4() {
+                "127.0.0.1:0"
+            } else {
+                "[::1]:0"
+            })
+            .unwrap();
+            client
+                .set_read_timeout(Some(Duration::from_secs(1)))
+                .unwrap();
             client.set_broadcast(true).unwrap();
             let destination = if address.ip().is_unspecified() {
                 SocketAddr::new(target.parse().unwrap(), address.port())
-            } else { address };
+            } else {
+                address
+            };
             client.send_to(b"question", destination).unwrap();
             let mut bytes = [0; 32];
             let incoming = server.receive(&mut bytes).unwrap().unwrap();
-            assert_eq!(incoming.destination, target.parse::<IpAddr>().unwrap(), "{bind}");
+            assert_eq!(
+                incoming.destination,
+                target.parse::<IpAddr>().unwrap(),
+                "{bind}"
+            );
             assert_eq!(incoming.interface == 0, no_pktinfo, "{bind}");
             assert_eq!(incoming.peer, client.local_addr().unwrap());
             assert_eq!(&bytes[..incoming.len], b"question");
@@ -571,7 +624,10 @@ mod tests {
             let (len, peer) = client.recv_from(&mut bytes).unwrap();
             assert_eq!(&bytes[..len], b"answer");
             assert_eq!(peer.ip(), incoming.destination);
-            assert_eq!(server.receive(&mut bytes).err().unwrap().kind(), io::ErrorKind::WouldBlock);
+            assert_eq!(
+                server.receive(&mut bytes).err().unwrap().kind(),
+                io::ErrorKind::WouldBlock
+            );
             client.send_to(&[7; 100], destination).unwrap();
             assert!(server.receive(&mut bytes).unwrap().is_none());
             client.send_to(b"after-truncation", destination).unwrap();
@@ -582,7 +638,8 @@ mod tests {
         let mut config = DnsConfig::default();
         config.bind_interfaces = true;
         for address in ["224.0.0.1:0", "255.255.255.255:0"] {
-            let server = DnsSocket::bind_config(address.parse().unwrap(), &config, &interfaces).unwrap();
+            let server =
+                DnsSocket::bind_config(address.parse().unwrap(), &config, &interfaces).unwrap();
             assert!(dnsmasq_platform::socket_options::packet_info_enabled(&server, false).unwrap());
         }
     }

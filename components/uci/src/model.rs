@@ -63,14 +63,18 @@ enum StoredBytes {
 
 impl std::fmt::Debug for Bytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Bytes").field("len", &self.len()).finish_non_exhaustive()
+        f.debug_struct("Bytes")
+            .field("len", &self.len())
+            .finish_non_exhaustive()
     }
 }
 
 impl std::fmt::Debug for Delta {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Delta").field("cmd", &self.cmd)
-            .field("section", &self.section).field("option", &self.option)
+        f.debug_struct("Delta")
+            .field("cmd", &self.cmd)
+            .field("section", &self.section)
+            .field("option", &self.option)
             .field("value_len", &self.value.as_ref().map(Vec::len))
             .finish_non_exhaustive()
     }
@@ -102,7 +106,10 @@ impl Bytes {
 
 impl Default for Bytes {
     fn default() -> Self {
-        Self(StoredBytes::Inline { len: 0, data: [0; 15] })
+        Self(StoredBytes::Inline {
+            len: 0,
+            data: [0; 15],
+        })
     }
 }
 
@@ -111,7 +118,10 @@ impl From<&[u8]> for Bytes {
         if value.len() <= 15 {
             let mut data = [0; 15];
             data[..value.len()].copy_from_slice(value);
-            Self(StoredBytes::Inline { len: value.len() as u8, data })
+            Self(StoredBytes::Inline {
+                len: value.len() as u8,
+                data,
+            })
         } else {
             Self(StoredBytes::Heap(value.into()))
         }
@@ -148,7 +158,13 @@ mod storage_tests {
 
     #[test]
     fn metadata_owns_utf8_across_short_and_long_values() {
-        for value in ["", "123456789012345", "1234567890123456", "接口名称", "接口名称非常长的元数据"] {
+        for value in [
+            "",
+            "123456789012345",
+            "1234567890123456",
+            "接口名称",
+            "接口名称非常长的元数据",
+        ] {
             let source = value.to_owned();
             let section = Section {
                 name: source.clone(),
@@ -177,9 +193,22 @@ mod storage_tests {
             let values = [
                 format!("{:?}", Bytes::from(secret)),
                 format!("{:?}", OptionValue::List(vec![secret.into()])),
-                format!("{:?}", Delta { cmd: Cmd::Change, section: "radio0".into(),
-                    option: Some("key".into()), value: Some(bytes.clone()) }),
-                format!("{:?}", Ptr { value: Some(bytes.clone()), ..Ptr::default() }),
+                format!(
+                    "{:?}",
+                    Delta {
+                        cmd: Cmd::Change,
+                        section: "radio0".into(),
+                        option: Some("key".into()),
+                        value: Some(bytes.clone())
+                    }
+                ),
+                format!(
+                    "{:?}",
+                    Ptr {
+                        value: Some(bytes.clone()),
+                        ..Ptr::default()
+                    }
+                ),
             ];
             for rendered in values {
                 assert!(!rendered.contains(secret), "{rendered}");
@@ -287,9 +316,14 @@ pub struct Ptr {
 
 impl std::fmt::Debug for Ptr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Ptr").field("target", &self.target).field("flags", &self.flags)
-            .field("p", &self.p).field("s", &self.s).field("o", &self.o)
-            .field("package", &self.package).field("section", &self.section)
+        f.debug_struct("Ptr")
+            .field("target", &self.target)
+            .field("flags", &self.flags)
+            .field("p", &self.p)
+            .field("s", &self.s)
+            .field("o", &self.o)
+            .field("package", &self.package)
+            .field("section", &self.section)
             .field("option", &self.option)
             .field("value_len", &self.value.as_ref().map(Vec::len))
             .finish_non_exhaustive()

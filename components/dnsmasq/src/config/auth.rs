@@ -25,9 +25,10 @@ impl AuthConfig {
     pub fn selected(&self, address: IpAddr, name: &[u8]) -> bool {
         self.interfaces.iter().any(|interface| match interface {
             Interface::Address(selected) => *selected == address,
-            Interface::Name { name: selected, ipv6 } => {
-                selected == name && ipv6.is_none_or(|ipv6| ipv6 == address.is_ipv6())
-            }
+            Interface::Name {
+                name: selected,
+                ipv6,
+            } => selected == name && ipv6.is_none_or(|ipv6| ipv6 == address.is_ipv6()),
         })
     }
 
@@ -44,14 +45,18 @@ impl AuthConfig {
                         let interface = if let Some(address) = address(&decoded) {
                             Interface::Address(address)
                         } else {
-                            let (name, family) = EncodedArg::command_line(&decoded).split_once(b'/');
+                            let (name, family) =
+                                EncodedArg::command_line(&decoded).split_once(b'/');
                             let ipv6 = match family.as_ref().map(EncodedArg::encoded) {
                                 None => None,
                                 Some(b"4") => Some(false),
                                 Some(b"6") => Some(true),
                                 _ => return Err(Error("error")),
                             };
-                            Interface::Name { name: name.encoded().to_vec(), ipv6 }
+                            Interface::Name {
+                                name: name.encoded().to_vec(),
+                                ipv6,
+                            }
                         };
                         self.interfaces.insert(0, interface);
                     }
@@ -60,7 +65,12 @@ impl AuthConfig {
             b"auth-ttl" => {
                 // atoi_check accepts any all-decimal argument, including empty
                 // and values which wrap musl's int. The result is only used by auth.c.
-                if !argument.ok_or(Error("missing parameter"))?.decoded().iter().all(u8::is_ascii_digit) {
+                if !argument
+                    .ok_or(Error("missing parameter"))?
+                    .decoded()
+                    .iter()
+                    .all(u8::is_ascii_digit)
+                {
                     return Err(Error("error"));
                 }
             }

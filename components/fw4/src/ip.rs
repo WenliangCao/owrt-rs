@@ -135,7 +135,9 @@ pub fn arrtoip(a: &[u8]) -> Option<String> {
 }
 
 fn format_v6(a: &[u8]) -> String {
-    let words: Vec<u16> = (0..8).map(|i| ((a[2 * i] as u16) << 8) | a[2 * i + 1] as u16).collect();
+    let words: Vec<u16> = (0..8)
+        .map(|i| ((a[2 * i] as u16) << 8) | a[2 * i + 1] as u16)
+        .collect();
     // longest run of zero words (len >= 2), leftmost on tie
     let (mut best_base, mut best_len) = (-1i32, 0i32);
     let (mut cur_base, mut cur_len) = (-1i32, 0i32);
@@ -175,10 +177,7 @@ fn format_v6(a: &[u8]) -> String {
         if i != 0 {
             out.push(':');
         }
-        if i == 6
-            && best_base == 0
-            && (best_len == 6 || (best_len == 5 && words[5] == 0xffff))
-        {
+        if i == 6 && best_base == 0 && (best_len == 6 || (best_len == 5 && words[5] == 0xffff)) {
             out.push_str(&format!("{}.{}.{}.{}", a[12], a[13], a[14], a[15]));
             break;
         }
@@ -193,7 +192,8 @@ fn format_v6(a: &[u8]) -> String {
 
 fn mask_byte(bits: i64, invert: bool) -> u8 {
     // (0xff << (8 - b)) & 0xff with 64-bit shift semantics
-    let shifted = 8_i64.checked_sub(bits)
+    let shifted = 8_i64
+        .checked_sub(bits)
         .filter(|shift| (0..64).contains(shift))
         .map(|shift| 0xff_i64 << shift)
         .unwrap_or(0);
@@ -284,14 +284,32 @@ mod tests {
         let m = iptoarr("::ffff:1.2.3.4").unwrap();
         assert_eq!(&m[10..], &[255, 255, 1, 2, 3, 4]);
         assert_eq!(arrtoip(&m).unwrap(), "::ffff:1.2.3.4");
-        assert_eq!(arrtoip(&iptoarr("::1.2.3.4").unwrap()).unwrap(), "::1.2.3.4");
+        assert_eq!(
+            arrtoip(&iptoarr("::1.2.3.4").unwrap()).unwrap(),
+            "::1.2.3.4"
+        );
         assert_eq!(arrtoip(&iptoarr("::").unwrap()).unwrap(), "::");
-        assert_eq!(arrtoip(&iptoarr("2001:DB8::").unwrap()).unwrap(), "2001:db8::");
-        assert_eq!(arrtoip(&iptoarr("0:1::1:0:0").unwrap()).unwrap(), "0:1::1:0:0");
+        assert_eq!(
+            arrtoip(&iptoarr("2001:DB8::").unwrap()).unwrap(),
+            "2001:db8::"
+        );
+        assert_eq!(
+            arrtoip(&iptoarr("0:1::1:0:0").unwrap()).unwrap(),
+            "0:1::1:0:0"
+        );
         assert_eq!(arrtoip(&iptoarr("1::1").unwrap()).unwrap(), "1::1");
-        assert_eq!(arrtoip(&iptoarr("fd63:e2f:f706::1").unwrap()).unwrap(), "fd63:e2f:f706::1");
-        assert_eq!(arrtoip(&iptoarr("0:0:0:0:0:0:0:1").unwrap()).unwrap(), "::1");
-        assert_eq!(arrtoip(&iptoarr("1:0:2:0:0:0:3:4").unwrap()).unwrap(), "1:0:2::3:4");
+        assert_eq!(
+            arrtoip(&iptoarr("fd63:e2f:f706::1").unwrap()).unwrap(),
+            "fd63:e2f:f706::1"
+        );
+        assert_eq!(
+            arrtoip(&iptoarr("0:0:0:0:0:0:0:1").unwrap()).unwrap(),
+            "::1"
+        );
+        assert_eq!(
+            arrtoip(&iptoarr("1:0:2:0:0:0:3:4").unwrap()).unwrap(),
+            "1:0:2::3:4"
+        );
         assert_eq!(iptoarr("fe80::1%eth0"), None);
         assert_eq!(iptoarr("1:2:3:4:5:6:7:8:9"), None);
         assert_eq!(iptoarr("1:2:3:4:5:6:7:"), None);
@@ -308,8 +326,14 @@ mod tests {
             assert_eq!(to_mask(bits, false), None);
             assert_eq!(to_mask(bits, true), None);
         }
-        assert_eq!(apply_mask("10.0.0.77", Mask::Bits(i64::MIN)), Some("0.0.0.0".into()));
-        assert_eq!(apply_mask("10.0.0.77", Mask::Bits(i64::MAX)), Some("10.0.0.77".into()));
+        assert_eq!(
+            apply_mask("10.0.0.77", Mask::Bits(i64::MIN)),
+            Some("0.0.0.0".into())
+        );
+        assert_eq!(
+            apply_mask("10.0.0.77", Mask::Bits(i64::MAX)),
+            Some("10.0.0.77".into())
+        );
     }
 
     #[test]
@@ -324,8 +348,17 @@ mod tests {
         assert_eq!(to_bits("::ffff:ffff:ffff:ffff"), None);
         assert_eq!(to_bits("ffff:ffff:ffff:fff0::"), Some(60));
         assert_eq!(apply_mask("10.0.0.77", Mask::Bits(24)).unwrap(), "10.0.0.0");
-        assert_eq!(apply_mask("10.0.0.77", Mask::Addr("255.0.255.0")).unwrap(), "10.0.0.0");
-        assert_eq!(apply_mask("2001:db8:1000::1", Mask::Bits(60)).unwrap(), "2001:db8:1000::");
-        assert_eq!(apply_mask("2001:db8::1", Mask::Bits(128)).unwrap(), "2001:db8::1");
+        assert_eq!(
+            apply_mask("10.0.0.77", Mask::Addr("255.0.255.0")).unwrap(),
+            "10.0.0.0"
+        );
+        assert_eq!(
+            apply_mask("2001:db8:1000::1", Mask::Bits(60)).unwrap(),
+            "2001:db8:1000::"
+        );
+        assert_eq!(
+            apply_mask("2001:db8::1", Mask::Bits(128)).unwrap(),
+            "2001:db8::1"
+        );
     }
 }

@@ -121,10 +121,19 @@ impl Policy {
             return Admission::Accept;
         }
         if !self.config.interfaces.is_empty() {
-            return if self.tftp_interface(name) { Admission::Accept } else { Admission::Reject };
+            return if self.tftp_interface(name) {
+                Admission::Accept
+            } else {
+                Admission::Reject
+            };
         }
-        if crate::listeners::udp_acl_name(&self.dns, datagram.local_address, name, loopback, false) {
-            return if self.tftp_interface(name) { Admission::Accept } else { Admission::Reject };
+        if crate::listeners::udp_acl_name(&self.dns, datagram.local_address, name, loopback, false)
+        {
+            return if self.tftp_interface(name) {
+                Admission::Accept
+            } else {
+                Admission::Reject
+            };
         }
         if !self.dns.bind_dynamic {
             return Admission::Refresh;
@@ -137,9 +146,13 @@ impl Policy {
     }
 
     pub fn admitted_exception(&self, datagram: &Datagram, name: &[u8], loopback: bool) -> bool {
-        crate::listeners::udp_acl_exception(&self.dns, &self.interfaces,
-            datagram.local_address, datagram.interface, loopback)
-            && self.tftp_interface(name)
+        crate::listeners::udp_acl_exception(
+            &self.dns,
+            &self.interfaces,
+            datagram.local_address,
+            datagram.interface,
+            loopback,
+        ) && self.tftp_interface(name)
     }
     pub fn request(
         &self,

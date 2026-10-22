@@ -9,10 +9,16 @@ fn config(extra: &[&[u8]]) -> DnsConfig {
     let mut config = DnsConfig::default();
     config.no_hosts = true;
     config.no_resolv = true;
-    for line in [b"interface-name=iface.records.test,lo".as_slice(),
-        b"domain=chosen.records.test,lo".as_slice()].into_iter().chain(extra.iter().copied())
+    for line in [
+        b"interface-name=iface.records.test,lo".as_slice(),
+        b"domain=chosen.records.test,lo".as_slice(),
+    ]
+    .into_iter()
+    .chain(extra.iter().copied())
     {
-        config.apply_resolved(&lex_line(line).unwrap().unwrap()).unwrap();
+        config
+            .apply_resolved(&lex_line(line).unwrap().unwrap())
+            .unwrap();
     }
     config.finalize().unwrap();
     config
@@ -20,7 +26,9 @@ fn config(extra: &[&[u8]]) -> DnsConfig {
 
 fn query() -> Vec<u8> {
     let mut writer = PacketWriter::new(19, 0x100, 1232).unwrap();
-    writer.question(&Name::from_ascii("iface.records.test").unwrap(), 1, 1).unwrap();
+    writer
+        .question(&Name::from_ascii("iface.records.test").unwrap(), 1, 1)
+        .unwrap();
     writer.finish()
 }
 
@@ -32,7 +40,10 @@ fn finish_collection(owner: &mut SinglePoll) {
         owner.wait_for_files().unwrap();
         owner.step().unwrap();
     }
-    assert!(!owner.interface_work_pending(), "the original caller must finish on its real dump fd");
+    assert!(
+        !owner.interface_work_pending(),
+        "the original caller must finish on its real dump fd"
+    );
     assert!(owner.interfaces_enumerated);
     assert!(owner.pending_interface_udp.is_none());
     assert!(owner.pending_interface_tcp.is_none());
@@ -44,27 +55,49 @@ fn ordinary_host_and_acl_address_events_leave_published_generation_and_collector
         vec![],
         vec![b"local-service=host".as_slice()],
         vec![b"local-service=net".as_slice(), b"interface=lo".as_slice()],
-        vec![b"local-service=net".as_slice(), b"listen-address=127.0.0.1".as_slice()],
-        vec![b"local-service=net".as_slice(), b"except-interface=absent".as_slice()],
+        vec![
+            b"local-service=net".as_slice(),
+            b"listen-address=127.0.0.1".as_slice(),
+        ],
+        vec![
+            b"local-service=net".as_slice(),
+            b"except-interface=absent".as_slice(),
+        ],
     ] {
         let config = config(&extra);
-        assert!(!config.local_service_net, "the production finalize must apply C's ACL override");
+        assert!(
+            !config.local_service_net,
+            "the production finalize must apply C's ACL override"
+        );
         let mut owner = tests::test_owner(config, None);
         let old = Arc::new(InterfaceRecords::from_addresses(
             &owner.config.interface_records.rules,
-            &[InterfaceAddress { label: b"lo".to_vec(), address: "192.0.2.77".parse().unwrap(),
-                prefix: 24, flags: 0 }],
+            &[InterfaceAddress {
+                label: b"lo".to_vec(),
+                address: "192.0.2.77".parse().unwrap(),
+                prefix: 24,
+                flags: 0,
+            }],
         ));
         owner.service.borrow_mut().local.interfaces = Arc::clone(&old);
         let domains = Arc::clone(&owner.config.domain_interfaces);
         owner.interface_collector = Some(InterfaceCollector::new().unwrap());
-        owner.apply_network_events(NetworkEvents { address: true, ..Default::default() });
-        assert!(!owner.interface_refresh.requested, "ordinary NEWADDR must not pre-empt the next C caller");
+        owner.apply_network_events(NetworkEvents {
+            address: true,
+            ..Default::default()
+        });
+        assert!(
+            !owner.interface_refresh.requested,
+            "ordinary NEWADDR must not pre-empt the next C caller"
+        );
         assert!(!owner.address_refresh_requires_enumeration());
         owner.step().unwrap();
         assert!(!owner.interface_work_pending());
         assert!(!owner.interfaces_enumerated);
-        assert!(owner.interfaces.borrow().is_empty(), "no listener snapshot must consume a control-socket fault first");
+        assert!(
+            owner.interfaces.borrow().is_empty(),
+            "no listener snapshot must consume a control-socket fault first"
+        );
         assert!(Arc::ptr_eq(&old, &owner.service.borrow().local.interfaces));
         assert!(Arc::ptr_eq(&domains, &owner.config.domain_interfaces));
     }
@@ -81,15 +114,27 @@ fn dynamic_net_and_unfinished_dad_address_events_keep_their_real_wake() {
         if dad {
             owner.interface_refresh.complete(Instant::now(), true);
         }
-        owner.apply_network_events(NetworkEvents { address: true, ..Default::default() });
+        owner.apply_network_events(NetworkEvents {
+            address: true,
+            ..Default::default()
+        });
         assert!(owner.address_refresh_requires_enumeration());
         assert!(owner.interface_refresh.requested);
         assert!(owner.interface_refresh.due(Instant::now()));
-        assert_eq!(owner_poll_timeout(Some(Instant::now() + Duration::from_secs(60)),
-            Instant::now(), owner.interface_refresh.requested), 0);
+        assert_eq!(
+            owner_poll_timeout(
+                Some(Instant::now() + Duration::from_secs(60)),
+                Instant::now(),
+                owner.interface_refresh.requested
+            ),
+            0
+        );
         owner.interface_refresh.complete(Instant::now(), false);
         if dad {
-            assert!(!owner.address_refresh_requires_enumeration(), "a completed DAD retry is not a permanent scan");
+            assert!(
+                !owner.address_refresh_requires_enumeration(),
+                "a completed DAD retry is not a permanent scan"
+            );
         }
     }
 }
@@ -97,18 +142,25 @@ fn dynamic_net_and_unfinished_dad_address_events_keep_their_real_wake() {
 #[test]
 fn ordinary_udp_forward_query_still_starts_and_resumes_its_own_enumeration() {
     let config = config(&[]);
-    let daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
+    let daemon =
+        DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
     let mut owner = tests::test_owner(config, Some(daemon));
     let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
     let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
     peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
     peer.send_to(&query(), udp.local_addr().unwrap()).unwrap();
     owner.add_listener(SocketToken(41), Some(udp), None);
-    owner.apply_network_events(NetworkEvents { address: true, ..Default::default() });
+    owner.apply_network_events(NetworkEvents {
+        address: true,
+        ..Default::default()
+    });
     assert!(!owner.interface_refresh.requested);
     owner.wait_for_files().unwrap();
     owner.step().unwrap();
-    assert!(owner.interface_work_pending(), "rfc1035.c's A/AAAA/ANY caller remains lazy and active");
+    assert!(
+        owner.interface_work_pending(),
+        "rfc1035.c's A/AAAA/ANY caller remains lazy and active"
+    );
     assert!(owner.pending_interface_udp.is_some());
     finish_collection(&mut owner);
     let mut response = [0; 1232];
@@ -117,8 +169,15 @@ fn ordinary_udp_forward_query_still_starts_and_resumes_its_own_enumeration() {
     assert_eq!(header.id, 19);
     assert_eq!(header.rcode(), 0);
     assert!(header.answers > 0);
-    assert_eq!(owner.service.borrow().local.interfaces.reverse("127.0.0.1".parse().unwrap()),
-        Some(b"iface.records.test".as_slice()));
+    assert_eq!(
+        owner
+            .service
+            .borrow()
+            .local
+            .interfaces
+            .reverse("127.0.0.1".parse().unwrap()),
+        Some(b"iface.records.test".as_slice())
+    );
 }
 
 #[test]
@@ -127,15 +186,28 @@ fn ordinary_accept_before_first_query_still_refreshes_the_parent_snapshot() {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let _peer = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
     owner.add_listener(SocketToken(42), None, Some(listener));
-    owner.apply_network_events(NetworkEvents { address: true, ..Default::default() });
+    owner.apply_network_events(NetworkEvents {
+        address: true,
+        ..Default::default()
+    });
     assert!(!owner.interface_refresh.requested);
     owner.wait_for_files().unwrap();
     owner.step().unwrap();
-    assert!(owner.interface_work_pending(), "dnsmasq.c's accept caller remains eager before the first frame");
+    assert!(
+        owner.interface_work_pending(),
+        "dnsmasq.c's accept caller remains eager before the first frame"
+    );
     assert!(owner.pending_interface_tcp.is_some());
     assert!(owner.clients.is_empty());
     finish_collection(&mut owner);
     assert_eq!(owner.clients.len(), 1);
-    assert_eq!(owner.service.borrow().local.interfaces.reverse("127.0.0.1".parse().unwrap()),
-        Some(b"iface.records.test".as_slice()));
+    assert_eq!(
+        owner
+            .service
+            .borrow()
+            .local
+            .interfaces
+            .reverse("127.0.0.1".parse().unwrap()),
+        Some(b"iface.records.test".as_slice())
+    );
 }

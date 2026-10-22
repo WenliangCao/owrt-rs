@@ -16,15 +16,22 @@ impl Children {
     pub fn inherit() -> Self {
         let saved = std::env::var(REEXEC_ENV).unwrap_or_default();
         std::env::remove_var(REEXEC_ENV);
-        let mut pids: Vec<i32> = saved.split(',').filter_map(|p| p.parse().ok())
-            .filter(|p| *p > 0).collect();
+        let mut pids: Vec<i32> = saved
+            .split(',')
+            .filter_map(|p| p.parse().ok())
+            .filter(|p| *p > 0)
+            .collect();
         pids.sort_unstable();
         pids.dedup();
         Self { pids }
     }
 
     pub fn reexec_pids(&self) -> String {
-        self.pids.iter().map(i32::to_string).collect::<Vec<_>>().join(",")
+        self.pids
+            .iter()
+            .map(i32::to_string)
+            .collect::<Vec<_>>()
+            .join(",")
     }
 
     pub fn track(&mut self, pid: i32) {
@@ -34,7 +41,11 @@ impl Children {
     }
 
     pub fn exec(&mut self, argv: &[&str]) {
-        let Ok(args) = argv.iter().map(|a| CString::new(*a)).collect::<Result<Vec<_>, _>>() else {
+        let Ok(args) = argv
+            .iter()
+            .map(|a| CString::new(*a))
+            .collect::<Result<Vec<_>, _>>()
+        else {
             return;
         };
         if args.is_empty() {
@@ -47,7 +58,10 @@ impl Children {
     pub fn reap(&mut self) {
         self.pids.retain(|pid| {
             matches!(
-                rustix::process::waitpid(rustix::process::Pid::from_raw(*pid), rustix::process::WaitOptions::NOHANG),
+                rustix::process::waitpid(
+                    rustix::process::Pid::from_raw(*pid),
+                    rustix::process::WaitOptions::NOHANG
+                ),
                 Ok(None) | Err(rustix::io::Errno::INTR)
             )
         });

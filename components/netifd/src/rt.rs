@@ -39,8 +39,13 @@ fn strtoul_c(s: &str, base: u32) -> (u64, bool, bool) {
     let mut val: u64 = 0;
     let mut sat = false;
     while i < b.len() {
-        let Some(d) = (b[i] as char).to_digit(base) else { break };
-        match val.checked_mul(base as u64).and_then(|v| v.checked_add(d as u64)) {
+        let Some(d) = (b[i] as char).to_digit(base) else {
+            break;
+        };
+        match val
+            .checked_mul(base as u64)
+            .and_then(|v| v.checked_add(d as u64))
+        {
             Some(v) => val = v,
             None => sat = true,
         }
@@ -78,7 +83,9 @@ pub(crate) fn resolve_rt_table(s: &str) -> Option<u32> {
     } else if let Ok(text) = std::fs::read_to_string("/etc/iproute2/rt_tables") {
         for line in text.lines() {
             let mut it = line.split_whitespace();
-            let (Some(id), Some(name)) = (it.next(), it.next()) else { continue };
+            let (Some(id), Some(name)) = (it.next(), it.next()) else {
+                continue;
+            };
             if id.starts_with('#') {
                 continue;
             }
@@ -128,7 +135,9 @@ pub(crate) fn resolve_rt_proto(s: &str) -> Option<u32> {
     } else if let Ok(text) = std::fs::read_to_string("/etc/iproute2/rt_protos") {
         for line in text.lines() {
             let mut it = line.split_whitespace();
-            let (Some(id), Some(name)) = (it.next(), it.next()) else { continue };
+            let (Some(id), Some(name)) = (it.next(), it.next()) else {
+                continue;
+            };
             if id.starts_with('#') {
                 continue;
             }

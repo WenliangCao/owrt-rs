@@ -5,9 +5,8 @@
 //!
 //! Each step is one operation, so the harness can interleave them with reads.
 
-use owrt_netifd::{sys, ethtool};
+use owrt_netifd::{ethtool, sys};
 use std::net::IpAddr;
-
 
 fn arg(n: usize) -> String {
     std::env::args().nth(n).unwrap_or_else(|| {
@@ -28,7 +27,11 @@ fn main() {
         "setmaster" => {
             let dev = s.if_index(&arg(2)).expect("index");
             let m = arg(3);
-            let master = if m == "-" { 0 } else { s.if_index(&m).expect("index") };
+            let master = if m == "-" {
+                0
+            } else {
+                s.if_index(&m).expect("index")
+            };
             s.bridge_setmaster(dev, master)
         }
         // up <dev> / down <dev>
@@ -95,7 +98,10 @@ fn main() {
                 source: None,
                 sourcemask: 0,
                 nexthop,
-                metric: std::env::args().nth(5).and_then(|v| v.parse().ok()).unwrap_or(0),
+                metric: std::env::args()
+                    .nth(5)
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(0),
                 table: std::env::args()
                     .nth(6)
                     .and_then(|v| v.parse().ok())
@@ -126,7 +132,10 @@ fn main() {
             let e = ethtool::Ethtool::open().expect("ioctl socket");
             match e.link_info(&arg(2)) {
                 Ok(i) => {
-                    println!("speed={:?} autoneg={} pause_autoneg={}", i.speed, i.autoneg, i.pause_autoneg);
+                    println!(
+                        "speed={:?} autoneg={} pause_autoneg={}",
+                        i.speed, i.autoneg, i.pause_autoneg
+                    );
                     println!("supported={}", i.link_supported.join(","));
                     println!("advertising={}", i.link_advertising.join(","));
                     println!("partner={}", i.link_partner_advertising.join(","));
@@ -136,7 +145,10 @@ fn main() {
                 Err(e) => println!("linkinfo error: {e}"),
             }
             println!("devtype={:?}", ethtool::devtype(&arg(2)));
-            println!("hw-tc-offload={}", e.feature_value(&arg(2), "hw-tc-offload"));
+            println!(
+                "hw-tc-offload={}",
+                e.feature_value(&arg(2), "hw-tc-offload")
+            );
             for (k, v) in ethtool::statistics(&arg(2)) {
                 println!("stat {k}={v}");
             }

@@ -79,7 +79,10 @@ pub struct ForwardName {
 
 impl LocalLookup {
     fn answered(answer: QueryResult) -> Self {
-        Self { answer: Some(answer), forward_name: None }
+        Self {
+            answer: Some(answer),
+            forward_name: None,
+        }
     }
 }
 
@@ -424,12 +427,19 @@ impl<R: Random> DnsDaemon<R> {
         let local = external.unwrap_or(&self.local);
         let mut events = Vec::new();
         let question = super::forward::Question::parse(query)?;
-        let cached_name = self.cache.as_ref().is_some_and(|cache| {
-            cache.contains_forward_name(&question.name, unix_seconds())
-        });
+        let cached_name = self
+            .cache
+            .as_ref()
+            .is_some_and(|cache| cache.contains_forward_name(&question.name, unix_seconds()));
         let reply = self.query_policy.reply_with_cache(
-            query, &self.routing, Some(local), self.edns_packet_max, false,
-            None, cached_name, self.query_logging.enabled.then_some(&mut events),
+            query,
+            &self.routing,
+            Some(local),
+            self.edns_packet_max,
+            false,
+            None,
+            cached_name,
+            self.query_logging.enabled.then_some(&mut events),
         );
         self.query_events
             .extend(events.into_iter().map(|event| (self.query_context, event)));
@@ -687,7 +697,10 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream
             .replace_server_groups(routing.dispatcher_groups(), &removed);
         self.routing = routing;
-        self.local.config = self.server_sources.effective_config(&self.local.config).into();
+        self.local.config = self
+            .server_sources
+            .effective_config(&self.local.config)
+            .into();
         if !excluded.is_empty() {
             std::sync::Arc::make_mut(&mut self.local.config).rules = self
                 .server_sources
@@ -893,7 +906,9 @@ impl<R: Random> DnsDaemon<R> {
             unix_seconds(),
             true,
             false,
-        )?.answer {
+        )?
+        .answer
+        {
             return Ok(answer);
         }
         if let Some(packet) = self.policy_reply(query, None)? {
@@ -959,10 +974,19 @@ impl<R: Random> DnsDaemon<R> {
     /// Return the response length only after a complete in-place cached hit.
     /// Rejected packets keep the general owner's admission and expiry path.
     pub fn try_plain_cached_udp_in_place(
-        &mut self, packet: &mut [u8], query_len: usize, local: &mut LocalDnsService,
+        &mut self,
+        packet: &mut [u8],
+        query_len: usize,
+        local: &mut LocalDnsService,
     ) -> Option<usize> {
-        let answer = CacheContext::try_plain_udp_in_place(self.cache.as_mut()?, packet, query_len,
-            local, unix_seconds(), &mut self.udp_name_buffer);
+        let answer = CacheContext::try_plain_udp_in_place(
+            self.cache.as_mut()?,
+            packet,
+            query_len,
+            local,
+            unix_seconds(),
+            &mut self.udp_name_buffer,
+        );
         if answer.is_some() {
             // Deferred admission can follow a newer upstream resend save.
             self.invalidate_udp_resend();
@@ -985,7 +1009,11 @@ impl<R: Random> DnsDaemon<R> {
         self.invalidate_udp_resend();
         let header = Header::parse(original)?;
         let mut scratch = std::mem::take(&mut self.udp_name_buffer);
-        let question = match super::forward::Question::parse_with_header_reusing(original, header, &mut scratch) {
+        let question = match super::forward::Question::parse_with_header_reusing(
+            original,
+            header,
+            &mut scratch,
+        ) {
             Ok(question) => question,
             Err(error) => {
                 self.udp_name_buffer = scratch;
@@ -1004,7 +1032,9 @@ impl<R: Random> DnsDaemon<R> {
                 unix_seconds(),
                 !metadata.flags.no_cache,
                 false,
-            )?.answer {
+            )?
+            .answer
+            {
                 return Ok(answer);
             }
             if let Some(packet) = self.policy_reply(original, Some(local))? {
@@ -1327,7 +1357,8 @@ impl<R: Random> DnsDaemon<R> {
                         // recipients, including a replyless stale refresh.
                         if !counted_reply {
                             if let Ok(header) = Header::parse(&packet) {
-                                self.upstream.note_reply_rcode(reply.server, header.flags & 15);
+                                self.upstream
+                                    .note_reply_rcode(reply.server, header.flags & 15);
                             }
                             counted_reply = true;
                         }
@@ -1452,7 +1483,9 @@ impl<R: Random> DnsDaemon<R> {
                 name,
                 Some(external_local.unwrap_or(&self.local)),
                 Some(&self.routing),
-                self.cache.as_ref().is_some_and(|cache| cache.contains_forward_name(name, now)),
+                self.cache
+                    .as_ref()
+                    .is_some_and(|cache| cache.contains_forward_name(name, now)),
                 now,
             )
         })?;
@@ -1814,8 +1847,16 @@ impl<R: Random> DnsDaemon<R> {
                 filtered: false,
             });
         };
-        Self::tcp_view_answer_parsed(cache, query, Header::parse(query)?, &question,
-            local, now, negative_cache, negative_ttl)
+        Self::tcp_view_answer_parsed(
+            cache,
+            query,
+            Header::parse(query)?,
+            &question,
+            local,
+            now,
+            negative_cache,
+            negative_ttl,
+        )
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -1894,13 +1935,28 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<LocalLookup, DaemonError> {
         let mut name_lookup = None;
         let local_answer = local.lookup_local_parsed(
-            query, header, question, now, cache.as_deref_mut(), tcp, &mut name_lookup,
+            query,
+            header,
+            question,
+            now,
+            cache.as_deref_mut(),
+            tcp,
+            &mut name_lookup,
         );
         // A malformed TCP question must reach tcp_request's REFUSED path;
         // UDP admission instead drops it. Valid questions share this lookup.
-        let local_answer = if tcp { local_answer.ok().flatten() } else { local_answer? };
-        if local_answer.as_ref().is_some_and(|answer| !answer.forward_rule) {
-            return Ok(LocalLookup::answered(QueryResult::Local(local.finish_local_answer(local_answer.unwrap()))));
+        let local_answer = if tcp {
+            local_answer.ok().flatten()
+        } else {
+            local_answer?
+        };
+        if local_answer
+            .as_ref()
+            .is_some_and(|answer| !answer.forward_rule)
+        {
+            return Ok(LocalLookup::answered(QueryResult::Local(
+                local.finish_local_answer(local_answer.unwrap()),
+            )));
         }
         let mut forward_name = None;
         if cacheable {
@@ -1909,8 +1965,17 @@ impl<R: Random> DnsDaemon<R> {
                 let maximum = local.edns_packet_max;
                 let limit = if tcp { 65536 } else { local.max_udp };
                 let answer = CacheContext::answer_from_cache(
-                    cache, query, header, question, now, local,
-                    limit, maximum, tcp, filtered_type, name_lookup.as_ref(),
+                    cache,
+                    query,
+                    header,
+                    question,
+                    now,
+                    local,
+                    limit,
+                    maximum,
+                    tcp,
+                    filtered_type,
+                    name_lookup.as_ref(),
                 )?;
                 if let Some(packet) = answer.packet {
                     return Ok(LocalLookup::answered(if answer.stale {
@@ -1927,16 +1992,27 @@ impl<R: Random> DnsDaemon<R> {
             }
         }
         let local_answer = if let Some(name) = forward_name.as_ref() {
-            local.lookup_forward_rule(query, header, question, name, now, cache.as_deref_mut(), tcp)?
+            local.lookup_forward_rule(
+                query,
+                header,
+                question,
+                name,
+                now,
+                cache.as_deref_mut(),
+                tcp,
+            )?
         } else {
             local_answer
         };
         let forward_name = forward_name.map(|name| ForwardName {
-            cached: cache.as_deref().is_some_and(|cache| cache.contains_forward_name(&name, now)),
+            cached: cache
+                .as_deref()
+                .is_some_and(|cache| cache.contains_forward_name(&name, now)),
             name,
         });
         Ok(LocalLookup {
-            answer: local_answer.map(|answer| QueryResult::Local(local.finish_local_answer(answer))),
+            answer: local_answer
+                .map(|answer| QueryResult::Local(local.finish_local_answer(answer))),
             forward_name,
         })
     }
@@ -1953,7 +2029,14 @@ impl<R: Random> DnsDaemon<R> {
         tcp: bool,
     ) -> Result<LocalLookup, DaemonError> {
         Self::answer_local_or_cached(
-            self.cache.as_mut(), query, header, question, local, now, cacheable, tcp,
+            self.cache.as_mut(),
+            query,
+            header,
+            question,
+            local,
+            now,
+            cacheable,
+            tcp,
         )
     }
 
