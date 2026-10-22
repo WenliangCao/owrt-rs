@@ -1443,9 +1443,9 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
     }
 
     /// Pull one CRLF-terminated line without blocking, resuming across calls.
-    /// `Ok(None)` means the line is complete and the loop should re-dispatch
-    /// (it is returned through `self.line` being taken); `WouldBlock` means the
-    /// client owes us more bytes.
+    /// `Ok(Some(line))` returns the complete line without CRLF; `WouldBlock`
+    /// keeps its partial bytes for the next call. The optional result is kept
+    /// for the existing decoder dispatch contract.
     #[allow(clippy::type_complexity)]
     fn take_line(&mut self, max: usize) -> io::Result<Option<Vec<u8>>> {
         loop {
@@ -2815,16 +2815,25 @@ mod tests {
     struct Segments {
         pieces: std::collections::VecDeque<Vec<u8>>,
         eof_after: bool,
+        pause: bool,
+        stalls: usize,
     }
 
     impl io::Read for Segments {
         fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            if self.pause {
+                self.pause = false;
+                self.stalls += 1;
+                return Err(io::ErrorKind::WouldBlock.into());
+            }
             match self.pieces.pop_front() {
                 Some(p) => {
                     let n = p.len().min(buf.len());
                     buf[..n].copy_from_slice(&p[..n]);
                     if n < p.len() {
                         self.pieces.push_front(p[n..].to_vec());
+                    } else {
+                        self.pause = !self.pieces.is_empty();
                     }
                     Ok(n)
                 }
@@ -2856,6 +2865,8 @@ mod tests {
             Segments {
                 pieces: pieces.iter().map(|p| p.to_vec()).collect(),
                 eof_after: false,
+                pause: false,
+                stalls: 0,
             },
         ));
         let request = chunked_request();
@@ -2865,7 +2876,11 @@ mod tests {
         let mut stalls = 0;
         loop {
             match body.read(&mut buf) {
-                Ok(0) => return Ok(out),
+                Ok(0) => {
+                    assert_eq!(stalls, pieces.len().saturating_sub(1));
+                    assert_eq!(src.borrow().get_ref().stalls, stalls);
+                    return Ok(out);
+                }
                 Ok(n) => out.extend_from_slice(&buf[..n]),
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                     stalls += 1;
@@ -2886,6 +2901,13 @@ mod tests {
     fn chunked_decoding_resumes_across_every_split() {
         let whole = b"4\r\nabcd\r\n2\r\nef\r\n0\r\n\r\n";
         assert_eq!(decode_in_pieces(&[whole]).unwrap(), b"abcdef");
+        for split in 1..whole.len() {
+            assert_eq!(
+                decode_in_pieces(&[&whole[..split], &whole[split..]]).unwrap(),
+                b"abcdef",
+                "split at {split}"
+            );
+        }
         // size line cut in half, CRLF cut from its chunk, trailer cut in half
         assert_eq!(
             decode_in_pieces(&[b"4", b"\r\nab", b"cd\r", b"\n2\r\nef\r\n0\r\n\r\n"]).unwrap(),

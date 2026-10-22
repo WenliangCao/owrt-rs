@@ -1,0 +1,562 @@
+[
+  {
+    "run": 0,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3308530.0,
+    "wall_ns_per_op": 4418695.02,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 0,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 43523.36,
+    "wall_ns_per_op": 225166.506,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 0,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3328735.6,
+    "wall_ns_per_op": 4425283.48,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 0,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 45149.32,
+    "wall_ns_per_op": 233063.413,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 1,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3320965.6,
+    "wall_ns_per_op": 4442629.22,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 1,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 43471.16,
+    "wall_ns_per_op": 225881.232,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 1,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3329338.8,
+    "wall_ns_per_op": 4432249.13,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 1,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 43518.24,
+    "wall_ns_per_op": 227793.249,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 2,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3301738.0,
+    "wall_ns_per_op": 4413480.57,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 2,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 44888.08,
+    "wall_ns_per_op": 230150.868,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 2,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3330530.8,
+    "wall_ns_per_op": 4418137.41,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 2,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42979.44,
+    "wall_ns_per_op": 225052.545,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 3,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3295460.4,
+    "wall_ns_per_op": 4393978.0,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 3,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 44938.2,
+    "wall_ns_per_op": 222462.484,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 3,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3313926.4,
+    "wall_ns_per_op": 4411526.55,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 3,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 44760.44,
+    "wall_ns_per_op": 225002.425,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 4,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3298420.0,
+    "wall_ns_per_op": 4403936.49,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 4,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42191.4,
+    "wall_ns_per_op": 222960.288,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 4,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3304018.0,
+    "wall_ns_per_op": 4406822.51,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 4,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42188.72,
+    "wall_ns_per_op": 228650.656,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 5,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3305579.2,
+    "wall_ns_per_op": 4431236.72,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 5,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42840.72,
+    "wall_ns_per_op": 226693.839,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 5,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3312835.2,
+    "wall_ns_per_op": 4415469.78,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 5,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42929.6,
+    "wall_ns_per_op": 227547.486,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 6,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3307664.4,
+    "wall_ns_per_op": 4426746.28,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 6,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 44474.92,
+    "wall_ns_per_op": 224990.025,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 6,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3318799.6,
+    "wall_ns_per_op": 4414276.97,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 6,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 43526.0,
+    "wall_ns_per_op": 225128.786,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 7,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3299454.8,
+    "wall_ns_per_op": 4399741.25,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 7,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 44682.04,
+    "wall_ns_per_op": 223337.811,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 7,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3313512.8,
+    "wall_ns_per_op": 4409189.33,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 7,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 44244.96,
+    "wall_ns_per_op": 225903.752,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 8,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3295592.4,
+    "wall_ns_per_op": 4406128.5,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 8,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42552.0,
+    "wall_ns_per_op": 224130.978,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 8,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3306160.8,
+    "wall_ns_per_op": 4400883.65,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 8,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42895.4,
+    "wall_ns_per_op": 227350.765,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 9,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3297256.4,
+    "wall_ns_per_op": 4404733.69,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 9,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42439.4,
+    "wall_ns_per_op": 223631.053,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 9,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3314417.6,
+    "wall_ns_per_op": 4409370.53,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 9,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42219.08,
+    "wall_ns_per_op": 224851.184,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 10,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3299175.6,
+    "wall_ns_per_op": 4395428.81,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 10,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 41705.92,
+    "wall_ns_per_op": 223510.572,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 10,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3313322.4,
+    "wall_ns_per_op": 4396704.01,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 10,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 41490.52,
+    "wall_ns_per_op": 221644.916,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 11,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3290775.2,
+    "wall_ns_per_op": 4387449.54,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 11,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 41323.76,
+    "wall_ns_per_op": 220855.749,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 11,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3310190.4,
+    "wall_ns_per_op": 4405392.89,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 11,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 41905.96,
+    "wall_ns_per_op": 225969.872,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 12,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3299771.2,
+    "wall_ns_per_op": 4395304.8,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 12,
+    "side": "candidate",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42790.08,
+    "wall_ns_per_op": 221646.156,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 12,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3329279.2,
+    "wall_ns_per_op": 4464262.58,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 12,
+    "side": "candidate",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 48306.6,
+    "wall_ns_per_op": 242657.614,
+    "binary_sha256": "43ffe5bd9bbdf003cee4ee22ca280a30ff9b35a8505bdb54ee2c03e8a6894c0e"
+  },
+  {
+    "run": 13,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3313248.0,
+    "wall_ns_per_op": 4432720.72,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 13,
+    "side": "baseline",
+    "version": "TLSv1_2",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42090.76,
+    "wall_ns_per_op": 222115.44,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 13,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "handshake",
+    "n": 100,
+    "server_cpu_ns_per_op": 3316023.2,
+    "wall_ns_per_op": 4417879.4,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  },
+  {
+    "run": 13,
+    "side": "baseline",
+    "version": "TLSv1_3",
+    "lane": "keepalive",
+    "n": 1000,
+    "server_cpu_ns_per_op": 42003.0,
+    "wall_ns_per_op": 223168.689,
+    "binary_sha256": "4fdeadd6f034083447e816947f48f948a10b7bf703841e6b28e2e11e58b5b2c8"
+  }
+]

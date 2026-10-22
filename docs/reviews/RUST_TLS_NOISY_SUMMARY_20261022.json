@@ -1,0 +1,22 @@
+{
+  "TLSv1_2-handshake": {
+    "baseline": 3604741.9333333336,
+    "candidate": 3657038.533333333,
+    "change_percent": 1.450772370593545
+  },
+  "TLSv1_2-keepalive": {
+    "baseline": 91910.19333333333,
+    "candidate": 123884.32666666666,
+    "change_percent": 34.78845182859296
+  },
+  "TLSv1_3-handshake": {
+    "baseline": 3588597.333333333,
+    "candidate": 3584148.2666666666,
+    "change_percent": -0.12397787362044
+  },
+  "TLSv1_3-keepalive": {
+    "baseline": 120625.94666666666,
+    "candidate": 118886.90666666668,
+    "change_percent": -1.441679877386226
+  }
+}

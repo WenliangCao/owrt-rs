@@ -10,6 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 import socket
+import ssl
 import subprocess
 import sys
 import tempfile
@@ -45,10 +46,11 @@ def request(path="/plain.txt", fields=b"", method="GET", body=b"", version="1.0"
     return f"{method} {path} HTTP/{version}\r\n".encode() + fields + b"\r\n" + body
 
 
-def exchange(port, raw):
+def exchange(port, raw, context=None):
     data = bytearray()
     closed = False
-    with socket.create_connection(("127.0.0.1", port), timeout=4) as sock:
+    transport = socket.create_connection(("127.0.0.1", port), timeout=4)
+    with context.wrap_socket(transport, server_hostname="fixture.invalid") if context else transport as sock:
         sock.sendall(raw)
         try:
             while part := sock.recv(65536):
@@ -98,12 +100,18 @@ def inside(args):
     for name, minor in (("null", 3), ("zero", 5), ("urandom", 9)):
         run("mknod", "-m", "666", root / "dev" / name, "c", "1", str(minor))
     put(root, "www/plain.txt", "ordinary-response\n")
+    put(root, "www/cgi-bin/tls-echo", "#!/bin/sh\nprintf 'Content-Type: application/octet-stream\\r\\n\\r\\n'\ncat\n", 0o755)
     put(root, "www/sentinel", "HIDDEN-REQUEST-EXECUTED\n")
     put(root, "www/target.css", "body {}\n")
     (root / "www/alias.dat").symlink_to("target.css")
     (root / "www/chain.txt").symlink_to("alias.dat")
     put(root, "tmp/httpd-empty.conf", "")
     put(root, "tmp/httpd-auth.conf", "/ubus:user:secret\n")
+    run("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1",
+        "-subj", "/CN=fixture.invalid", "-keyout", root / "tmp/tls-key.pem", "-out", root / "tmp/tls-cert.pem")
+    run("openssl", "x509", "-in", root / "tmp/tls-cert.pem", "-outform", "DER", "-out", root / "tmp/tls-cert.der")
+    run("openssl", "pkcs8", "-topk8", "-nocrypt", "-in", root / "tmp/tls-key.pem", "-outform", "DER",
+        "-out", root / "tmp/tls-key.der")
     processes, logs = [], []
     records = {}
 
@@ -114,8 +122,8 @@ def inside(args):
         processes.append(child)
         return child
 
-    def observe(name, raw, expected=None, port=18080, exact=True):
-        wire, closed = exchange(port, raw)
+    def observe(name, raw, expected=None, port=18080, exact=True, context=None):
+        wire, closed = exchange(port, raw, context)
         (output / (name + ".bin")).write_bytes(wire)
         item = summary(wire, closed)
         item["exact"] = exact
@@ -140,9 +148,11 @@ def inside(args):
         else:
             raise AssertionError("exact-image rpcd session object did not register")
         binary = "/usr/sbin/uhttpd" if args.side == "original" else "/tmp/httpd-rs"
-        common = ("-f", "-h", "/www", "-u", "/ubus", "-a", "-k", "2", "-T", "2", "-t", "2")
+        common = ("-f", "-h", "/www", "-x", "/cgi-bin", "-u", "/ubus", "-a", "-k", "2", "-T", "2", "-t", "2")
         subject = start("httpd", binary, *common, "-c", "/tmp/httpd-empty.conf", "-p", "127.0.0.1:18080")
         start("auth", binary, *common, "-c", "/tmp/httpd-auth.conf", "-p", "127.0.0.1:18081")
+        start("tls", binary, *common, "-c", "/tmp/httpd-empty.conf", "-s", "127.0.0.1:18082",
+              "-C", "/tmp/tls-cert.der", "-K", "/tmp/tls-key.der")
         for port in (18080, 18081):
             for _ in range(100):
                 try:
@@ -154,6 +164,19 @@ def inside(args):
             else:
                 raise AssertionError(f"listener {port} did not become ready")
         observe("ordinary", request(), 200)
+        # The exact image's TLS provider supports TLS 1.2. TLS 1.3 is checked
+        # separately against the existing Rust server, not claimed as stock parity.
+        for version in (ssl.TLSVersion.TLSv1_2,):
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            context.minimum_version = context.maximum_version = version
+            item, _ = observe(f"tls-{version.name}", request(), 200, port=18082, context=context)
+            assert item["body"] == "ordinary-response\n", item
+            body = b"tls-cgi-payload\n" * 2048
+            item, _ = observe(f"tls-{version.name}-cgi", request("/cgi-bin/tls-echo",
+                f"Content-Length: {len(body)}\r\n".encode(), "POST", body), 200, port=18082, context=context)
+            assert item["body"] == body.decode(), item
         for name, expected in (("alias.dat", "text/css"), ("chain.txt", "application/octet-stream")):
             item, _ = observe("mime-" + name, request("/" + name), 200)
             assert item["headers"]["content-type"] == expected, item

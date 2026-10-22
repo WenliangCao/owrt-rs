@@ -1,0 +1,8 @@
+{
+  "case_count": 48,
+  "exact_cases": 38,
+  "differences": [],
+  "passed": true,
+  "reference_sha256": "89cbd5610d0a306e8185fb007a6efbad4aacad88c8ed837cd2dcb088c6d52e28",
+  "candidate_sha256": "61c3dd6bac2d7cea2b594763a3db9fd430fc33e883e57d228fa3a8ccf31c607e"
+}
