@@ -29,3 +29,19 @@ This project is evidence-first:
 Before any performance research, algorithm research, or difficult debugging,
 read `docs/RESEARCH_GUIDANCE_FROM_FABLE.md`. Before each experiment, apply its
 pre-experiment checklist.
+
+## Rust development standard
+
+All Rust development, refactoring, reviews and maintenance follow Microsoft's
+[Pragmatic Rust Guidelines](https://microsoft.github.io/rust-guidelines/agents/all.txt).
+Read `docs/RUST_GUIDELINES.md` before Rust work; it records the reviewed upstream
+revision, project applicability, review gates and incremental adoption priorities.
+Consult the relevant official rules when changing a subsystem. Apply them to new
+and changed code; improve existing code in focused, behavior-preserving steps.
+Do not turn guideline adoption into unrelated rewrites or dependency churn.
+Soundness requirements admit no compatibility exception.
+
+Run Rust build, check, test, benchmark and lint commands through `mbx` on
+`ssh oracle` or in CI; never invoke plain Cargo for compilation. If a build
+appears uncached, run `mbx explain --last`. The Mac remains an editing and
+formatting host; do not create local build targets for this work.
