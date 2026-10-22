@@ -261,17 +261,16 @@ fn do_call(
     if !bridge.noauth && !allowed(&mut conn, bridge, sid, object, function) {
         return rpc_error(id, RpcError::Access);
     }
-    if let Json::Object(items) = args {
-        if items.iter().any(|(k, _)| k == "ubus_rpc_session") {
-            return rpc_error(id, RpcError::Params);
-        }
+    let Json::Object(items) = args else {
+        return rpc_error(id, RpcError::Params);
+    };
+    if items.iter().any(|(k, _)| k == "ubus_rpc_session") {
+        return rpc_error(id, RpcError::Params);
     }
     bridge.record(object, function);
     let mut b = BlobBuf::new();
-    if let Json::Object(items) = args {
-        for (name, value) in items {
-            json_to_fields(&mut b, name, value);
-        }
+    for (name, value) in items {
+        json_to_fields(&mut b, name, value);
     }
     b.msg_string("ubus_rpc_session", sid);
     match conn.invoke_status(objid, function, b.payload(), bridge.timeout_ms) {
@@ -502,7 +501,7 @@ pub fn handle<W: Sink>(
                         "Ubus Protocol Error",
                         Json::Object(vec![
                             ("code".into(), Json::Int(code as i64)),
-                            ("message".into(), Json::Str(owrt_ubus::status::name(code).into())),
+                            ("message".into(), Json::Str(owrt_ubus::status::name(code))),
                         ])
                         .to_bytes(),
                     )
@@ -661,6 +660,76 @@ fn subscribe<W: Sink>(bridge: &Bridge, request: &Request, resp: &mut Response<W>
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn non_object_call_params_never_reach_ubus_invoke() {
+        use owrt_ubus::{attr, ty, Header};
+        use std::io::Read;
+        use std::os::unix::net::UnixListener;
+        use std::time::Duration;
+
+        struct Fixture(std::path::PathBuf);
+        impl Drop for Fixture {
+            fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+        }
+        let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let dir = std::env::temp_dir().join(format!("httpd-params-{}-{unique}", std::process::id()));
+        std::fs::create_dir(&dir).unwrap();
+        let fixture = Fixture(dir);
+        let path = fixture.0.join("bus.sock");
+        let listener = UnixListener::bind(&path).unwrap();
+        let worker = std::thread::spawn(move || {
+            let (mut socket, _) = listener.accept().unwrap();
+            socket.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            let send = |socket: &mut std::os::unix::net::UnixStream, header: Header, body: &mut BlobBuf| {
+                socket.write_all(&header.encode()).unwrap();
+                socket.write_all(body.as_bytes()).unwrap();
+            };
+            send(&mut socket, Header { ty: ty::HELLO, seq: 0, peer: 123 }, &mut BlobBuf::new());
+            let mut invokes = 0;
+            loop {
+                let mut prefix = [0u8; 12];
+                match socket.read_exact(&mut prefix) {
+                    Ok(()) => {}
+                    Err(error) if error.kind() == io::ErrorKind::UnexpectedEof => break,
+                    Err(error) => panic!("mock ubus receive: {error}"),
+                }
+                let header = Header::decode(prefix[..8].try_into().unwrap()).unwrap();
+                let length = u32::from_be_bytes(prefix[8..].try_into().unwrap()) & 0x00ff_ffff;
+                let mut body = vec![0; blob::pad4(length as usize) - 4];
+                socket.read_exact(&mut body).unwrap();
+                if header.ty == ty::LOOKUP {
+                    let mut data = BlobBuf::new();
+                    data.put_string(attr::OBJPATH, "test").put_u32(attr::OBJID, 42);
+                    send(&mut socket, Header { ty: ty::DATA, ..header }, &mut data);
+                } else {
+                    assert_eq!(header.ty, ty::INVOKE);
+                    invokes += 1;
+                }
+                let mut status = BlobBuf::new();
+                status.put_u32(attr::STATUS, 0);
+                send(&mut socket, Header { ty: ty::STATUS, ..header }, &mut status);
+            }
+            invokes
+        });
+        let bridge = Bridge {
+            socket: Some(path.to_str().unwrap().into()), noauth: true, cors: false,
+            timeout_ms: 1000, events_retry: 0, record_calls: true,
+            idle: Mutex::new(Vec::new()), calls: Mutex::new(Vec::new()),
+        };
+        for args in [Json::Null, Json::Bool(true), Json::Int(7), Json::Float(1.5),
+            Json::Str("scalar".into()), Json::Array(vec![]),
+            Json::Object(vec![("ubus_rpc_session".into(), Json::Str("injected".into()))])] {
+            let response = do_call(&bridge, Json::Int(9), DEFAULT_SID, "test", "method", &args, false).into_bytes();
+            assert_eq!(response, br#"{"jsonrpc":"2.0","id":9,"error":{"code":-32602,"message":"Invalid parameters"}}"#);
+        }
+        assert!(bridge.call_inventory().is_empty());
+        let response = do_call(&bridge, Json::Int(10), DEFAULT_SID, "test", "method", &Json::Object(vec![]), false).into_bytes();
+        assert_eq!(response, br#"{"jsonrpc":"2.0","id":10,"result":null}"#);
+        assert_eq!(bridge.call_inventory(), "test method 1\n");
+        drop(bridge);
+        assert_eq!(worker.join().unwrap(), 1, "only the valid object may invoke ubus");
+    }
 
     #[test]
     fn overly_nested_ubus_reply_returns_rpc_error_without_partial_json() {

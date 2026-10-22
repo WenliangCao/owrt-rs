@@ -81,6 +81,9 @@ pub struct Request {
     pub url: String,
     /// Lower-cased header names in arrival order.
     pub headers: Vec<(Cow<'static, str>, String)>,
+    /// Original field-line bytes, including line endings, for the shared
+    /// request-header and chunk-trailer budget.
+    pub header_bytes: usize,
     pub content_length: Option<usize>,
     pub transfer_chunked: bool,
     pub connection_close: bool,
@@ -117,6 +120,16 @@ fn lower_header_name(name: &str) -> Cow<'static, str> {
         }
     }
     Cow::Owned(name.to_ascii_lowercase())
+}
+
+/// OpenWrt 25.12.6 shares these limits between header fields and trailers.
+const MAX_HEADER_BYTES: usize = 16 * 1024;
+const MAX_HEADER_FIELDS: usize = 100;
+
+fn is_header_token(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric()
+        || matches!(byte, b'!' | b'#' | b'$' | b'%' | b'&' | b'\'' | b'*' | b'+'
+            | b'-' | b'.' | b'^' | b'_' | b'`' | b'|' | b'~')
 }
 
 pub enum ParseOutcome {
@@ -570,11 +583,8 @@ fn read_request_into<R: Read>(
     raw: &mut Vec<u8>,
     spare: &mut Option<Request>,
 ) -> io::Result<ParseOutcome> {
-    // The per-line limit alone permits an arbitrary number of retained
-    // headers before the deadline. Bound both wire bytes and field overhead.
-    // Unlike uhttpd's growing header blob, reject excess input with 413.
-    const MAX_HEAD_BYTES: usize = 64 * 1024;
-    const MAX_HEADER_FIELDS: usize = 512;
+    // Bound leading blank lines separately; uhttpd's field budget excludes
+    // the request line and the terminating empty line.
     let mut head_bytes = 0;
     let mut first_line = true;
     loop {
@@ -587,7 +597,7 @@ fn read_request_into<R: Read>(
             HeadLine::Line => {}
         }
         head_bytes += raw.len();
-        if head_bytes > MAX_HEAD_BYTES {
+        if head_bytes > MAX_HEADER_BYTES {
             return Ok(bad_line(413, "Request Entity Too Large"));
         }
         // A stray blank line is input: from here on the whole budget applies.
@@ -626,6 +636,7 @@ fn read_request_into<R: Read>(
         version,
         url: String::new(),
         headers: Vec::new(),
+        header_bytes: 0,
         content_length: None,
         transfer_chunked: false,
         connection_close: false,
@@ -639,6 +650,7 @@ fn read_request_into<R: Read>(
     request.transfer_chunked = false;
     request.connection_close = version < Version::V1_1 || !keepalive;
     request.expect_continue = false;
+    request.header_bytes = 0;
     let mut used_headers = 0;
     let mut content_lengths = 0;
     let mut transfer_encodings = 0;
@@ -651,17 +663,15 @@ fn read_request_into<R: Read>(
             }
             HeadLine::Line | HeadLine::Idle => {}
         }
-        head_bytes += raw.len();
-        if head_bytes > MAX_HEAD_BYTES {
-            return Ok(bad_header(413, "Request Entity Too Large", version));
-        }
         let line = String::from_utf8_lossy(raw);
-        let trimmed = line.trim_end_matches(['\r', '\n']);
+        let trimmed = line.strip_suffix('\n').unwrap_or(&line);
+        let trimmed = trimmed.strip_suffix('\r').unwrap_or(trimmed);
         if trimmed.is_empty() {
             break;
         }
-        if used_headers == MAX_HEADER_FIELDS {
-            return Ok(bad_header(413, "Request Entity Too Large", version));
+        request.header_bytes += raw.len();
+        if used_headers == MAX_HEADER_FIELDS || request.header_bytes > MAX_HEADER_BYTES {
+            return Ok(bad_header(431, "Request Header Fields Too Large", version));
         }
         // A NUL/control byte cannot be represented in a CGI environment
         // and must not be silently accepted or truncate a header in C.
@@ -671,8 +681,11 @@ fn read_request_into<R: Read>(
         let Some((name, value)) = trimmed.split_once(':') else {
             return Ok(bad_header(400, "Bad Request", version));
         };
-        let name = lower_header_name(name.trim());
-        let value = value.trim();
+        if name.is_empty() || !name.bytes().all(is_header_token) {
+            return Ok(bad_header(400, "Bad Request", version));
+        }
+        let name = lower_header_name(name);
+        let value = value.trim_matches([' ', '\t']);
         match name.as_ref() {
             "expect" => {
                 if value.eq_ignore_ascii_case("100-continue") {
@@ -1026,7 +1039,7 @@ pub struct BodyReader<'a, R: BufRead> {
     stage: Stage,
     /// Partial size or trailer line carried between calls.
     line: Vec<u8>,
-    /// Total trailer bytes and lines, so endless short trailers cannot stall us.
+    /// Header and trailer totals, so trailers share the original request's cap.
     trailer_bytes: usize,
     trailer_lines: usize,
     done: bool,
@@ -1043,9 +1056,34 @@ enum Framing {
 
 /// Cap on one chunk size line or trailer line.
 const CHUNK_LINE_MAX: usize = 4096;
-/// Cap on the whole trailer section.
-const TRAILER_MAX: usize = 8192;
-const TRAILER_LINES_MAX: usize = 64;
+
+/// Parse the exact chunk-size grammar of uhttpd 373145f7: hexadecimal size,
+/// followed by zero or more semicolon extensions with ASCII alphanumeric
+/// names and values. Empty extension names/values remain accepted upstream.
+fn parse_chunk_size(line: &[u8]) -> Option<u64> {
+    let digits = line.iter().take_while(|byte| byte.is_ascii_hexdigit()).count();
+    if digits == 0 {
+        return None;
+    }
+    let mut size = 0u64;
+    for &byte in &line[..digits] {
+        let digit = if byte.is_ascii_digit() { byte - b'0' } else { byte.to_ascii_lowercase() - b'a' + 10 };
+        size = size.checked_mul(16)?.checked_add(u64::from(digit))?;
+        if size > i32::MAX as u64 {
+            return None;
+        }
+    }
+    let mut rest = &line[digits..];
+    while let Some(extension) = rest.strip_prefix(b";") {
+        let name = extension.iter().take_while(|byte| byte.is_ascii_alphanumeric()).count();
+        rest = &extension[name..];
+        if let Some(value) = rest.strip_prefix(b"=") {
+            let length = value.iter().take_while(|byte| byte.is_ascii_alphanumeric()).count();
+            rest = &value[length..];
+        }
+    }
+    rest.is_empty().then_some(size)
+}
 
 impl<'a, R: BufRead> BodyReader<'a, R> {
     pub fn new(src: &'a RefCell<R>, request: &Request) -> Self {
@@ -1064,8 +1102,8 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
             chunk_left: 0,
             stage: Stage::Size,
             line: Vec::new(),
-            trailer_bytes: 0,
-            trailer_lines: 0,
+            trailer_bytes: request.header_bytes,
+            trailer_lines: request.headers.len(),
             done,
             bad: false,
         }
@@ -1112,16 +1150,9 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
             match self.stage {
                 Stage::Size => {
                     let Some(line) = self.take_line(CHUNK_LINE_MAX)? else { continue };
-                    let text = String::from_utf8_lossy(&line).into_owned();
-                    let size_text = text.trim().split(';').next().unwrap_or("");
-                    let Ok(size) = u64::from_str_radix(size_text, 16) else {
+                    let Some(size) = parse_chunk_size(&line) else {
                         return Err(self.fail(io::ErrorKind::InvalidData, "bad chunk size"));
                     };
-                    // client.c stores each chunk in a signed int. Reject
-                    // the same impossible lengths before waiting for data.
-                    if size > i32::MAX as u64 {
-                        return Err(self.fail(io::ErrorKind::InvalidData, "chunk size exceeds INT_MAX"));
-                    }
                     if size == 0 {
                         self.stage = Stage::Trailer;
                     } else {
@@ -1158,8 +1189,8 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
                         return Ok(0);
                     }
                     self.trailer_lines += 1;
-                    self.trailer_bytes += line.len();
-                    if self.trailer_lines > TRAILER_LINES_MAX || self.trailer_bytes > TRAILER_MAX {
+                    self.trailer_bytes += line.len() + 2;
+                    if self.trailer_lines > MAX_HEADER_FIELDS || self.trailer_bytes > MAX_HEADER_BYTES {
                         return Err(self.fail(io::ErrorKind::InvalidData, "trailer section too large"));
                     }
                 }
@@ -1198,8 +1229,8 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
             }
             if found {
                 let mut line = std::mem::take(&mut self.line);
-                if line.last() == Some(&b'\r') {
-                    line.pop();
+                if line.pop() != Some(b'\r') {
+                    return Err(self.fail(io::ErrorKind::InvalidData, "framing line requires CRLF"));
                 }
                 return Ok(Some(line));
             }
@@ -1559,9 +1590,11 @@ mod tests {
 
     fn head_with_size(size: usize) -> Vec<u8> {
         let mut head = b"GET / HTTP/1.1\r\n".to_vec();
+        let size = head.len() + size + 2;
         while size - head.len() - 2 > 4096 {
+            let line_size = (size - head.len() - 6).min(4096);
             head.extend_from_slice(b"X:");
-            head.extend(std::iter::repeat_n(b'a', 4092));
+            head.extend(std::iter::repeat_n(b'a', line_size - 4));
             head.extend_from_slice(b"\r\n");
         }
         let last = size - head.len() - 2;
@@ -1575,29 +1608,29 @@ mod tests {
 
     #[test]
     fn request_header_limits_bound_bytes_and_count() {
-        for size in [65535, 65536, 65537] {
+        for size in [16383, 16384, 16385] {
             let mut input = BufReader::new(io::Cursor::new(head_with_size(size)));
             let result = read_request(&mut input, true, None).unwrap();
-            if size <= 65536 {
+            if size <= 16384 {
                 assert!(matches!(result, ParseOutcome::Request(_)), "size {size}");
             } else {
-                assert!(matches!(result, ParseOutcome::Bad { code: 413, .. }), "size {size}");
+                assert!(matches!(result, ParseOutcome::Bad { code: 431, .. }), "size {size}");
             }
         }
-        for count in [512, 513] {
+        for count in [100, 101] {
             let mut head = b"GET / HTTP/1.1\r\n".to_vec();
             for _ in 0..count { head.extend_from_slice(b"X:\r\n"); }
             head.extend_from_slice(b"\r\n");
             let mut input = BufReader::new(io::Cursor::new(head));
             let result = read_request(&mut input, true, None).unwrap();
-            if count == 512 {
+            if count == 100 {
                 assert!(matches!(result, ParseOutcome::Request(_)));
             } else {
-                assert!(matches!(result, ParseOutcome::Bad { code: 413, .. }));
+                assert!(matches!(result, ParseOutcome::Bad { code: 431, .. }));
             }
         }
-        // Leading blank lines also consume the same request-head budget.
-        let mut head = b"\r\n".repeat(32768);
+        // Leading blank lines have a separate bounded budget.
+        let mut head = b"\r\n".repeat(8192);
         head.extend_from_slice(b"GET / HTTP/1.1\r\n\r\n");
         let mut input = BufReader::new(io::Cursor::new(head));
         assert!(matches!(read_request(&mut input, true, None).unwrap(), ParseOutcome::Bad { code: 413, .. }));
@@ -1605,8 +1638,8 @@ mod tests {
 
     #[test]
     fn request_header_limits_reset_only_after_one_complete_request() {
-        let mut input = head_with_size(65536);
-        input.extend_from_slice(&head_with_size(65536));
+        let mut input = head_with_size(16384);
+        input.extend_from_slice(&head_with_size(16384));
         let mut reader = BufReader::new(io::Cursor::new(input));
         let mut heads = HeadBuffer::default();
         for _ in 0..2 {
@@ -1616,10 +1649,64 @@ mod tests {
             heads.recycle(request);
         }
         assert!(matches!(heads.read_request(&mut reader, true, None).unwrap(), ParseOutcome::Eof));
-        let mut input = head_with_size(65537);
+        let mut input = head_with_size(16385);
         input.extend_from_slice(b"GET / HTTP/1.1\r\n\r\n");
         let mut reader = BufReader::new(io::Cursor::new(input));
-        assert!(matches!(heads.read_request(&mut reader, true, None).unwrap(), ParseOutcome::Bad { code: 413, .. }));
+        assert!(matches!(heads.read_request(&mut reader, true, None).unwrap(), ParseOutcome::Bad { code: 431, .. }));
+    }
+
+    #[test]
+    fn header_names_are_nonempty_ascii_tokens_and_values_trim_only_ows() {
+        for field in [": value", " Host: value", "Host : value", "Host\t: value",
+            "X Name: value", "X@Name: value", "X(Name): value", "Höst: value", "X: value\r"] {
+            let raw = format!("GET / HTTP/1.1\r\n{field}\r\n\r\n");
+            let mut input = BufReader::new(io::Cursor::new(raw));
+            assert!(matches!(read_request(&mut input, true, None).unwrap(),
+                ParseOutcome::Bad { code: 400, .. }), "{field:?}");
+        }
+        let raw = b"GET / HTTP/1.1\r\nX-!#$%&'*+.^_`|~: \tvalue\t \r\nX-Obs: \xc2\xa0value\xc2\xa0 \r\n\r\n";
+        let mut input = BufReader::new(io::Cursor::new(raw));
+        let ParseOutcome::Request(request) = read_request(&mut input, true, None).unwrap() else {
+            panic!("valid token rejected");
+        };
+        assert_eq!(request.header("x-!#$%&'*+.^_`|~"), Some("value"));
+        assert_eq!(request.header("x-obs"), Some("\u{a0}value\u{a0}"));
+    }
+
+    #[test]
+    fn trailers_share_header_limits_and_never_become_pipelined_requests() {
+        for (headers, trailers, accepted) in [(99, 1, true), (99, 2, false)] {
+            let mut raw = b"POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\n".to_vec();
+            for _ in 1..headers { raw.extend_from_slice(b"X: v\r\n"); }
+            raw.extend_from_slice(b"\r\n0\r\n");
+            for _ in 0..trailers { raw.extend_from_slice(b"GET /hidden HTTP/1.1\r\n"); }
+            raw.extend_from_slice(b"\r\nGET /next HTTP/1.1\r\n\r\n");
+            let cell = RefCell::new(BufReader::new(io::Cursor::new(raw)));
+            let ParseOutcome::Request(request) = read_request(&mut cell.borrow_mut(), true, None).unwrap() else {
+                panic!("valid head rejected");
+            };
+            let mut body = BodyReader::new(&cell, &request);
+            assert_eq!(body.read_all(0).is_ok(), accepted);
+            assert_eq!(body.reusable(), accepted);
+            if accepted {
+                let ParseOutcome::Request(next) = read_request(&mut cell.borrow_mut(), true, None).unwrap() else {
+                    panic!("next request lost");
+                };
+                assert_eq!(next.url, "/next");
+            }
+        }
+        // Header fields have 4 bytes left; a six-byte trailer crosses the
+        // shared wire-byte budget even though its payload is only 4 bytes.
+        let mut raw = head_with_size(16380 - b"Transfer-Encoding: chunked\r\n".len());
+        raw.truncate(raw.len() - 2);
+        raw.extend_from_slice(b"Transfer-Encoding: chunked\r\n\r\n0\r\nX: v\r\n\r\n");
+        let cell = RefCell::new(BufReader::new(io::Cursor::new(raw)));
+        let ParseOutcome::Request(request) = read_request(&mut cell.borrow_mut(), true, None).unwrap() else {
+            panic!("valid head rejected");
+        };
+        let mut body = BodyReader::new(&cell, &request);
+        assert_eq!(body.read_all(0).unwrap_err().kind(), io::ErrorKind::InvalidData);
+        assert!(!body.reusable());
     }
 
     #[test]
@@ -2150,6 +2237,7 @@ mod tests {
                 version: Version::V1_1,
                 url: "/".into(),
                 headers: Vec::new(),
+                header_bytes: 0,
                 content_length: len,
                 transfer_chunked: chunked,
                 connection_close: false,
@@ -2178,6 +2266,19 @@ mod tests {
         assert!(drain(b"3\r\nabcX\r\n0\r\n\r\n", true, None).is_err());
         assert!(drain(&format!("{}\n", "a".repeat(CHUNK_LINE_MAX + 1)).into_bytes(), true, None).is_err());
         assert!(drain(b"zz\r\n", true, None).is_err());
+        // 25.12.6 rejects strtol-style prefixes, whitespace and unparsed
+        // extension garbage instead of interpreting them as another size.
+        for size in ["", " ", " 1", "+1", "0x1", "1 ", "1;name=bad!", "1;name=\"quoted\"", "1;x=y garbage", "80000000"] {
+            let wire = format!("{size}\r\nx\r\n0\r\n\r\n");
+            assert!(drain(wire.as_bytes(), true, None).is_err(), "{size:?}");
+        }
+        assert_eq!(drain(b"01;name=value;flag\r\nx\r\n0\r\n\r\n", true, None).unwrap(), b"x");
+        // Every framing boundary requires CRLF, including the separator
+        // after data and the terminating blank line after trailers.
+        for wire in [b"1\nx\r\n0\r\n\r\n".as_slice(), b"1\r\nx\n0\r\n\r\n",
+            b"0\n\r\n", b"0\r\nX: y\n\r\n", b"0\r\n\n"] {
+            assert!(drain(wire, true, None).is_err(), "{wire:?}");
+        }
         // a Content-Length body that ends early is an error, not a short read
         assert!(drain(b"abc", false, Some(10)).is_err());
     }
@@ -2213,6 +2314,7 @@ mod tests {
             version: Version::V1_1,
             url: "/".into(),
             headers: Vec::new(),
+            header_bytes: 0,
             content_length: None,
             transfer_chunked: true,
             connection_close: false,
@@ -2273,7 +2375,7 @@ mod tests {
     #[test]
     fn endless_trailers_are_bounded() {
         let mut input = b"1\r\nz\r\n0\r\n".to_vec();
-        for i in 0..(TRAILER_LINES_MAX + 5) {
+        for i in 0..(MAX_HEADER_FIELDS + 5) {
             input.extend_from_slice(format!("X-{i}: v\r\n").as_bytes());
         }
         input.extend_from_slice(b"\r\n");
@@ -2281,7 +2383,7 @@ mod tests {
         assert_eq!(err.kind(), io::ErrorKind::InvalidData, "{err}");
 
         let mut big = b"1\r\nz\r\n0\r\n".to_vec();
-        for i in 0..20 {
+        for i in 0..30 {
             big.extend_from_slice(format!("X-{i}: {}\r\n", "v".repeat(600)).as_bytes());
         }
         big.extend_from_slice(b"\r\n");
@@ -2297,6 +2399,7 @@ mod tests {
             version: Version::V1_1,
             url: "/".into(),
             headers: Vec::new(),
+            header_bytes: 0,
             content_length: Some(100),
             transfer_chunked: false,
             connection_close: false,

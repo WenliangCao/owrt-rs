@@ -323,6 +323,15 @@ pub fn mime_type(path: &str) -> &'static str {
     "application/octet-stream"
 }
 
+/// OpenWrt 25.12.6 uses a symlink's immediate target name for MIME lookup.
+/// Read only one link: following a chain would change the upstream behavior.
+fn file_mime_type(path: &str) -> &'static str {
+    match fs::read_link(path) {
+        Ok(target) => mime_type(&target.to_string_lossy()),
+        Err(_) => mime_type(path),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{canonpath, mime_type};
@@ -436,6 +445,31 @@ mod tests {
             ("", "application/octet-stream"),
         ] {
             assert_eq!(mime_type(path), expected, "{path}");
+        }
+    }
+
+    #[test]
+    fn symlink_mime_uses_the_immediate_target_name() {
+        use std::os::unix::fs::symlink;
+        struct Fixture(std::path::PathBuf);
+        impl Drop for Fixture {
+            fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+        }
+        let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let dir = std::env::temp_dir().join(format!("httpd-mime-{}-{unique}", std::process::id()));
+        std::fs::create_dir(&dir).unwrap();
+        let fixture = Fixture(dir);
+        let dir = &fixture.0;
+        std::fs::write(dir.join("actual.css"), b"body {}").unwrap();
+        symlink("actual.css", dir.join("alias.dat")).unwrap();
+        symlink(dir.join("actual.css"), dir.join("absolute.dat")).unwrap();
+        symlink("alias.dat", dir.join("chain.txt")).unwrap();
+        for (name, expected) in [("actual.css", "text/css"), ("alias.dat", "text/css"),
+            ("absolute.dat", "text/css"), ("chain.txt", "application/octet-stream")] {
+            let super::Lookup::Found(pi) = super::lookup(dir.to_str().unwrap(), &format!("/{name}"), false, &[]) else {
+                panic!("file lookup failed for {name}");
+            };
+            assert_eq!(super::file_mime_type(&pi.phys), expected, "{name}");
         }
     }
 }
@@ -624,7 +658,7 @@ pub fn serve<W: http::Sink>(
         }
         resp.status(200, "OK")?;
         ok_headers(resp, Some(&pi.meta))?;
-        resp.header("Content-Type", mime_type(pi.name()))?;
+        resp.header("Content-Type", file_mime_type(&pi.phys))?;
         resp.header("Content-Length", pi.meta.size())?;
         resp.end_headers()?;
         let mut body = ReadAt { file: &opened.file, pos: 0 };
@@ -696,7 +730,7 @@ fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io
     let escaped = http::html_escape(pi.name());
     resp.status(200, "OK")?;
     ok_headers(resp, None)?;
-    resp.header("Content-Type", &format!("text/html; charset={charset}"))?;
+    resp.header("Content-Type", format!("text/html; charset={charset}"))?;
     resp.end_headers()?;
     resp.body(format!("<html><head><title>Index of {escaped}</title></head><body><h1>Index of {escaped}</h1><hr /><ol>").as_bytes())?;
     // (name, is_dir from d_type without following symlinks, stat following)
@@ -729,7 +763,7 @@ fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io
         } else {
             resp.body(format!(
                 "<li><strong><a href='{escaped}{escaped_name}'>{escaped_name}</a></strong><br /><small>modified: {modified}<br />{} - {:.2} kbyte<br /><br /></small></li>",
-                mime_type(&name),
+                file_mime_type(&format!("{}/{name}", pi.phys)),
                 meta.size() as f64 / 1024.0
             ).as_bytes())?;
         }

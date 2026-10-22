@@ -596,6 +596,7 @@ impl Server {
             version,
             url: String::new(),
             headers: Vec::new(),
+            header_bytes: 0,
             content_length: None,
             transfer_chunked: false,
             connection_close: true,
@@ -639,7 +640,7 @@ impl Server {
                 resp.force_close();
                 resp.disable_chunked();
                 resp.status(307, "Temporary Redirect")?;
-                resp.header("Location", &format!("https://{host}{port}{}", request.url))?;
+                resp.header("Location", format!("https://{host}{port}{}", request.url))?;
                 resp.end_headers()?;
                 return resp.finish();
             }
@@ -651,6 +652,11 @@ impl Server {
         let path = request.url.split('?').next().unwrap_or("");
         if let Some(prefix) = &self.config.ubus_prefix {
             if path == prefix || path.strip_prefix(prefix).is_some_and(|tail| tail.starts_with('/')) {
+                // URL-prefix handlers bypass file lookup; enforce their realm
+                // before reading a body or invoking ubus (uhttpd 3aa7e1c).
+                if auth::check(&self.config.auth, &request.url, request.header("authorization")).is_err() {
+                    return self.require_authorization(resp);
+                }
                 // UH_UBUS_MAX_POST_SIZE (ubus.c:37, 937-952): over the cap,
                 // uh_ubus_data_send stops parsing, closes the connection and
                 // answers 200 with the JSON-RPC parse error -- never an HTML
@@ -694,12 +700,7 @@ impl Server {
                 files::Lookup::Found(pi) => {
                     match auth::check(&self.config.auth, pi.name(), request.header("authorization")) {
                         Err(()) => {
-                            resp.status(401, "Authorization Required")?;
-                            resp.header("WWW-Authenticate", &format!("Basic realm=\"{}\"", self.config.realm))?;
-                            resp.header("Content-Type", "text/plain")?;
-                            resp.end_headers()?;
-                            resp.body(b"Authorization Required\n")?;
-                            return resp.finish();
+                            return self.require_authorization(resp);
                         }
                         Ok(Some((user, pass))) => {
                             request.headers.retain(|(k, _)| k != "http-auth-user" && k != "http-auth-pass");
@@ -762,6 +763,15 @@ impl Server {
                 }
             }
         }
+    }
+
+    fn require_authorization<W: Write>(&self, resp: &mut Response<W>) -> io::Result<()> {
+        resp.status(401, "Authorization Required")?;
+        resp.header("WWW-Authenticate", format!("Basic realm=\"{}\"", self.config.realm))?;
+        resp.header("Content-Type", "text/plain")?;
+        resp.end_headers()?;
+        resp.body(b"Authorization Required\n")?;
+        resp.finish()
     }
 
     fn flush_inventory(&self) {

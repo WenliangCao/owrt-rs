@@ -651,6 +651,7 @@ mod tests {
             version: Version::V1_0,
             url: "/script".into(),
             headers: Vec::new(),
+            header_bytes: 0,
             content_length: None,
             transfer_chunked: false,
             connection_close: true,

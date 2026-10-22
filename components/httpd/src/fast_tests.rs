@@ -185,6 +185,36 @@ fn thread_response(f: &Fixture, request: &[u8], with_body: bool) -> Vec<u8> {
 }
 
 #[test]
+fn ubus_prefix_requires_basic_auth_before_dispatch() {
+    let mut f = fixture();
+    Arc::get_mut(&mut f.server).unwrap().config.auth.push(
+        auth::Realm::new("/ubus".into(), "user".into(), "secret".into()).unwrap(),
+    );
+    for (path, authorization, expected) in [
+        ("/ubus", "", 401),
+        ("/ubus/list", "", 401),
+        ("/ubus/subscribe/test", "", 401),
+        ("/ubus/call/test", "Basic dXNlcjp3cm9uZw==", 401),
+        ("/ubus?query=1", "Bearer unrelated-session", 401),
+        ("/ubus", "Basic dXNlcjpzZWNyZXQ=", 200),
+        ("/ubus-other", "", 404),
+    ] {
+        let (parked, mut peer) = parked_pair(&f);
+        let server = Arc::clone(&f.server);
+        let parking = Arc::clone(&f.parking);
+        let worker = thread::spawn(move || {
+            server.run_connection(parked.transport, parked.conn, &parking, None, &mut http::HeadBuffer::default())
+        });
+        peer.write_all(format!("OPTIONS {path} HTTP/1.0\r\nAuthorization: {authorization}\r\n\r\n").as_bytes()).unwrap();
+        let mut response = String::new();
+        peer.read_to_string(&mut response).unwrap();
+        worker.join().unwrap();
+        assert!(response.starts_with(&format!("HTTP/1.0 {expected} ")), "{path}: {response}");
+        assert_eq!(response.contains("WWW-Authenticate: Basic realm=\""), expected == 401);
+    }
+}
+
+#[test]
 fn served_bytes_match_the_thread_path_for_get_head_and_conditionals() {
     let f = fixture();
     let mut scratch = fast::Scratch::default();
