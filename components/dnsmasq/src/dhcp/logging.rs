@@ -192,7 +192,7 @@ pub fn option_value(code: u8, data: &[u8]) -> Vec<u8> {
     let kind = crate::config::dhcp::DhcpOption::log_descriptor(code).map(|(_, kind)| kind);
     match kind {
         Some(OptionLogKind::Address) => data
-            .chunks_exact(4)
+            .as_chunks::<4>().0.iter()
             .map(|bytes| Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]).to_string())
             .collect::<Vec<_>>()
             .join(", ")

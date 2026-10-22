@@ -527,6 +527,7 @@ pub fn discover(
 /// Called after successful DISCOVER address narrowing, before rapid lease commit.
 pub type OfferWait<'a> = dyn FnMut(usize, LeaseCounters) -> bool + 'a;
 
+#[expect(clippy::too_many_arguments, reason = "retain the explicit DHCP transaction and callback boundary")]
 pub(crate) fn discover_counted(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
@@ -552,6 +553,7 @@ pub(crate) fn discover_counted(
 
 /// Select an address before ACK name policy: rapid commit needs the actual
 /// context and yiaddr, which cannot be inferred from DISCOVER option 50.
+#[expect(clippy::too_many_arguments, reason = "retain the explicit DHCP selection and callback boundary")]
 pub(crate) fn select_discover_counted(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
@@ -560,7 +562,7 @@ pub(crate) fn select_discover_counted(
     quiet: bool,
     counters: &mut MessageCounters,
     mut events: Option<&mut LogSink<'_>>,
-    mut before_offer: Option<&mut OfferWait<'_>>,
+    before_offer: Option<&mut OfferWait<'_>>,
 ) -> Result<Outcome, LeaseError> {
     let env = request.environment;
     if request.packet.message_type() != 1 {
@@ -682,7 +684,7 @@ pub(crate) fn select_discover_counted(
     let Some(context) = narrow(ranges, address, request.tags) else {
         return Ok(Outcome::ignored());
     };
-    if let Some(wait) = before_offer.as_deref_mut() {
+    if let Some(wait) = before_offer {
         if !wait(context, store.counters()) {
             return Ok(Outcome::ignored());
         }

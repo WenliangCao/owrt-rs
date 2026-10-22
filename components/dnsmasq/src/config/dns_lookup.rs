@@ -28,12 +28,25 @@ pub struct EndpointLookup {
 impl EndpointLookup {
     /// The fixed worker receives only owned rules and its result writer.
     /// No live service owner calls the blocking resolver or a blocking wait.
-    pub fn start(rules: Vec<ServerRule>, reverse: bool) -> io::Result<Self> {
+    ///
+    /// # Safety
+    ///
+    /// The process must be single-threaded, without shared writable mappings,
+    /// application atfork callbacks or held locks used by libc name lookup.
+    /// Inherited signal handlers and panic hooks must not access copied parent
+    /// descriptor owners, shared state or held locks, as required by
+    /// [`dnsmasq_platform::process::spawn_lookup`].
+    #[expect(unsafe_code, reason = "audited owned resolver snapshot at the fork boundary")]
+    pub unsafe fn start(rules: Vec<ServerRule>, reverse: bool) -> io::Result<Self> {
         // All fields are owned names/IPs/scalars, not references or FD owners.
         // The poll turn holds no lock/stdio guard and worker_entry never
         // reaches the service's discarded owner graph or reinstalls handlers.
-        let ((rules, _), pid, reader) =
-            dnsmasq_platform::process::spawn_lookup((rules, reverse), worker_entry)?;
+        // SAFETY: the caller guarantees the process prerequisites. ServerRule
+        // owns only byte buffers, addresses and scalars, with no descriptors;
+        // worker_entry only resolves those rules and writes the provided pipe.
+        let ((rules, _), pid, reader) = unsafe {
+            dnsmasq_platform::process::spawn_lookup((rules, reverse), worker_entry)
+        }?;
         Ok(Self {
             pid: Some(pid.as_raw_nonzero().get()),
             reader,
@@ -215,70 +228,25 @@ fn decode(original: &[ServerRule], bytes: &[u8]) -> Result<LookupResult, ()> {
     Ok(LookupResult { rules, error })
 }
 
+#[cfg(feature = "process-test-support")]
+#[path = "dns_lookup_process_tests.rs"]
+#[expect(unsafe_code, reason = "standalone process tests establish the fork prerequisites")]
+mod process_tests;
+
+#[cfg(feature = "process-test-support")]
+/// # Safety
+/// Run only on a standalone process main thread, without shared writable
+/// mappings, application atfork hooks or held locks.
+#[doc(hidden)]
+#[expect(unsafe_code, reason = "test runner must preserve the explicit fork contract")]
+pub unsafe fn run_process_tests() {
+    process_tests::run();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::config::{dns::parse_rules, EncodedArg};
-    fn finish(lookup: &mut EndpointLookup) -> LookupResult {
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
-        loop {
-            let before = lookup.bytes.len();
-            let result = lookup.step();
-            assert!(lookup.bytes.len() - before <= 4096);
-            if let Some(result) = result {
-                return result;
-            }
-            assert!(std::time::Instant::now() < deadline, "lookup timeout");
-            let mut fds = Vec::new();
-            lookup.append_poll_fds(&mut fds);
-            dnsmasq_platform::poll::poll_fds(&mut fds, 10).unwrap();
-        }
-    }
-
-    #[test]
-    fn fork_lookup_preserves_rules_and_cancel_reaps_before_result() {
-        let mut rules = parse_rules(
-            b"server",
-            &EncodedArg::command_line(b"/one/two/127.0.0.2#5353@192.0.2.1#5300"),
-        )
-        .unwrap();
-        for rule in &mut rules {
-            let RuleTarget::Upstream(endpoint) = &mut rule.target else {
-                unreachable!()
-            };
-            endpoint.host = ServerHost::Name(b"127.0.0.2".to_vec());
-        }
-        let expected = endpoints::resolve_rules(&rules, false);
-        let mut lookup = EndpointLookup::start(rules.clone(), false).unwrap();
-        let result = finish(&mut lookup);
-        assert_eq!(result.rules, expected.rules);
-        assert!(result.error.is_none());
-        assert!(lookup.pid.is_none());
-
-        let mut cancelled = EndpointLookup::start(rules, false).unwrap();
-        cancelled.cancel();
-        let result = finish(&mut cancelled);
-        assert!(result.rules.is_empty() && result.error.is_none());
-        assert!(cancelled.pid.is_none());
-    }
-
-    #[test]
-    fn large_result_uses_one_read_interest_and_bounded_owner_turns() {
-        let one = parse_rules(b"server", &EncodedArg::command_line(b"/one/127.0.0.2"))
-            .unwrap()
-            .remove(0);
-        let rules = vec![one; 512];
-        let mut lookup = EndpointLookup::start(rules.clone(), false).unwrap();
-        let mut fds = Vec::new();
-        lookup.append_poll_fds(&mut fds);
-        assert_eq!(fds.len(), 1);
-        assert_eq!(fds[0].events, 1);
-        let result = finish(&mut lookup);
-        assert_eq!(result.rules, rules);
-        assert!(lookup.bytes.len() > 4096);
-        assert!(result.error.is_none());
-    }
-
     #[test]
     fn result_roundtrip_preserves_partial_error_and_rejects_truncation() {
         let original =

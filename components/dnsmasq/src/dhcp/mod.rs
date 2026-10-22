@@ -1,6 +1,6 @@
 //! DHCPv4 primitives traced to the patched OpenWrt dnsmasq 2.93 source.
 //!
-//! The Linux-only `service::SocketListener` now supplies an isolated,
+//! The Linux-only `service::SocketListener` supplies an isolated,
 //! nonblocking AF_INET receive/send boundary and can feed local BOOTP/DHCPv4
 //! state through [`runtime::StateProvider`]. This remains a caller-owned
 //! service component: interface/context selection, relay/PXE policy, durable

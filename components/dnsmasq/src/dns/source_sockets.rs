@@ -295,8 +295,10 @@ mod tests {
     #[test]
     fn signed_empty_pool_matches_image_boundary() {
         for forward_max in [-1, 0, 1] {
-            let mut scalar = ScalarConfig::default();
-            scalar.forward_max = forward_max;
+            let scalar = ScalarConfig {
+                forward_max,
+                ..ScalarConfig::default()
+            };
             assert_eq!(SocketSettings::from_scalar(&scalar).pool_slots, 0);
         }
     }

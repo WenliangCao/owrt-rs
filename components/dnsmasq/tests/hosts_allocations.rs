@@ -1,5 +1,8 @@
 //! Inject single and sustained allocation failures on the hosts read/copy path.
 //! This separate test binary cannot affect other unit tests' allocations.
+#![deny(unsafe_op_in_unsafe_fn)]
+#![deny(clippy::undocumented_unsafe_blocks)]
+
 use dnsmasq_rs::hosts::Hosts;
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
@@ -34,30 +37,37 @@ fn fail_now(bytes: usize) -> bool {
         })
         .unwrap_or(false)
 }
+// SAFETY: successful operations delegate the unchanged pointer/layout contract
+// to System. Injection returns null only for allocation/reallocation failure;
+// it never changes a live allocation, and deallocation is always forwarded.
 unsafe impl GlobalAlloc for FailOne {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         if fail_now(layout.size()) {
             std::ptr::null_mut()
         } else {
-            System.alloc(layout)
+            // SAFETY: the caller supplied a valid allocation layout.
+            unsafe { System.alloc(layout) }
         }
     }
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
         if fail_now(layout.size()) {
             std::ptr::null_mut()
         } else {
-            System.alloc_zeroed(layout)
+            // SAFETY: System initializes the complete allocation for the caller-provided layout.
+            unsafe { System.alloc_zeroed(layout) }
         }
     }
     unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, size: usize) -> *mut u8 {
         if fail_now(size) {
             std::ptr::null_mut()
         } else {
-            System.realloc(ptr, layout, size)
+            // SAFETY: the caller supplied the live System allocation, its layout and valid new size.
+            unsafe { System.realloc(ptr, layout, size) }
         }
     }
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        System.dealloc(ptr, layout)
+        // SAFETY: the caller supplied a live System allocation with its original layout.
+        unsafe { System.dealloc(ptr, layout) }
     }
 }
 #[global_allocator]
@@ -468,8 +478,8 @@ fn incremental_transaction_preserves_owners_at_every_allocation_failure() {
                         // used by the owner loop before either owner changes.
                         let (replacement, removed) =
                             local.try_replace_source(2, b"/new-hosts", records, 37)?;
-                        let published = replacement.try_clone().map_err(|_| ())?;
-                        Ok::<_, ()>((replacement, published, removed))
+                        let published = replacement.try_clone()?;
+                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((replacement, published, removed))
                     };
                     let (result, failed) = if persistent {
                         with_persistent_failure(failure, action)
@@ -614,14 +624,14 @@ fn bulk_generation_failures_never_replace_existing_multiple_ptr_owners() {
             for failure in 0..512 {
                 let action = || {
                     let mut replacement = Hosts::new();
-                    replacement.begin_bulk(BULK_PACKET_BYTES, 1000, 1000).map_err(|_| ())?;
+                    replacement.begin_bulk(BULK_PACKET_BYTES, 1000, 1000)?;
                     for (source, input) in [(2, BULK_PREFIX), (3, BULK_SUFFIX)] {
                         if replacement.read(input, source, 37, false, |_| None).allocation_failed {
-                            return Err(());
+                            return Err(dnsmasq_rs::hosts::IngestionError);
                         }
                     }
                     replacement.finish_bulk();
-                    let published = replacement.try_clone().map_err(|_| ())?;
+                    let published = replacement.try_clone()?;
                     Ok((replacement, published))
                 };
                 let (result, failed) = if persistent {
@@ -661,8 +671,8 @@ fn deleting_either_multiple_ptr_source_is_atomic_under_allocation_failure() {
                 for failure in 0..512 {
                     let action = || {
                         let (replacement, removed) = local.try_replace_source(source, b"/deleted", Vec::new(), 37)?;
-                        let published = replacement.try_clone().map_err(|_| ())?;
-                        Ok::<_, ()>((replacement, published, removed))
+                        let published = replacement.try_clone()?;
+                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((replacement, published, removed))
                     };
                     let (result, failed) = if persistent {
                         with_persistent_failure(failure, action)
@@ -743,11 +753,11 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
                         )?;
                         for (source, input) in [(2, prefix.as_bytes()), (3, BULK_SUFFIX)] {
                             if replacement.read(input, source, 37, false, |_| None).allocation_failed {
-                                return Err(());
+                                return Err(dnsmasq_rs::hosts::IngestionError);
                             }
                         }
                         replacement.finish_bulk();
-                        let published = replacement.try_clone().map_err(|_| ())?;
+                        let published = replacement.try_clone()?;
                         Ok((replacement, published))
                     };
                     let (result, failed) = if persistent {
@@ -849,8 +859,8 @@ fn incremental_retained_lease_ownership_is_atomic_at_every_allocation_failure() 
                             [2],
                         )?;
                         replacement.finish_bulk();
-                        let published = replacement.try_clone().map_err(|_| ())?;
-                        Ok::<_, ()>((replacement, published, removed))
+                        let published = replacement.try_clone()?;
+                        Ok::<_, dnsmasq_rs::hosts::IngestionError>((replacement, published, removed))
                     };
                     let (result, failed) = if persistent {
                         with_persistent_failure(failure, action)

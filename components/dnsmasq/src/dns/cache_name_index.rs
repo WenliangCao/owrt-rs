@@ -60,7 +60,7 @@ impl SlotIndices {
     pub(super) fn remove(&mut self, slot: usize) {
         let Some(position) = self.iter().position(|old| *old == slot) else { return };
         match self {
-            Self::Empty => return,
+            Self::Empty => (),
             Self::One(_) => *self = Self::Empty,
             Self::Many(slots) if slots.len() == 2 => *self = Self::One(slots[1 - position]),
             Self::Many(slots) => {

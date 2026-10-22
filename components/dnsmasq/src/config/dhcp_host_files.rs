@@ -8,7 +8,7 @@ use std::ffi::OsString;
 use std::fs::{self, File, ReadDir};
 use std::io::{self, BufRead, BufReader};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub enum HostFileErrorKind {
@@ -125,7 +125,7 @@ impl HostFiles {
             .and_then(|position| self.order.get(position + 1).copied())
     }
 
-    fn append_child(&mut self, path: &PathBuf, name: OsString) {
+    fn append_child(&mut self, path: &Path, name: OsString) {
         // C compares a literal slash join, including an explicit duplicate path.
         let mut full = path.as_os_str().as_bytes().to_vec();
         full.push(b'/');

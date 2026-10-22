@@ -286,7 +286,7 @@ fn encoded_mac(mac: &[u8], text: bool) -> Vec<u8> {
     } else {
         const BASE64: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
         let mut output = Vec::with_capacity(8);
-        for word in mac.chunks_exact(3) {
+        for word in mac.as_chunks::<3>().0 {
             for index in [
                 word[0] >> 2,
                 (word[0] << 4 | word[1] >> 4) & 63,

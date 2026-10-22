@@ -223,9 +223,9 @@ impl InterfaceCollector {
             return Err(io::ErrorKind::OutOfMemory.into());
         }
         let mut at = 0;
-        while at + 16 <= received as usize {
+        while at + 16 <= received {
             let length = u32::from_ne_bytes(self.bytes[at..at + 4].try_into().unwrap()) as usize;
-            if length < 16 || at + length > received as usize {
+            if length < 16 || at + length > received {
                 return Err(malformed());
             }
             let kind = u16::from_ne_bytes(self.bytes[at + 4..at + 6].try_into().unwrap());

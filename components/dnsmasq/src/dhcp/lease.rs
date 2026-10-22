@@ -204,6 +204,7 @@ impl ScriptQueue {
     }
 }
 
+/// A lease mutation failed validation, capacity, lookup or identity allocation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LeaseError {
     Full,
@@ -213,10 +214,43 @@ pub enum LeaseError {
     SequenceExhausted,
 }
 
+/// Startup lease restoration failed; earlier restored records remain in the store.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RestoreError {
     NonemptyStore,
     Lease(LeaseError),
+}
+
+impl std::fmt::Display for LeaseError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Self::Full => "lease capacity exhausted",
+            Self::AddressInUse => "lease address is already in use",
+            Self::NotFound => "lease not found",
+            Self::InvalidIdentity => "invalid lease client identity",
+            Self::SequenceExhausted => "lease identity sequence exhausted",
+        })
+    }
+}
+
+impl std::error::Error for LeaseError {}
+
+impl std::fmt::Display for RestoreError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NonemptyStore => formatter.write_str("cannot restore into a nonempty lease store"),
+            Self::Lease(error) => write!(formatter, "cannot restore lease: {error}"),
+        }
+    }
+}
+
+impl std::error::Error for RestoreError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::NonemptyStore => None,
+            Self::Lease(error) => Some(error),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

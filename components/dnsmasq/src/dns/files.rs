@@ -138,7 +138,6 @@ pub fn resolver_line(
 
 /// Hard-option parsing logs errors per line and continues. Retain unresolved
 /// endpoint syntax for its owning resolver, never turn it into a skipped row.
-
 pub fn server_line_with_origin(line: &[u8]) -> Result<(Vec<ServerRule>, bool), Error> {
     let Some(directive) = lex_line(line)? else {
         return Ok((Vec::new(), false));
@@ -326,6 +325,10 @@ impl ServerSources {
             .collect()
     }
 }
+
+#[cfg(feature = "process-test-support")]
+#[doc(hidden)]
+pub use runtime::run_process_tests;
 
 #[cfg(test)]
 mod tests {

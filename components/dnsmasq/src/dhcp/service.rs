@@ -1236,7 +1236,9 @@ mod tests {
             })
         };
         let mut output = vec![0; 548];
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
         let report = loop {
+            assert!(std::time::Instant::now() < deadline, "DHCP loopback reply did not become ready");
             match listener
                 .process_once_local(&mut provider, &[], &mut output, || false)
                 .unwrap()
@@ -1301,7 +1303,9 @@ mod tests {
         let bytes = packet(&[]);
         client.send_to(&bytes, target).unwrap();
         let mut buffer = vec![0; MAX_PACKET_LEN];
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
         let received = loop {
+            assert!(std::time::Instant::now() < deadline, "DHCP loopback input did not become ready");
             match receive_once(&listener, &mut buffer, Listener::Dhcp, &[]) {
                 Ok(Some(Ok(received))) => break received,
                 Ok(Some(Err(error))) => panic!("unexpected DHCP parse error: {error:?}"),
@@ -1340,7 +1344,9 @@ mod tests {
         let bytes = packet(&[]);
         client.send_to(&bytes, target).unwrap();
         let mut buffer = vec![0; MAX_PACKET_LEN];
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
         loop {
+            assert!(std::time::Instant::now() < deadline, "IPv6 loopback input did not become ready");
             match receive_once(&listener, &mut buffer, Listener::Dhcp, &[]) {
                 Ok(None) => break,
                 Ok(Some(Ok(received))) => {

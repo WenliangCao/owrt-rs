@@ -1,5 +1,6 @@
 //! Small, private implementation boundary for Unix contracts not represented
-//! by rustix. Public operations are safe; raw ABI declarations stay private.
+//! by rustix. Raw ABI declarations stay private; fork entry points expose the
+//! process-wide safety requirements their callers must establish.
 //! Reference: OpenWrt 25.12.5 AArch64 musl SDK headers and exact runtime behavior.
 
 #![cfg_attr(target_os = "linux", deny(warnings))]

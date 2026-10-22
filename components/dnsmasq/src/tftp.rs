@@ -22,6 +22,20 @@ pub enum RequestError {
     InvalidBufferSize,
 }
 
+impl std::fmt::Display for RequestError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Self::Truncated => "truncated TFTP request",
+            Self::WriteUnsupported => "TFTP write requests are unsupported",
+            Self::InvalidFilename => "invalid TFTP filename",
+            Self::InvalidMode => "invalid TFTP transfer mode",
+            Self::InvalidBufferSize => "invalid TFTP packet buffer size",
+        })
+    }
+}
+
+impl std::error::Error for RequestError {}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Options {
     pub block_size: usize,

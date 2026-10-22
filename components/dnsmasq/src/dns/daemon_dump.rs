@@ -7,6 +7,10 @@ use crate::metrics::{Metric, Metrics};
 use std::collections::{BTreeMap, HashSet};
 
 impl<R: Random> DnsDaemon<R> {
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Diagnostic inputs are snapshots of separate owners; the emitter keeps I/O outside the cache."
+    )]
     pub fn dump_cache(
         &self,
         local: &LocalDnsService,

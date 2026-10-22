@@ -96,7 +96,7 @@ impl RouteWatch {
         if length > self.bytes.len() || !kernel {
             return Ok(NetworkEvents::default());
         }
-        Ok(network_events(&self.bytes[..length as usize]))
+        Ok(network_events(&self.bytes[..length]))
     }
 }
 

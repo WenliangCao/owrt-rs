@@ -22,8 +22,8 @@ fn hold_scanned_reader(owner: &mut SinglePoll, path: &Path) -> std::fs::File {
     writer
 }
 
-#[test]
-fn hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed() {
+#[cfg(feature = "process-test-support")]
+pub(super) fn hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed() {
     let root = std::env::temp_dir().join(format!("hosts-initial-hup-{}", std::process::id()));
     let directory = root.join("hosts");
     let resolver_directory = root.join("resolvers");

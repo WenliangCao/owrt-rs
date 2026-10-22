@@ -319,6 +319,10 @@ impl CacheContext<'_> {
         Ok(answer)
     }
 
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "The cache fast path receives the same explicit query, clock, local view and policy as its general fallback."
+    )]
     fn answer_records_filtered(
         cache: &mut Cache,
         question: &super::forward::Question,
@@ -373,6 +377,10 @@ impl CacheContext<'_> {
     // Keep the unchanged general state machine and its large frame off the
     // ordinary fresh one-address path; this remains every fallback's owner.
     #[inline(never)]
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Preserve the existing cache policy boundary and independent mutable owners."
+    )]
     fn answer_records_general(
         cache: &mut Cache,
         question: &super::forward::Question,
@@ -1871,6 +1879,10 @@ fn append_reverse_synth_terminal(
 /// Reuse the local answer engine for a cached alias's terminal name, including
 /// configured CNAME precedence, lease expiry and address rotation. Forwarding
 /// rules are not an answer_request terminal and must not synthesize this hit.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "The terminal writer requires independent query, local snapshot, cache and negative-authority state."
+)]
 fn append_local_terminal(
     writer: &mut PacketWriter,
     local: &mut LocalDnsService,
@@ -2878,7 +2890,10 @@ mod tests {
             prefix: 24,
             flags: 0,
         }];
-        let records = Arc::new(InterfaceRecords::from_addresses(&[rule.clone()], &inputs));
+        let records = Arc::new(InterfaceRecords::from_addresses(
+            std::slice::from_ref(&rule),
+            &inputs,
+        ));
         let empty_records = Arc::new(InterfaceRecords::from_addresses(&[rule], &[]));
         let make_cache = || {
             let mut cache = Cache::new(8, Policy::default());

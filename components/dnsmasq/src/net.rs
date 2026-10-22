@@ -125,6 +125,7 @@ pub struct Datagram {
     pub interface: u32,
 }
 
+#[derive(Debug)]
 pub struct DatagramSocket {
     socket: UdpSocket,
     ipv6: bool,
@@ -174,6 +175,7 @@ pub(crate) fn tcp_interface(stream: &TcpStream, ipv6: bool) -> Option<(Vec<u8>, 
 
 /// Linux raw ICMP socket used only by the DHCP conflict probe. Every success,
 /// error and cancellation path closes its descriptor through OwnedFd.
+#[derive(Debug)]
 pub struct IcmpSocket(OwnedFd);
 
 impl AsFd for IcmpSocket {
@@ -250,6 +252,7 @@ impl IcmpSocket {
 /// name (68 bytes, four-byte alignment). Unused bytes are zero-initialized;
 /// C only initializes the fields required for an ATF_COM neighbour entry.
 #[repr(C, align(4))]
+#[derive(Debug)]
 pub struct ArpEntry([u8; 68]);
 
 impl ArpEntry {

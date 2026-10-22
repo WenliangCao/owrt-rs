@@ -203,7 +203,7 @@ impl Relay {
                 broadcast_interface: rule
                     .server
                     .is_unspecified()
-                    .then(|| rule.interface.as_deref())
+                    .then_some(rule.interface.as_deref())
                     .flatten(),
             }) {
                 report.sent += 1;

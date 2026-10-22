@@ -92,7 +92,7 @@ impl std::error::Error for StartupError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::LeaseFile(error) | Self::Socket(error) | Self::Entropy(error) => Some(error),
-            Self::Restore(_) => None,
+            Self::Restore(error) => Some(error),
         }
     }
 }
@@ -2511,11 +2511,6 @@ impl LocalProvider {
         provider.event_sink = Some(&mut on_event);
         provider.before_offer = Some(&mut before_offer);
         let result = provider.resolve(dispatch);
-        drop(provider);
-        drop(rapid_name);
-        drop(ack_name);
-        drop(before_offer);
-        drop(on_event);
         let packet_notices = packet_notices.into_inner();
         if self.network_notices.is_empty() {
             self.network_notices = packet_notices;

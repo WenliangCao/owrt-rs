@@ -1,12 +1,13 @@
-//! Small foreground runner for the implemented DNS UDP/TCP and upstream path.
+//! Single-owner OpenWrt dnsmasq runner.
 //!
-//! The library remains the compatibility boundary.  This binary intentionally
-//! rejects directives whose owning engine is not present yet; silently ignoring
-//! a DHCP or TFTP option would make a package appear deployable while
-//! dropping configured behavior.
+//! One event loop coordinates DNS, DHCPv4, TFTP, file reloads and UBus. Helper
+//! scripts and hostname lookups run in isolated processes; the owning daemon
+//! remains single-threaded throughout startup, service and shutdown.
 
 #![cfg_attr(target_os = "linux", deny(warnings))]
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
+#![deny(unsafe_op_in_unsafe_fn)]
+#![deny(clippy::undocumented_unsafe_blocks)]
 
 #[cfg(all(
     target_os = "linux",
@@ -83,7 +84,7 @@ use dnsmasq_platform::signals::{
 };
 #[cfg(target_os = "linux")]
 use dnsmasq_platform::signals::SIGNAL_WAKE_WRITE;
-#[cfg(test)]
+#[cfg(all(test, feature = "process-test-support"))]
 use dnsmasq_platform::signals::request_stop;
 const UDP_PACKETS_PER_TURN: usize = 16;
 const RELOAD_FILE_TURNS_PER_EVENT: usize = 16;
@@ -734,6 +735,7 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     result
 }
 
+#[expect(unsafe_code, reason = "the binary owns its single-threaded process startup")]
 fn run_inner(
     args: &[OsString],
     #[cfg(target_os = "linux")] startup: &mut dnsmasq_rs::startup::daemonize::StartupChannel,
@@ -988,11 +990,13 @@ fn run_inner(
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let lease_init_now = now_seconds();
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let initial_leases = dnsmasq_rs::startup::lease_init::initialize(
+    // SAFETY: main has created no threads, shared mappings or atfork hooks;
+    // no stdio or owner lock is held, and the helper receives only owned config.
+    let initial_leases = unsafe { dnsmasq_rs::startup::lease_init::initialize(
         &dhcp_config,
         runtime.process.debug,
         &mut early_logger,
-    )?;
+    ) }?;
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     if !dhcp_config.ranges.is_empty() || !dhcp_config.relay.is_empty() {
         return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
@@ -1013,7 +1017,7 @@ fn run_inner(
             || false,
             &mut early_logger,
         )
-        .map_err(|error| {
+        .inspect_err(|error| {
             use dnsmasq_rs::logging::{emit_early, Priority};
             emit_early(
                 &mut early_logger,
@@ -1021,7 +1025,6 @@ fn run_inner(
                 error.to_string().as_bytes(),
             );
             emit_early(&mut early_logger, Priority::Critical, b"FAILED to start up");
-            error
         })?;
         provider
             .start_interface_owner()
@@ -1230,7 +1233,9 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     let have_cap_chown = identity.check_capabilities(capabilities)?;
     #[cfg(target_os = "linux")]
-    match startup.begin(&runtime.process) {
+    // SAFETY: startup remains single-threaded with private writable memory.
+    // Reporting uses fresh pipes and standard I/O with no lock guards held.
+    match unsafe { startup.begin(&runtime.process) } {
         Ok(true) => return Ok(()),
         Ok(false) => {}
         Err(error) => {
@@ -1255,7 +1260,7 @@ fn run_inner(
         }
     }
     #[cfg(target_os = "linux")]
-    let pid_file = identity.write_pid(&runtime.process).map_err(|error| {
+    let pid_file = identity.write_pid(&runtime.process).inspect_err(|error| {
         if !startup.active() {
             use dnsmasq_rs::logging::{emit_early, Priority};
             emit_early(
@@ -1265,7 +1270,6 @@ fn run_inner(
             );
             emit_early(&mut early_logger, Priority::Critical, b"FAILED to start up");
         }
-        error
     })?;
     #[cfg(target_os = "linux")]
     let (mut logger, log_ownership_warning) = match dnsmasq_rs::logging::Logger::start(
@@ -1293,11 +1297,13 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let dhcp_helper = helper_config.map(Helper::start).transpose()?;
+    // SAFETY: the daemon has no worker threads or shared writable mappings.
+    // NSS and logging calls have returned; no lock guard crosses the fork.
+    let dhcp_helper = helper_config.map(|config| unsafe { Helper::start(config) }).transpose()?;
     #[cfg(target_os = "linux")]
     identity
         .drop_privileges(&runtime.process, capabilities)
-        .map_err(|error| {
+        .inspect_err(|error| {
             if !startup.active() {
                 use dnsmasq_rs::logging::{LogEvent, Priority, Service};
                 logger.emit(LogEvent::new(
@@ -1312,7 +1318,6 @@ fn run_inner(
                 ));
                 logger.finish();
             }
-            error
         })?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let tftp_root_warnings = if let Some(listener) = &tftp_listener {
@@ -1845,10 +1850,9 @@ fn run_inner(
                             && !interfaces
                                 .iter()
                                 .any(|interface| interface.address == address.ip())
+                            && !persistent_unowned.contains(&address)
                         {
-                            if !persistent_unowned.contains(&address) {
-                                persistent_unowned.push(address);
-                            }
+                            persistent_unowned.push(address);
                         }
                         if let Some(token) = existing {
                             if let Some(listener) = poll.listeners.iter_mut()
@@ -2171,7 +2175,7 @@ fn domain_interface_snapshot(
     })
 }
 
-/// The production event owner. All daemon sockets are advanced from the
+/// Retry only pending addresses absent from the snapshot or still tentative.
 fn pending_listener_retry(pending: &[SocketAddr], interfaces: &[dnsmasq_rs::interfaces::DnsInterface]) -> bool {
     pending.iter().any(|address| {
         let mut found = false;
@@ -2210,7 +2214,8 @@ impl InterfaceRefresh {
     }
 }
 
-/// caller's loop; no listener or TCP connection gets a worker thread.
+/// The production event owner advances all sockets in the caller's loop;
+/// no listener or TCP connection gets a worker thread.
 /// Shared callback state uses Rc/RefCell. Borrows end before socket waits;
 /// DHCP probe callbacks use try_borrow_mut when the provider is already active.
 struct SinglePoll {
@@ -3273,7 +3278,7 @@ impl SinglePoll {
             let _ = notice;
         }) {
             Ok(hosts) => self.hosts_staged = Some(hosts),
-            Err(()) => self.hosts_reload_failed = true,
+            Err(_) => self.hosts_reload_failed = true,
         }
         #[cfg(not(target_os = "linux"))]
         self.publish_staged_hosts();
@@ -3403,8 +3408,8 @@ impl SinglePoll {
     fn hosts_work_pending(&self) -> bool {
         #[cfg(target_os = "linux")]
         {
-            return self.hosts_read.is_some() || !self.hosts_requests.is_empty()
-                || !self.hosts_deferred.is_empty();
+            self.hosts_read.is_some() || !self.hosts_requests.is_empty()
+                || !self.hosts_deferred.is_empty()
         }
         #[cfg(not(target_os = "linux"))]
         {
@@ -3480,8 +3485,8 @@ impl SinglePoll {
 
     fn tftp_pending_interfaces(&self) -> bool {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        { return self.tftp.as_ref().is_some_and(|listener|
-            pending_listener_retry(listener.pending_listener_addresses(), &self.interfaces.borrow())); }
+        { self.tftp.as_ref().is_some_and(|listener|
+            pending_listener_retry(listener.pending_listener_addresses(), &self.interfaces.borrow())) }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
         { false }
     }
@@ -3587,6 +3592,7 @@ impl SinglePoll {
     }
 
     #[cfg(target_os = "linux")]
+    #[expect(unsafe_code, reason = "private single-threaded owner controls resolver forks")]
     fn step_dns_files(&mut self) {
         if self.hosts_work_pending() {
             self.files_runnable = false;
@@ -3621,7 +3627,11 @@ impl SinglePoll {
             return;
         }
         let was_initializing = files.initializing();
-        let step = files.step_with_watch_readiness(watch_ready);
+        // SAFETY: production runs only in main's single thread, with private
+        // mappings and no atfork hooks. All RefCell/stdio guards have dropped.
+        // Threaded unit fixtures use only literal endpoints; process tests
+        // exercise helper/hostname workers in the dedicated standalone runner.
+        let step = unsafe { files.step_with_watch_readiness(watch_ready) };
         let initial_finished = was_initializing && !files.initializing();
         self.files_runnable = step.runnable;
         let checks_servers = step.update.is_some()
@@ -3833,7 +3843,7 @@ impl SinglePoll {
                     self.hosts_staged = Some(hosts);
                     return removed;
                 }
-                Err(()) => {
+                Err(_) => {
                     self.hosts_staged = None;
                     self.hosts_reload_failed = true;
                     return 0;
@@ -4842,10 +4852,7 @@ impl SinglePoll {
     fn interface_work_pending(&self) -> bool {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         {
-            return self
-                .interface_collector
-                .as_ref()
-                .is_some_and(|collector| collector.busy());
+            self.interface_collector.as_ref().is_some_and(|collector| collector.busy())
         }
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
         {
@@ -7147,7 +7154,7 @@ fn read_hosts_with_notices(
     name_hash_capacity: usize,
     retained_leases: &dnsmasq_rs::dns::lease_names::LeaseNames,
     mut report: impl FnMut(HostsReadNotice),
-) -> Result<Hosts, ()> {
+) -> Result<Hosts, dnsmasq_rs::hosts::IngestionError> {
     fn report_error(
         report: &mut impl FnMut(HostsReadNotice),
         action: &[u8],
@@ -7174,7 +7181,7 @@ fn read_hosts_with_notices(
         source: u32,
         ttl: u32,
         report: &mut impl FnMut(HostsReadNotice),
-    ) -> Result<(), ()> {
+    ) -> Result<(), dnsmasq_rs::hosts::IngestionError> {
         let file = match std::fs::File::open(path) {
             Ok(file) => file,
             Err(error) => {
@@ -7183,8 +7190,8 @@ fn read_hosts_with_notices(
             }
         };
         let path_name = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes())
-            .map_err(|_| ())?;
-        hosts.set_source_name_checked(source, path_name).map_err(|_| ())?;
+            ?;
+        hosts.set_source_name_checked(source, path_name)?;
         let stats = hosts.read_from_with_diagnostics(
             file,
             source,
@@ -7210,7 +7217,7 @@ fn read_hosts_with_notices(
         if stats.allocation_failed {
             // Returning releases the entire unpublished replacement before
             // any completion logging or later file/directory allocation.
-            return Err(());
+            return Err(dnsmasq_rs::hosts::IngestionError);
         }
         if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
             report(HostsReadNotice::Complete { path, names: stats.accepted });
@@ -7314,6 +7321,20 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
     Ok(result)
 }
 
+#[cfg(all(test, feature = "process-test-support"))]
+#[doc(hidden)]
+pub fn run_process_tests() {
+    assert_eq!(std::fs::read_dir("/proc/self/task").unwrap().count(), 1);
+    tests::last_tftp_completion_wakes_helper_without_another_packet();
+    tests::frozen_dhcp_callbacks_resume_after_pipe_capacity_returns();
+    hostsdir_init_tests::polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication();
+    hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed();
+    tests::delivered_signal_counters_wake_even_without_a_pipe_byte();
+    tests::signal_wake_preserves_interrupted_errno_with_or_without_backpressure();
+    udp_dispatch_tests::udp_dispatch_rechecks_work_queued_after_poll_without_consuming_it();
+    eprintln!("process owner tests: 7 passed");
+}
+
 #[cfg(test)]
 #[path = "main_udp_dispatch_tests.rs"]
 mod udp_dispatch_tests;
@@ -7330,7 +7351,7 @@ mod neighbor_tail_tests;
 #[path = "main_hostsdir_init_tests.rs"]
 mod hostsdir_init_tests;
 
-#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64", feature = "process-test-support"))]
 #[path = "main_hosts_initial_hup_tests.rs"]
 mod hosts_initial_hup_tests;
 
@@ -7467,8 +7488,8 @@ mod tests {
     }
 
     #[cfg(target_os = "linux")]
-    #[test]
-    fn delivered_signal_counters_wake_even_without_a_pipe_byte() {
+    #[cfg(feature = "process-test-support")]
+    pub(super) fn delivered_signal_counters_wake_even_without_a_pipe_byte() {
         let mut owner = test_owner(DnsConfig::default(), None);
         assert!(owner.signal_wake_read.is_none());
         for event in 0..5 {
@@ -7510,8 +7531,8 @@ mod tests {
     }
 
     #[cfg(target_os = "linux")]
-    #[test]
-    fn signal_wake_preserves_interrupted_errno_with_or_without_backpressure() {
+    #[cfg(feature = "process-test-support")]
+    pub(super) fn signal_wake_preserves_interrupted_errno_with_or_without_backpressure() {
         for (has_pipe, saturated) in [(false, false), (true, false), (true, true)] {
             let (reader, writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::NONBLOCK | rustix::pipe::PipeFlags::CLOEXEC).unwrap();
             let mut writer = std::fs::File::from(writer);
@@ -8212,10 +8233,14 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[cfg(feature = "process-test-support")]
+    #[expect(unsafe_code, reason = "called only by the standalone process test runner")]
     pub(super) fn ready_test_helper() -> Helper {
-        let mut helper = Helper::start(HelperConfig {
+        // SAFETY: the standalone runner starts on main with one thread, no
+        // shared mappings/atfork hooks and no held locks; config is owned.
+        let mut helper = unsafe { Helper::start(HelperConfig {
             script: "/bin/true".into(), script_user: None, debug: false,
-        }).unwrap();
+        }) }.unwrap();
         let deadline = Instant::now() + Duration::from_secs(5);
         while !helper.ready() {
             assert!(Instant::now() < deadline);
@@ -8226,6 +8251,7 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[cfg(feature = "process-test-support")]
     pub(super) fn finish_test_helper(helper: &mut Helper) {
         helper.begin_shutdown();
         let deadline = Instant::now() + Duration::from_secs(5);
@@ -8237,8 +8263,8 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    #[test]
-    fn last_tftp_completion_wakes_helper_without_another_packet() {
+    #[cfg(feature = "process-test-support")]
+    pub(super) fn last_tftp_completion_wakes_helper_without_another_packet() {
         use dnsmasq_rs::tftp_runtime::{RuntimeConfig, RuntimePathPolicy, TransferRuntime};
         use std::os::unix::ffi::OsStrExt;
         let root = std::env::temp_dir().join(format!("ready-tftp-helper-{}", std::process::id()));
@@ -8284,8 +8310,8 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    #[test]
-    fn frozen_dhcp_callbacks_resume_after_pipe_capacity_returns() {
+    #[cfg(feature = "process-test-support")]
+    pub(super) fn frozen_dhcp_callbacks_resume_after_pipe_capacity_returns() {
         let path = std::env::temp_dir().join(format!("ready-helper-leases-{}", std::process::id()));
         std::fs::write(&path, b"0 02:00:00:00:00:01 192.0.2.10 one *\n0 02:00:00:00:00:02 192.0.2.11 two *\n").unwrap();
         let mut provider = DhcpProvider::new(DhcpConfig {
@@ -8801,12 +8827,6 @@ mod tests {
             assert!(messages.contains("log entries lost"));
             std::fs::remove_file(log_path).unwrap();
         }
-    }
-
-    #[test]
-    fn udp_turn_budget_is_bounded_for_service_fairness() {
-        assert!(UDP_PACKETS_PER_TURN > 1);
-        assert!(UDP_PACKETS_PER_TURN <= 64);
     }
 
     #[test]

@@ -442,11 +442,11 @@ impl NeighborCache {
             if !kernel {
                 continue;
             }
-            if count as usize > bytes.len() {
+            if count > bytes.len() {
                 self.fail_waiters(now);
                 return Err(malformed());
             }
-            let result = parse_messages(&bytes[..count as usize], self.dump.as_mut().unwrap());
+            let result = parse_messages(&bytes[..count], self.dump.as_mut().unwrap());
             match result {
                 Ok(true) => self.publish(now),
                 Ok(false) => {}

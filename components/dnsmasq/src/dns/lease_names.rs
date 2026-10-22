@@ -180,8 +180,7 @@ impl LeaseIds {
                 assert!(at <= 1);
                 let pair = if at == 0 { [id, *previous] } else { [*previous, id] };
                 let mut ids = Vec::new();
-                ids.push(pair[0]);
-                ids.push(pair[1]);
+                ids.extend(pair);
                 *self = Self::Many(ids);
             }
             Self::Many(ids) => ids.insert(at, id),

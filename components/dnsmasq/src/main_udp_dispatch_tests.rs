@@ -162,8 +162,8 @@ fn udp_dispatch_new_forwarding_work_completes_on_original_owner() {
     assert_eq!(fixture.owner.service.borrow().daemon.as_ref().unwrap().pending_count(), 0);
 }
 
-#[test]
-fn udp_dispatch_rechecks_work_queued_after_poll_without_consuming_it() {
+#[cfg(feature = "process-test-support")]
+pub(super) fn udp_dispatch_rechecks_work_queued_after_poll_without_consuming_it() {
     let mut fixture = Fixture::new();
     fixture.ready(&query("local.dispatch.test", 7));
     fixture.owner.full_reload_pending = true;

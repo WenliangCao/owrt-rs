@@ -1,10 +1,13 @@
-//! Native Rust implementation under development against dnsmasq 2.93-r1.
+//! OpenWrt dnsmasq 2.93 configuration, DNS, DHCPv4 and TFTP contracts.
 //!
-//! The source and acceptance ledger lives in `docs/dnsmasq`. Individual tested
-//! modules do not yet constitute a service or a compatible package replacement.
+//! Protocol and state-machine modules expose caller-owned operations. The
+//! daemon binary coordinates their sockets, file reloads and process lifetimes;
+//! `dnsmasq-platform` owns the Linux ABI boundaries.
 
 #![cfg_attr(target_os = "linux", deny(warnings))]
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
+#![deny(unsafe_op_in_unsafe_fn)]
+#![deny(clippy::undocumented_unsafe_blocks)]
 
 #[path = "logging/address.rs"]
 mod address_logging;

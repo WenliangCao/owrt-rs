@@ -932,7 +932,8 @@ impl DnsConfig {
                     },
                     IpAddr::V6(address),
                 ) => {
-                    let mask = u128::MAX.checked_shl(u32::from(128 - prefix)).unwrap_or(0);
+                    let shift = 128u8.checked_sub(*prefix).ok_or(Error("bad prefix length"))?;
+                    let mask = u128::MAX.checked_shl(u32::from(shift)).unwrap_or(0);
                     u128::from(address) & mask == u128::from(*prefix_address) & mask
                 }
                 (DomainSelector::Interface(Some(interface)), _) => {
@@ -953,6 +954,13 @@ impl DnsConfig {
     /// Callers may replace the corresponding guard only when equivalent
     /// resolution/consumption is connected; they must not silently skip it.
     pub fn validate_ready(&self) -> Result<(), Error> {
+        // These fields are also constructible through the public Rust API.
+        // NameDomains relies on this check before making selector lookup infallible.
+        if self.conditional_domains.iter().any(|entry| {
+            matches!(entry.selector, DomainSelector::Prefix6 { prefix, .. } if prefix > 128)
+        }) {
+            return Err(Error("bad prefix length"));
+        }
         for rule in &self.rules {
             if let RuleTarget::Upstream(server) = &rule.target {
                 if matches!(server.host, ServerHost::Name(_)) {
@@ -973,6 +981,27 @@ impl DnsConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn public_ipv6_selector_is_validated_before_name_domain_lookup() {
+        let address = "2001:db8::1".parse::<Ipv6Addr>().unwrap();
+        let mut config = DnsConfig {
+            conditional_domains: vec![ConditionalDomain {
+                domain: b"example.test".to_vec(),
+                selector: DomainSelector::Prefix6 { address, prefix: 129 },
+            }],
+            ..Default::default()
+        };
+        assert_eq!(config.validate_ready(), Err(Error("bad prefix length")));
+        assert!(crate::config::dhcp::NameDomains::new(&config).is_err());
+        assert_eq!(config.domain_for_address(address.into()), Err(Error("bad prefix length")));
+        config.conditional_domains[0].selector = DomainSelector::Prefix6 { address, prefix: 128 };
+        let domains = crate::config::dhcp::NameDomains::new(&config).unwrap();
+        // The /128 only applies to this exact address and cannot match IPv4.
+        assert_eq!(config.domain_for_address(address.into()), Ok(Some(b"example.test".as_slice())));
+        assert_eq!(domains.for_address(Ipv4Addr::LOCALHOST), None);
+    }
+
     use crate::config::{lex_line, OccurrenceTracker, Origin};
 
     fn apply(config: &mut DnsConfig, input: &[u8]) -> Result<bool, Error> {

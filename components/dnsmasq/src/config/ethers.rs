@@ -56,9 +56,8 @@ impl Ethers {
         self.origins
             .iter()
             .enumerate()
-            .filter_map(|(index, origin)| {
-                (origin.source != Source::HostFile).then(|| current[index].clone())
-            })
+            .filter(|(_, origin)| origin.source != Source::HostFile)
+            .map(|(index, _)| current[index].clone())
             .collect()
     }
 

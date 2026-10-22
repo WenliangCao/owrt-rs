@@ -344,6 +344,10 @@ impl Cache {
     pub fn set_max_reply_ttl(&mut self, maximum: u64) {
         self.policy.max_reply_ttl = maximum;
     }
+    /// Create a fixed-capacity cache with the supplied TTL and stale-record policy.
+    ///
+    /// # Panics
+    /// Panics if `capacity` exceeds the `u32` slot-link range.
     pub fn new(capacity: usize, mut policy: Policy) -> Self {
         // Production cache-size is capped at 5,000,000. Keep the public
         // primitive's link representation checked too, without truncating

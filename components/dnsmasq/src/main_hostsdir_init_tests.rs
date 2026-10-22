@@ -231,8 +231,8 @@ fn held_hosts_fifo_keeps_init_finish_blocked_without_spinning_or_losing_dns() {
 }
 
 #[cfg(target_pointer_width = "64")]
-#[test]
-fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication() {
+#[cfg(feature = "process-test-support")]
+pub(super) fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication() {
     let root = std::env::temp_dir().join(format!("hostsdir-poll-gate-{}", std::process::id()));
     let directory = root.join("hosts");
     std::fs::create_dir_all(&directory).unwrap();

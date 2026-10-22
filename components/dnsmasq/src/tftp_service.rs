@@ -47,6 +47,18 @@ pub enum PathError {
     Traversal,
 }
 
+impl std::fmt::Display for PathError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Self::Empty => "empty TFTP path",
+            Self::Nul => "TFTP path contains a NUL byte",
+            Self::Traversal => "TFTP path traverses a parent directory",
+        })
+    }
+}
+
+impl std::error::Error for PathError {}
+
 fn append_bounded(output: &mut Vec<u8>, bytes: &[u8]) {
     output.extend_from_slice(&bytes[..bytes.len().min(MAX_PATH_BYTES - output.len())]);
 }

@@ -1,6 +1,6 @@
 //! Socket-independent TFTP transfer runtime.
 //!
-//! This is the file/open/packet boundary below the eventual UDP listener. It
+//! This is the file/open/packet boundary below the UDP listener. It
 //! owns real file descriptors through `Arc`, drives the existing `tftp::Transfer`
 //! state machine, and emits packets/events through a caller-owned transport.
 //! Interface pktinfo, port-69 listeners, PXE helper scripts and OpenWrt reload
@@ -317,6 +317,30 @@ pub enum RuntimeError {
     Permission,
     Capacity,
     Read(io::Error),
+}
+
+impl std::fmt::Display for RuntimeError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Request(error) => error.fmt(formatter),
+            Self::Path(error) => error.fmt(formatter),
+            Self::Open(error) => write!(formatter, "cannot open TFTP file: {error}"),
+            Self::Read(error) => write!(formatter, "cannot read TFTP file: {error}"),
+            Self::Permission => formatter.write_str("TFTP file permission denied"),
+            Self::Capacity => formatter.write_str("TFTP transfer capacity exhausted"),
+        }
+    }
+}
+
+impl std::error::Error for RuntimeError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Request(error) => Some(error),
+            Self::Path(error) => Some(error),
+            Self::Open(error) | Self::Read(error) => Some(error),
+            Self::Permission | Self::Capacity => None,
+        }
+    }
 }
 
 impl From<RequestError> for RuntimeError {

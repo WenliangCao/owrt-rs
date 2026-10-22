@@ -333,6 +333,7 @@ impl DhcpLogging {
 }
 
 /// The outgoing record payload for a synchronous DNS notification.
+#[derive(Debug)]
 pub struct DnsResult<'a> {
     /// C's extracted, possibly escaped name bytes, without UTF-8 conversion.
     pub name: &'a [u8],
@@ -430,20 +431,18 @@ mod tests {
             ["mac", "ip", "interface"]
         );
         assert_eq!(fields[0].as_str(), Some(""));
-        for quiet in [false, true] {
-            for log_options in [false, true] {
-                for has_error in [false, true] {
-                    let logging = DhcpLogging {
-                        quiet_dhcp: quiet,
-                        log_options,
-                        has_error,
-                    };
-                    assert_eq!(
-                        logging.suppresses_event(),
-                        quiet && !log_options && !has_error
-                    );
-                }
-            }
+        // rfc2131.c quiet-dhcp suppresses only an ordinary, non-verbose event.
+        for (quiet_dhcp, log_options, has_error, suppressed) in [
+            (false, false, false, false),
+            (false, false, true, false),
+            (false, true, false, false),
+            (false, true, true, false),
+            (true, false, false, true),
+            (true, false, true, false),
+            (true, true, false, false),
+            (true, true, true, false),
+        ] {
+            assert_eq!(DhcpLogging { quiet_dhcp, log_options, has_error }.suppresses_event(), suppressed);
         }
     }
 

@@ -17,10 +17,12 @@ use std::os::fd::{AsFd, AsRawFd};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::atomic::Ordering;
 
-// Linux64 musl/glibc sigset_t: 128 bytes, native unsigned-long alignment.
+// Linux musl/glibc sigset_t: 128 bytes, native unsigned-long alignment.
+// A usize array must retain the byte width even on 32-bit build hosts.
+const SIGNAL_WORDS: usize = 128 / std::mem::size_of::<usize>();
 #[repr(C)]
 #[derive(Clone, Copy)]
-struct SignalSet([usize; 16]);
+struct SignalSet([usize; SIGNAL_WORDS]);
 
 unsafe extern "C" {
     fn sigemptyset(set: *mut SignalSet) -> c_int;
@@ -38,8 +40,8 @@ struct SignalMask {
 }
 impl SignalMask {
     fn block() -> io::Result<Self> {
-        let mut set = SignalSet([0; 16]);
-        let mut previous = SignalSet([0; 16]);
+        let mut set = SignalSet([0; SIGNAL_WORDS]);
+        let mut previous = SignalSet([0; SIGNAL_WORDS]);
         // SAFETY: both sets have the supported libc ABI and remain writable
         // throughout these calls. Only fixed daemon/worker signals are added.
         unsafe {
@@ -94,7 +96,18 @@ pub type HelperProcess<T> = (T, Pid, File, File);
 /// Only helper::process's audited pure-data startup snapshot/entry may call
 /// this application boundary. Return the original snapshot, PID, command
 /// writer and event reader to the parent; the child receives its own copies.
-pub fn spawn_helper<T: Send + 'static>(
+///
+/// # Safety
+///
+/// The process must be single-threaded, with no shared writable mappings or
+/// application atfork callbacks. Neither the snapshot nor the child entry may
+/// access inherited descriptor owners, locks or parent state. The entry may
+/// use only its owned snapshot, the supplied pipes and valid standard streams.
+/// In particular, `Send` does not prove that a snapshot is safe to duplicate.
+/// Any inherited signal handler or panic hook reachable by the child must also
+/// avoid abandoned parent descriptor owners, shared state and held locks. The
+/// panic hook runs before `catch_unwind` can catch the payload.
+pub unsafe fn spawn_helper<T: Send + 'static>(
     snapshot: T,
     entry: fn(T, File, File) -> i32,
 ) -> io::Result<HelperProcess<T>> {
@@ -109,21 +122,31 @@ pub fn spawn_helper<T: Send + 'static>(
     ) -> i32 {
         entry(snapshot, commands, events)
     }
-    let ((snapshot, _), pid, [command_writer, event_reader]) = fork_worker(
-        (snapshot, entry),
-        [File::from(commands), File::from(events)],
-        [File::from(command_writer), File::from(event_reader)],
-        enter::<T>,
-        true,
-        mask,
-    )?;
+    // SAFETY: the caller supplies the process and snapshot guarantees above;
+    // both pipe pairs are fresh, disjoint owners created in this function.
+    let ((snapshot, _), pid, [command_writer, event_reader]) = unsafe {
+        fork_worker(
+            (snapshot, entry),
+            [File::from(commands), File::from(events)],
+            [File::from(command_writer), File::from(event_reader)],
+            enter::<T>,
+            true,
+            mask,
+        )
+    }?;
     Ok((snapshot, pid, command_writer, event_reader))
 }
 
 /// Only config::dns::lookup's owned (Vec<ServerRule>, bool) snapshot and fixed
 /// resolver entry may call this boundary. No input encoding or extra request
 /// pipe is needed; the parent's original rules remain available for decoding.
-pub fn spawn_lookup<T: Send + 'static>(
+///
+/// # Safety
+///
+/// The process, snapshot and entry must meet [`spawn_helper`]'s requirements.
+/// Only the supplied result writer and valid standard streams remain open in
+/// the child; the snapshot must not contain any descriptor owner or borrower.
+pub unsafe fn spawn_lookup<T: Send + 'static>(
     snapshot: T,
     entry: fn(T, File) -> i32,
 ) -> io::Result<(T, Pid, File)> {
@@ -133,18 +156,22 @@ pub fn spawn_lookup<T: Send + 'static>(
     fn enter<T>((snapshot, entry): (T, fn(T, File) -> i32), [writer]: [File; 1]) -> i32 {
         entry(snapshot, writer)
     }
-    let ((snapshot, _), pid, [reader]) = fork_worker(
-        (snapshot, entry),
-        [File::from(writer)],
-        [File::from(reader)],
-        enter::<T>,
-        false,
-        mask,
-    )?;
+    // SAFETY: the caller supplies the process and snapshot guarantees above;
+    // the result pipe has fresh, distinct descriptor owners.
+    let ((snapshot, _), pid, [reader]) = unsafe {
+        fork_worker(
+            (snapshot, entry),
+            [File::from(writer)],
+            [File::from(reader)],
+            enter::<T>,
+            false,
+            mask,
+        )
+    }?;
     Ok((snapshot, pid, reader))
 }
 
-fn fork_worker<T: Send + 'static, const CHILD: usize, const PARENT: usize>(
+unsafe fn fork_worker<T: Send + 'static, const CHILD: usize, const PARENT: usize>(
     snapshot: T,
     child_files: [File; CHILD],
     parent_files: [File; PARENT],
@@ -208,17 +235,51 @@ fn fork_worker<T: Send + 'static, const CHILD: usize, const PARENT: usize>(
     // Standard streams 0/1/2 stay valid for std I/O and panic/OOM paths. This
     // matches helper behavior; resolver retains three more descriptors than K.
     mask.restore();
-    let status = match catch_unwind(AssertUnwindSafe(|| entry(snapshot, child_files))) {
-        Ok(status) => status,
-        Err(payload) => {
-            // No arbitrary panic payload destructor may escape this child.
-            std::mem::forget(payload);
-            5
-        }
-    };
+    let status = exit_status(catch_unwind(AssertUnwindSafe(|| {
+        entry(snapshot, child_files)
+    })));
     // SAFETY: only this child reaches _exit; no inherited parent destructor or
     // Rust frame can run after the audited entry completes or panics.
     unsafe { _exit(status) }
+}
+
+/// A terminating fork branch must not run an arbitrary panic payload's Drop:
+/// that destructor could panic again and unwind into the inherited owner graph.
+pub(super) fn exit_status(result: std::thread::Result<i32>) -> i32 {
+    match result {
+        Ok(status) => status,
+        Err(payload) => {
+            // The process immediately exits; leaking this payload is deliberate.
+            std::mem::forget(payload);
+            5
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{exit_status, SignalSet};
+
+    #[test]
+    fn signal_storage_matches_linux_libc_sigset_t() {
+        assert_eq!(std::mem::size_of::<SignalSet>(), 128);
+        assert_eq!(
+            std::mem::align_of::<SignalSet>(),
+            std::mem::align_of::<usize>()
+        );
+    }
+
+    #[test]
+    fn terminating_branch_never_drops_a_panicking_payload() {
+        struct PanicOnDrop;
+        impl Drop for PanicOnDrop {
+            fn drop(&mut self) {
+                panic!("panic payload must not unwind into the copied process state");
+            }
+        }
+        assert_eq!(exit_status(Err(Box::new(PanicOnDrop))), 5);
+        assert_eq!(exit_status(Ok(7)), 7);
+    }
 }
 
 fn close_other_fds(keep: &[i32]) -> bool {

@@ -32,6 +32,10 @@ impl QueryPolicy {
         self.reply_with_cache(query, routing, local, maximum, tcp, None, false, None)
     }
 
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "UDP and TCP supply distinct envelope, routing cursor and current-cache existence metadata."
+    )]
     pub fn reply_with_cache(
         self,
         query: &[u8],

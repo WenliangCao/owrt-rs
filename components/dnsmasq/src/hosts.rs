@@ -8,6 +8,27 @@ use std::net::IpAddr;
 use std::ops::Deref;
 use std::sync::Arc;
 
+/// A complete hosts generation could not be prepared.
+///
+/// This preserves the allocation-failure boundary without allocating an error
+/// payload. Invalid source line boundaries also prevent publication.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct IngestionError;
+
+impl std::fmt::Display for IngestionError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("cannot prepare a complete hosts generation")
+    }
+}
+
+impl std::error::Error for IngestionError {}
+
+impl From<TryReserveError> for IngestionError {
+    fn from(_: TryReserveError) -> Self {
+        Self
+    }
+}
+
 /// Exact no-IDN check_name/canonicalise behavior. Preserve case, strip one
 /// trailing dot, allow printable ASCII (including internal empty labels).
 pub fn canonicalise(input: &[u8]) -> Option<Vec<u8>> {
@@ -1014,7 +1035,7 @@ impl Hosts {
         address: IpAddr,
         ttl: u32,
         source: u32,
-    ) -> Result<bool, ()> {
+    ) -> Result<bool, IngestionError> {
         let mut allocation_failed = false;
         let inserted = self
             .try_insert(
@@ -1024,10 +1045,9 @@ impl Hosts {
                 source,
                 source == 1,
                 &mut allocation_failed,
-            )
-            .map_err(|_| ())?;
+            )?;
         if allocation_failed {
-            Err(())
+            Err(IngestionError)
         } else {
             Ok(inserted)
         }
@@ -1174,14 +1194,14 @@ impl Hosts {
         let id = records.entries.len();
         *records.forward.entry(key).or_insert(0) += 1;
         if reverse {
-            if records.reverse.contains_key(&address) {
+            if let std::collections::hash_map::Entry::Vacant(entry) = records.reverse.entry(address) {
+                entry.insert(id);
+            } else {
                 records
                     .reverse_extra
                     .entry(address)
                     .or_insert(fresh_reverse)
                     .push(id);
-            } else {
-                records.reverse.insert(address, id);
             }
         }
         records.entries.push(Host {
@@ -1239,15 +1259,15 @@ impl Hosts {
     }
 
     /// Build one complete hostsdir replacement without changing this owner.
-    /// Every error means allocation failure, including source metadata and
-    /// best-effort ancestor indexes that ordinary insert otherwise tolerates.
+    /// Allocation failure, including source metadata and best-effort ancestor
+    /// indexes that ordinary insert otherwise tolerates, prevents publication.
     pub fn try_replace_source(
         &self,
         source: u32,
         source_name: &[u8],
         records: Vec<(Vec<u8>, IpAddr)>,
         ttl: u32,
-    ) -> Result<(Self, usize), ()> {
+    ) -> Result<(Self, usize), IngestionError> {
         let count = records.len();
         self.try_replace_source_with_leases(
             source,
@@ -1270,13 +1290,13 @@ impl Hosts {
         ttl: u32,
         leases: impl IntoIterator<Item = (&'a [u8], IpAddr, bool, bool)>,
         line_ends: impl IntoIterator<Item = usize>,
-    ) -> Result<(Self, usize), ()> {
-        let mut replacement = self.try_clone().map_err(|_| ())?;
+    ) -> Result<(Self, usize), IngestionError> {
+        let mut replacement = self.try_clone()?;
         if replacement.bulk.is_none() {
             let mut retained = Vec::new();
             for (name, address, reverse, immortal) in leases {
-                let name = try_copy(name).map_err(|_| ())?;
-                retained.try_reserve(1).map_err(|_| ())?;
+                let name = try_copy(name)?;
+                retained.try_reserve(1)?;
                 retained.push(BulkLease {
                     name,
                     address,
@@ -1288,8 +1308,7 @@ impl Hosts {
             if !retained.is_empty() {
                 let mut order = replacement
                     .order
-                    .with_lease_prefix(retained.len())
-                    .map_err(|_| ())?;
+                    .with_lease_prefix(retained.len())?;
                 for id in 0..retained.len() {
                     let record = hash_record(id, &replacement.records.entries, &retained);
                     let plan = order
@@ -1299,8 +1318,7 @@ impl Hosts {
                             &replacement.records.entries,
                             &retained,
                             replacement.records.name_hash_capacity,
-                        )
-                        .map_err(|_| ())?;
+                        )?;
                     order.commit_insert(id, plan);
                 }
                 replacement.order = order;
@@ -1314,10 +1332,10 @@ impl Hosts {
                 });
             }
         }
-        let removed = replacement.try_remove_uid(source).map_err(|_| ())?;
-        let name = try_copy(source_name).map_err(|_| ())?;
+        let removed = replacement.try_remove_uid(source)?;
+        let name = try_copy(source_name)?;
         let owned = replacement.records.get_mut().unwrap();
-        owned.sources.try_reserve(1).map_err(|_| ())?;
+        owned.sources.try_reserve(1)?;
         owned.sources.insert(source, name);
         let count = records.len();
         let mut line_ends = line_ends.into_iter().peekable();
@@ -1325,7 +1343,7 @@ impl Hosts {
         for (index, (name, address)) in records.into_iter().enumerate() {
             let accepted = index + 1;
             if line_ends.peek().is_none_or(|&end| end < accepted) {
-                return Err(());
+                return Err(IngestionError);
             }
             let mut allocation_failed = false;
             replacement
@@ -1336,23 +1354,21 @@ impl Hosts {
                     source,
                     source == 1,
                     &mut allocation_failed,
-                )
-                .map_err(|_| ())?;
+                )?;
             if allocation_failed {
-                return Err(());
+                return Err(IngestionError);
             }
             if line_ends.peek() == Some(&accepted) {
                 replacement
-                    .advance_bulk_names(accepted - previous_end, false)
-                    .map_err(|_| ())?;
+                    .advance_bulk_names(accepted - previous_end, false)?;
                 previous_end = accepted;
                 line_ends.next();
             }
         }
         if previous_end != count || line_ends.next().is_some() {
-            return Err(());
+            return Err(IngestionError);
         }
-        replacement.advance_bulk_names(0, true).map_err(|_| ())?;
+        replacement.advance_bulk_names(0, true)?;
         Ok((replacement, removed))
     }
 

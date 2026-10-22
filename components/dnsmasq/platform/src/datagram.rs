@@ -6,8 +6,10 @@ use std::os::fd::{AsFd, AsRawFd};
 
 /// Linux LP64 sockaddr and cmsghdr storage with explicit alignment.
 #[repr(C, align(8))]
+#[derive(Debug)]
 pub struct AlignedBytes<const N: usize>(pub [u8; N]);
 
+#[derive(Debug)]
 pub struct Received {
     pub len: usize,
     pub address_len: u32,

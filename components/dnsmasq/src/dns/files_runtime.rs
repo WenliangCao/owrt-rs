@@ -455,13 +455,27 @@ impl DnsFiles {
         self.endpoint_current.clear();
     }
 
-    pub fn step(&mut self) -> FileStep {
-        self.step_with_watch_readiness(true)
+    /// Advance one bounded file-work turn.
+    ///
+    /// # Safety
+    ///
+    /// If configured server input can contain hostnames, the caller must meet
+    /// [`EndpointLookup::start`]'s process requirements during this call.
+    #[expect(unsafe_code, reason = "forward the resolver fork contract to the caller")]
+    pub unsafe fn step(&mut self) -> FileStep {
+        // SAFETY: the caller supplies the same conditional process contract.
+        unsafe { self.step_with_watch_readiness(true) }
     }
 
     /// Continue queued triggers, files and endpoint lookups every owner turn,
     /// but consume inotify only after this exact watch descriptor is ready.
-    pub fn step_with_watch_readiness(&mut self, watch_ready: bool) -> FileStep {
+    ///
+    /// # Safety
+    ///
+    /// If configured server input can contain hostnames, the caller must meet
+    /// [`EndpointLookup::start`]'s process requirements during this call.
+    #[expect(unsafe_code, reason = "only the owning process can authorize resolver forks")]
+    pub unsafe fn step_with_watch_readiness(&mut self, watch_ready: bool) -> FileStep {
         let mut result = FileStep::default();
         if self.endpoint_update.is_some() {
             if let Some(lookup) = &mut self.endpoint_lookup {
@@ -502,7 +516,10 @@ impl DnsFiles {
                     .collect();
                 let reverse = self.endpoint_current[0].reverse;
                 if rules.iter().any(|rule| matches!(&rule.target, RuleTarget::Upstream(endpoint) if matches!(endpoint.host, ServerHost::Name(_)))) {
-                    match EndpointLookup::start(rules, reverse) {
+                    // SAFETY: the caller guarantees process prerequisites
+                    // whenever a server hostname requires this worker. Rules
+                    // are owned strings/addresses, with no descriptor owners.
+                    match unsafe { EndpointLookup::start(rules, reverse) } {
                         Ok(lookup) => self.endpoint_lookup = Some(lookup),
                         Err(error) => self.append_endpoint_result(Vec::new(), Some(error.to_string()), &mut result.diagnostics),
                     }
@@ -686,7 +703,23 @@ impl DnsFiles {
     }
 }
 
+#[cfg(feature = "process-test-support")]
+#[path = "files_process_tests.rs"]
+#[expect(unsafe_code, reason = "standalone process tests establish the fork prerequisites")]
+mod process_tests;
+
+#[cfg(feature = "process-test-support")]
+/// # Safety
+/// Run only on a standalone process main thread, without shared writable
+/// mappings, application atfork hooks or held locks.
+#[doc(hidden)]
+#[expect(unsafe_code, reason = "test runner must preserve the explicit fork contract")]
+pub unsafe fn run_process_tests() {
+    process_tests::run();
+}
+
 #[cfg(test)]
+#[expect(unsafe_code, reason = "these fixtures use numeric endpoints only and never fork")]
 mod tests {
     use super::*;
     use std::os::unix::fs::symlink;
@@ -722,7 +755,8 @@ mod tests {
         let mut updates = Vec::new();
         let mut diagnostics = Vec::new();
         for _ in 0..100 {
-            let step = files.step();
+            // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+            let step = unsafe { files.step() };
             updates.extend(step.update);
             diagnostics.extend(step.diagnostics);
             if !files.has_work() {
@@ -741,7 +775,8 @@ mod tests {
         fs::write(directory.0.join("one"), b"192.0.2.42 ready.test\n").unwrap();
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Init);
-        let barrier = files.step_with_watch_readiness(false);
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let barrier = unsafe { files.step_with_watch_readiness(false) };
         assert!(barrier.initial_cache_reload && barrier.runnable);
         let (sources, diagnostics) = files.scan_hosts_dirs();
         assert_eq!(sources.len(), 1);
@@ -750,39 +785,10 @@ mod tests {
         // is the remaining work even though the original trigger was popped.
         assert!(files.initializing() && files.has_work() && files.runnable());
         assert!(files.requests.is_empty() && files.triggers.is_empty() && files.job.is_none());
-        let finished = files.step_with_watch_readiness(false);
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let finished = unsafe { files.step_with_watch_readiness(false) };
         assert!(!finished.runnable);
         assert!(!files.initializing() && !files.has_work() && !files.runnable());
-    }
-
-    #[test]
-    fn server_file_keeps_distinct_lines_partial_errors_and_reverse_origin() {
-        let directory = Directory::new();
-        let path = directory.0.join("servers");
-        fs::write(&path, b"server=/first/127.0.0.2\nserver=/named/127.1\nserver=/bad/::1%missing_endpoint_if\nrev-server=192.0.2.0/24,127.1\nserver=/last/127.0.0.3\n").unwrap();
-        let mut config = directory.config();
-        config.no_resolv = true;
-        config.servers_file = Some(path);
-        let mut files = DnsFiles::new(&config, true, false).unwrap();
-        files.request(ReloadReason::Init);
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
-        let update = loop {
-            let result = files.step();
-            if let Some(update) = result.update {
-                break update;
-            }
-            assert!(std::time::Instant::now() < deadline);
-            std::thread::sleep(std::time::Duration::from_millis(1));
-        };
-        assert_eq!(
-            update.rows.iter().map(|row| row.line).collect::<Vec<_>>(),
-            [1, 2, 4, 5]
-        );
-        assert!(update.rows[2].reverse);
-        assert!(!update.rows[1].reverse);
-        assert!(
-            matches!(&update.rows[3].rule.target, RuleTarget::Upstream(endpoint) if endpoint.host == ServerHost::Address("127.0.0.3".parse().unwrap()))
-        );
     }
 
     #[test]
@@ -828,13 +834,15 @@ mod tests {
         // Init and regular-file work require no watch notification.
         let mut initial = Vec::new();
         for _ in 0..100 {
-            initial.extend(files.step_with_watch_readiness(false).update);
+            // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+            initial.extend(unsafe { files.step_with_watch_readiness(false) }.update);
             if !files.has_work() { break; }
         }
         assert_eq!(initial.len(), 1);
         fs::write(path, b"nameserver 192.0.2.2\n").unwrap();
         for _ in 0..3 {
-            let step = files.step_with_watch_readiness(false);
+            // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+            let step = unsafe { files.step_with_watch_readiness(false) };
             assert!(step.update.is_none() && !step.runnable);
         }
         assert!(files.watch.as_ref().unwrap().pending().unwrap(),
@@ -848,7 +856,8 @@ mod tests {
         config.no_poll = true;
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Signal);
-        let update = (0..100).find_map(|_| files.step_with_watch_readiness(false).update).unwrap();
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let update = (0..100).find_map(|_| unsafe { files.step_with_watch_readiness(false) }.update).unwrap();
         assert_eq!(update.rows[0].address, Some("192.0.2.2:53".parse().unwrap()));
     }
 
@@ -865,21 +874,25 @@ mod tests {
         assert!(!files.runnable());
         files.request(ReloadReason::Signal);
         assert!(files.runnable(), "new logical request has no ready fd yet");
-        let step = files.step_with_watch_readiness(false);
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let step = unsafe { files.step_with_watch_readiness(false) };
         assert!(!step.runnable && !files.runnable());
         assert!(files.has_work());
         files.request(ReloadReason::Signal);
         assert!(!files.runnable(), "a later request cannot bypass held FIFO input");
         let mut writer = OpenOptions::new().write(true).custom_flags(0o4000).open(&path).unwrap();
         writer.write_all(b"server=127.0.0.2\n").unwrap();
-        let step = files.step_with_watch_readiness(false);
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let step = unsafe { files.step_with_watch_readiness(false) };
         assert!(step.update.is_none() && !files.runnable(), "partial input waits for EOF");
         drop(writer);
-        let update = (0..8).find_map(|_| files.step_with_watch_readiness(false).update).unwrap();
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let update = (0..8).find_map(|_| unsafe { files.step_with_watch_readiness(false) }.update).unwrap();
         assert!(matches!(&update.rows[0].rule.target,
             RuleTarget::Upstream(endpoint) if endpoint.host == ServerHost::Address("127.0.0.2".parse().unwrap())));
         assert!(files.runnable(), "the later trigger survives first publication");
-        files.step_with_watch_readiness(false);
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        unsafe { files.step_with_watch_readiness(false) };
         assert!(!files.runnable(), "the next FIFO read again waits on its descriptor");
     }
 
@@ -981,11 +994,13 @@ mod tests {
         let mut files = DnsFiles::new(&config, true, true).unwrap();
         files.request(ReloadReason::Signal);
         files.request(ReloadReason::Notify);
-        let first = files.step();
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let first = unsafe { files.step() };
         assert!(!first.signal_complete && first.update.is_none());
         let mut completions = 0;
         for _ in 0..10 {
-            let step = files.step();
+            // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+            let step = unsafe { files.step() };
             if step.signal_complete {
                 completions += 1;
                 assert_eq!(step.update.unwrap().source, Source::ServersFile);
@@ -996,7 +1011,8 @@ mod tests {
             }
         }
         assert_eq!(completions, 1);
-        assert!(!files.step().signal_complete);
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        assert!(!unsafe { files.step() }.signal_complete);
     }
 
     #[test]
@@ -1015,7 +1031,8 @@ mod tests {
         }
         let mut updates = Vec::new();
         for _ in 0..100 {
-            let step = files.step();
+            // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+            let step = unsafe { files.step() };
             let runnable = step.runnable;
             updates.extend(step.update);
             if !runnable && !files.has_work() {
@@ -1069,7 +1086,8 @@ mod tests {
         fs::write(path, content).unwrap();
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Init);
-        assert!(files.step().update.is_none());
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        assert!(unsafe { files.step() }.update.is_none());
         assert!(files.initializing());
         let (updates, _) = drain(&mut files);
         assert!(!files.initializing());
@@ -1081,13 +1099,16 @@ mod tests {
         ).unwrap();
         let mut files = DnsFiles::new(&config, true, false).unwrap();
         files.request(ReloadReason::Init);
-        let barrier = files.step();
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let barrier = unsafe { files.step() };
         assert!(barrier.initial_cache_reload && barrier.runnable);
-        assert!(!files.step().runnable);
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        assert!(!unsafe { files.step() }.runnable);
         assert!(files.initializing() && files.has_work());
         assert!(!files.runnable(), "pending init must not spin while its actual FIFO job waits");
         files.request(ReloadReason::Signal);
-        let step = files.step();
+        // SAFETY: these fixtures contain no hostname endpoints and never spawn a resolver.
+        let step = unsafe { files.step() };
         assert!(step.update.is_none() && !step.runnable);
         assert!(!files.runnable(), "a later trigger cannot override FIFO backpressure");
         let mut fds = Vec::new();

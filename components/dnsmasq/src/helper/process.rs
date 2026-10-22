@@ -4,7 +4,7 @@ use rustix::process::{Pid, WaitOptions};
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
-#[cfg(test)]
+#[cfg(feature = "process-test-support")]
 use std::os::fd::AsFd;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
@@ -17,7 +17,7 @@ const POLLOUT: i16 = 4;
 fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
     Ok(rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?)
 }
-#[cfg(test)]
+#[cfg(feature = "process-test-support")]
 fn nonblocking(fd: impl AsFd) -> io::Result<()> {
     let flags = rustix::fs::fcntl_getfl(&fd)?;
     Ok(rustix::fs::fcntl_setfl(
@@ -61,17 +61,34 @@ pub struct Helper {
 impl Helper {
     /// Call before daemon privilege drop, from the sole service thread. Like C,
     /// the helper retains startup credentials unless script-user changes them.
-    pub fn start(config: Config) -> Result<Self, StartError> {
-        Self::start_with_init(config, None)
+    ///
+    /// # Safety
+    ///
+    /// The process must be single-threaded, without shared writable mappings,
+    /// application atfork callbacks or held locks that the helper may acquire.
+    /// The helper uses its owned configuration, pipes, libc and standard I/O.
+    /// Inherited signal handlers and panic hooks must not access copied parent
+    /// descriptor owners, shared state or held locks, as required by
+    /// [`dnsmasq_platform::process::spawn_helper`].
+    #[expect(unsafe_code, reason = "explicit application fork contract")]
+    pub unsafe fn start(config: Config) -> Result<Self, StartError> {
+        // SAFETY: this forwards the same process contract and owned config.
+        unsafe { Self::start_with_init(config, None) }
     }
 
     /// Leasefile-ro initialization runs in the helper before credentials drop.
     /// The owner consumes bounded InitRecord/InitEnd/InitExit notices in its poll.
-    pub fn start_with_init(
+    ///
+    /// # Safety
+    ///
+    /// The caller must meet the process requirements of [`Self::start`].
+    #[expect(unsafe_code, reason = "explicit application fork contract")]
+    pub unsafe fn start_with_init(
         config: Config,
         init_capacity: Option<usize>,
     ) -> Result<Self, StartError> {
-        Self::start_inner(config, init_capacity, false)
+        // SAFETY: this forwards the caller's process contract unchanged.
+        unsafe { Self::start_inner(config, init_capacity, false) }
     }
 
     /// Preflight has no pipes, fork, credential changes or producer execution.
@@ -114,11 +131,18 @@ impl Helper {
 
     /// The prefork owner receives only initialization records and diagnostics.
     /// This child never drops script credentials, emits READY or reads commands.
-    pub fn start_initializer(config: Config, maximum: usize) -> Result<Self, StartError> {
-        Self::start_inner(config, Some(maximum), true)
+    ///
+    /// # Safety
+    ///
+    /// The caller must meet the process requirements of [`Self::start`].
+    #[expect(unsafe_code, reason = "explicit application fork contract")]
+    pub unsafe fn start_initializer(config: Config, maximum: usize) -> Result<Self, StartError> {
+        // SAFETY: this forwards the caller's process contract unchanged.
+        unsafe { Self::start_inner(config, Some(maximum), true) }
     }
 
-    fn start_inner(
+    #[expect(unsafe_code, reason = "audited owned helper snapshot at the fork boundary")]
+    unsafe fn start_inner(
         config: Config,
         init_capacity: Option<usize>,
         initialization_only: bool,
@@ -133,8 +157,12 @@ impl Helper {
         // NSS preflight has returned; this call holds no stdio/allocator/lock
         // guard. child accesses only this snapshot, its two channels, standard
         // streams and the audited libc/process helpers, never parent owners.
-        let (startup, pid, writer, reader) =
-            dnsmasq_platform::process::spawn_helper(startup, child).map_err(start_error)?;
+        // SAFETY: the unsafe caller guarantees the process prerequisites.
+        // HelperStartup owns only path/name buffers and scalar config; child
+        // uses only this snapshot and the two fresh IPC channels passed to it.
+        let (startup, pid, writer, reader) = unsafe {
+            dnsmasq_platform::process::spawn_helper(startup, child)
+        }.map_err(start_error)?;
         let config = startup.config;
         Ok(Self {
             pid: pid.as_raw_nonzero().get(),
@@ -596,6 +624,9 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
     command.push(" init");
     let mut producer = Command::new("/bin/sh");
     producer.arg("-c").arg(command).stdout(Stdio::piped());
+    // lease.c uses popen, which retains the daemon's ignored SIGPIPE. std's
+    // Command resets it unless this fixed async-signal-safe hook restores it.
+    dnsmasq_platform::process::preserve_ignored_sigpipe(&mut producer);
     let mut process = producer.spawn()?;
     // Successful spawn with Stdio::piped always supplies this owned stdout.
     let output = process.stdout.take().unwrap();
@@ -751,226 +782,24 @@ fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Resul
     Ok(())
 }
 
+#[cfg(feature = "process-test-support")]
+#[path = "process_tests.rs"]
+#[expect(unsafe_code, reason = "standalone process tests establish the fork prerequisites")]
+mod process_tests;
+
+#[cfg(feature = "process-test-support")]
+/// # Safety
+/// Run only on a standalone process main thread, without shared writable
+/// mappings, application atfork hooks or held locks.
+#[doc(hidden)]
+#[expect(unsafe_code, reason = "test runner must preserve the explicit fork contract")]
+pub unsafe fn run_process_tests() {
+    process_tests::run();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::os::unix::fs::PermissionsExt;
-    use std::time::{Duration, Instant};
-
-    fn script(text: &str) -> (std::path::PathBuf, Config) {
-        let folder = std::env::temp_dir().join(format!(
-            "dnsmasq-helper-{}-{}",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_nanos()
-        ));
-        std::fs::create_dir(&folder).unwrap();
-        let path = folder.join("script");
-        std::fs::write(&path, format!("#!/bin/sh\n{text}\n")).unwrap();
-        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
-        (
-            folder,
-            Config {
-                script: path,
-                script_user: None,
-                debug: false,
-            },
-        )
-    }
-    fn until(helper: &mut Helper, predicate: impl Fn(&Helper, &[Notice]) -> bool) -> Vec<Notice> {
-        let deadline = Instant::now() + Duration::from_secs(5);
-        let mut notices = Vec::new();
-        while !predicate(helper, &notices) {
-            assert!(Instant::now() < deadline, "helper timeout: {notices:?}");
-            notices.extend(helper.step().unwrap());
-            std::thread::sleep(Duration::from_millis(1));
-        }
-        notices
-    }
-    #[test]
-    fn only_unreaped_eof_needs_an_owner_recheck() {
-        let (folder, config) = script("exit 0");
-        let mut helper = Helper::start(config).unwrap();
-        until(&mut helper, |helper, _| helper.ready());
-        assert!(!helper.needs_reap(), "live idle helper has no timer");
-        // Model EOF observed just before the child's exit becomes waitable.
-        // step closes both pipes and remains nonblocking until waitpid catches up.
-        helper.eof = true;
-        assert!(helper.needs_reap());
-        until(&mut helper, |helper, _| helper.is_finished());
-        assert!(
-            !helper.needs_reap(),
-            "reaped helper must not keep an idle timer"
-        );
-        drop(helper);
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-    #[test]
-    fn initialization_is_streamed_before_ready_without_waiting_in_owner() {
-        let (folder, config) =
-            script(r#"[ "$1" = init ] || exit 8; sleep 0.2; printf lease-data; exit 7"#);
-        let start = Instant::now();
-        let mut helper = Helper::start_with_init(config, Some(1)).unwrap();
-        assert!(start.elapsed() < Duration::from_millis(100));
-        let notices = until(&mut helper, |helper, _| helper.is_finished());
-        assert!(!notices
-            .iter()
-            .any(|notice| matches!(notice, Notice::InitRecord(_))));
-        assert!(notices.contains(&Notice::InitExit(7)));
-        assert!(!notices.contains(&Notice::Ready));
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-
-    #[test]
-    fn initialization_rejects_excess_leases_before_ready() {
-        let (folder, config) = script(
-            r#"printf '%s\n' '0 02:00:00:00:00:01 127.0.0.11 one *' '0 02:00:00:00:00:02 127.0.0.12 two *'"#,
-        );
-        let mut helper = Helper::start_with_init(config, Some(1)).unwrap();
-        let notices = until(&mut helper, |helper, _| helper.is_finished());
-        assert!(notices.contains(&Notice::InitError(5)));
-        assert!(!notices.contains(&Notice::Ready));
-        assert!(!notices
-            .iter()
-            .any(|notice| matches!(notice, Notice::InitRecord(_))));
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-
-    #[test]
-    fn serial_scripts_progress_without_blocking_owner_and_eof_reaps() {
-        let (folder, config) = script("sleep 0.2; printf '%s\\n' \"$*\"; exit 7");
-        let mut helper = Helper::start(config).unwrap();
-        until(&mut helper, |h, _| h.ready());
-        let event = Event::Lease(super::super::tests::lease());
-        assert!(helper.enqueue(&event).unwrap());
-        assert!(!helper.enqueue(&event).unwrap());
-        let start = Instant::now();
-        helper.step().unwrap();
-        assert!(start.elapsed() < Duration::from_millis(100));
-        helper.begin_shutdown();
-        let notices = until(&mut helper, |h, _| h.is_finished());
-        assert!(notices.contains(&Notice::ScriptExit(7)));
-        assert!(notices.contains(&Notice::Reaped(0)));
-        let output = notices
-            .iter()
-            .filter_map(|n| match n {
-                Notice::Output(value) => Some(value.as_slice()),
-                _ => None,
-            })
-            .flatten()
-            .copied()
-            .collect::<Vec<_>>();
-        assert!(
-            String::from_utf8_lossy(&output).contains("add 02:00:00:00:00:01 192.0.2.10 client")
-        );
-        assert!(!std::path::Path::new(&format!("/proc/{}", helper.pid())).exists());
-        drop(helper);
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-
-    #[test]
-    fn script_output_preserves_empty_lines_and_eof_tail_with_a_bounded_prefix() {
-        let (folder, config) =
-            script("printf 'one\\n\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'");
-        let mut helper = Helper::start(config).unwrap();
-        until(&mut helper, |helper, _| helper.ready());
-        assert!(helper
-            .enqueue(&Event::Lease(super::super::tests::lease()))
-            .unwrap());
-        helper.begin_shutdown();
-        let notices = until(&mut helper, |helper, _| helper.is_finished());
-        let lines = notices
-            .into_iter()
-            .filter_map(|notice| {
-                if let Notice::Output(bytes) = notice {
-                    Some(bytes)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-        assert_eq!(
-            lines,
-            vec![b"one".to_vec(), vec![], vec![b'x'; 1024], b"tail".to_vec()]
-        );
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-    #[test]
-    fn helper_closes_inherited_service_fds_before_script() {
-        let (folder, mut config) = script("for f in /proc/self/fd/*; do readlink \"$f\"; done");
-        let marker = folder.join("must-not-inherit");
-        let file = File::create(&marker).unwrap();
-        // Clear CLOEXEC to verify helper isolation, not Command's exec closure.
-        rustix::io::fcntl_setfd(&file, rustix::io::FdFlags::empty()).unwrap();
-        config.debug = false;
-        let mut helper = Helper::start(config).unwrap();
-        until(&mut helper, |h, _| h.ready());
-        assert!(helper
-            .enqueue(&Event::Lease(super::super::tests::lease()))
-            .unwrap());
-        helper.begin_shutdown();
-        let notices = until(&mut helper, |h, _| h.is_finished());
-        let output = notices
-            .iter()
-            .filter_map(|n| match n {
-                Notice::Output(value) => Some(value.as_slice()),
-                _ => None,
-            })
-            .flatten()
-            .copied()
-            .collect::<Vec<_>>();
-        assert!(!String::from_utf8_lossy(&output).contains("must-not-inherit"));
-        assert!(String::from_utf8_lossy(&output).contains("/dev/null"));
-        drop(helper);
-        drop(file);
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-
-    #[test]
-    fn command_handoff_does_not_wait_and_closed_parent_keeps_queued_scripts() {
-        let (folder, config) = script(
-            r#"
-dir=${0%/*}
-n=0
-[ ! -f "$dir/count" ] || read -r n < "$dir/count"
-n=$((n + 1))
-printf '%s\n' "$n" > "$dir/count"
-: > "$dir/started-$n"
-if [ "$n" = 1 ]; then
-  while [ ! -f "$dir/release" ]; do sleep 0.01; done
-fi
-echo "output after parent closed: $n"
-: > "$dir/done-$n"
-case "$n" in 1) exit 7;; 2) kill -USR1 "$$";; esac
-"#,
-        );
-        let mut helper = Helper::start(config).unwrap();
-        until(&mut helper, |h, _| h.ready());
-        let event = Event::Lease(super::super::tests::lease());
-        assert!(helper.enqueue(&event).unwrap());
-        until(&mut helper, |_, _| folder.join("started-1").exists());
-        assert!(helper.enqueue(&event).unwrap());
-        until(&mut helper, |h, _| h.can_enqueue());
-        assert!(helper.enqueue(&event).unwrap());
-        helper.begin_shutdown();
-        assert!(!helper.commands_drained());
-        until(&mut helper, |h, _| h.commands_drained());
-        assert!(!helper.is_finished());
-        assert!(!folder.join("done-1").exists());
-        // This is the parent's exit boundary: no event reader survives.
-        helper.reader.take();
-        std::fs::write(folder.join("release"), b"").unwrap();
-        until(&mut helper, |h, _| h.reaped.is_some());
-        assert_eq!(helper.reaped, Some(0));
-        for number in 1..=3 {
-            assert!(folder.join(format!("done-{number}")).exists());
-        }
-        drop(helper);
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-
     #[test]
     fn only_runtime_notices_tolerate_broken_parent_pipe() {
         let (reader, writer) = pipe().unwrap();
@@ -1010,88 +839,5 @@ case "$n" in 1) exit 7;; 2) kill -USR1 "$$";; esac
             io::ErrorKind::BrokenPipe
         );
     }
-    #[test]
-    fn unknown_user_is_configuration_failure_and_missing_script_is_event() {
-        let (folder, mut config) = script("exit 0");
-        config.script_user = Some(b"dnsmasq-m5-nonexistent-user-87943".to_vec());
-        assert_eq!(Helper::start(config.clone()).err().unwrap().code, 1);
-        config.script_user = None;
-        config.script = folder.join("missing");
-        let mut helper = Helper::start(config).unwrap();
-        until(&mut helper, |h, _| h.ready());
-        helper
-            .enqueue(&Event::Lease(super::super::tests::lease()))
-            .unwrap();
-        helper.begin_shutdown();
-        let notices = until(&mut helper, |h, _| h.is_finished());
-        assert!(notices.contains(&Notice::ExecError(2)));
-        assert!(notices.contains(&Notice::Reaped(0)));
-        drop(helper);
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-    #[test]
-    fn malformed_ipc_is_rejected_without_executing_fixed_script() {
-        let (folder, config) = script("echo unexpected");
-        let mut helper = Helper::start(config).unwrap();
-        until(&mut helper, |h, _| h.ready());
-        helper.pending = wire::frame(&[1, 255]);
-        helper.begin_shutdown();
-        let notices = until(&mut helper, |h, _| h.is_finished());
-        assert!(notices.contains(&Notice::Error(22)));
-        assert!(!notices.iter().any(|n| matches!(n, Notice::Output(_))));
-        drop(helper);
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-    #[test]
-    fn killed_helper_drops_pipe_frame_without_poisoning_owner_or_reap() {
-        let (folder, config) = script("exit 0");
-        let mut helper = Helper::start(config).unwrap();
-        until(&mut helper, |h, _| h.ready());
-        rustix::process::kill_process(
-            Pid::from_raw(helper.pid()).unwrap(),
-            rustix::process::Signal::KILL,
-        )
-        .unwrap();
-        std::thread::sleep(Duration::from_millis(20));
-        // A command raced with the helper death; parent write sees EPIPE.
-        helper
-            .enqueue(&Event::Lease(super::super::tests::lease()))
-            .unwrap();
-        let notices = until(&mut helper, |h, _| h.is_finished());
-        assert!(notices.iter().any(|n| matches!(n, Notice::Reaped(9))));
-        assert!(!helper.can_enqueue());
-        assert!(helper.pending.is_empty());
-        assert!(!std::path::Path::new(&format!("/proc/{}", helper.pid())).exists());
-        drop(helper);
-        std::fs::remove_dir_all(folder).unwrap();
-    }
-    #[test]
-    fn partial_and_invalid_notice_frames_close_ipc_then_reap() {
-        for partial in [
-            vec![8, 0, 0, 0, 1, b'x'],
-            vec![0xff, 0xff, 0xff, 0x7f],
-            vec![1, 0, 0, 0, 255],
-        ] {
-            let (folder, config) = script("echo must-not-run");
-            let mut helper = Helper::start(config).unwrap();
-            until(&mut helper, |h, _| h.ready());
-            // Substitute the notice transport only, leaving the real helper
-            // idle on its command pipe. EOF/error must close that command pipe,
-            // allow normal child exit and still execute the parent's waitpid.
-            let (input, output) = pipe().unwrap();
-            let mut output = File::from(output);
-            output.write_all(&partial).unwrap();
-            drop(output);
-            nonblocking(&input).unwrap();
-            helper.reader = Some(File::from(input));
-            let notices = until(&mut helper, |h, _| h.is_finished());
-            assert!(notices.contains(&Notice::Error(22)));
-            assert!(notices.contains(&Notice::Reaped(0)));
-            assert_eq!(helper.poll_fds(), [(-1, POLLIN), (-1, POLLOUT)]);
-            assert!(helper.step().unwrap().is_empty());
-            assert!(!std::path::Path::new(&format!("/proc/{}", helper.pid())).exists());
-            drop(helper);
-            std::fs::remove_dir_all(folder).unwrap();
-        }
-    }
+
 }

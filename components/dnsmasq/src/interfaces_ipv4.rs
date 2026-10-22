@@ -195,7 +195,7 @@ impl Ipv4Snapshot {
             return Err(malformed());
         }
         let done = decode(
-            &self.bytes[..got as usize],
+            &self.bytes[..got],
             self.port,
             self.sequence,
             &mut self.rows,

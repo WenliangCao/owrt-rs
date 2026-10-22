@@ -65,6 +65,9 @@ pub fn configured_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
 /// inserted. The caller reads every hosts source and finishes the bulk state
 /// before publishing. Allocation failure drops this unpublished generation.
 /// packet_limit is C's whole packet buffer: max(edns_packet_max, 512) + 265.
+///
+/// # Errors
+/// Returns an ingestion error if the unpublished generation cannot retain its input.
 pub fn configured_hosts_bulk(
     config: &DnsConfig,
     local_ttl: u32,
@@ -72,10 +75,10 @@ pub fn configured_hosts_bulk(
     cache_size: usize,
     minimum_hash_capacity: usize,
     retained_leases: &LeaseNames,
-) -> Result<Hosts, ()> {
+) -> Result<Hosts, crate::hosts::IngestionError> {
     let mut hosts = Hosts::new();
     hosts.set_round_robin(!config.no_round_robin);
-    hosts.begin_bulk(packet_limit, cache_size, minimum_hash_capacity).map_err(|_| ())?;
+    hosts.begin_bulk(packet_limit, cache_size, minimum_hash_capacity)?;
     // cache_reload retains DHCP entries until the later lease publication.
     // Their names participate in duplicate lookup's temporary next chain.
     for entry in retained_leases.active_entries() {
@@ -84,7 +87,7 @@ pub fn configured_hosts_bulk(
             IpAddr::V4(entry.address),
             entry.reverse,
             entry.expires.is_none(),
-        ).map_err(|_| ())?;
+        )?;
     }
     for record in &config.host_records {
         for name in &record.names {
@@ -93,11 +96,11 @@ pub fn configured_hosts_bulk(
                 .chain(record.address6.map(IpAddr::V6))
             {
                 hosts.insert_checked(
-                    crate::hosts::try_copy(name).map_err(|_| ())?,
+                    crate::hosts::try_copy(name)?,
                     address,
                     ttl,
                     1, // SRC_CONFIG
-                ).map_err(|_| ())?;
+                )?;
             }
         }
     }
@@ -917,8 +920,8 @@ fn expire_lease_lookups(
     let query_name = wire_to_dotted(query)?;
     let mut name = query_name.as_slice();
     for _ in 0..100 {
-        if leases.has_expired_name(&name, now) {
-            Arc::make_mut(leases).expire_name(&name, now);
+        if leases.has_expired_name(name, now) {
+            Arc::make_mut(leases).expire_name(name, now);
         }
         if qtype == TYPE_CNAME {
             return Some(query_name);
@@ -927,19 +930,19 @@ fn expire_lease_lookups(
             .records
             .cnames
             .iter()
-            .find(|cname| cname.alias.eq_ignore_ascii_case(&name))
+            .find(|cname| cname.alias.eq_ignore_ascii_case(name))
         else {
             break;
         };
         name = &cname.target;
     }
     if (qtype == TYPE_PTR || qtype == 255)
-        && arpa_address(&name).is_some()
+        && arpa_address(name).is_some()
         && !config
             .records
             .ptr
             .iter()
-            .any(|record| record.name.eq_ignore_ascii_case(&name))
+            .any(|record| record.name.eq_ignore_ascii_case(name))
         && leases.has_expired_reverse(now)
     {
         Arc::make_mut(leases).expire_reverse(now);
@@ -1133,6 +1136,10 @@ pub(super) fn arpa_address(name: &[u8]) -> Option<IpAddr> {
 /// question name); subsequent CNAMEs and terminal records use explicit owners
 /// in `extra_rows`. Return the terminal visited for negative SOA lookup, unless
 /// TYPE_CNAME stopped before visiting it or reverse synthesis changed it.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "Preserve separate borrowed cache/hosts state and the existing record/log output buffers."
+)]
 fn add_cname_chain(
     config: &DnsConfig,
     hosts: &mut Hosts,
@@ -1207,6 +1214,14 @@ fn add_cname_chain(
 /// callers can use them for the question owner or attach an explicit owner
 /// while following a CNAME. The final flag reports actual reverse synthesis,
 /// which replaces C's name cursor and discards the old reverse-zone SOA.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "Local record selection keeps borrowed source views and logging separate from its output."
+)]
+#[expect(
+    clippy::type_complexity,
+    reason = "Preserve the established record rows and explicit ownership/reverse-synthesis result flags."
+)]
 fn add_local_records_for_name(
     config: &DnsConfig,
     hosts: &mut Hosts,

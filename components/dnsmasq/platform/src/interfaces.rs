@@ -143,6 +143,7 @@ mod linux {
     }
 
     /// A borrowed row; visit's lifetime prevents names from escaping the list.
+    #[derive(Debug)]
     pub struct InterfaceAddress<'a> {
         pub name: &'a CStr,
         pub flags: u32,

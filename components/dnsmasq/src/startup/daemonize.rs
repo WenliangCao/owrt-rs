@@ -18,7 +18,17 @@ impl StartupChannel {
 
     /// Returns true in the original parent after successful child startup.
     /// The detached service and foreground modes return false.
-    pub fn begin(&mut self, config: &ProcessConfig) -> Result<bool, StartupError> {
+    ///
+    /// # Safety
+    ///
+    /// Background mode requires a single-threaded process with private writable
+    /// mappings, no application atfork callbacks, and no held locks used by
+    /// startup reporting or standard I/O. Foreground modes do not fork.
+    /// Inherited signal handlers and panic hooks must not access copied parent
+    /// resource owners or held locks; see
+    /// [`dnsmasq_platform::process::background_startup`].
+    #[expect(unsafe_code, reason = "daemonization explicitly requires process ownership")]
+    pub unsafe fn begin(&mut self, config: &ProcessConfig) -> Result<bool, StartupError> {
         if config.debug {
             return Ok(false);
         }
@@ -31,12 +41,15 @@ impl StartupChannel {
             .map_err(|error| failure("cannot create pipe", error.into()))?;
         rustix::fs::fcntl_setfl(&writer, rustix::fs::OFlags::NONBLOCK)
             .map_err(|error| failure("cannot create pipe", error.into()))?;
-        let writer = dnsmasq_platform::process::background_startup(
+        // SAFETY: the caller supplies the process guarantees above. These
+        // fixed callbacks only consume their pipe and emit startup diagnostics;
+        // neither can return through or access the copied service owners.
+        let writer = unsafe { dnsmasq_platform::process::background_startup(
             File::from(reader),
             File::from(writer),
             parent_report,
             fork_failed,
-        )
+        ) }
         .map_err(|error| failure("cannot fork into background", error))?;
         self.writer = Some(writer);
         Ok(false)
@@ -212,6 +225,13 @@ fn fork_failed(writer: File, error: io::Error) {
     channel.fail(error.code, &error.message);
 }
 
+fn failure(context: &str, error: io::Error) -> StartupError {
+    StartupError {
+        code: 5,
+        message: format!("{context}: {}", crate::logging::error_text(&error)),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -275,12 +295,5 @@ mod tests {
             bytes.unwrap(),
             b"cannot open log /missin\xff: No such file or directory"
         );
-    }
-}
-
-fn failure(context: &str, error: io::Error) -> StartupError {
-    StartupError {
-        code: 5,
-        message: format!("{context}: {}", crate::logging::error_text(&error)),
     }
 }

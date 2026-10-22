@@ -71,7 +71,7 @@ pub const NAMES: [&str; 30] = [
     "dhcp_lease_unknown",
 ];
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Metrics {
     values: [u32; 30],
 }

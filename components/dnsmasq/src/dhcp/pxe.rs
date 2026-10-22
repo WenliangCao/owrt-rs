@@ -358,8 +358,17 @@ pub struct MenuOptions {
     pub menu: Vec<u8>,
 }
 
+/// A generated PXE menu cannot fit in the vendor option's wire length.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct MenuTooLarge;
+
+impl std::fmt::Display for MenuTooLarge {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("generated PXE menu exceeds the vendor option length")
+    }
+}
+
+impl std::error::Error for MenuTooLarge {}
 
 /// Generated suboption order: discovery (6), default prompt (10), servers (8),
 /// menu (9), then configured options. On MenuTooLarge use configured options

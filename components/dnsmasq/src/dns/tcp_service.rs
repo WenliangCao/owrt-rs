@@ -281,6 +281,10 @@ impl TcpDnsService {
         self.start_with_cache_sink(query, local, deadline, None, false, None, false, None)
     }
 
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "The accepted connection supplies its deadline, cache sink and forwarding cursor explicitly."
+    )]
     pub fn start_with_local_upstream_cache(
         &mut self,
         query: &[u8],
@@ -315,6 +319,10 @@ impl TcpDnsService {
         self.step_with_cache_sink(local, Some(cache), no_cache, Some(now), cached_name)
     }
 
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Preserve explicit connection deadline, cache sink, clock and forwarding cursor ownership."
+    )]
     fn start_with_cache_sink(
         &mut self,
         query: &[u8],
@@ -367,6 +375,10 @@ impl TcpDnsService {
         self.upstream.clear();
     }
 
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Completion combines the retained query with caller-owned cache and local snapshot state."
+    )]
     fn finish_progress(
         &mut self,
         query: Vec<u8>,

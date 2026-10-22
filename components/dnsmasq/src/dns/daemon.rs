@@ -4,9 +4,9 @@
 //! process owns the listening UDP socket: [`DnsDaemon::handle_udp`] accepts one
 //! client datagram and either returns a local answer or starts an upstream
 //! transaction, while [`DnsDaemon::poll`] turns completed upstream events into
-//! client responses. TCP listeners, resolver-file polling, and the remaining
-//! `forward.c::process_reply` cache policy are separate work; direct positive
-//! A/AAAA cache insertion and lookup are wired below.
+//! client responses. This owner applies reply policy and shares cache behavior
+//! with TCP connection snapshots. Listeners and resolver-file polling remain
+//! with the containing process.
 
 use super::cache::{Cache, CacheCounters, Policy as CachePolicy, StalePolicy};
 #[cfg(test)]
@@ -811,9 +811,7 @@ impl<R: Random> DnsDaemon<R> {
         }
     }
 
-    /// Enable the positive forward cache after daemon construction.  Keeping
-    /// this explicit lets the caller pass scalar options (cache-size and TTL
-    /// bounds) without duplicating them in `DnsConfig`.
+    /// Publish the current interface-name generation for subsequent lookups.
     pub fn publish_interface_records(
         &mut self,
         records: std::sync::Arc<super::interface_records::InterfaceRecords>,
@@ -832,6 +830,10 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream.set_dump(dump);
     }
 
+    /// Enable the forward cache with caller-supplied capacity and TTL bounds.
+    ///
+    /// # Panics
+    /// Panics if `capacity` exceeds the cache's `u32` slot-link range.
     pub fn enable_cache(
         &mut self,
         capacity: usize,
@@ -1219,10 +1221,10 @@ impl<R: Random> DnsDaemon<R> {
         Ok(QueryResult::Forwarded(submission.id))
     }
 
-    /// Poll upstream sockets and produce client-visible UDP replies.  The
-    /// reply envelope is applied, but this intentionally does not claim the
-    /// full C `process_reply` contract (cache/SOA/ubus/TCP fallback remain
-    /// outside this adapter).
+    /// Poll upstream sockets and produce replies after policy and cache processing.
+    ///
+    /// Use [`Self::poll_with_local_doctor`] when the containing process supplies
+    /// its current local generation and a synchronous record-rewrite callback.
     pub fn poll(&mut self, wait: Duration) -> Result<Vec<ClientResponse>, DaemonError> {
         self.poll_inner(wait, None, None)
     }
@@ -1955,10 +1957,14 @@ impl<R: Random> DnsDaemon<R> {
         )
     }
 
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Keep the accepted TCP cache, counters, local view and reply policy explicitly caller-owned."
+    )]
     pub fn tcp_view_extract(
         cache: &mut Cache,
         counters: &mut CacheCounters,
-        packet: &mut Vec<u8>,
+        packet: &mut [u8],
         local: &LocalDnsService,
         policy: &AddressPolicy,
         now: i64,
@@ -1984,7 +1990,7 @@ impl<R: Random> DnsDaemon<R> {
 
     pub fn tcp_current_extract(
         &mut self,
-        packet: &mut Vec<u8>,
+        packet: &mut [u8],
         policy: &AddressPolicy,
         now: i64,
         rcode: u16,
@@ -2111,19 +2117,19 @@ pub(super) fn address_policy(config: &DnsConfig) -> Result<AddressPolicy, Daemon
         bogus_addresses: config
             .bogus_addresses
             .iter()
-            .map(|rule| AddressPrefix {
-                address: rule.address,
-                prefix: rule.prefix,
+            .map(|rule| {
+                AddressPrefix::new(rule.address, rule.prefix)
+                    .ok_or(ConfigError("bad bogus-nxdomain prefix"))
             })
-            .collect(),
+            .collect::<Result<_, _>>()?,
         ignore_addresses: config
             .ignore_addresses
             .iter()
-            .map(|rule| AddressPrefix {
-                address: rule.address,
-                prefix: rule.prefix,
+            .map(|rule| {
+                AddressPrefix::new(rule.address, rule.prefix)
+                    .ok_or(ConfigError("bad ignore-address prefix"))
             })
-            .collect(),
+            .collect::<Result<_, _>>()?,
     })
 }
 

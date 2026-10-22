@@ -364,7 +364,7 @@ impl DhcpFiles {
                     if filewatch::accepted_name(name.as_bytes()) {
                         let path = filewatch::literal_join(&scan.path, name.as_bytes());
                         if fs::metadata(&path).is_ok_and(|metadata| metadata.is_file()) {
-                            let kind = scan.kind.clone();
+                            let kind = scan.kind;
                             self.open(kind, path, true, &mut result.diagnostics);
                         }
                     }

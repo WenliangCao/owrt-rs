@@ -71,7 +71,7 @@ impl DirectoryWatch {
                 .iter()
                 .map(|directory| Directory {
                     path: PathBuf::from(OsString::from_vec(directory.path.clone())),
-                    kind: directory.kind.clone(),
+                    kind: directory.kind,
                     attempted: false,
                     descriptor: -1,
                     watch_error: None,
@@ -139,7 +139,7 @@ impl DirectoryWatch {
         let entries = fs::read_dir(&directory.path)
             .map_err(|error| ScanError::Watch(directory.path.clone(), error))?;
         Ok(DirectoryScan {
-            kind: directory.kind.clone(),
+            kind: directory.kind,
             path: directory.path.clone(),
             entries,
         })
@@ -157,7 +157,7 @@ impl DirectoryWatch {
                 event.directory += 1;
                 if directory.descriptor == event.descriptor {
                     return Ok(WatchStep::File(
-                        directory.kind.clone(),
+                        directory.kind,
                         literal_join(&directory.path, &event.name),
                     ));
                 }

@@ -177,7 +177,17 @@ pub use worker::{spawn_helper, spawn_lookup};
 /// This applies only to background daemonization. Foreground procd/ujail
 /// invocations, including a jail without procfs, never call this function;
 /// independent background invocations still require procfs for these proofs.
-pub fn background_startup(
+///
+/// # Safety
+///
+/// The caller must ensure a single-threaded process without application atfork
+/// callbacks, shared writable mappings or locks acquired by either callback.
+/// The callbacks may access only their supplied pipe, ordinary private data
+/// and standard streams; they must not reach other inherited resource owners.
+/// Inherited signal handlers and panic hooks must satisfy the same restriction;
+/// a panic hook executes before the terminating branch can catch its payload.
+/// The `/proc` checks are a diagnostic guard, not a proof of these conditions.
+pub unsafe fn background_startup(
     reader: File,
     writer: File,
     report: fn(File) -> i32,
@@ -208,7 +218,7 @@ pub fn background_startup(
     }
     if pid > 0 {
         drop(writer);
-        let status = std::panic::catch_unwind(|| report(reader)).unwrap_or(5);
+        let status = worker::exit_status(std::panic::catch_unwind(|| report(reader)));
         // SAFETY: the parent must never unwind/return into service state.
         unsafe { _exit(status) }
     }
@@ -219,8 +229,10 @@ pub fn background_startup(
     let pid = unsafe { fork() };
     if pid < 0 {
         let errno = io::Error::last_os_error().raw_os_error().unwrap_or(5);
-        let _ =
-            std::panic::catch_unwind(|| fork_failed(writer, io::Error::from_raw_os_error(errno)));
+        let _ = worker::exit_status(std::panic::catch_unwind(|| {
+            fork_failed(writer, io::Error::from_raw_os_error(errno));
+            0
+        }));
         // SAFETY: report only through the startup pipe, as in C; the first
         // child must not return into the service after failing its detach.
         unsafe { _exit(0) }

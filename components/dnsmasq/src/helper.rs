@@ -428,7 +428,11 @@ fn extra_value(value: &[u8]) -> Option<Vec<u8>> {
     })
 }
 
-#[cfg(test)]
+#[cfg(feature = "process-test-support")]
+#[doc(hidden)]
+pub use process::run_process_tests;
+
+#[cfg(any(test, feature = "process-test-support"))]
 mod tests {
     use super::*;
     pub(super) fn lease() -> LeaseEvent {
@@ -624,6 +628,7 @@ mod tests {
         assert!(first.extra.is_none());
     }
 
+    #[cfg(test)]
     fn lease_store_fixture() -> crate::dhcp::lease::Lease {
         let mut store = crate::dhcp::lease::LeaseStore::new(1);
         store

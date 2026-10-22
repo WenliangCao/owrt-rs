@@ -726,157 +726,6 @@ impl Logger {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn immediate_and_external_flushes_discard_inherited_records() {
-        let path = std::env::temp_dir().join(format!("dnsmasq-log-pid-{}", std::process::id()));
-        let config = LoggingConfig {
-            file: Some(path.clone()),
-            ..Default::default()
-        };
-        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
-        let inherited = || Record {
-            bytes: b"inherited\n".to_vec(),
-            offset: 0,
-            pid: 0,
-        };
-        logger.queue.push_back(inherited());
-        logger.flush_ready();
-        assert!(std::fs::read(&path).unwrap().is_empty());
-
-        logger.limit = 2;
-        logger.queue.push_back(inherited());
-        logger.emit(LogEvent::new(
-            Service::Dns,
-            Priority::Info,
-            b"current".to_vec(),
-        ));
-        let text = std::fs::read_to_string(&path).unwrap();
-        assert!(!text.contains("inherited"));
-        assert!(text.contains(&format!("dnsmasq[{}]: current\n", std::process::id())));
-        assert!(logger.queue.is_empty());
-        std::fs::remove_file(path).unwrap();
-    }
-
-    #[test]
-    fn accepted_tcp_records_keep_the_old_file_after_parent_reopen() {
-        let path = std::env::temp_dir().join(format!("dnsmasq-tcp-log-{}", std::process::id()));
-        let old = path.with_extension("old");
-        let config = LoggingConfig {
-            file: Some(path.clone()),
-            debug: true,
-            ..Default::default()
-        };
-        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
-        let mut tcp = logger.tcp_context();
-        std::fs::rename(&path, &old).unwrap();
-        logger.reopen().unwrap();
-        logger.emit_tcp(
-            &mut tcp,
-            LogEvent::new(Service::Debug, Priority::Debug, b"child".to_vec()),
-        );
-        logger.emit(LogEvent::new(
-            Service::Dns,
-            Priority::Info,
-            b"parent".to_vec(),
-        ));
-        assert!(logger.finish_tcp(&mut tcp));
-        assert!(logger.finish());
-        let old_text = std::fs::read_to_string(&old).unwrap();
-        let current = std::fs::read_to_string(&path).unwrap();
-        assert!(old_text.contains(": child\n") && !old_text.contains(": parent\n"));
-        assert!(current.contains(": parent\n") && !current.contains(": child\n"));
-        std::fs::remove_file(path).unwrap();
-        std::fs::remove_file(old).unwrap();
-    }
-
-    #[test]
-    fn fifo_without_reader_keeps_service_nonblocking_and_recovers_records() {
-        let path = std::env::temp_dir().join(format!("dnsmasq-log-fifo-{}", std::process::id()));
-        rustix::fs::mkfifoat(
-            rustix::fs::CWD,
-            &path,
-            rustix::fs::Mode::from_bits_retain(0o600),
-        )
-        .unwrap();
-        let config = LoggingConfig {
-            file: Some(path.clone()),
-            ..Default::default()
-        };
-        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
-        logger.emit(LogEvent::new(
-            Service::Dns,
-            Priority::Info,
-            b"first".to_vec(),
-        ));
-        logger.emit(LogEvent::new(
-            Service::Dns,
-            Priority::Info,
-            b"dropped".to_vec(),
-        ));
-        assert_eq!(logger.poll_fd(), None);
-        assert!(!logger.finish());
-        let mut reader = OpenOptions::new()
-            .read(true)
-            .custom_flags(O_NONBLOCK)
-            .open(&path)
-            .unwrap();
-        std::thread::sleep(Duration::from_millis(110));
-        logger.flush_ready();
-        assert!(logger.finish());
-        let mut captured = String::new();
-        use std::io::Read;
-        match reader.read_to_string(&mut captured) {
-            Ok(_) => (),
-            Err(error) => assert_eq!(error.kind(), io::ErrorKind::WouldBlock),
-        }
-        assert!(captured.contains(": first\n"));
-        assert!(captured.contains(": overflow: 1 log entries lost\n"));
-        assert!(!captured.contains(": dropped\n"));
-        std::fs::remove_file(path).unwrap();
-    }
-
-    #[test]
-    fn file_append_reopen_and_maximum_message_preserve_record_boundaries() {
-        let path = std::env::temp_dir().join(format!("dnsmasq-log-{}", std::process::id()));
-        let rotated = path.with_extension("old");
-        std::fs::write(&path, b"existing\n").unwrap();
-        let config = LoggingConfig {
-            file: Some(path.clone()),
-            facility: None,
-            ..Default::default()
-        };
-        let (mut logger, warning) =
-            Logger::start(&config, &ProcessConfig::default(), None).unwrap();
-        assert!(warning.is_none());
-        logger.emit(LogEvent::new(
-            Service::Dhcp,
-            Priority::Info,
-            b"before\0ignored".to_vec(),
-        ));
-        std::fs::rename(&path, &rotated).unwrap();
-        logger.reopen().unwrap();
-        logger.emit(LogEvent::new(
-            Service::Tftp,
-            Priority::Error,
-            vec![b'x'; 4096],
-        ));
-        assert!(logger.finish());
-        let previous = std::fs::read(&rotated).unwrap();
-        assert!(previous.starts_with(b"existing\n"));
-        assert!(previous.ends_with(b": before\n"));
-        assert!(!previous.windows(7).any(|bytes| bytes == b"ignored"));
-        let current = std::fs::read(&path).unwrap();
-        assert_eq!(current.len(), MAX_MESSAGE);
-        assert_eq!(current.last(), Some(&b'\n'));
-        assert_eq!(current.iter().filter(|byte| **byte == b'\n').count(), 1);
-        std::fs::remove_file(path).unwrap();
-        std::fs::remove_file(rotated).unwrap();
-    }
-}
 
 fn drain_echo(fd: impl AsFd, records: &mut VecDeque<Record>) {
     for _ in 0..128 {
@@ -1011,5 +860,159 @@ pub fn emit_early(owner: &mut Option<Logger>, priority: Priority, message: &[u8]
     }
     if let Some(logger) = owner {
         logger.emit(LogEvent::new(Service::Dns, priority, message.to_vec()));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn immediate_and_external_flushes_discard_inherited_records() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-log-pid-{}", std::process::id()));
+        let config = LoggingConfig {
+            file: Some(path.clone()),
+            ..Default::default()
+        };
+        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
+        let inherited = || Record {
+            bytes: b"inherited\n".to_vec(),
+            offset: 0,
+            pid: 0,
+        };
+        logger.queue.push_back(inherited());
+        logger.flush_ready();
+        assert!(std::fs::read(&path).unwrap().is_empty());
+
+        logger.limit = 2;
+        logger.queue.push_back(inherited());
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"current".to_vec(),
+        ));
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(!text.contains("inherited"));
+        assert!(text.contains(&format!("dnsmasq[{}]: current\n", std::process::id())));
+        assert!(logger.queue.is_empty());
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn accepted_tcp_records_keep_the_old_file_after_parent_reopen() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-tcp-log-{}", std::process::id()));
+        let old = path.with_extension("old");
+        let config = LoggingConfig {
+            file: Some(path.clone()),
+            debug: true,
+            ..Default::default()
+        };
+        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
+        let mut tcp = logger.tcp_context();
+        std::fs::rename(&path, &old).unwrap();
+        logger.reopen().unwrap();
+        logger.emit_tcp(
+            &mut tcp,
+            LogEvent::new(Service::Debug, Priority::Debug, b"child".to_vec()),
+        );
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"parent".to_vec(),
+        ));
+        assert!(logger.finish_tcp(&mut tcp));
+        assert!(logger.finish());
+        let old_text = std::fs::read_to_string(&old).unwrap();
+        let current = std::fs::read_to_string(&path).unwrap();
+        assert!(old_text.contains(": child\n") && !old_text.contains(": parent\n"));
+        assert!(current.contains(": parent\n") && !current.contains(": child\n"));
+        std::fs::remove_file(path).unwrap();
+        std::fs::remove_file(old).unwrap();
+    }
+
+    #[test]
+    fn fifo_without_reader_keeps_service_nonblocking_and_recovers_records() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-log-fifo-{}", std::process::id()));
+        rustix::fs::mkfifoat(
+            rustix::fs::CWD,
+            &path,
+            rustix::fs::Mode::from_bits_retain(0o600),
+        )
+        .unwrap();
+        let config = LoggingConfig {
+            file: Some(path.clone()),
+            ..Default::default()
+        };
+        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"first".to_vec(),
+        ));
+        logger.emit(LogEvent::new(
+            Service::Dns,
+            Priority::Info,
+            b"dropped".to_vec(),
+        ));
+        assert_eq!(logger.poll_fd(), None);
+        assert!(!logger.finish());
+        let mut reader = OpenOptions::new()
+            .read(true)
+            .custom_flags(O_NONBLOCK)
+            .open(&path)
+            .unwrap();
+        // Make the retry eligible directly; wall-clock scheduling is not the
+        // behavior under test, and the reader is already open above.
+        logger.fifo_retry_at = Some(Instant::now());
+        logger.flush_ready();
+        assert!(logger.finish());
+        let mut captured = String::new();
+        use std::io::Read;
+        match reader.read_to_string(&mut captured) {
+            Ok(_) => (),
+            Err(error) => assert_eq!(error.kind(), io::ErrorKind::WouldBlock),
+        }
+        assert!(captured.contains(": first\n"));
+        assert!(captured.contains(": overflow: 1 log entries lost\n"));
+        assert!(!captured.contains(": dropped\n"));
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn file_append_reopen_and_maximum_message_preserve_record_boundaries() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-log-{}", std::process::id()));
+        let rotated = path.with_extension("old");
+        std::fs::write(&path, b"existing\n").unwrap();
+        let config = LoggingConfig {
+            file: Some(path.clone()),
+            facility: None,
+            ..Default::default()
+        };
+        let (mut logger, warning) =
+            Logger::start(&config, &ProcessConfig::default(), None).unwrap();
+        assert!(warning.is_none());
+        logger.emit(LogEvent::new(
+            Service::Dhcp,
+            Priority::Info,
+            b"before\0ignored".to_vec(),
+        ));
+        std::fs::rename(&path, &rotated).unwrap();
+        logger.reopen().unwrap();
+        logger.emit(LogEvent::new(
+            Service::Tftp,
+            Priority::Error,
+            vec![b'x'; 4096],
+        ));
+        assert!(logger.finish());
+        let previous = std::fs::read(&rotated).unwrap();
+        assert!(previous.starts_with(b"existing\n"));
+        assert!(previous.ends_with(b": before\n"));
+        assert!(!previous.windows(7).any(|bytes| bytes == b"ignored"));
+        let current = std::fs::read(&path).unwrap();
+        assert_eq!(current.len(), MAX_MESSAGE);
+        assert_eq!(current.last(), Some(&b'\n'));
+        assert_eq!(current.iter().filter(|byte| **byte == b'\n').count(), 1);
+        std::fs::remove_file(path).unwrap();
+        std::fs::remove_file(rotated).unwrap();
     }
 }
