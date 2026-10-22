@@ -730,7 +730,10 @@ impl HttpClient {
                 line.clear();
                 require(reader.read_line(&mut line)? > 0, "EOF in chunk header")?;
                 let size = usize::from_str_radix(line.trim().split(';').next().unwrap_or(""), 16)?;
-                require(out.len() + size < 4 * 1024 * 1024, "oversized HTTP body")?;
+                require(
+                    out.len().saturating_add(size) < 4 * 1024 * 1024,
+                    "oversized HTTP body",
+                )?;
                 if size == 0 {
                     loop {
                         line.clear();
@@ -754,7 +757,8 @@ impl HttpClient {
             reader.read_exact(&mut out)?;
         } else {
             require(close, "HTTP response has no framing")?;
-            reader.take(4 * 1024 * 1024).read_to_end(&mut out)?;
+            reader.take(4 * 1024 * 1024 + 1).read_to_end(&mut out)?;
+            require(out.len() <= 4 * 1024 * 1024, "oversized HTTP body")?;
         }
         if close {
             self.stream = None;
@@ -1492,6 +1496,60 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn http_body_limits_reject_truncated_close_bodies_and_chunk_overflow() {
+        fn response(wire: Vec<u8>) -> Result<Vec<u8>> {
+            let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+            let address = listener.local_addr().unwrap().to_string();
+            let worker = std::thread::spawn(move || {
+                let (mut socket, _) = listener.accept().unwrap();
+                socket
+                    .set_read_timeout(Some(Duration::from_secs(2)))
+                    .unwrap();
+                socket
+                    .set_write_timeout(Some(Duration::from_secs(2)))
+                    .unwrap();
+                let mut reader = BufReader::new(&mut socket);
+                let mut line = String::new();
+                loop {
+                    line.clear();
+                    assert!(reader.read_line(&mut line).unwrap() > 0);
+                    if line == "\r\n" {
+                        break;
+                    }
+                }
+                drop(reader);
+                // A rejected response is permitted to close before its tail.
+                let _ = socket.write_all(&wire);
+            });
+            let result = HttpClient {
+                address,
+                stream: None,
+            }
+            .request("GET", "/", &[]);
+            worker.join().unwrap();
+            result
+        }
+        assert_eq!(
+            response(b"HTTP/1.0 200 OK\r\n\r\ncomplete".to_vec()).unwrap(),
+            b"complete"
+        );
+        let mut oversized = b"HTTP/1.0 200 OK\r\n\r\n".to_vec();
+        oversized.extend(std::iter::repeat_n(b'x', 4 * 1024 * 1024 + 1));
+        assert_eq!(
+            response(oversized).unwrap_err().to_string(),
+            "oversized HTTP body"
+        );
+        let overflow = format!(
+            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nx\r\n{:x}\r\n",
+            usize::MAX
+        );
+        assert_eq!(
+            response(overflow.into_bytes()).unwrap_err().to_string(),
+            "oversized HTTP body"
+        );
+    }
 
     #[test]
     fn fixture_specs_are_bounded_and_pathless_is_explicit() {
