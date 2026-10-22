@@ -1,22 +1,22 @@
 # Single entry point for the repository. Each crate stays independent (the
 # OpenWrt package Makefiles copy crate directories one by one), so there is no
 # root Cargo workspace on purpose.
-COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd dnsmasq odhcpd
+COMPONENTS := platform ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd dnsmasq/platform dnsmasq odhcpd
 VERSION ?= 25.12.5
 
-.PHONY: check-netlink-consts test check-tools check-harnesses check-benchmark check-toolchain check-toolchain-negative check-abi build apk image ci-image
+.PHONY: check-netlink-consts test check-rust fmt-check check-tools check-harnesses check-benchmark check-toolchain check-toolchain-negative check-abi build apk image ci-image
 
 test:
-	@for c in $(COMPONENTS); do \
-		echo "== cargo test: $$c"; \
-		(cd components/$$c && cargo test --quiet --locked) || exit 1; \
-	done
+	@python3 tools/rust_check.py test
+
+check-rust:
+	@python3 tools/rust_check.py check
+
+fmt-check:
+	@python3 tools/rust_check.py fmt-check
 
 build:
-	@for c in $(COMPONENTS); do \
-		echo "== cargo build: $$c"; \
-		(cd components/$$c && cargo build --quiet --release) || exit 1; \
-	done
+	@python3 tools/rust_check.py build
 
 # rust-toolchain.toml is the single source of truth. tools/toolchain_identity.sh
 # resolves the compiler Cargo will actually use -- $CARGO, $RUSTC, the wrappers
@@ -62,6 +62,7 @@ check-tools:
 	@echo "tools: syntax ok"
 
 check-harnesses:
+	@python3 tools/test_rust_check.py
 	@python3 tools/test_audit_checks.py
 	@python3 tools/test_r85_procd_busy_gate.py
 	@python3 tools/test_stack_manifest.py
@@ -73,10 +74,11 @@ check-harnesses:
 # The load generator must reject failed requests and count every operation.
 # Full namespace/rollback gates additionally run on the image's build host.
 check-benchmark:
-	cargo fmt --manifest-path tools/benchmark/Cargo.toml --check
-	cargo test --locked --manifest-path tools/benchmark/Cargo.toml
-	cargo build --locked --manifest-path tools/benchmark/Cargo.toml
-	python3 tools/benchmark/test_fw4_cli.py tools/benchmark/target/debug/owrt-benchmark
+	python3 tools/rust_check.py test --benchmark
+	python3 tools/rust_check.py check --benchmark
+	python3 tools/rust_check.py build --benchmark
+	@host=$$(rustc -vV | sed -n 's/^host: //p'); \
+		python3 tools/benchmark/test_fw4_cli.py "$${CARGO_TARGET_DIR:-tools/benchmark/target}/$$host/release/owrt-benchmark"
 	python3 tools/benchmark/test_http_client.py
 	python3 tools/benchmark/test_analyze.py
 	python3 tools/benchmark/test_httpd_analysis.py

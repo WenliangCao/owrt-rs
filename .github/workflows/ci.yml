@@ -16,48 +16,44 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
-          components: rustfmt
+          components: rustfmt, clippy
+      - name: install verified mr-boxington 1.26.0
+        run: |
+          mbx_archive="$RUNNER_TEMP/mbx-1.26.0.tar.gz"
+          curl --fail --silent --show-error --location \
+            https://github.com/jdx/mr-boxington/releases/download/v1.26.0/mbx-x86_64-unknown-linux-gnu.tar.gz \
+            --output "$mbx_archive"
+          echo "decb2c1233d194d9d8f98fa926d86a5f726e9091e92fcff75f44a53ed9cab2b9  $mbx_archive" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/mbx-1.26.0" "$HOME/.local/bin"
+          tar -xzf "$mbx_archive" -C "$RUNNER_TEMP/mbx-1.26.0"
+          install -m 755 "$RUNNER_TEMP/mbx-1.26.0/mbx" "$HOME/.local/bin/mbx"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/mbx" --version
       - name: host deps (rpcd, fw4 and dnsmasq namespace tests)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables iproute2 util-linux
-      - name: cache cargo
+      - name: cache shared Rust artifacts
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            components/*/target
-          key: cargo-${{ runner.os }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/*/Cargo.lock') }}
-      - name: host components and shared platform reject every compiler warning
-        run: python3 tools/ci_check_core.py host "$GITHUB_WORKSPACE/work"
+            ~/.cache/mbx
+          key: mbx-1.26.0-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/**/Cargo.lock', 'tools/benchmark/Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            mbx-1.26.0-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/**/Cargo.lock', 'tools/benchmark/Cargo.lock') }}-
+      - name: default and feature tests, isolated process tests, examples and Clippy
+        env:
+          MBX_DISPLAY: plain
+        run: make test check-rust fmt-check check-benchmark
       - name: preserve host warning and test diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: core-host-${{ github.sha }}
-          path: work/out/core-host/*
+          name: rust-host-${{ github.sha }}
+          path: work/out/rust-host/*
           if-no-files-found: warn
           retention-days: 30
-      - name: compile dnsmasq tests with warnings-as-errors
-        run: RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-Dwarnings" CARGO_INCREMENTAL=${CARGO_INCREMENTAL:-0} cargo test --quiet --locked --manifest-path components/dnsmasq/Cargo.toml --no-run
-      - name: dnsmasq tests with warnings-as-errors in private Linux namespaces
-        run: |
-          dnsmasq_tmp=$(mktemp -d "$RUNNER_TEMP/dnsmasq-tests.XXXXXX")
-          trap 'sudo -n rm -rf -- "$dnsmasq_tmp"' EXIT
-          # The DNS bin tests change process-global signal state and loopback
-          # aliases. Serialize this crate and create real namespaces; a marker
-          # alone must never authorize those operations on the host network.
-          sudo -n env "PATH=$PATH" \
-            "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}" \
-            "RUSTUP_HOME=${RUSTUP_HOME:-$HOME/.rustup}" \
-            "RUSTUP_TOOLCHAIN=${{ steps.rust.outputs.channel }}" \
-            "RUSTFLAGS=${RUSTFLAGS:+$RUSTFLAGS }-Dwarnings" \
-            "CARGO_INCREMENTAL=${CARGO_INCREMENTAL:-0}" "TMPDIR=$dnsmasq_tmp" \
-            sh tools/dnsmasq/run_isolated.sh \
-            cargo test --quiet --locked --offline \
-              --manifest-path "$GITHUB_WORKSPACE/components/dnsmasq/Cargo.toml" \
-              -- --test-threads=1
       - run: make check-toolchain
       - run: make check-toolchain-negative
       - run: make check-tools
       - run: make check-harnesses
-      - run: make check-benchmark
