@@ -1,3 +1,5 @@
+//! JSONL diagnostics for configuration comparison, delivery and fatal errors.
+
 use std::io::{self, Write};
 
 pub struct Trace<W: Write> {

@@ -35,6 +35,15 @@ struct Options {
     user: Option<String>,
 }
 
+/// Ring offsets are stored as u32; reject sizes their representation cannot hold.
+fn parse_log_size(value: &str) -> Result<usize, String> {
+    let kib: i64 = value.parse().map_err(|_| "-S must be an integer")?;
+    let kib = if kib < 1 { 16 } else { kib };
+    usize::try_from(kib).ok().and_then(|kib| kib.checked_mul(1024))
+        .filter(|size| *size <= u32::MAX as usize)
+        .ok_or_else(|| "-S exceeds the ring's addressable capacity".into())
+}
+
 fn parse_args() -> Result<Options, String> {
     let mut options = Options {
         log_size: 16 * 1024,
@@ -48,8 +57,7 @@ fn parse_args() -> Result<Options, String> {
         let mut value = |name: &str| args.next().ok_or(format!("{name} requires a value"));
         match arg.as_str() {
             "-S" => {
-                let kib: i64 = value("-S")?.parse().map_err(|_| "-S must be an integer")?;
-                options.log_size = if kib < 1 { 16 } else { kib as usize } * 1024;
+                options.log_size = parse_log_size(&value("-S")?)?;
             }
             "--ubus-socket" => options.ubus_socket = Some(value("--ubus-socket")?),
             "--log-socket" => options.log_socket = value("--log-socket")?,
@@ -737,6 +745,17 @@ fn main() {
 #[cfg(test)]
 mod stream_tests {
     use super::*;
+
+    #[test]
+    fn log_size_preserves_default_and_rejects_unrepresentable_offsets() {
+        for value in ["0", "-1", "-9223372036854775808"] {
+            assert_eq!(parse_log_size(value).unwrap(), 16 * 1024);
+        }
+        assert_eq!(parse_log_size("2048").unwrap(), 2 * 1024 * 1024);
+        for value in ["4194304", "18014398509481984", "9223372036854775807", "invalid"] {
+            assert!(parse_log_size(value).is_err(), "invalid ring size: {value}");
+        }
+    }
 
     #[test]
     fn stream_budget_holds_the_most_expensive_full_ring() {

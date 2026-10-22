@@ -1,3 +1,5 @@
+//! Byte-preserving JSON string escaping for configuration payloads and diagnostics.
+
 /// Shared JSON string escaping for payloads and traces: the shell does no escaping at all, but a
 /// quote or a control byte in a filename would otherwise break the payload
 /// before ubus ever sees it. Bytes >= 0x20 other than `"` and `\` pass through

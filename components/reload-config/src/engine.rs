@@ -1,3 +1,5 @@
+//! Compare normalized UCI configuration and dispatch changes before replacing the baseline.
+
 use crate::{md5, trace::Trace, unix};
 use owrt_uci::show::{self, Show};
 use owrt_uci::Context;
@@ -26,6 +28,15 @@ impl std::fmt::Display for Error {
             Self::Io(context, error) => write!(formatter, "{context}: {error}"),
             Self::InvalidInput(message) => write!(formatter, "invalid input: {message}"),
             Self::Cancelled => write!(formatter, "cancelled"),
+        }
+    }
+}
+
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Io(_, error) => Some(error),
+            Self::InvalidInput(_) | Self::Cancelled => None,
         }
     }
 }
