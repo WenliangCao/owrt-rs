@@ -1,0 +1,43 @@
+{
+  "luci-mod-system-flash": {
+    "read": {
+      "cgi-io": [
+        "backup",
+        "download"
+      ],
+      "file": {
+        "/dev/mtdblock[0-9]*": [
+          "read"
+        ],
+        "/etc/sysupgrade.conf": [
+          "read"
+        ],
+        "/lib/upgrade/platform.sh": [
+          "list"
+        ],
+        "/proc/mounts": [
+          "read"
+        ],
+        "/proc/mtd": [
+          "read"
+        ],
+        "/proc/partitions": [
+          "read"
+        ],
+        "/proc/sys/kernel/hostname": [
+          "read"
+        ],
+        "/sbin/sysupgrade --list-backup": [
+          "exec"
+        ]
+      },
+      "ubus": {
+        "file": [
+          "exec",
+          "read",
+          "stat"
+        ]
+      }
+    }
+  }
+}

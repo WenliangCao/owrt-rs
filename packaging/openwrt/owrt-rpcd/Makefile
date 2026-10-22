@@ -77,6 +77,8 @@ define Package/owrt-rpcd/install
 	$(INSTALL_BIN) ./files/owrt-rpcd-switch $(1)/usr/sbin/owrt-rpcd-switch
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/owrt-rpcd.init $(1)/etc/init.d/owrt-rpcd
+	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
+	$(INSTALL_DATA) ./files/owrt-rpcd-compat.json $(1)/usr/share/rpcd/acl.d/owrt-rpcd-compat.json
 endef
 
 define Package/owrt-rpcd/postinst

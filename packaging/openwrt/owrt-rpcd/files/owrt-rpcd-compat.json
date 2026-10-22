@@ -1,0 +1,9 @@
+{
+  "luci-mod-system-flash": {
+    "read": {
+      "file": {
+        "/proc/*/mounts": [ "read" ]
+      }
+    }
+  }
+}

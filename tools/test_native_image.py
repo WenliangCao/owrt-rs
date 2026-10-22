@@ -26,6 +26,85 @@ SPEC["components"].pop("odhcpd")
 FILES = REPO / "packaging/openwrt/owrt-dnsmasq/files"
 
 
+class NativeRpcdCompatTests(unittest.TestCase):
+    def fixture(self, temporary):
+        root = Path(temporary)
+        base, payload = root / "base", root / "payload"
+        base.mkdir()
+        payload.mkdir()
+        descriptor = native_image.install_rpcd_compat_acl(payload, base)
+        return base, payload, {"rpcd_compat_acl": descriptor}
+
+    def verify(self, base, payload, manifest, owner=None):
+        if owner is None:
+            owner = "fixture is owned by " + SPEC["package"] + "-" + SPEC["version"]
+        with patch.object(native_image, "run", return_value=owner):
+            native_image.verify_rpcd_compat_acl(payload, base, manifest, SPEC, Path("/fake/apk"))
+
+    def test_only_existing_flash_read_group_gains_resolved_mounts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base, payload, manifest = self.fixture(temporary)
+            descriptor = manifest["rpcd_compat_acl"]
+            path = descriptor["path"].lstrip("/")
+            self.assertEqual(json.loads((payload / path).read_text()), {
+                "luci-mod-system-flash": {"read": {"file": {"/proc/*/mounts": ["read"]}}}})
+            self.assertEqual(native_image.sha(payload / path), descriptor["sha256"])
+            self.assertEqual((payload / path).stat().st_mode & 0o7777, 0o644)
+            self.assertEqual(list(base.iterdir()), [])
+            self.assertFalse((payload / native_image.STOCK).exists())
+            self.assertNotIn(path, SPEC["integration_files"])
+            self.verify(base, payload, manifest)
+
+    def test_stock_file_or_dangling_symlink_collision_is_rejected(self):
+        for link in (False, True):
+            with self.subTest(link=link), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                target = root / "base" / native_image.RPCD_COMPAT_ACL["path"].lstrip("/")
+                target.parent.mkdir(parents=True)
+                if link:
+                    target.symlink_to(root / "missing")
+                else:
+                    target.write_text("stock file")
+                with self.assertRaisesRegex(AssertionError, "collides with stock"):
+                    native_image.install_rpcd_compat_acl(root / "payload", root / "base")
+                self.assertFalse((root / "payload").exists())
+
+    def test_source_drift_is_rejected_before_install(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "packaging/openwrt/owrt-rpcd/files/owrt-rpcd-compat.json"
+            source.parent.mkdir(parents=True)
+            source.write_text('{"unexpected": {}}\n')
+            with patch.object(native_image, "REPO", root), \
+                    self.assertRaisesRegex(AssertionError, "source drift"):
+                native_image.install_rpcd_compat_acl(root / "payload", root / "base")
+            self.assertFalse((root / "payload").exists())
+
+    def test_final_content_mode_symlink_and_manifest_drift_are_rejected(self):
+        for changed in ("content", "mode", "symlink", "manifest"):
+            with self.subTest(changed=changed), tempfile.TemporaryDirectory() as temporary:
+                base, payload, manifest = self.fixture(temporary)
+                path = payload / native_image.RPCD_COMPAT_ACL["path"].lstrip("/")
+                if changed == "content":
+                    path.write_text('{"unexpected": {}}\n')
+                elif changed == "mode":
+                    path.chmod(0o666)
+                elif changed == "symlink":
+                    target = path.with_suffix(".target")
+                    path.rename(target)
+                    path.symlink_to(target)
+                else:
+                    manifest["rpcd_compat_acl"]["sha256"] = "0" * 64
+                with self.assertRaises(AssertionError):
+                    self.verify(base, payload, manifest)
+
+    def test_final_acl_must_be_owned_by_the_native_package(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base, payload, manifest = self.fixture(temporary)
+            with self.assertRaises(AssertionError):
+                self.verify(base, payload, manifest, "fixture is owned by luci-mod-system-1")
+
+
 class NativeDnsmasqTests(unittest.TestCase):
     def test_current_recipe_includes_the_qualified_odhcpd(self):
         expected = copy.deepcopy(SPEC)

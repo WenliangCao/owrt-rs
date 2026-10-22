@@ -14,7 +14,7 @@ use std::ffi::{OsStr, OsString};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::{Path, PathBuf};
 use std::io::{Read, Write};
-use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt};
 use owrt_ubus::sys::{poll_fds, PollFd, POLLIN};
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::os::unix::process::CommandExt;
@@ -144,6 +144,14 @@ fn check_path_args(ctx: &Ctx, args: PathArgs<'_>, perm: &str, want_stat: bool, u
         return Err(status::PERMISSION_DENIED);
     }
     let path = PathBuf::from(OsString::from_vec(path));
+    // lstat and remove leave the final link alone, but still follow parent
+    // links. Authorize the path actually used by either kind of operation.
+    let path = if use_lstat {
+        let resolved = resolve_parent(&path)?;
+        authorize_resolved(ctx, args.sid, &path, resolved, perm)?
+    } else {
+        check_symlink_access(ctx, args.sid, path, perm)?
+    };
     if want_stat {
         let m = if use_lstat { fs::symlink_metadata(&path) } else { fs::metadata(&path) };
         match m {
@@ -153,6 +161,40 @@ fn check_path_args(ctx: &Ctx, args: PathArgs<'_>, perm: &str, want_stat: bool, u
     } else {
         Ok((path, None))
     }
+}
+
+fn resolve_parent(path: &Path) -> Result<PathBuf, i32> {
+    let Some(name) = path.file_name() else {
+        return fs::canonicalize(path).map_err(|e| errno_status(&e));
+    };
+    let parent = path.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
+    Ok(fs::canonicalize(parent).map_err(|e| errno_status(&e))?.join(name))
+}
+
+fn authorize_resolved(ctx: &Ctx, sid: Option<&str>, path: &Path, resolved: PathBuf, perm: &str) -> Result<PathBuf, i32> {
+    if resolved != path && !ctx.file_access_bytes(sid, resolved.as_os_str().as_bytes(), perm) {
+        return Err(status::PERMISSION_DENIED);
+    }
+    Ok(resolved)
+}
+
+fn check_symlink_access(ctx: &Ctx, sid: Option<&str>, path: PathBuf, perm: &str) -> Result<PathBuf, i32> {
+    let resolved = match fs::canonicalize(&path) {
+        Ok(resolved) => resolved,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            // Do not create through a dangling link: its missing target has
+            // not been authorized. Only a genuinely absent leaf is allowed.
+            if fs::symlink_metadata(&path).is_ok_and(|m| m.file_type().is_symlink()) {
+                return Err(status::PERMISSION_DENIED);
+            }
+            let parent = path.parent().filter(|p| !p.as_os_str().is_empty())
+                .ok_or(status::NOT_FOUND)?;
+            let name = path.file_name().ok_or(status::NOT_FOUND)?;
+            fs::canonicalize(parent).map_err(|e| errno_status(&e))?.join(name)
+        }
+        Err(error) => return Err(errno_status(&error)),
+    };
+    authorize_resolved(ctx, sid, &path, resolved, perm)
 }
 
 pub fn read(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
@@ -165,9 +207,6 @@ pub fn read(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     let want = if m.size() == 0 { FILE_MIN_SIZE } else { m.size() } as usize;
     let mut buf = vec![0u8; want];
     let n = f.read(&mut buf).map_err(|_| status::NO_DATA)?;
-    if n == 0 {
-        return Err(status::NO_DATA);
-    }
     buf.truncate(n);
     let data = if arg_bool(args, "base64") {
         Json::Str(util::b64_encode(&buf))
@@ -202,37 +241,18 @@ pub fn write(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     rv.map(|_| None)
 }
 
-/// `rpc_file_write`'s open: `umask(0); open(path, O_CREAT | O_WRONLY | flag,
-/// mode); umask(prev)`, where flag is O_TRUNC unless `append`. The umask is
-/// process-global and the rc/uci/rpc-sys workers fork children from their own
-/// threads, which would inherit the 0 mask for the length of the window, so a
-/// new file is created with O_EXCL and fchmod'ed to `mode` instead. An
-/// existing file keeps its own mode, exactly as in C -- open(2) ignores the
-/// mode argument once it does not create the file.
+/// OpenWrt 25.12.6 masks special mode bits and respects the process umask.
+/// Existing files retain their permissions, as with open(O_CREAT) in C.
 fn open_for_write(path: impl AsRef<Path>, mode: u32, append: bool) -> std::io::Result<fs::File> {
     let path = path.as_ref();
     let mut opts = fs::OpenOptions::new();
-    opts.write(true).mode(mode);
+    opts.write(true).create(true).mode(mode & 0o777);
     if append {
         opts.append(true);
     } else {
         opts.truncate(true);
     }
-    let mut created = true;
-    let f = match opts.clone().create_new(true).open(path) {
-        Ok(f) => f,
-        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-            // A dangling symlink fails O_EXCL while the open below still
-            // creates the target, so re-check before deciding to chmod.
-            created = fs::metadata(path).is_err();
-            opts.clone().create(true).open(path)?
-        }
-        Err(e) => return Err(e),
-    };
-    if created {
-        f.set_permissions(fs::Permissions::from_mode(mode & 0o7777))?;
-    }
-    Ok(f)
+    opts.open(path)
 }
 
 pub fn md5(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
@@ -290,13 +310,16 @@ fn stat(ctx: &Ctx, args: PathArgs<'_>, use_lstat: bool) -> Result<Vec<u8>, i32> 
     Ok(out.into_payload())
 }
 
-fn remove_recursive(path: &Path) -> Result<(), i32> {
+fn remove_recursive(ctx: &Ctx, sid: Option<&str>, path: &Path) -> Result<(), i32> {
     let rd = fs::read_dir(path).map_err(|e| errno_status(&e))?;
     for e in rd.flatten() {
         let entrypath = e.path();
+        if !ctx.file_access_bytes(sid, entrypath.as_os_str().as_bytes(), "write") {
+            return Err(status::PERMISSION_DENIED);
+        }
         if let Ok(m) = fs::symlink_metadata(&entrypath) {
             if m.is_dir() {
-                remove_recursive(&entrypath)?;
+                remove_recursive(ctx, sid, &entrypath)?;
             } else {
                 fs::remove_file(&entrypath).map_err(|e| errno_status(&e))?;
             }
@@ -306,10 +329,10 @@ fn remove_recursive(path: &Path) -> Result<(), i32> {
 }
 
 pub fn remove(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
-    let (path, _) = check_path(ctx, args, "write", false, false)?;
+    let (path, _) = check_path(ctx, args, "write", false, true)?;
     let m = fs::symlink_metadata(&path).map_err(|e| errno_status(&e))?;
     if m.is_dir() {
-        remove_recursive(&path)?;
+        remove_recursive(ctx, arg_sid(args), &path)?;
     } else {
         fs::remove_file(&path).map_err(|e| errno_status(&e))?;
     }
@@ -651,6 +674,150 @@ mod tests {
     use std::os::unix::fs::PermissionsExt;
     use std::time::Instant;
 
+    struct TestDir(std::path::PathBuf);
+
+    impl TestDir {
+        fn new() -> Self {
+            static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+            let id = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let path = std::env::temp_dir().join(format!("rpcd-file-{}-{id}", std::process::id()));
+            std::fs::create_dir(&path).unwrap();
+            Self(std::fs::canonicalize(path).unwrap())
+        }
+    }
+
+    impl Drop for TestDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn context() -> crate::Ctx {
+        crate::Ctx {
+            socket: None, exec_timeout_ms: 1000,
+            sessions: std::cell::RefCell::new(crate::session::Store::new()),
+            apply: Default::default(), delayed: Default::default(), uci_read_cache: Default::default(),
+        }
+    }
+
+    fn args(path: &std::path::Path, sid: &str) -> crate::Json {
+        crate::Json::Object(vec![
+            ("path".into(), crate::Json::Str(path.to_str().unwrap().into())),
+            ("ubus_rpc_session".into(), crate::Json::Str(sid.into())),
+            ("data".into(), crate::Json::Str("replacement".into())),
+        ])
+    }
+
+    fn grant(ctx: &crate::Ctx, sid: &str, path: &std::path::Path, perm: &str) {
+        ctx.sessions.borrow_mut().get(sid).unwrap().grant("file", path.to_str(), Some(perm));
+    }
+
+    #[test]
+    fn symlink_targets_require_their_own_acl_for_following_operations() {
+        let dir = TestDir::new();
+        let target = dir.0.join("secret");
+        let link = dir.0.join("allowed");
+        std::fs::write(&target, "private").unwrap();
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        let ctx = context();
+        let sid = ctx.sessions.borrow_mut().create(60).unwrap();
+        for perm in ["read", "write", "list"] { grant(&ctx, &sid, &link, perm); }
+        let request = args(&link, &sid);
+        assert_eq!(super::read(&ctx, &request), Err(status::PERMISSION_DENIED));
+        assert_eq!(super::md5(&ctx, &request), Err(status::PERMISSION_DENIED));
+        assert_eq!(super::write(&ctx, &request), Err(status::PERMISSION_DENIED));
+        assert_eq!(super::stat(&ctx, PathArgs::from_json(&request), false), Err(status::PERMISSION_DENIED));
+        assert!(super::stat(&ctx, PathArgs::from_json(&request), true).is_ok());
+        assert_eq!(std::fs::read_to_string(&target).unwrap(), "private");
+        grant(&ctx, &sid, &target, "read");
+        assert_eq!(super::read(&ctx, &request).unwrap().unwrap().get("data").and_then(crate::Json::as_str), Some("private"));
+        // remove unlinks the authorized link, never its denied target.
+        assert!(super::remove(&ctx, &request).is_ok());
+        assert!(target.exists());
+        assert!(!link.exists());
+    }
+
+    #[test]
+    fn directory_links_and_new_file_targets_cannot_bypass_acls() {
+        let dir = TestDir::new();
+        let target = dir.0.join("private");
+        let link = dir.0.join("allowed");
+        std::fs::create_dir(&target).unwrap();
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        let ctx = context();
+        let sid = ctx.sessions.borrow_mut().create(60).unwrap();
+        grant(&ctx, &sid, &link, "list");
+        let request = args(&link, &sid);
+        assert_eq!(super::list(&ctx, PathArgs::from_json(&request)), Err(status::PERMISSION_DENIED));
+        grant(&ctx, &sid, &target, "list");
+        assert!(super::list(&ctx, PathArgs::from_json(&request)).is_ok());
+        let new = link.join("new");
+        grant(&ctx, &sid, &new, "write");
+        let request = args(&new, &sid);
+        assert_eq!(super::write(&ctx, &request), Err(status::PERMISSION_DENIED));
+        assert!(!target.join("new").exists());
+        grant(&ctx, &sid, &target.join("new"), "write");
+        assert!(super::write(&ctx, &request).is_ok());
+        assert_eq!(std::fs::read_to_string(target.join("new")).unwrap(), "replacement");
+        let dangling = dir.0.join("dangling");
+        std::os::unix::fs::symlink(target.join("missing"), &dangling).unwrap();
+        grant(&ctx, &sid, &dangling, "write");
+        assert_eq!(super::write(&ctx, &args(&dangling, &sid)), Err(status::PERMISSION_DENIED));
+        assert!(!target.join("missing").exists());
+    }
+
+    #[test]
+    fn recursive_remove_checks_child_permissions() {
+        let dir = TestDir::new();
+        let child = dir.0.join("keep");
+        std::fs::write(&child, "private").unwrap();
+        let ctx = context();
+        let sid = ctx.sessions.borrow_mut().create(60).unwrap();
+        grant(&ctx, &sid, &dir.0, "write");
+        let request = args(&dir.0, &sid);
+        assert_eq!(super::remove(&ctx, &request), Err(status::PERMISSION_DENIED));
+        assert_eq!(std::fs::read_to_string(&child).unwrap(), "private");
+        grant(&ctx, &sid, &child, "write");
+        assert!(super::remove(&ctx, &request).is_ok());
+        assert!(!dir.0.exists());
+    }
+
+    #[test]
+    fn link_operations_also_authorize_symlinked_parent_directories() {
+        let dir = TestDir::new();
+        let target = dir.0.join("private");
+        let link = dir.0.join("allowed");
+        std::fs::create_dir(&target).unwrap();
+        std::fs::write(target.join("secret"), "private").unwrap();
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        let ctx = context();
+        let sid = ctx.sessions.borrow_mut().create(60).unwrap();
+        for perm in ["write", "list"] { grant(&ctx, &sid, &link.join("secret"), perm); }
+        let request = args(&link.join("secret"), &sid);
+        assert_eq!(super::remove(&ctx, &request), Err(status::PERMISSION_DENIED));
+        assert_eq!(super::stat(&ctx, PathArgs::from_json(&request), true), Err(status::PERMISSION_DENIED));
+        assert_eq!(std::fs::read_to_string(target.join("secret")).unwrap(), "private");
+        grant(&ctx, &sid, &target.join("secret"), "write");
+        assert!(super::remove(&ctx, &request).is_ok());
+        assert!(!target.join("secret").exists());
+    }
+
+    #[test]
+    fn empty_files_return_successful_empty_data() {
+        let dir = TestDir::new();
+        let path = dir.0.join("empty");
+        std::fs::write(&path, "").unwrap();
+        let ctx = context();
+        let sid = ctx.sessions.borrow_mut().create(60).unwrap();
+        grant(&ctx, &sid, &path, "read");
+        let mut request = args(&path, &sid);
+        for base64 in [false, true] {
+            if let crate::Json::Object(fields) = &mut request { fields.push(("base64".into(), crate::Json::Bool(base64))); }
+            assert_eq!(super::read(&ctx, &request).unwrap().unwrap().get("data").and_then(crate::Json::as_str), Some(""));
+            if let crate::Json::Object(fields) = &mut request { fields.pop(); }
+        }
+    }
+
     #[test]
     fn non_utf8_session_id_never_becomes_a_local_root_request() {
         let mut args = BlobBuf::new();
@@ -710,24 +877,29 @@ mod tests {
         assert!(acl_cmdline(exe, &many).is_none());
     }
 
-    /// C gets the exact mode out of `umask(0)` + open(); we must get it without
-    /// touching the process umask, because the rc/uci/rpc-sys workers fork
-    /// children on other threads that would inherit the 0 mask. An existing
-    /// file keeps its own mode either way -- open(2) ignores `mode` then.
+    /// Isolate the process-wide umask from parallel tests. OpenWrt 25.12.6
+    /// respects it and refuses setuid/setgid/sticky mode bits on new files.
     #[test]
-    fn write_creates_with_the_exact_mode_and_leaves_the_umask_alone() {
-        let path = format!("{}/r83-mode-{}", std::env::temp_dir().display(), std::process::id());
-        let _ = std::fs::remove_file(&path);
-        let prev = rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o077));
-        let mode_of = |p: &str| std::fs::metadata(p).unwrap().permissions().mode() & 0o7777;
-        open_for_write(&path, 0o666, false).expect("create");
-        assert_eq!(mode_of(&path), 0o666, "a new file must get the requested mode, not mode & ~umask");
+    fn write_respects_umask_and_masks_special_mode_bits() {
+        const CHILD: &str = "OWRT_RPCD_UMASK_TEST";
+        if std::env::var_os(CHILD).is_none() {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "file::tests::write_respects_umask_and_masks_special_mode_bits", "--test-threads=1"])
+                .env(CHILD, "1").status().unwrap();
+            assert!(status.success());
+            return;
+        }
+        let dir = TestDir::new();
+        let path = dir.0.join("mode");
+        let prev = rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o027));
+        let mode_of = |p: &std::path::Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o7777;
+        open_for_write(&path, 0o7777, false).expect("create");
+        assert_eq!(mode_of(&path), 0o750);
         std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
         open_for_write(&path, 0o666, false).expect("reopen");
         assert_eq!(mode_of(&path), 0o600, "an existing file keeps its mode");
         let during = rustix::process::umask(prev).as_raw_mode();
-        assert_eq!(during, 0o077, "the process umask must be untouched");
-        let _ = std::fs::remove_file(&path);
+        assert_eq!(during, 0o027, "the process umask must be untouched");
     }
 
     fn sh(script: &str, timeout_ms: i32) -> (Result<crate::Json, i32>, u128) {

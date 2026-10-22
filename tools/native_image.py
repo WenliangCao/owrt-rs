@@ -35,6 +35,11 @@ NATIVE_TEN = {
     "dnsmasq": ("/usr/sbin/dnsmasq", "dnsmasq-rs", "dnsmasq"),
 }
 ODHCPD = {"odhcpd": ("/usr/sbin/odhcpd", "odhcpd-rs", "odhcpd-ipv6only")}
+RPCD_COMPAT_ACL = {
+    "path": "/usr/share/rpcd/acl.d/owrt-rpcd-compat.json",
+    "sha256": "12c2d5dc439b43786bfb44455b7aebbb25c9bde76ed4f1a612e1e9ce0c03c514",
+    "mode": 0o644,
+}
 
 
 def native_layout(components):
@@ -154,6 +159,29 @@ def preserve_directory_modes(payload, base):
             path.chmod(reference.stat().st_mode & 0o7777)
 
 
+def install_rpcd_compat_acl(payload, base):
+    """Add the upstream resolved-mount ACL without replacing a stock file."""
+    path = RPCD_COMPAT_ACL["path"].lstrip("/")
+    original = base / path
+    assert not (original.exists() or original.is_symlink()), "rpcd compatibility ACL collides with stock"
+    source = REPO / "packaging/openwrt/owrt-rpcd/files/owrt-rpcd-compat.json"
+    assert sha(source) == RPCD_COMPAT_ACL["sha256"], "rpcd compatibility ACL source drift"
+    install(source, payload / path, RPCD_COMPAT_ACL["mode"])
+    return dict(RPCD_COMPAT_ACL)
+
+
+def verify_rpcd_compat_acl(root, before, manifest, spec, apk):
+    assert manifest["rpcd_compat_acl"] == RPCD_COMPAT_ACL, "rpcd compatibility ACL metadata drift"
+    path = RPCD_COMPAT_ACL["path"].lstrip("/")
+    original, candidate = before / path, root / path
+    assert not (original.exists() or original.is_symlink()), "rpcd compatibility ACL collides with stock"
+    assert candidate.is_file() and not candidate.is_symlink(), "rpcd compatibility ACL must be a regular file"
+    assert sha(candidate) == RPCD_COMPAT_ACL["sha256"], "rpcd compatibility ACL content drift"
+    assert candidate.stat().st_mode & 0o7777 == RPCD_COMPAT_ACL["mode"], "rpcd compatibility ACL mode drift"
+    owner = run(apk, "--root", root, "--no-network", "info", "--who-owns", RPCD_COMPAT_ACL["path"])
+    assert owner.endswith(" is owned by " + spec["package"] + "-" + spec["version"]), owner
+
+
 def fetch(work, spec, apk):
     del apk
     native_layout(spec["components"])
@@ -250,6 +278,8 @@ def prepare(work, spec, apk):
     for path, item in integration.items():
         rust_sums.append(f"{item['replacement_sha256']}  /{path}\n")
         stock_sums.append(f"{item['stock_sha256']}  {item['recovery_path']}\n")
+    rpcd_compat = install_rpcd_compat_acl(payload, root)
+    rust_sums.append(f"{rpcd_compat['sha256']}  {rpcd_compat['path']}\n")
     rust_text, stock_text = "".join(rust_sums), "".join(stock_sums)
     manifest = {
         "schema": 2, "layout": layout, "source_commit": image["source_commit"],
@@ -257,6 +287,7 @@ def prepare(work, spec, apk):
         "package": spec["package"], "version": spec["version"],
         "components": components,
         "integration_files": integration,
+        "rpcd_compat_acl": rpcd_compat,
         "stock_manifest_sha256": hashlib.sha256(stock_text.encode()).hexdigest(),
         "stock_image": spec["stock_image"],
         "luci_source": spec["luci_source"], "translations": spec["translations"],
@@ -366,6 +397,7 @@ def verify(work, spec, apk):
         assert (root / path).stat().st_mode & 0o7777 == item["mode"]
         owner = run(apk, "--root", root, "--no-network", "info", "--who-owns", item["path"])
         assert owner.endswith(" is owned by " + spec["package"] + "-" + spec["version"]), owner
+    verify_rpcd_compat_acl(root, before, manifest, spec, apk)
     assert not list((root / "etc").glob("owrt-*.boot-enable"))
     assert not list((root / "etc/init.d").glob("owrt-*"))
     assert not list((root / "etc/rc.d").glob("*owrt-*"))
@@ -411,6 +443,7 @@ def verify(work, spec, apk):
     result = dict(inputs["image"], schema_version=3, deployment_layout=layout,
                   packages={n: installed[n]["version"] for n in sorted(translations | {spec["package"]})}, components=manifest["components"],
                   integration_files=manifest["integration_files"], stock_manifest_sha256=manifest["stock_manifest_sha256"],
+                  rpcd_compat_acl=manifest["rpcd_compat_acl"],
                   binary_sha256=hashes, stock_packages=manifest["stock_packages"],
                   image={"file": image.name, "size": image.stat().st_size, "sha256": sha(image)},
                   apk_sha256={p.name: sha(p) for p in apks}, stock_image=spec["stock_image"],
@@ -421,6 +454,7 @@ def verify(work, spec, apk):
                   validation={layout.removeprefix("native-") + "_native_paths": True, "package_ownership": True,
                               "stock_recovery_hashes": True, "stock_service_scripts_except_qualified_dnsmasq": True,
                               "qualified_dnsmasq_init_and_acl": True, "dnsmasq_source_recipe_identical": True,
+                              "rpcd_compatibility_acl_verified": True,
                               "dnsmasq_reference_elf_identical": inputs["dnsmasq"]["elf"]["matches_accepted_reference"],
                               "stock_config_defaults": True, "unchanged_execution_files": checked,
                               "stock_package_versions_unchanged": len(previous),

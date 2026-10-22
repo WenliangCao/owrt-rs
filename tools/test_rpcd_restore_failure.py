@@ -37,10 +37,17 @@ def inner(root, side, fault):
         change = args + string('config', 'v030restore') + string('section', 'section') + message('values', 2, string('value', 'after'))
         assert client.invoke(uci, 'set', change)[0] == 0
         assert client.invoke(uci, 'delete', args + string('config', 'v030restore') + string('section', 'section') + string('option', 'padding'))[0] == 0
+        run = root / ('var/run/rpcd' if side == 'original' else 'var/run/rpcd-rs')
+        # Session runtime names are independent of bearer tokens since 25.12.6.
+        # This disposable fixture has exactly one session staging this package.
+        candidates = [path for path in run.glob('uci-*') if (path / 'v030restore').is_file()]
+        assert len(candidates) == 1, candidates
+        delta = candidates[0]
+        if side == 'candidate':
+            assert delta.name != 'uci-' + sid.decode(), 'delta directory exposes the session token'
         assert client.invoke(uci, 'apply', args + integer('timeout', 2) + message('rollback', 7, b'\x01'))[0] == 0
         assert b'after' in config.read_bytes()
         assert fixture.wait(lambda: len(service.events) == 1)
-        run = root / ('var/run/rpcd' if side == 'original' else 'var/run/rpcd-rs')
         snapshot = run / 'snapshot-files/v030restore'
         if fault == 'cancel':
             if side == 'candidate':
@@ -62,7 +69,6 @@ def inner(root, side, fault):
             print(json.dumps(observations), flush=True)
             assert commit_code == 0 and confirm_code == 5 and observations['alive']
             return
-        delta = run / ('uci-' + sid.decode())
         saved_delta = (run / 'snapshot-delta/v030restore').read_bytes()
         expected_owners = None
         link_target = None
@@ -170,7 +176,9 @@ def main():
                 destination = args.output / f'{side}-{fault}-{repeat}'
                 with tempfile.TemporaryDirectory(prefix='v030-restore-') as temporary:
                     root = Path(temporary) / 'root'
-                    shutil.copytree(args.rootfs, root, symlinks=True)
+                    # Preserve exact-image metadata and device nodes; copytree
+                    # cannot copy special files from an extracted rootfs.
+                    subprocess.run(['cp', '-a', str(args.rootfs), str(root)], check=True)
                     for directory in ['tmp/out', 'tmp/run/ubus', 'tmp/lock', 'tmp/state']:
                         (root / directory).mkdir(parents=True, exist_ok=True)
                     shutil.copy2(args.binary, root / 'tmp/rpcd-rs')

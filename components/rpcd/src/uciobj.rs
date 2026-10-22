@@ -19,10 +19,6 @@ pub const SNAPSHOT_DELTA: &str = "/var/run/rpcd-rs/snapshot-delta/";
 pub const UCI_DIR: &str = "/etc/config/";
 pub const APPLY_TIMEOUT: i32 = 60;
 
-fn savedir_of(sid: &str) -> String {
-    format!("{RUN_DIR}/uci-{sid}")
-}
-
 /// Pending rollback state (`apply_sid` lives in the session store; the timer here).
 #[derive(Default)]
 pub struct Apply {
@@ -139,15 +135,16 @@ fn replace_savedir(ctx: &mut Context, path: Option<&str>) {
 }
 
 /// rpc_uci_set_savedir
-fn set_savedir(ctx: &mut Context, sid: Option<&str>) {
+fn set_savedir(ctx: &mut Context, sessions: &crate::session::Store, sid: Option<&str>) {
     match sid {
         None => replace_savedir(ctx, Some("/tmp/.uci")),
-        Some(sid) => replace_savedir(ctx, Some(&savedir_of(sid))),
+        // ACL checks reject an unknown session. Prevent any interim delta write.
+        Some(sid) => replace_savedir(ctx, Some(sessions.savedir(sid).as_deref().unwrap_or("/dev/null"))),
     }
 }
 
 fn read_access(rctx: &Ctx, ctx: &mut Context, sid: Option<&str>, config: &str) -> bool {
-    set_savedir(ctx, sid);
+    set_savedir(ctx, &rctx.sessions.borrow(), sid);
     match sid {
         None => true,
         Some(sid) => rctx.sessions.borrow_mut().access(sid, "uci", config, "read"),
@@ -155,7 +152,7 @@ fn read_access(rctx: &Ctx, ctx: &mut Context, sid: Option<&str>, config: &str) -
 }
 
 fn write_access(rctx: &Ctx, ctx: &mut Context, sid: Option<&str>, config: &str) -> bool {
-    set_savedir(ctx, sid);
+    set_savedir(ctx, &rctx.sessions.borrow(), sid);
     match sid {
         None => true,
         Some(sid) => rctx.sessions.borrow_mut().access(sid, "uci", config, "write"),
@@ -809,7 +806,7 @@ fn changes(rctx: &Ctx, raw: &[u8]) -> Reply {
         ctx.err = None;
         return with(uci_status(&ctx), b.into_payload());
     }
-    set_savedir(&mut ctx, sid);
+    set_savedir(&mut ctx, &rctx.sessions.borrow(), sid);
     let Ok(configs) = tr!(ctx, file::list_config_files(&ctx)) else {
         return code(uci_status(&ctx));
     };
@@ -1074,8 +1071,10 @@ pub fn do_rollback(rctx: &Ctx, mut conn: Option<&mut Connection>, names: &[Strin
         Some(sid) => apply_access(rctx, sid, SNAPSHOT_FILES.trim_end_matches('/'), names),
         None => status::NOT_FOUND,
     };
-    let tmp = apply_sid.as_deref().map(|sid| format!("{}/", savedir_of(sid))).unwrap_or_default();
-    let mut failure = if deny == 0 {
+    let tmp = if deny == 0 {
+        apply_sid.as_deref().and_then(|sid| rctx.sessions.borrow().savedir(sid)).map(|dir| format!("{dir}/"))
+    } else { None };
+    let mut failure = if let Some(tmp) = &tmp {
         fs::DirBuilder::new().recursive(true).mode(0o700).create(tmp.trim_end_matches('/')).err()
     } else { None };
     if !names.iter().any(|name| !name.starts_with('.')) {
@@ -1087,7 +1086,7 @@ pub fn do_rollback(rctx: &Ctx, mut conn: Option<&mut Connection>, names: &[Strin
         }
         // The snapshot is already a committed config. Do not merge any deltas.
         let restored = restore_file(SNAPSHOT_FILES, UCI_DIR, config).and_then(|()| {
-            if deny == 0 { restore_file(SNAPSHOT_DELTA, &tmp, config) } else { Ok(()) }
+            if let Some(tmp) = &tmp { restore_file(SNAPSHOT_DELTA, tmp, config) } else { Ok(()) }
         });
         if let Err(error) = restored {
             failure = Some(error);
@@ -1134,6 +1133,10 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
     if rctx.apply.borrow().rollback_in_progress {
         return code(status::UNKNOWN_ERROR);
     }
+    let dir = rctx.sessions.borrow().savedir(sid);
+    if !has_apply && dir.is_none() {
+        return code(status::NOT_FOUND);
+    }
     let timeout: i32 = arg(raw, "timeout", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(APPLY_TIMEOUT);
     purge_dir(SNAPSHOT_FILES);
     purge_dir(SNAPSHOT_DELTA);
@@ -1144,9 +1147,9 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         rctx.sessions.borrow_mut().apply_sid = None;
         return code(0);
     }
-    if !has_apply {
+    if let Some(dir) = dir {
         let mut ctx = Context::new();
-        set_savedir(&mut ctx, Some(sid));
+        set_savedir(&mut ctx, &rctx.sessions.borrow(), Some(sid));
         // Preserve the existing empty-directory behavior for NO_DATA and
         // permission-denied requests, but never ignore a creation failure.
         let directories = [SNAPSHOT_FILES, SNAPSHOT_DELTA].into_iter().try_for_each(|path| {
@@ -1155,7 +1158,6 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         if directories.is_err() {
             return code(status::UNKNOWN_ERROR);
         }
-        let dir = savedir_of(sid);
         let names = glob_period(&dir);
         let tmp = format!("{dir}/");
         let ret = apply_access(rctx, sid, &dir, &names);
@@ -1262,6 +1264,71 @@ pub fn call(rctx: &Ctx, conn: &mut Connection, method: &str, raw: &[u8]) -> Repl
 #[cfg(test)]
 mod reply_capacity_tests {
     use super::*;
+
+    #[test]
+    fn session_delta_paths_keep_get_set_isolated_and_unknown_sessions_fail_closed() {
+        struct Fixture(std::path::PathBuf);
+        impl Drop for Fixture {
+            fn drop(&mut self) {
+                let _ = fs::remove_dir_all(&self.0);
+            }
+        }
+        static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let root = std::env::temp_dir().join(format!("rpcd-uci-session-{}-{}", std::process::id(),
+            NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
+        fs::DirBuilder::new().mode(0o700).create(&root).unwrap();
+        let fixture = Fixture(root);
+        let config = fixture.0.join("config");
+        fs::create_dir(&config).unwrap();
+        fs::write(config.join("network"), b"config interface 'lan'\noption proto 'dhcp'\n").unwrap();
+        let rctx = Ctx {
+            socket: None, exec_timeout_ms: 1000,
+            sessions: std::cell::RefCell::new(crate::session::Store::at(fixture.0.to_str().unwrap())),
+            apply: Default::default(), delayed: Default::default(), uci_read_cache: Default::default(),
+        };
+        let sid = rctx.sessions.borrow_mut().create(120).unwrap();
+        let other = rctx.sessions.borrow_mut().create(120).unwrap();
+        for id in [&sid, &other] {
+            let mut sessions = rctx.sessions.borrow_mut();
+            let session = sessions.get(id).unwrap();
+            session.grant("uci", Some("network"), Some("read"));
+            session.grant("uci", Some("network"), Some("write"));
+        }
+        let context = || {
+            let mut ctx = Context::new();
+            ctx.set_confdir(config.to_str().unwrap());
+            ctx.set_conf2dir("");
+            ctx
+        };
+        let mut writer = context();
+        assert!(write_access(&rctx, &mut writer, Some(&sid), "network"));
+        assert!(!writer.savedir.contains(&sid));
+        let mut ptr = Ptr { package: Some("network".into()), section: Some("lan".into()), ..Ptr::default() };
+        let mut fields = BlobBuf::new();
+        fields.msg_string("proto", "static");
+        let value = blob::fields(fields.payload()).next().unwrap();
+        assert_eq!(merge_set(&mut writer, &value, &mut ptr), 0);
+        delta::save(&mut writer, ptr.p.unwrap()).unwrap();
+        assert!(std::path::Path::new(&writer.savedir).join("network").is_file());
+        assert!(!fixture.0.join(format!("uci-{sid}")).exists());
+
+        for (id, expected) in [(&sid, "static"), (&other, "dhcp")] {
+            let mut reader = context();
+            assert!(read_access(&rctx, &mut reader, Some(id), "network"));
+            let index = file::load(&mut reader, "network").unwrap();
+            assert_eq!(reader.root[index].sections[0].options[0].value, OptionValue::Str(expected.into()));
+        }
+        let mut denied = context();
+        assert!(!write_access(&rctx, &mut denied, Some("unknown"), "network"));
+        assert_eq!(denied.savedir, "/dev/null");
+        assert_eq!(denied.delta_path, ["/dev/null"]);
+        assert!(!read_access(&rctx, &mut denied, Some("unknown"), "network"));
+        set_savedir(&mut denied, &rctx.sessions.borrow(), None);
+        assert_eq!(denied.savedir, "/tmp/.uci");
+        rctx.sessions.borrow_mut().destroy(&sid);
+        assert!(!std::path::Path::new(&writer.savedir).exists());
+        assert!(rctx.sessions.borrow().savedir(&sid).is_none());
+    }
 
     #[test]
     fn whole_package_capacity_covers_padding_lists_and_raw_values() {

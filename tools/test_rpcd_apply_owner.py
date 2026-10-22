@@ -119,7 +119,9 @@ def main():
                 destination = args.output / f'{side}-{caller}-{repeat}'
                 with tempfile.TemporaryDirectory(prefix='v030-owner-') as temporary:
                     root = Path(temporary) / 'root'
-                    shutil.copytree(args.rootfs, root, symlinks=True)
+                    # Preserve exact-image metadata and device nodes; copytree
+                    # cannot copy special files from an extracted rootfs.
+                    subprocess.run(['cp', '-a', str(args.rootfs), str(root)], check=True)
                     for directory in ['tmp/out', 'tmp/run/ubus', 'tmp/lock', 'tmp/state']:
                         (root / directory).mkdir(parents=True, exist_ok=True)
                     shutil.copy2(args.binary, root / 'tmp/rpcd-rs')

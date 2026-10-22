@@ -42,7 +42,13 @@ def inner(root, side, fault):
         assert client.invoke(uci, 'set', change)[0] == 0
         run = root / ('var/run/rpcd' if side == 'original' else 'var/run/rpcd-rs')
         snapshot = run / 'snapshot-files'
-        delta = run / ('uci-' + sid.decode())
+        # Session runtime names are independent of bearer tokens since 25.12.6.
+        # This disposable fixture has exactly one session staging this package.
+        candidates = [path for path in run.glob('uci-*') if (path / 'v030probe').is_file()]
+        assert len(candidates) == 1, candidates
+        delta = candidates[0]
+        if side == 'candidate':
+            assert delta.name != 'uci-' + sid.decode(), 'delta directory exposes the session token'
         before_delta = {p.name: p.read_bytes() for p in delta.iterdir()}
         limited = run / ('snapshot-delta' if fault == 'full-delta' else 'snapshot-files')
         if fault != 'healthy':
@@ -111,7 +117,9 @@ def main():
                 destination = args.output / f'{side}-{fault}-{repeat}'
                 with tempfile.TemporaryDirectory(prefix='v030-rpcd-') as temporary:
                     root = Path(temporary) / 'root'
-                    shutil.copytree(args.rootfs, root, symlinks=True)
+                    # Preserve exact-image metadata and device nodes; copytree
+                    # cannot copy special files from an extracted rootfs.
+                    subprocess.run(['cp', '-a', str(args.rootfs), str(root)], check=True)
                     for directory in ['tmp/out', 'tmp/run/ubus', 'tmp/lock', 'tmp/state']:
                         (root / directory).mkdir(parents=True, exist_ok=True)
                     shutil.copy2(args.binary, root / 'tmp/rpcd-rs')

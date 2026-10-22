@@ -324,7 +324,7 @@ pub fn resolve(addrs: &[String], timeout_ms: i32, limit: i32) -> Option<Vec<(Str
     let lk = Lookup { sock, addrs: addrs.iter().cloned().map(Some).collect(), next: 0, by_id: BTreeMap::new(), seen: BTreeSet::new(), out: BlobBuf::new() };
     let reply = run(lk, limit, timeout_ms);
     let payload = reply.data.iter().next().unwrap_or_default();
-    Some(blob::fields(&payload).filter_map(|f| f.as_str().map(|v| (f.name.to_owned(), v.to_owned()))).collect())
+    Some(blob::fields(payload).filter_map(|f| f.as_str().map(|v| (f.name.to_owned(), v.to_owned()))).collect())
 }
 
 pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {

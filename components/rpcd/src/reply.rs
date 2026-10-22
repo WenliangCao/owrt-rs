@@ -97,7 +97,7 @@ mod tests {
         assert_eq!(reply.data.iter().collect::<Vec<_>>(), [expected.as_slice()]);
         assert_eq!(&reply.data[0], expected);
         // The owned buffer outlives construction and all borrowed access paths.
-        let moved = vec![reply];
+        let moved = [reply];
         assert_eq!(moved[0].data.single().unwrap().as_ptr(), pointer);
     }
 

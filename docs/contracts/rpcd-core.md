@@ -2,6 +2,7 @@
 
 > 来源：rpcd @ 28faf640（`session.c`、`uci.c`、`rc.c`、`main.c`），只读副本 `private/stage5/src/rpcd/`；
 > 决策 [0013](../decisions/0013-rpcd-core-objects-in-rust.md)。签名以设备 `ubus -v list` 为准。
+> 2026-10-22：会话目录规则更新到 OpenWrt 25.12.6 rpcd `d99f703e`；旧真机观察仍属 25.12.5。
 
 ## 1. session
 
@@ -24,12 +25,16 @@
   `write` 检查；scope 为表时 object→[function]，为数组时 function=权限名；每个 scope 另
   grant("access-group", group, perm)。会话 `data.username` 设置为用户名；若存在同名用户的待
   apply 会话则复用它。
-- 超时：每次查询触碰；到期销毁。SIGHUP/SIGUSR1：冻结非默认会话到磁盘并重启自身，重启后解冻并
-  按用户名重建 ACL。
+- 超时：每次查询触碰；到期销毁。SIGHUP 冻结非默认会话并重启自身；SIGUSR1 冻结并退出。
+  `RPC_HANGUP=1` 启动时解冻并按用户名重建 ACL。
+- 每个会话（含默认会话）另取独立随机 dirname，运行目录及冻结文件名不得包含 bearer SID；
+  lookup dirname 不续期，熵失败不创建会话。新冻结格式恢复原 dirname；旧 SID 文件名先迁移
+  UCI 暂存目录再恢复会话，迁移失败不回退到暴露 SID 的路径。该迁移比 .6 上游更严格。
 
 ## 2. uci
 
-- 每次调用先按 sid 设置 delta 目录 `<prefix>/uci-<sid>`（无 sid 用 `/tmp/.uci`），再查
+- 每次调用先按 sid 查独立随机 dirname，设置 delta 目录 `<prefix>/uci-<dirname>`
+  （无 sid 用 `/tmp/.uci`；未知 sid 临时指向 `/dev/null`），再查
   `session access(sid, "uci", config, read|write)`；缺 config → INVALID_ARGUMENT；无权限 →
   PERMISSION_DENIED；libuci 错误映射 INVAL→INVALID_ARGUMENT、NOTFOUND→NOT_FOUND、其它→UNKNOWN_ERROR。
 - `get/state {config, section, option, type, match}`：`state` 额外把 `/var/state` 设为 savedir（追加到

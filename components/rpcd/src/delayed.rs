@@ -46,10 +46,10 @@ impl Children {
 
     pub fn reap(&mut self) {
         self.pids.retain(|pid| {
-            match rustix::process::waitpid(rustix::process::Pid::from_raw(*pid), rustix::process::WaitOptions::NOHANG) {
-                Ok(None) | Err(rustix::io::Errno::INTR) => true,
-                _ => false,
-            }
+            matches!(
+                rustix::process::waitpid(rustix::process::Pid::from_raw(*pid), rustix::process::WaitOptions::NOHANG),
+                Ok(None) | Err(rustix::io::Errno::INTR)
+            )
         });
     }
 }

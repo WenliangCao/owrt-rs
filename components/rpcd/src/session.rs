@@ -22,7 +22,6 @@ pub const DEFAULT_SID: &str = "00000000000000000000000000000000";
 /// Decision 0013: rpcd-rs keeps its runtime state apart from the C rpcd's
 /// /var/run/rpcd, which purges `uci-*` under its own prefix on start.
 pub const RUN_DIR: &str = "/var/run/rpcd-rs";
-pub const SESSION_DIR: &str = "/var/run/rpcd-rs/sessions";
 pub const ACL_DIR: &str = "/usr/share/rpcd/acl.d";
 
 /// A stored session data value with its original blobmsg type.
@@ -43,6 +42,8 @@ pub struct Acl {
 #[derive(Clone, Debug)]
 pub struct Session {
     pub id: String,
+    /// Independent random name: directory listings must not reveal the SID.
+    dirname: String,
     timeout: i32,
     /// uloop timer deadline; None when no timer is pending (timeout <= 0)
     expires: Option<Instant>,
@@ -51,9 +52,10 @@ pub struct Session {
 }
 
 impl Session {
-    fn new(id: &str) -> Session {
+    fn new(id: &str, dirname: String) -> Session {
         Session {
             id: id.to_owned(),
+            dirname,
             timeout: 0,
             expires: None,
             data: BTreeMap::new(),
@@ -238,6 +240,7 @@ impl Session {
 
 pub struct Store {
     sessions: BTreeMap<String, Session>,
+    run_dir: String,
     /// A lower bound on the next timer. Touch/removal may leave it early,
     /// but insertion and thaw must never leave it later than a live timer.
     expiry_hint: Option<Instant>,
@@ -248,15 +251,28 @@ pub struct Store {
 impl Store {
     /// rpc_session_api_init: the default session gets the unauthenticated ACLs.
     pub fn new() -> Store {
+        Self::with_random(RUN_DIR, Self::random_id)
+    }
+
+    fn with_random(run_dir: &str, mut random: impl FnMut() -> Option<String>) -> Store {
         let mut store = Store {
             sessions: BTreeMap::new(),
+            run_dir: run_dir.to_owned(),
             expiry_hint: None,
             apply_sid: None,
         };
-        let mut ses = Session::new(DEFAULT_SID);
-        setup_acls(&mut ses, None);
-        store.sessions.insert(DEFAULT_SID.to_owned(), ses);
+        // Like rpc_session_api_init, entropy failure leaves no default session.
+        if let Some(dirname) = random().filter(|name| validate_sid(name) && name != DEFAULT_SID) {
+            let mut ses = Session::new(DEFAULT_SID, dirname);
+            setup_acls(&mut ses, None);
+            store.sessions.insert(DEFAULT_SID.to_owned(), ses);
+        }
         store
+    }
+
+    #[cfg(test)]
+    pub(crate) fn at(run_dir: &str) -> Store {
+        Self::with_random(run_dir, Self::random_id)
     }
 
     /// rpc_random: 16 bytes from /dev/urandom as 32 hex chars.
@@ -269,12 +285,33 @@ impl Store {
 
     /// rpc_session_create
     pub fn create(&mut self, timeout: i32) -> Option<String> {
-        let id = Self::random_id()?;
-        let mut ses = Session::new(&id);
+        self.create_with_random(timeout, Self::random_id)
+    }
+
+    fn create_with_random(&mut self, timeout: i32, mut random: impl FnMut() -> Option<String>) -> Option<String> {
+        let dirname = random()?;
+        let id = random()?;
+        if !validate_sid(&id) || !validate_sid(&dirname) || id == DEFAULT_SID || id == dirname
+            || self.sessions.contains_key(&id) || self.sessions.contains_key(&dirname)
+            || self.sessions.values().any(|ses| ses.dirname == dirname || ses.dirname == id)
+        {
+            return None;
+        }
+        let mut ses = Session::new(&id, dirname);
         ses.timeout = timeout;
         ses.touch();
         self.insert(ses);
         Some(id)
+    }
+
+    /// Return the runtime name without extending the session's lifetime.
+    pub fn dirname(&self, id: &str) -> Option<&str> {
+        self.sessions.get(id).map(|ses| ses.dirname.as_str())
+    }
+
+    /// Return this session's private UCI delta directory, without touching it.
+    pub fn savedir(&self, id: &str) -> Option<String> {
+        self.dirname(id).map(|name| format!("{}/uci-{name}", self.run_dir))
     }
 
     /// rpc_session_get: lookup + touch
@@ -300,8 +337,8 @@ impl Store {
 
     /// rpc_session_destroy (with the uci savedir purge callback)
     pub fn destroy(&mut self, id: &str) {
-        if self.sessions.remove(id).is_some() {
-            crate::uciobj::purge_dir(&format!("{RUN_DIR}/uci-{id}"));
+        if let Some(ses) = self.sessions.remove(id) {
+            crate::uciobj::purge_dir(&format!("{}/uci-{}", self.run_dir, ses.dirname));
         }
     }
 
@@ -349,12 +386,13 @@ impl Store {
 
     /// rpc_session_freeze: persist non-default sessions for a re-exec.
     pub fn freeze(&self) {
-        let _ = fs::DirBuilder::new().recursive(true).mode(0o700).create(SESSION_DIR);
+        let directory = format!("{}/sessions", self.run_dir);
+        let _ = fs::DirBuilder::new().recursive(true).mode(0o700).create(&directory);
         for ses in self.sessions.values() {
             if ses.id == DEFAULT_SID {
                 continue;
             }
-            let path = format!("{SESSION_DIR}/{}", ses.id);
+            let path = format!("{directory}/{}", ses.dirname);
             let mut b = BlobBuf::new();
             b.put_raw_fields(&ses.to_blob(false));
             let bytes = b.as_bytes().to_vec();
@@ -369,23 +407,23 @@ impl Store {
 
     /// rpc_session_thaw
     pub fn thaw(&mut self) {
-        let Ok(entries) = fs::read_dir(SESSION_DIR) else { return };
+        let directory = format!("{}/sessions", self.run_dir);
+        let Ok(entries) = fs::read_dir(&directory) else { return };
         for e in entries.flatten() {
             let name = e.file_name().to_string_lossy().into_owned();
             if !validate_sid(&name) {
                 continue;
             }
-            let path = format!("{SESSION_DIR}/{name}");
+            let path = format!("{directory}/{name}");
             if let Ok(bytes) = fs::read(&path) {
-                self.from_blob(&bytes);
+                self.restore_blob(&bytes, &name, Self::random_id);
             }
             let _ = fs::remove_file(&path);
         }
     }
 
     /// rpc_session_from_blob
-    #[allow(clippy::wrong_self_convention)] // C name; fills an existing session
-    fn from_blob(&mut self, bytes: &[u8]) -> bool {
+    fn restore_blob(&mut self, bytes: &[u8], dirname: &str, mut random: impl FnMut() -> Option<String>) -> bool {
         let Some((head, _)) = blob::attr_at(bytes, 0) else { return false };
         let mut sid = None;
         let mut timeout = None;
@@ -403,10 +441,36 @@ impl Store {
         let (Some(sid), Some(timeout), Some(expires), Some(data)) = (sid, timeout, expires, data) else {
             return false;
         };
-        if !validate_sid(&sid) {
+        if !validate_sid(&sid) || !validate_sid(dirname) || sid == DEFAULT_SID {
             return false;
         }
-        let mut ses = Session::new(&sid);
+        let dirname = if dirname == sid {
+            // Older frozen sessions used the credential as their filename.
+            // Preserve staged changes by renaming before restoring the session;
+            // never fall back to publishing its SID when migration fails.
+            let Some(name) = random().filter(|name| {
+                validate_sid(name) && name != &sid && !self.sessions.contains_key(name)
+                    && !self.sessions.values().any(|ses| &ses.dirname == name)
+            }) else { return false };
+            let old = format!("{}/uci-{sid}", self.run_dir);
+            let new = format!("{}/uci-{name}", self.run_dir);
+            // Avoid replacing any existing staging directory on collision.
+            match fs::symlink_metadata(&new) {
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                _ => return false,
+            }
+            if let Err(error) = fs::rename(&old, &new) {
+                if error.kind() != std::io::ErrorKind::NotFound
+                    || !fs::symlink_metadata(&old).is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+                {
+                    return false;
+                }
+            }
+            name
+        } else {
+            dirname.to_owned()
+        };
+        let mut ses = Session::new(&sid, dirname);
         ses.timeout = timeout as i32;
         let mut user: Option<String> = None;
         for f in blob::fields(&data) {
@@ -846,11 +910,162 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::os::unix::fs::PermissionsExt;
+
+    struct Fixture(std::path::PathBuf);
+
+    impl Fixture {
+        fn new() -> Self {
+            static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+            let path = std::env::temp_dir().join(format!("rpcd-session-{}-{}", std::process::id(),
+                NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
+            fs::DirBuilder::new().mode(0o700).create(&path).unwrap();
+            Self(path)
+        }
+
+        fn store(&self) -> Store {
+            Store::at(self.0.to_str().unwrap())
+        }
+    }
+
+    impl Drop for Fixture {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn entropy_failure_never_creates_a_session_or_a_shared_directory_name() {
+        let mut store = Store::with_random("/nonexistent/rpcd-session-test", || None);
+        assert!(store.dirname(DEFAULT_SID).is_none());
+        assert_eq!(store.create_with_random(120, || None), None);
+        let mut values = [Some("a".repeat(32)), None].into_iter();
+        assert_eq!(store.create_with_random(120, || values.next().flatten()), None);
+        assert!(store.sessions.is_empty());
+        let mut values = ["a".repeat(32), "b".repeat(32)].into_iter();
+        let sid = store.create_with_random(120, || values.next()).unwrap();
+        let dirname = store.dirname(&sid).unwrap().to_owned();
+        // Failed entropy and collisions cannot replace an already live session.
+        assert_eq!(store.create_with_random(120, || Some(sid.clone())), None);
+        assert_eq!(store.dirname(&sid), Some(dirname.as_str()));
+        assert_eq!(store.sessions.len(), 1);
+    }
+
+    #[test]
+    fn directory_lookup_is_independent_and_does_not_touch_session_expiry() {
+        let fixture = Fixture::new();
+        let mut store = fixture.store();
+        assert_ne!(store.dirname(DEFAULT_SID), Some(DEFAULT_SID));
+        assert!(validate_sid(store.dirname(DEFAULT_SID).unwrap()));
+        let sid = store.create(120).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(1);
+        store.sessions.get_mut(&sid).unwrap().expires = Some(deadline);
+        let dirname = store.dirname(&sid).unwrap();
+        assert!(validate_sid(dirname));
+        assert_ne!(dirname, sid);
+        assert!(!store.savedir(&sid).unwrap().contains(&sid));
+        assert_eq!(store.sessions[&sid].expires, Some(deadline));
+        assert_eq!(store.dirname("missing"), None);
+        let fields = store.sessions[&sid].to_blob(false);
+        assert_eq!(arg_sid(&fields), Some(sid.as_str()));
+        assert!(arg_str(&fields, "dirname").is_none());
+    }
+
+    #[test]
+    fn freeze_thaw_and_destroy_preserve_staged_changes_without_token_filenames() {
+        let fixture = Fixture::new();
+        let mut store = fixture.store();
+        let sid = store.create(120).unwrap();
+        let dirname = store.dirname(&sid).unwrap().to_owned();
+        let savedir = store.savedir(&sid).unwrap();
+        fs::create_dir(&savedir).unwrap();
+        let delta = std::path::Path::new(&savedir).join("network");
+        fs::write(&delta, b"network.lan.proto='static'\n").unwrap();
+        store.freeze();
+        let frozen = fixture.0.join("sessions");
+        assert!(!frozen.join(&sid).exists());
+        assert_eq!(fs::read_dir(&frozen).unwrap().count(), 1);
+        assert_eq!(fs::metadata(frozen.join(&dirname)).unwrap().permissions().mode() & 0o777, 0o600);
+
+        let mut thawed = fixture.store();
+        thawed.thaw();
+        assert_eq!(thawed.dirname(&sid), Some(dirname.as_str()));
+        assert_eq!(thawed.savedir(&sid), Some(savedir.clone()));
+        assert_eq!(fs::read(&delta).unwrap(), b"network.lan.proto='static'\n");
+        assert_eq!(fs::read_dir(&frozen).unwrap().count(), 0);
+        thawed.destroy(&sid);
+        assert!(!std::path::Path::new(&savedir).exists());
+        assert!(thawed.dirname(&sid).is_none());
+    }
+
+    #[test]
+    fn legacy_thaw_renames_staged_changes_before_restoring_the_session() {
+        let fixture = Fixture::new();
+        let sid = "a".repeat(32);
+        let old = fixture.0.join(format!("uci-{sid}"));
+        fs::create_dir(&old).unwrap();
+        fs::write(old.join("network"), b"network.lan.proto='static'\n").unwrap();
+        let frozen = fixture.0.join("sessions");
+        fs::create_dir(&frozen).unwrap();
+        fs::write(frozen.join(&sid), frozen_session(&sid, 120).as_bytes()).unwrap();
+        let mut store = fixture.store();
+        store.thaw();
+        assert_ne!(store.dirname(&sid), Some(sid.as_str()));
+        let new = store.savedir(&sid).unwrap();
+        assert_eq!(fs::read(std::path::Path::new(&new).join("network")).unwrap(), b"network.lan.proto='static'\n");
+        assert!(!old.exists());
+        assert!(!frozen.join(&sid).exists());
+        store.freeze();
+        assert!(!frozen.join(&sid).exists());
+        assert!(frozen.join(store.dirname(&sid).unwrap()).exists());
+    }
+
+    #[test]
+    fn legacy_thaw_fails_closed_without_entropy_or_when_rename_would_clobber() {
+        let fixture = Fixture::new();
+        let sid = "a".repeat(32);
+        let dirname = "b".repeat(32);
+        let old = fixture.0.join(format!("uci-{sid}"));
+        let occupied = fixture.0.join(format!("uci-{dirname}"));
+        fs::create_dir(&old).unwrap();
+        fs::write(old.join("network"), b"preserved").unwrap();
+        let mut store = fixture.store();
+        let mut blob = frozen_session(&sid, 120);
+        assert!(!store.restore_blob(blob.as_bytes(), &sid, || None));
+        fs::create_dir(&occupied).unwrap();
+        assert!(!store.restore_blob(blob.as_bytes(), &sid, || Some(dirname.clone())));
+        assert!(store.dirname(&sid).is_none());
+        assert_eq!(fs::read(old.join("network")).unwrap(), b"preserved");
+        assert!(!store.restore_blob(blob.as_bytes(), "../invalid", || Some(dirname.clone())));
+    }
+
+    #[test]
+    fn flash_compat_acl_extends_only_the_existing_luci_group() {
+        let fixture = Fixture::new();
+        let old = fixture.0.join("luci-system.json");
+        let compat = fixture.0.join("owrt-rpcd-compat.json");
+        // Exact flash read group from LuCI 128a7812f4be233c5dd7f7466f534fd888785caf.
+        fs::write(&old, include_str!("../tests/fixtures/luci-system-flash-25.12.5.json")).unwrap();
+        fs::write(&compat, include_str!("../../../packaging/openwrt/owrt-rpcd/files/owrt-rpcd-compat.json")).unwrap();
+        let login = Login { options: vec![("read".into(), owrt_uci::OptionValue::List(vec!["luci-mod-system-flash".into()]))] };
+        let mut session = test_session("flash-read");
+        setup_acl_file(&mut session, Some(&login), old.to_str().unwrap());
+        assert!(session.allowed("file", "/proc/mounts", "read"));
+        assert!(!session.allowed("file", "/proc/123/mounts", "read"));
+        setup_acl_file(&mut session, Some(&login), compat.to_str().unwrap());
+        assert!(session.allowed("file", "/proc/123/mounts", "read"));
+        assert!(!session.allowed("file", "/proc/123/mounts", "write"));
+        assert!(!session.allowed("file", "/proc/123/environ", "read"));
+        let mut other = test_session("unprivileged");
+        setup_acl_file(&mut other, None, old.to_str().unwrap());
+        setup_acl_file(&mut other, None, compat.to_str().unwrap());
+        assert!(!other.allowed("file", "/proc/123/mounts", "read"));
+    }
 
     #[test]
     fn borrowed_data_handlers_keep_raw_types_duplicate_keys_and_empty_name_rules() {
         let mut store = empty_store();
-        store.insert(Session::new("borrowed-data"));
+        store.insert(test_session("borrowed-data"));
         let mut request = BlobBuf::new();
         request.msg_string("ubus_rpc_session", "borrowed-data");
         let values = request.msg_open_table("values");
@@ -905,7 +1120,7 @@ mod tests {
 
     #[test]
     fn indexed_acl_lookup_keeps_shorter_prefixes_duplicates_and_raw_bytes() {
-        let mut session = Session::new("indexed-acl");
+        let mut session = test_session("indexed-acl");
         for index in 0..64 {
             session.grant("ubus", Some(&format!("a{index:02}*")), Some("denied"));
         }
@@ -945,7 +1160,7 @@ mod tests {
 
     #[test]
     fn indexed_acl_lookup_matches_linear_scan_across_generated_patterns() {
-        let mut session = Session::new("indexed-acl-generated");
+        let mut session = test_session("indexed-acl-generated");
         let mut state = 0xa076_1d64_78bd_642fu64;
         let mut next = || {
             state ^= state << 13;
@@ -977,12 +1192,16 @@ mod tests {
         }
     }
 
+    fn test_session(id: &str) -> Session {
+        Session::new(id, "b".repeat(32))
+    }
+
     fn empty_store() -> Store {
-        Store { sessions: BTreeMap::new(), expiry_hint: None, apply_sid: None }
+        Store { sessions: BTreeMap::new(), run_dir: "/nonexistent/rpcd-session-test".into(), expiry_hint: None, apply_sid: None }
     }
 
     fn timer(id: &str, expires: Option<Instant>) -> Session {
-        let mut session = Session::new(&format!("timer-test-{}-{id}", std::process::id()));
+        let mut session = test_session(&format!("timer-test-{}-{id}", std::process::id()));
         session.expires = expires;
         session
     }
@@ -990,7 +1209,7 @@ mod tests {
     #[test]
     fn access_preserves_typed_duplicates_raw_objects_and_acl_dump_fallback() {
         let mut store = empty_store();
-        let mut session = Session::new("access-test");
+        let mut session = test_session("access-test");
         assert_eq!(session.grant_bytes("file", Some(b"/raw\xff"), Some("read")), 0);
         store.insert(session);
         let mut b = BlobBuf::new();
@@ -1088,7 +1307,7 @@ mod tests {
         blob.msg_u64("expires", 120);
         let data = blob.msg_open_table("data");
         blob.msg_close(data);
-        assert!(store.from_blob(blob.as_bytes()));
+        assert!(store.restore_blob(blob.as_bytes(), &"b".repeat(32), || None));
         let thawed = store.next_expiry().unwrap();
         let touched = store.get("12345678901234567890123456789012").unwrap().expires.unwrap();
         assert!(touched < thawed);
@@ -1100,7 +1319,7 @@ mod tests {
         replacement.msg_u64("expires", 0);
         let data = replacement.msg_open_table("data");
         replacement.msg_close(data);
-        assert!(store.from_blob(replacement.as_bytes()));
+        assert!(store.restore_blob(replacement.as_bytes(), &"b".repeat(32), || None));
         assert!(store.next_expiry().unwrap() < touched);
     }
 
@@ -1118,10 +1337,10 @@ mod tests {
     fn thaw_rejects_corrupt_session_ids_without_panicking() {
         let mut store = empty_store();
         for sid in [format!("{}é", "a".repeat(31)), "a".repeat(31), "g".repeat(32), "a".repeat(33)] {
-            assert!(!store.from_blob(frozen_session(&sid, 120).as_bytes()));
+            assert!(!store.restore_blob(frozen_session(&sid, 120).as_bytes(), &"b".repeat(32), || None));
             assert!(store.sessions.is_empty());
         }
-        assert!(store.from_blob(frozen_session(&"a".repeat(32), 120).as_bytes()));
+        assert!(store.restore_blob(frozen_session(&"a".repeat(32), 120).as_bytes(), &"b".repeat(32), || None));
     }
 
     #[test]
@@ -1129,7 +1348,7 @@ mod tests {
         for expires in [120, i32::MAX as u64, i64::MAX as u64 / 1000 + 1, i64::MAX as u64, u64::MAX] {
             let mut store = empty_store();
             let before = Instant::now();
-            assert!(store.from_blob(frozen_session(&"a".repeat(32), expires).as_bytes()));
+            assert!(store.restore_blob(frozen_session(&"a".repeat(32), expires).as_bytes(), &"b".repeat(32), || None));
             let remaining = store.next_expiry().unwrap().saturating_duration_since(before);
             let expected = (expires as i64).saturating_mul(1000).clamp(0, i32::MAX as i64) as u64;
             assert!(remaining >= Duration::from_millis(expected));
