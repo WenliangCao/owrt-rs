@@ -263,6 +263,11 @@ enum Delivery {
     Timeout,
 }
 
+/// The ubus CLI returns a negated status through the shell's low exit byte.
+fn ubus_cli_exit(code: i32) -> i32 {
+    code.wrapping_neg() & 255
+}
+
 fn dispatch(
     settings: &Settings,
     package: &OsStr,
@@ -335,10 +340,10 @@ fn dispatch(
         Ok(0) => return Ok(Delivery::Success(0)),
         // CLI stderr is /dev/null (not a tty), so ubus_cli_error returns -N
         // for an invoke failure, whereas lookup errors are returned as +N.
-        Ok(code) => Delivery::Exit((-code) & 255),
+        Ok(code) => Delivery::Exit(ubus_cli_exit(code)),
         Err(error) if error.kind() == io::ErrorKind::TimedOut => {
             if stage == 2 && invoke_deadline < deadline {
-                Delivery::Exit((-status::TIMEOUT) & 255)
+                Delivery::Exit(ubus_cli_exit(status::TIMEOUT))
             } else {
                 Delivery::Timeout
             }
@@ -354,7 +359,7 @@ fn dispatch(
             Delivery::Exit(match stage {
                 0 => 255,
                 1 => code & 255,
-                _ => (-code) & 255,
+                _ => ubus_cli_exit(code),
             })
         }
     };
@@ -495,6 +500,20 @@ mod tests {
     use std::fs::{self, File};
     use std::os::unix::ffi::OsStrExt;
     use std::time::Duration;
+
+    #[test]
+    fn ubus_exit_status_keeps_the_low_byte_for_every_signed_boundary() {
+        for (status, expected) in [
+            (0, 0),
+            (1, 255),
+            (7, 249),
+            (-1, 1),
+            (i32::MIN, 0),
+            (i32::MAX, 1),
+        ] {
+            assert_eq!(super::ubus_cli_exit(status), expected);
+        }
+    }
 
     #[test]
     fn changed_entries_preserve_baseline_order_and_ignore_creation() {
