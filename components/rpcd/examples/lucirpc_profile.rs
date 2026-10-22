@@ -2,6 +2,9 @@
 //! Run in the exact image namespace: lucirpc_profile [iterations] [filter].
 //! Host hints are opt-in, include the real DNS work, and exclude defer/reply
 //! delivery. No daemon, ubus, ACL or wireless work is measured.
+// These profiling adapters deliberately replace daemon state. Production
+// unit tests run against the real binary, never against these stubs.
+#![cfg(not(test))]
 #![allow(dead_code)]
 
 #[path = "../src/lucirpc.rs"]

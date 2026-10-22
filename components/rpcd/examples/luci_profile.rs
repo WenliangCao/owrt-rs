@@ -2,6 +2,9 @@
 //! Run in the exact image namespace: luci_profile [iterations] [stage filter].
 //! getFeatures forks real helpers and is opt-in with a getFeatures filter;
 //! use a small iteration count for it. No ubus or ACL time is measured.
+// These profiling adapters deliberately replace daemon state. Production
+// unit tests run against the real binary, never against these stubs.
+#![cfg(not(test))]
 #![allow(dead_code)]
 
 #[path = "../src/luci.rs"]

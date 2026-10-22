@@ -1,5 +1,8 @@
 //! Profile the current ACL lookup and session.access handler with fixed scopes.
 //! Usage: session_acl_profile [iterations] [stage filter]
+// These profiling adapters deliberately replace daemon state. Production
+// unit tests run against the real binary, never against these stubs.
+#![cfg(not(test))]
 #![allow(dead_code)]
 
 #[path = "../src/session.rs"]

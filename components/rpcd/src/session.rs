@@ -25,10 +25,19 @@ pub const RUN_DIR: &str = "/var/run/rpcd-rs";
 pub const ACL_DIR: &str = "/usr/share/rpcd/acl.d";
 
 /// A stored session data value with its original blobmsg type.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RawField {
     pub ty: u32,
     pub data: Vec<u8>,
+}
+
+impl std::fmt::Debug for RawField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RawField")
+            .field("ty", &self.ty)
+            .field("data_len", &self.data.len())
+            .finish_non_exhaustive()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -39,7 +48,7 @@ pub struct Acl {
     pub key: Vec<u8>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Session {
     pub id: String,
     /// Independent random name: directory listings must not reveal the SID.
@@ -49,6 +58,19 @@ pub struct Session {
     expires: Option<Instant>,
     pub data: BTreeMap<String, RawField>,
     pub acls: BTreeMap<String, Vec<Acl>>,
+}
+
+impl std::fmt::Debug for Session {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // The SID is a bearer credential; arbitrary data keys and values may
+        // hold credentials too. Never expose them through derived diagnostics.
+        f.debug_struct("Session")
+            .field("timeout", &self.timeout)
+            .field("expires", &self.expires)
+            .field("data_count", &self.data.len())
+            .field("acl_scope_count", &self.acls.len())
+            .finish_non_exhaustive()
+    }
 }
 
 impl Session {
@@ -911,6 +933,21 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
 mod tests {
     use super::*;
     use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn debug_omits_session_credentials_and_raw_data() {
+        let mut session = Session::new("session-bearer-secret", "directory-secret".into());
+        let value = RawField { ty: MsgType::String as u32, data: b"credential-secret\0".to_vec() };
+        session.data.insert("sensitive-key".into(), value.clone());
+        for debug in [format!("{session:?}"), format!("{session:#?}"), format!("{value:?}"), format!("{value:#?}")] {
+            for secret in ["session-bearer-secret", "directory-secret", "sensitive-key", "credential-secret"] {
+                assert!(!debug.contains(secret));
+            }
+            assert!(!debug.contains(&format!("{:?}", value.data)));
+        }
+        assert!(format!("{session:?}").contains("data_count: 1"));
+        assert!(format!("{value:?}").contains("data_len: 18"));
+    }
 
     struct Fixture(std::path::PathBuf);
 

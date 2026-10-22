@@ -1,6 +1,6 @@
 //! luci-rpc.c port (rpcd-mod-luci 20240305): the `luci-rpc` ubus object.
-//! Wireless parts (getWirelessDevices, the iwinfo tables) live in
-//! `lucirpc_wireless` once the nl80211 backend is in place.
+//! Wireless replies combine network.wireless status with the `iwinfoobj`
+//! serializer and its nl80211 backend.
 
 use crate::session::{arg, Reply};
 use crate::{rrdns, rtnl, Ctx, Deferrer};

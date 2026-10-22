@@ -1,5 +1,8 @@
 //! Actual local-root UCI handlers through complete reply construction.
 //! Run inside the exact image namespace. No ubus transport time is measured.
+// These profiling adapters deliberately replace daemon state. Production
+// unit tests run against the real binary, never against these stubs.
+#![cfg(not(test))]
 #![allow(dead_code)]
 
 #[path = "../src/session.rs"]

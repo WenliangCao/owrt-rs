@@ -45,7 +45,7 @@ pub fn atoi(s: &[u8]) -> i32 {
         v = v.wrapping_mul(10).wrapping_add((s[i] - b'0') as i64);
         i += 1;
     }
-    (if neg { -v } else { v }) as i32
+    (if neg { v.wrapping_neg() } else { v }) as i32
 }
 
 /// strtol(s, &end, 16): returns the value and the index `end` points at
@@ -73,7 +73,7 @@ pub fn strtol16(s: &[u8]) -> (i64, usize) {
     if i == start {
         return (0, 0);
     }
-    (if neg { -v } else { v }, i)
+    (if neg { v.wrapping_neg() } else { v }, i)
 }
 
 /// strtoul(s, NULL, 16)
@@ -926,6 +926,14 @@ pub fn iwinfo_ubus_query(ifname: &str, field: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn numeric_helpers_keep_wrapping_semantics_at_signed_minimum() {
+        assert_eq!(atoi(b"-9223372036854775808"), 0);
+        assert_eq!(atoi(b"-9223372036854775809"), -1);
+        assert_eq!(strtol16(b"-8000000000000000"), (i64::MIN, 17));
+        assert_eq!(strtol16(b"-8000000000000001"), (i64::MAX, 17));
+    }
 
     #[test]
     fn dbm_mw() {

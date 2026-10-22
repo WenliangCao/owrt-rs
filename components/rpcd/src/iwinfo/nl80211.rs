@@ -943,9 +943,12 @@ fn nl80211_get_ssid_bssid_cb(msg: &Nlmsg, ssid: Option<&mut [u8; IWINFO_ESSID_MA
 }
 
 /// parse_ssid2: hostapd's wpa_config_parse_string rules (double quoted,
-/// hexdump, printf-escaped) into `buf`; -1 on a malformed value (partial
-/// writes stay, as in C).
+/// hexdump, printf-escaped) into `buf`; -1 on a malformed value or an empty
+/// destination (partial writes stay, as in C).
 pub fn parse_ssid2(value: &[u8], buf: &mut [u8]) -> i32 {
+    if buf.is_empty() {
+        return -1;
+    }
     let buflen = buf.len();
     let value = cstr(value);
     if value.first() == Some(&b'"') {
@@ -3037,6 +3040,16 @@ pub fn close() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ssid2_requires_space_for_its_terminator() {
+        for input in [b"\"wifi\"".as_slice(), b"P\"wifi\"", b"77696669", b""] {
+            assert_eq!(parse_ssid2(input, &mut []), -1);
+            let mut terminator = [0xff];
+            assert_eq!(parse_ssid2(input, &mut terminator), 0);
+            assert_eq!(terminator, [0]);
+        }
+    }
 
     #[test]
     fn freq_channel() {

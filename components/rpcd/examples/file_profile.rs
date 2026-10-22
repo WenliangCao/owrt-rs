@@ -1,5 +1,8 @@
 //! Profile local-root stat/list dispatch, input decoding and reply encoding.
 //! Run inside the exact image namespace. No ubus, ACL or exec time is measured.
+// These profiling adapters deliberately replace daemon state. Production
+// unit tests run against the real binary, never against these stubs.
+#![cfg(not(test))]
 #![allow(dead_code)]
 
 #[path = "../src/file.rs"]
@@ -84,54 +87,5 @@ fn main() {
         measure(&format!("file_{method}_handler"), n, filter, || {
             black_box(call());
         });
-    }
-}
-
-#[cfg(all(test, target_os = "linux"))]
-mod tests {
-    use super::*;
-    use std::ffi::OsStr;
-    use std::os::unix::ffi::OsStrExt;
-
-    #[test]
-    fn listing_keeps_raw_names_and_resolves_each_symlink_from_its_parent() {
-        let root = std::env::temp_dir().join(format!("rpcd-list-path-{}", std::process::id()));
-        std::fs::create_dir(&root).unwrap();
-        let long = "l".repeat(240);
-        for name in [b"a".as_slice(), long.as_bytes(), b"raw-\xff"] {
-            std::fs::write(root.join(OsStr::from_bytes(name)), b"contents").unwrap();
-        }
-        std::fs::create_dir(root.join("dir")).unwrap();
-        std::os::unix::fs::symlink("a", root.join("link")).unwrap();
-        std::os::unix::fs::symlink("missing", root.join("broken")).unwrap();
-        let args = Json::Object(vec![("path".into(), Json::from_string_bytes(root.as_os_str().as_bytes().to_vec()))]);
-        let req = Request {
-            peer: 1, seq: 1, objid: 1, method: "list".into(), user: None,
-            group: None, data: object_to_payload(&args), fd: None, no_reply: false,
-        };
-        let file::Outcome::Now(_, reply) = file::call(&Ctx { exec_timeout_ms: 30000 }, req, &Deferrer) else {
-            panic!("list must complete synchronously");
-        };
-        assert_eq!(reply.code, 0);
-        let result = fields_to_json(&reply.data[0]).unwrap();
-        let Some(Json::Array(entries)) = result.get("entries") else { panic!("missing entries") };
-        assert_eq!(entries.len(), 6);
-        for (name, ty) in [
-            (b"a".as_slice(), "file"), (long.as_bytes(), "file"), (b"raw-\xff", "file"),
-            (b"dir", "directory"), (b"link", "symlink"), (b"broken", "symlink"),
-        ] {
-            let entry = entries.iter().find(|entry| entry.get("name").and_then(Json::as_bytes) == Some(name)).unwrap();
-            assert_eq!(entry.get("type").and_then(Json::as_str), Some(ty));
-            if ty == "file" {
-                assert_eq!(entry.get("size"), Some(&Json::Int(8)));
-            }
-            if name == b"link" || name == b"broken" {
-                let target = entry.get("target").unwrap();
-                let (name, ty) = if name == b"link" { ("a", "file") } else { ("missing", "broken") };
-                assert_eq!(target.get("name").and_then(Json::as_str), Some(name));
-                assert_eq!(target.get("type").and_then(Json::as_str), Some(ty));
-            }
-        }
-        std::fs::remove_dir_all(root).unwrap();
     }
 }

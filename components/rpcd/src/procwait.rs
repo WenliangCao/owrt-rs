@@ -1,10 +1,9 @@
-//! Wait for a child process with a timeout and without polling.
+//! Wait for a child process within a timeout, reaping it on every completion.
 //!
 //! The blocking `wait()` runs on a scoped helper thread so the exit is seen
 //! the moment it happens (the C rpcd gets the same from uloop's SIGCHLD
 //! handling). The 50 ms tick only bounds how late a timeout is noticed.
-//! Replaces the `try_wait` + `sleep` loops that added up to one tick of
-//! latency per spawned child (`file exec`, `rc list`).
+//! If a helper thread cannot be created, waitpid polling uses the same tick.
 use std::io;
 use std::process::{Child, ExitStatus};
 use std::sync::mpsc::{self, RecvTimeoutError};

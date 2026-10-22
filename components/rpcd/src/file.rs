@@ -105,10 +105,19 @@ fn check_path(ctx: &Ctx, args: &Json, perm: &str, want_stat: bool, use_lstat: bo
     check_path_args(ctx, PathArgs::from_json(args), perm, want_stat, use_lstat)
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 struct PathArgs<'a> {
     path: Option<&'a [u8]>,
     sid: Option<&'a str>,
+}
+
+impl std::fmt::Debug for PathArgs<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PathArgs")
+            .field("path_len", &self.path.map(<[u8]>::len))
+            .field("has_sid", &self.sid.is_some())
+            .finish_non_exhaustive()
+    }
 }
 
 impl<'a> PathArgs<'a> {
@@ -710,6 +719,55 @@ mod tests {
 
     fn grant(ctx: &crate::Ctx, sid: &str, path: &std::path::Path, perm: &str) {
         ctx.sessions.borrow_mut().get(sid).unwrap().grant("file", path.to_str(), Some(perm));
+    }
+
+    #[test]
+    fn path_argument_debug_omits_bearer_tokens_and_path_bytes() {
+        let args = PathArgs { path: Some(b"/private-path-secret"), sid: Some("bearer-secret") };
+        for debug in [format!("{args:?}"), format!("{args:#?}")] {
+            assert!(!debug.contains("bearer-secret"));
+            assert!(!debug.contains("private-path-secret"));
+            assert!(!debug.contains(&format!("{:?}", b"/private-path-secret")));
+            assert!(debug.contains("has_sid: true"));
+        }
+    }
+
+    #[test]
+    fn listing_keeps_raw_names_and_resolves_each_symlink_from_its_parent() {
+        use std::ffi::OsStr;
+        use std::os::unix::ffi::OsStrExt;
+        use owrt_ubus::convert::fields_to_json;
+        use crate::Json;
+        let directory = TestDir::new();
+        let root = &directory.0;
+        let long = "l".repeat(240);
+        for name in [b"a".as_slice(), long.as_bytes(), b"raw-\xff"] {
+            std::fs::write(root.join(OsStr::from_bytes(name)), b"contents").unwrap();
+        }
+        std::fs::create_dir(root.join("dir")).unwrap();
+        std::os::unix::fs::symlink("a", root.join("link")).unwrap();
+        std::os::unix::fs::symlink("missing", root.join("broken")).unwrap();
+        let args = Json::Object(vec![("path".into(), Json::from_string_bytes(root.as_os_str().as_bytes().to_vec()))]);
+        let reply = super::list(&context(), PathArgs::from_json(&args)).unwrap();
+        let result = fields_to_json(&reply).unwrap();
+        let Some(Json::Array(entries)) = result.get("entries") else { panic!("missing entries") };
+        assert_eq!(entries.len(), 6);
+        for (name, ty) in [
+            (b"a".as_slice(), "file"), (long.as_bytes(), "file"), (b"raw-\xff", "file"),
+            (b"dir", "directory"), (b"link", "symlink"), (b"broken", "symlink"),
+        ] {
+            let entry = entries.iter().find(|entry| entry.get("name").and_then(Json::as_bytes) == Some(name)).unwrap();
+            assert_eq!(entry.get("type").and_then(Json::as_str), Some(ty));
+            if ty == "file" {
+                assert_eq!(entry.get("size"), Some(&Json::Int(8)));
+            }
+            if name == b"link" || name == b"broken" {
+                let target = entry.get("target").unwrap();
+                let (name, ty) = if name == b"link" { ("a", "file") } else { ("missing", "broken") };
+                assert_eq!(target.get("name").and_then(Json::as_str), Some(name));
+                assert_eq!(target.get("type").and_then(Json::as_str), Some(ty));
+            }
+        }
     }
 
     #[test]
