@@ -65,7 +65,10 @@ impl Signals {
     fn install(&self) -> io::Result<()> {
         SIGNAL_FD.store(self.write.as_raw_fd(), Ordering::Relaxed);
         for number in [1, 2, 15, 17] {
-            unix::set_signal_handler(number, signal)?;
+            // SAFETY: signal only accesses lock-free atomics and calls the
+            // async-signal-safe write syscall, preserving errno. It neither
+            // allocates nor unwinds; Signals keeps the wake descriptor alive.
+            unsafe { unix::set_signal_handler(number, signal)? };
         }
         Ok(())
     }

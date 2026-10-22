@@ -210,7 +210,7 @@ impl Hotplug {
         match trigger.spawn() {
             Ok(c) => {
                 let pid = c.id() as i32;
-                std::mem::forget(c);
+                drop(c);
                 self.coldplug = Coldplug::Trigger(pid);
             }
             Err(e) => {
@@ -276,7 +276,10 @@ impl Hotplug {
         true
     }
 
-    fn start_next(&mut self) {
+    /// # Safety
+    /// Any queued firmware command must satisfy spawn_firmware's fork contract.
+    #[expect(unsafe_code, reason = "propagate the firmware worker contract to the event owner")]
+    unsafe fn start_next(&mut self) {
         if self.child.is_some() {
             return;
         }
@@ -296,7 +299,9 @@ impl Hotplug {
             // reaches the fork path.
             CmdKind::StartConsole => {}
             CmdKind::Firmware => {
-                let pid = spawn_firmware(&cmd);
+                #[expect(unsafe_code, reason = "the pump caller owns the firmware fork prerequisite")]
+                // SAFETY: start_next inherits this queued firmware prerequisite from pump.
+                let pid = unsafe { spawn_firmware(&cmd) };
                 if let Some(pid) = pid {
                     self.child = Some((pid, cmd));
                 }
@@ -324,16 +329,19 @@ impl Hotplug {
     /// Returns whether a `start-console` command asked for the inittab
     /// console handlers, and the events received (for `hotplug_ubus_event`'s
     /// per-subsystem notification).
-    pub fn pump(&mut self, now: i64) -> (bool, Vec<BTreeMap<String, String>>) {
+    ///
+    /// # Safety
+    /// If rules or queued work can run a firmware command, the process must
+    /// have one thread and hold no application locks across its fork. A closed
+    /// fixture with no event input and only Exec/Button work needs no such fork.
+    #[expect(unsafe_code, reason = "the event owner must establish firmware worker prerequisites")]
+    pub unsafe fn pump(&mut self, now: i64) -> (bool, Vec<BTreeMap<String, String>>) {
         let mut console_request = false;
         let mut events = Vec::new();
         let mut buf = [0u8; 4096];
-        loop {
-            let Ok((_, n)) =
-                rustix::net::recv(&self.fd, &mut buf[..4095], rustix::net::RecvFlags::DONTWAIT)
-            else {
-                break;
-            };
+        while let Ok((_, n)) =
+            rustix::net::recv(&self.fd, &mut buf[..4095], rustix::net::RecvFlags::DONTWAIT)
+        {
             if n < 1 {
                 break;
             }
@@ -378,7 +386,9 @@ impl Hotplug {
                 continue;
             }
             let before = self.queue.len();
-            self.start_next();
+            #[expect(unsafe_code, reason = "propagate the event owner's firmware fork contract")]
+            // SAFETY: pump's caller establishes the prerequisite for any firmware work.
+            unsafe { self.start_next() };
             if self.queue.len() == before {
                 break;
             }
@@ -530,7 +540,7 @@ fn spawn_exec(cmd: &Queued) -> Option<i32> {
     match c.spawn() {
         Ok(child) => {
             let pid = child.id() as i32;
-            std::mem::forget(child);
+            drop(child);
             Some(pid)
         }
         Err(_) => None,
@@ -538,7 +548,10 @@ fn spawn_exec(cmd: &Queued) -> Option<i32> {
 }
 
 /// `handle_firmware` in a forked child.
-fn spawn_firmware(cmd: &Queued) -> Option<i32> {
+/// # Safety
+/// The process must have one thread and hold no application locks at fork.
+#[expect(unsafe_code, reason = "preserve the platform firmware fork prerequisite")]
+unsafe fn spawn_firmware(cmd: &Queued) -> Option<i32> {
     let dir = cmd.argv.first()?.clone();
     let vars = cmd.vars.clone();
     // Owned event data only; the fixed firmware child never returns into
@@ -546,7 +559,11 @@ fn spawn_firmware(cmd: &Queued) -> Option<i32> {
     fn transfer((dir, vars): (String, BTreeMap<String, String>)) {
         firmware_child(&dir, &vars);
     }
-    owrt_platform::procd::process::spawn_firmware((dir, vars), transfer)
+    #[expect(unsafe_code, reason = "fixed firmware worker in the single-threaded supervisor")]
+    // SAFETY: the hotplug supervisor has one thread. The child owns the
+    // cloned strings/map, runs this fixed transfer, and exits without returning
+    // into the parent's event loop; no parent lock or borrowed data is captured.
+    unsafe { owrt_platform::procd::process::spawn_firmware((dir, vars), transfer) }
 }
 
 fn firmware_child(dir: &str, vars: &BTreeMap<String, String>) {
@@ -604,7 +621,11 @@ mod tests {
             ("TRACE".into(), trace.to_str().unwrap().into()),
         ]);
         hp.dispatch("button", argv.clone(), &vars, 100);
-        hp.pump(100);
+
+        #[expect(unsafe_code, reason = "closed button fixture cannot enqueue a firmware fork")]
+        // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
+        // fixture enqueues only Button/Exec commands, never Firmware.
+        unsafe { hp.pump(100); };
         assert!(hp.child.is_some(), "press handler must have started");
 
         // Release arrives before the press child has been reaped. The press
@@ -620,9 +641,17 @@ mod tests {
         }
         reap(&mut hp);
         assert_eq!(hp.buttons.len(), 1, "press completion must arm the timeout");
-        hp.pump(100);
+
+        #[expect(unsafe_code, reason = "closed button fixture cannot enqueue a firmware fork")]
+        // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
+        // fixture enqueues only Button/Exec commands, never Firmware.
+        unsafe { hp.pump(100); };
         reap(&mut hp);
-        hp.pump(1200);
+
+        #[expect(unsafe_code, reason = "closed button fixture cannot enqueue a firmware fork")]
+        // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
+        // fixture enqueues only Button/Exec commands, never Firmware.
+        unsafe { hp.pump(1200); };
         let stale_timeout = hp.child.is_some();
         if stale_timeout { reap(&mut hp); }
         let actions = std::fs::read_to_string(&trace).unwrap();

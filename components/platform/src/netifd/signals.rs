@@ -40,9 +40,11 @@ impl ChildSignal {
         // As before, the handler's write descriptor lives until process exit.
         CHILD_PIPE_W.store(write.into_raw_fd(), Ordering::Relaxed);
         // Fixed atomic/self-pipe handlers; startup remains best-effort, as K.
-        let _ = crate::unix::set_signal_handler(17, on_sigchld);
+        // SAFETY: this fixed handler only uses atomics and async-signal-safe syscalls.
+        let _ = unsafe { crate::unix::set_signal_handler(17, on_sigchld) };
         for number in [2, 15, 10, 12] {
-            let _ = crate::unix::set_signal_handler(number, on_exit_signal);
+            // SAFETY: this fixed handler only uses atomics and async-signal-safe syscalls.
+            let _ = unsafe { crate::unix::set_signal_handler(number, on_exit_signal) };
         }
         Ok(Self { read })
     }

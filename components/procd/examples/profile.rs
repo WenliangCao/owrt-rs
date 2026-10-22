@@ -1,5 +1,9 @@
 //! Phase costs of the actual service projection and system.info builder.
 //! Does not supervise processes or estimate full daemon latency.
+// Production modules are tested through the daemon root, where the dispatch
+// recovery tests can access its supervisor. Do not compile those tests again
+// under this benchmark-only root.
+#![cfg(not(test))]
 #![allow(dead_code)]
 macro_rules! log {
     ($priority:expr, $($arg:tt)*) => { crate::sys::ulog($priority, &format!($($arg)*)) };

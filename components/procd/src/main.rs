@@ -9,7 +9,9 @@
 //! 58eb263d5abe03f8c1280bdfa65a3b052614215d, mainly `service/service.c` and
 //! `service/instance.c`.
 
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
+#![deny(unsafe_op_in_unsafe_fn)]
+#![deny(clippy::undocumented_unsafe_blocks)]
 #![cfg_attr(target_os = "linux", deny(warnings))]
 
 /// procd's `LOG()`/`ERROR()`/`ULOG_WARN()`: one line through `sys::ulog`,
@@ -196,7 +198,11 @@ impl Procd {
         // also make the instance un-deletable, since collect_stopped uses it
         // to tell "ran out of retries" from "was asked to go away".
         inst.crash_looped = false;
-        match proc::start(inst, svc) {
+        #[expect(unsafe_code, reason = "the private supervisor owner controls its single-threaded lifecycle")]
+        // SAFETY: run owns this supervisor and starts no threads. This private
+        // owner path holds no application lock while spawning the instance.
+        let started = unsafe { proc::start(inst, svc) };
+        match started {
             Ok((pid, out, err)) => {
                 inst.pid = pid;
                 inst.log_out = out;
@@ -879,7 +885,11 @@ impl Procd {
             let a = &self.inittab[i];
             (a.argv.clone(), a.id.clone(), a.kind, a.respawn_ms)
         };
-        match proc::spawn_tty(&argv, &id) {
+        #[expect(unsafe_code, reason = "inittab runs on the sole supervisor thread")]
+        // SAFETY: this private inittab owner is entered only by the supervisor
+        // lifecycle, which starts no threads and holds no lock across spawn.
+        let spawned = unsafe { proc::spawn_tty(&argv, &id) };
+        match spawned {
             Ok(pid) => {
                 debug!(4, "Launched new {kind:?} action, pid={pid}");
                 self.inittab[i].pid = Some(pid);
@@ -944,7 +954,10 @@ impl Procd {
             return;
         }
         if let Some(mut hp) = self.hotplug.take() {
-            let (console, events) = hp.pump(now);
+            #[expect(unsafe_code, reason = "firmware workers are owned by the single-threaded supervisor")]
+            // SAFETY: the private event owner starts no threads and holds no
+            // application lock while hotplug may fork its firmware worker.
+            let (console, events) = unsafe { hp.pump(now) };
             if console {
                 // start-console: run the console handlers again for a tty
                 // that appeared late (ttyGS). Done here, in the parent, so
@@ -2468,7 +2481,10 @@ fn run_hotplug_daemon(rules: &str) -> io::Result<()> {
     };
     loop {
         let now = base.elapsed().as_millis() as i64;
-        let _ = hp.pump(now);
+        #[expect(unsafe_code, reason = "standalone hotplug owns the sole event thread")]
+        // SAFETY: this standalone loop starts no threads and holds no
+        // application lock while processing the firmware queue.
+        let _ = unsafe { hp.pump(now) };
         while let Some((pid, st)) = proc::reap_any() {
             hp.reaped(pid, st);
         }
@@ -2526,7 +2542,12 @@ fn run() -> io::Result<()> {
         // keep-alive; hotplug("/etc/hotplug.json") and procd_coldplug() are
         // the remaining P3.2 pieces and their absence is logged, not hidden.
         log!(sys::LOG_INFO, "- early -");
-        wdt.init(base.elapsed().as_millis() as i64, false);
+        #[expect(unsafe_code, reason = "adopt the preinit-owned watchdog at PID 1 startup")]
+        // SAFETY: PID 1 has not started any threads. WDTFD, when present, is
+        // the live descriptor transferred by preinit across exec, with no Rust
+        // owner in this process. Consume it once before normal supervision.
+        let inherited = unsafe { owrt_platform::procd::watchdog::take_inherited_watchdog(sys::atoi_u32) };
+        wdt.init(base.elapsed().as_millis() as i64, false, inherited);
         if !wdt.is_open() {
             debug!(4, "Watchdog does not exist");
         }
@@ -2541,7 +2562,10 @@ fn run() -> io::Result<()> {
                 h.coldplug(sys::is_container());
                 loop {
                     let now = base.elapsed().as_millis() as i64;
-                    let _ = h.pump(now);
+                    #[expect(unsafe_code, reason = "PID 1 coldplug runs before any threads exist")]
+                    // SAFETY: this early-boot owner has one thread and holds
+                    // no application lock while processing firmware requests.
+                    let _ = unsafe { h.pump(now) };
                     while let Some((pid, st)) = proc::reap_any() {
                         h.reaped(pid, st);
                     }
@@ -2559,7 +2583,7 @@ fn run() -> io::Result<()> {
         // so a watchdog that was absent before it may exist now, and a
         // first-open failure must not leave the hardware WDT unarmed
         // forever.
-        wdt.init(base.elapsed().as_millis() as i64, false);
+        wdt.init(base.elapsed().as_millis() as i64, false, None);
         sys::set_stdio("console");
         let ubus_user = owrt_platform::procd::identity::lookup_user_home("ubus");
         match &ubus_user {
@@ -2590,7 +2614,11 @@ fn run() -> io::Result<()> {
         let mut spawn_at = Instant::now();
         let conn = loop {
             if pid == 0 && Instant::now() >= spawn_at {
-                pid = match proc::start(&inst, "ubus") {
+                #[expect(unsafe_code, reason = "PID 1 owns single-threaded early ubus startup")]
+                // SAFETY: early boot has started no threads and holds no
+                // application locks; this owner retains the instance state.
+                let started = unsafe { proc::start(&inst, "ubus") };
+                pid = match started {
                     Ok((pid, _, _)) => pid,
                     Err(error) => {
                         log!(sys::LOG_ERR, "failed to start ubusd: {error}");

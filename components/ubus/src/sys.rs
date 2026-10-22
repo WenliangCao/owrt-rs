@@ -66,9 +66,8 @@ pub const SIGPIPE: i32 = 13;
 pub const SIGTERM: i32 = 15;
 pub const SIGINT: i32 = 2;
 pub fn ignore_signal(signum: i32) { let _ = owrt_platform::unix::ignore_signal(signum); }
-pub fn set_signal_handler(signum: i32, handler: extern "C" fn(i32)) {
-    let _ = owrt_platform::unix::set_signal_handler(signum, handler);
-}
+#[doc(inline)]
+pub use owrt_platform::unix::set_signal_handler;
 
 /// Send `header` followed by `body` on a unix socket, optionally attaching `fd`
 /// as SCM_RIGHTS on the first chunk. Retries on partial writes and EINTR/EAGAIN.

@@ -4,9 +4,10 @@
 //! the pinned ubus 24864e78 source. Single-threaded readiness loop (epoll on
 //! Linux, as uloop gives the C daemon), with no async runtime.
 //!
-//! Business code forbids unsafe; libc ABI operations live in owrt-platform.
+//! Unsafe is denied except for installing the audited signal handlers;
+//! libc ABI operations live in owrt-platform.
 
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
@@ -111,9 +112,14 @@ fn run(socket: &str, acl_dir: &str) -> std::io::Result<()> {
 
     let (wake_r, wake_w) = bus_sys::nonblocking_pipe()?;
     WAKE_FD.store(wake_w.as_raw_fd(), Ordering::SeqCst);
-    bus_sys::set_signal_handler(sys::SIGHUP, on_sighup);
-    bus_sys::set_signal_handler(bus_sys::SIGTERM, on_term);
-    bus_sys::set_signal_handler(bus_sys::SIGINT, on_term);
+    // SAFETY: both fixed handlers only store atomics and write to the live,
+    // nonblocking wake pipe while preserving errno; neither allocates or locks.
+    #[expect(unsafe_code, reason = "install the audited atomic/self-pipe signal handlers")]
+    unsafe {
+        let _ = bus_sys::set_signal_handler(sys::SIGHUP, on_sighup);
+        let _ = bus_sys::set_signal_handler(bus_sys::SIGTERM, on_term);
+        let _ = bus_sys::set_signal_handler(bus_sys::SIGINT, on_term);
+    }
 
     let listener = sys::listen_unix(socket)?;
     let mut server = Server::new(acl_dir.to_owned())?;

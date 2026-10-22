@@ -38,7 +38,6 @@ impl Owner {
     }
 }
 
-#[derive(Debug)]
 pub struct Trigger {
     pub kind: String,
     /// The script array, kept encoded so it can be re-walked per event.
@@ -52,7 +51,6 @@ pub struct Trigger {
 
 /// A command waiting to run. Keyed by its argv, which is how the C's
 /// `trigger_pending` avl tree deduplicates.
-#[derive(Debug)]
 pub struct Pending {
     pub argv: Vec<String>,
     /// Monotonic ms at which it should start.
@@ -64,6 +62,28 @@ pub struct Pending {
     /// The child has been reaped by the main loop's waitpid and this entry
     /// is waiting to be requeued or dropped.
     pub finished: bool,
+}
+
+impl std::fmt::Debug for Trigger {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Trigger")
+            .field("kind", &self.kind)
+            .field("timeout_ms", &self.timeout_ms)
+            .field("owner", &self.owner)
+            .finish_non_exhaustive()
+    }
+}
+
+impl std::fmt::Debug for Pending {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Pending")
+            .field("argument_count", &self.argv.len())
+            .field("due", &self.due)
+            .field("requeue", &self.requeue)
+            .field("pid", &self.pid)
+            .field("finished", &self.finished)
+            .finish_non_exhaustive()
+    }
 }
 
 #[derive(Debug, Default)]
@@ -199,6 +219,26 @@ impl Triggers {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn trigger_debug_does_not_disclose_script_or_expanded_arguments() {
+        let secret = "trigger-secret-marker";
+        let mut triggers = Triggers::default();
+        triggers.list.push(Trigger {
+            kind: "event".into(),
+            script: secret.as_bytes().to_vec(),
+            timeout_ms: 1,
+            owner: Owner::Service("svc".into()),
+        });
+        triggers.queue(vec!["/bin/script".into(), secret.into()], 1, 0);
+        let encoded = format!("{:?}", secret.as_bytes());
+        for debug in [format!("{triggers:?}"), format!("{triggers:#?}")] {
+            assert!(!debug.contains(secret));
+            assert!(!debug.contains(&encoded));
+        }
+        assert_eq!(triggers.pending[0].argv[1], secret);
+    }
+
 
     #[test]
     fn a_dot_star_suffix_is_a_prefix_match_and_nothing_else() {

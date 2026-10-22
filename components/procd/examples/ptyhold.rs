@@ -43,10 +43,7 @@ fn main() {
     std::thread::sleep(std::time::Duration::from_secs(2));
     let mut banner = Vec::new();
     let mut buf = [0u8; 4096];
-    let mut slurp = |banner: &mut Vec<u8>| loop {
-        let Ok(n) = rustix::io::read(&master, &mut buf) else {
-            break;
-        };
+    let mut slurp = |banner: &mut Vec<u8>| while let Ok(n) = rustix::io::read(&master, &mut buf) {
         if n == 0 {
             break;
         }

@@ -349,8 +349,8 @@ mod tests {
             file: None,
             buf: Vec::new(),
         };
-        let a = kept.read().map(|t| scan_meminfo(t));
-        let b = fresh.read().map(|t| scan_meminfo(t));
+        let a = kept.read().map(scan_meminfo);
+        let b = fresh.read().map(scan_meminfo);
         assert!(a.is_some() && b.is_some());
         // Values move between the two reads; both must at least be present.
         assert!(a.unwrap().0 > 0 && b.unwrap().0 > 0);

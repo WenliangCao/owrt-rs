@@ -1,3 +1,5 @@
+//! Cancellable advisory locking and Linux signal registration.
+
 use std::io;
 use std::os::fd::AsFd;
 
@@ -27,9 +29,7 @@ pub fn lock(fd: impl AsFd, cancelled: &std::sync::atomic::AtomicBool) -> io::Res
     }
 }
 
-pub fn set_signal_handler(signal_number: i32, handler: extern "C" fn(i32)) -> io::Result<()> {
-    owrt_platform::unix::set_signal_handler(signal_number, handler)
-}
+pub use owrt_platform::unix::set_signal_handler;
 
 #[cfg(test)]
 mod lock_tests {

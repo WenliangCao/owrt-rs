@@ -1,10 +1,10 @@
 //! Starting and reaping one instance's child.
 //!
 //! `instance_run()` does its work between fork and exec. Here that is a
-//! `pre_exec` closure, which runs in the forked child with the same
-//! constraint: async-signal-safe calls only, and no allocation that could
-//! deadlock on a lock another thread held at fork time. This process is
-//! single-threaded, but the rule is kept anyway because it costs nothing.
+//! `pre_exec` closure. The inherited credential, logging and terminal setup
+//! requires the caller's single-threaded process lifecycle, with no application
+//! lock held across spawning. The unsafe entry points expose that requirement;
+//! their tests run on a standalone main thread rather than a libtest worker.
 //!
 //! Deliberate difference from the C, recorded in the contract: the child is
 //! reaped by polling `waitpid(WNOHANG)` from the event loop rather than from
@@ -199,7 +199,11 @@ pub fn jail_argv(inst: &Instance) -> Vec<String> {
 ///
 /// A jailed instance skips the privilege drop entirely -- ujail does it, and
 /// doing it here as well would leave ujail unable to set up the sandbox.
-pub fn start(
+/// # Safety
+/// Spawn only from a single-threaded process with no held application locks.
+/// The inherited cgroup-warning and NSS setup must remain valid after fork.
+#[expect(unsafe_code, reason = "callers must establish the inherited post-fork setup contract")]
+pub unsafe fn start(
     inst: &Instance,
     service: &str,
 ) -> io::Result<(i32, Option<LogPipe>, Option<LogPipe>)> {
@@ -289,32 +293,43 @@ pub fn start(
         sys::ulog(sys::LOG_WARNING, &format!("{context}: {error}"));
     }
     inherit_ignored_sigpipe(&mut cmd);
-    owrt_platform::procd::process::configure_instance(
-        &mut cmd,
-        setup,
-        cgroup_warning,
-        sys::apply_limit,
-    );
+    #[expect(unsafe_code, reason = "fixed instance setup in the single-threaded supervisor")]
+    // SAFETY: the supervisor is single-threaded; setup owns every captured
+    // value and these fixed callbacks retain no parent locks or borrows. The
+    // child executes the configured setup once and then execs or exits.
+    unsafe {
+        owrt_platform::procd::process::configure_instance(
+            &mut cmd,
+            setup,
+            cgroup_warning,
+            sys::apply_limit,
+        );
+    }
 
     let mut child = cmd.spawn()?;
     let pid = child.id() as i32;
-    let out = match child.stdout.take() {
-        Some(p) => Some(LogPipe::new(
-            std::os::fd::OwnedFd::from(p),
-            crate::sys::LOG_INFO,
-        )?),
-        None => None,
-    };
-    let err = match child.stderr.take() {
-        Some(p) => Some(LogPipe::new(
-            std::os::fd::OwnedFd::from(p),
-            crate::sys::LOG_ERR,
-        )?),
-        None => None,
+    let pipes = (|| -> io::Result<_> {
+        let out = child.stdout.take()
+            .map(|pipe| LogPipe::new(pipe.into(), crate::sys::LOG_INFO))
+            .transpose()?;
+        let err = child.stderr.take()
+            .map(|pipe| LogPipe::new(pipe.into(), crate::sys::LOG_ERR))
+            .transpose()?;
+        Ok((out, err))
+    })();
+    let (out, err) = match pipes {
+        Ok(pipes) => pipes,
+        Err(error) => {
+            // A successfully spawned child must not keep running after its
+            // supervision setup failed. The event loop reaps it without a
+            // blocking wait, exactly as it reaps other untracked children.
+            let _ = child.kill();
+            return Err(error);
+        }
     };
     // `child` is dropped here without waiting; the loop reaps by pid the way
     // the rest of this supervisor does.
-    std::mem::forget(child);
+    drop(child);
     Ok((pid, out, err))
 }
 
@@ -375,7 +390,11 @@ pub fn signal_status(pid: i32, sig: i32) -> i32 {
 /// `fork_worker()`: start one inittab action -- new session, stdio on
 /// /dev/<id> (or /dev/null when the open fails), controlling tty, foreground
 /// process group, then execvp. The pid is reaped by the main loop.
-pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
+/// # Safety
+/// Spawn only from a single-threaded process with no held application locks;
+/// the existing terminal path setup allocates after fork and before exec.
+#[expect(unsafe_code, reason = "callers must establish the inherited terminal setup contract")]
+pub unsafe fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
     if argv.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
     }
@@ -387,10 +406,13 @@ pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
     } else {
         Some(id.to_string())
     };
-    owrt_platform::procd::process::configure_tty(&mut cmd, dev, sys::patch_fd);
+    #[expect(unsafe_code, reason = "fixed tty setup in the single-threaded supervisor")]
+    // SAFETY: this is the single-threaded inittab path; the callback captures
+    // no parent locks or borrows, and the owned tty name lives through exec.
+    unsafe { owrt_platform::procd::process::configure_tty(&mut cmd, dev, sys::patch_fd) };
     let child = cmd.spawn()?;
     let pid = child.id() as i32;
-    std::mem::forget(child);
+    drop(child);
     Ok(pid)
 }
 
@@ -458,117 +480,7 @@ mod tests {
     }
 
     #[test]
-    fn an_unjailed_instance_gets_no_ujail_wrapper() {
-        let mut i = jailed();
-        i.has_jail = false;
-        // jail_argv is only consulted when has_jail; the guard lives in
-        // start(), so assert the flag rather than the builder.
-        assert!(!i.has_jail);
-    }
-
-    #[test]
-    fn reap_any_collects_an_exited_inittab_session() {
-        // Isolate the all-child reaper from concurrent tests' children, using
-        // the same controlled subprocess pattern as the watchdog tests.
-        const CHILD: &str = "OWRT_PROCD_REAP_SESSION_TEST";
-        if std::env::var_os(CHILD).is_none() {
-            let status = Command::new(std::env::current_exe().unwrap())
-                .args([
-                    "--exact",
-                    "proc::tests::reap_any_collects_an_exited_inittab_session",
-                    "--test-threads=1",
-                ])
-                .env(CHILD, "1")
-                .status()
-                .unwrap();
-            assert!(status.success(), "isolated inittab reaper test failed");
-            return;
-        }
-
-        let pid = spawn_tty(&["/bin/sh".into(), "-c".into(), "exit 23".into()], "null")
-            .expect("start the actual inittab child setup");
-        // Wait for this child to exit without consuming its status. The
-        // production nonblocking reaper must then collect the new session.
-        use rustix::process::{waitid, Pid, WaitId, WaitIdOptions};
-        waitid(
-            WaitId::Pid(Pid::from_raw(pid).unwrap()),
-            WaitIdOptions::EXITED | WaitIdOptions::NOWAIT,
-        )
-        .unwrap()
-        .expect("child exit status");
-        let group = rustix::process::getpgid(Pid::from_raw(pid)).unwrap();
-        assert_eq!(
-            group.as_raw_pid(),
-            pid,
-            "inittab child must lead its session"
-        );
-        assert_ne!(group, rustix::process::getpgrp());
-        let reaped = reap_any();
-        if reaped.is_none() {
-            // Reap the owned child even when the regression is present.
-            let _ = try_reap(pid);
-        }
-        assert_eq!(reaped, Some((pid, 23 << 8)));
-    }
-
-    /// Run `script` through start() with a piped stdout and return what it
-    /// printed, reaping the child.
-    fn run_piped(script: &str) -> Vec<String> {
-        let mut i = Instance::new("one");
-        i.valid = true;
-        i.command = vec!["/bin/sh".into(), "-c".into(), script.into()];
-        i.stdout_to_log = true;
-        let (pid, out, err) = start(&i, "svc").expect("spawn /bin/sh");
-        assert!(err.is_none(), "stderr was not asked for");
-        let mut out = out.expect("stdout pipe");
-        let mut lines = Vec::new();
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
-        let mut reaped = false;
-        loop {
-            let alive = out.poll_lines(|_, l| lines.push(String::from_utf8_lossy(l).into_owned()));
-            if !reaped && try_reap(pid).is_some() {
-                reaped = true;
-            }
-            if !alive || std::time::Instant::now() > deadline {
-                break;
-            }
-            std::thread::sleep(std::time::Duration::from_millis(10));
-        }
-        assert!(reaped, "child never exited");
-        lines
-    }
-
-    /// R81 F21 (second half): the C child inherits SIGPIPE ignored from
-    /// procd_signal(); std resets it to SIG_DFL, which this puts back.
-    #[test]
-    fn a_child_inherits_sigpipe_ignored_like_the_c_child() {
-        owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
-        let lines = run_piped("grep SigIgn /proc/self/status");
-        let mask = lines
-            .iter()
-            .find_map(|l| l.strip_prefix("SigIgn:"))
-            .map(|h| u64::from_str_radix(h.trim(), 16).expect("hex mask"))
-            .expect("SigIgn line");
-        let bit = 1u64 << (owrt_ubus::sys::SIGPIPE - 1);
-        assert_ne!(mask & bit, 0, "SIGPIPE not ignored: {mask:#x}");
-    }
-
-    /// R81 F22: `setlbf = _stdout >= 0` -- a piped stdout gets the preload.
-    #[test]
-    fn a_piped_stdout_gets_libsetlbf_preloaded() {
-        let lines = run_piped("echo LD_PRELOAD=$LD_PRELOAD");
-        let want = format!("LD_PRELOAD={SETLBF}");
-        assert!(lines.iter().any(|l| l == &want), "{lines:?}");
-    }
-
-    #[test]
-    fn an_unpiped_stdout_gets_no_preload() {
-        let mut i = Instance::new("one");
-        i.valid = true;
-        i.command = vec!["/bin/sh".into(), "-c".into(), "exit 0".into()];
-        // No pipe means no way to read the env back; assert the predicate
-        // start() uses instead.
-        assert!(!i.stdout_to_log);
+    fn cgroup_path_keeps_the_upstream_length_limit() {
         let dir = cgroup_dir("svc", "one");
         // With a cgroup2 root the path is the C's; without one, None. Either
         // way the length rule holds.

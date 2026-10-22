@@ -118,7 +118,8 @@ pub fn install_sigchld_wakeup() -> io::Result<std::os::fd::OwnedFd> {
     SIGCHLD_WAKEUP.store(w.as_raw_fd(), std::sync::atomic::Ordering::SeqCst);
     // The write end lives for the process; the handler owns it from here.
     std::mem::forget(w);
-    let _ = crate::unix::set_signal_handler(SIGCHLD, sigchld_signal);
+    // SAFETY: this fixed handler only uses atomics and async-signal-safe syscalls.
+    let _ = unsafe { crate::unix::set_signal_handler(SIGCHLD, sigchld_signal) };
     Ok(r)
 }
 
@@ -128,16 +129,19 @@ pub fn install_sigchld_wakeup() -> io::Result<std::os::fd::OwnedFd> {
 pub fn install_pid1_handlers() {
     use crate::unix::set_signal_handler;
     for sig in [2, 15, 10, 12, 30] {
-        let _ = set_signal_handler(sig, shutdown_signal);
+        // SAFETY: this fixed handler only uses atomics and async-signal-safe syscalls.
+        let _ = unsafe { set_signal_handler(sig, shutdown_signal) };
     }
     // SIGSEGV and SIGBUS as in the C, plus SIGABRT: a Rust abort (an
     // allocation failure, or a panic whose hook did not get to reboot) must
     // end the same way, not as an init exit and a kernel panic.
     for sig in [11, 7, 6] {
-        let _ = set_signal_handler(sig, crash_signal);
+        // SAFETY: this fixed handler only uses atomics and async-signal-safe syscalls.
+        let _ = unsafe { set_signal_handler(sig, crash_signal) };
     }
     extern "C" fn dummy(_sig: i32) {}
-    let _ = set_signal_handler(1, dummy);
+    // SAFETY: this fixed handler only uses atomics and async-signal-safe syscalls.
+    let _ = unsafe { set_signal_handler(1, dummy) };
 }
 
 /// Narrow regression hook for the fixed handler's errno preservation.

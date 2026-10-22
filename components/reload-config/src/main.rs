@@ -1,4 +1,4 @@
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 // The ubus transport targets Linux; other hosts only provide smoke builds.
@@ -37,7 +37,10 @@ extern "C" fn handle_signal(_: i32) {
 
 fn install_signal_handlers() -> Result<(), std::io::Error> {
     for signal in [unix::SIGINT, unix::SIGTERM] {
-        unix::set_signal_handler(signal, handle_signal)?;
+        // SAFETY: the fixed handler performs only an atomic store and cannot
+        // allocate, lock, access TLS, or unwind through the signal trampoline.
+        #[expect(unsafe_code, reason = "register the fixed async-signal-safe handler")]
+        unsafe { unix::set_signal_handler(signal, handle_signal)?; }
     }
     Ok(())
 }

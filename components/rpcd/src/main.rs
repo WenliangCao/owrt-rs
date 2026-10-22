@@ -2,7 +2,7 @@
 //! plugin-layer objects (`file`, `luci`; contract C5) as one ubus object server.
 //! Runtime state lives under /var/run/rpcd-rs (decision 0013).
 
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
@@ -108,7 +108,7 @@ impl Deferrer {
         let taken = std::sync::Arc::clone(&slot);
         let d = self.clone();
         let spawned = std::thread::Builder::new().spawn(move || {
-            let req = taken.lock().unwrap_or_else(|e| e.into_inner()).take();
+            let req = taken.lock().expect("shared daemon state poisoned by a panic").take();
             if let Some(req) = req {
                 d.finish(req, work());
             }
@@ -117,7 +117,7 @@ impl Deferrer {
             Ok(_) => None,
             Err(error) => {
                 eprintln!("rpcd-rs: cannot create worker thread: {error}");
-                let req = slot.lock().unwrap_or_else(|e| e.into_inner()).take();
+                let req = slot.lock().expect("shared daemon state poisoned by a panic").take();
                 Some((req.expect("unstarted worker keeps its request"), session::Reply::empty(owrt_ubus::status::UNKNOWN_ERROR)))
             }
         }
@@ -292,9 +292,14 @@ fn main() {
         std::process::exit(1);
     });
     WAKE_FD.store(pipe_w.as_raw_fd(), Ordering::SeqCst);
-    sys::set_signal_handler(SIGHUP, handle_signal);
-    sys::set_signal_handler(SIGUSR1, handle_signal);
-    sys::set_signal_handler(SIGCHLD, handle_signal);
+    // SAFETY: handle_signal only updates atomics and performs the platform's
+    // errno-preserving nonblocking wake write; it never allocates or unwinds.
+    #[expect(unsafe_code, reason = "register the fixed async-signal-safe handler")]
+    unsafe {
+        let _ = sys::set_signal_handler(SIGHUP, handle_signal);
+        let _ = sys::set_signal_handler(SIGUSR1, handle_signal);
+        let _ = sys::set_signal_handler(SIGCHLD, handle_signal);
+    }
 
     let mut conn = match Connection::connect(socket.as_deref()) {
         Ok(c) => c,

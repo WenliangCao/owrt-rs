@@ -212,8 +212,11 @@ impl RunQueue {
                     .stdout(Stdio::from(w))
                     .stderr(Stdio::from(w2));
                 proc::inherit_ignored_sigpipe(&mut cmd);
+                // Prepare the reader before spawning so a setup error cannot
+                // leave a running script without a queue entry.
+                let out = LogPipe::new(r, LOG_NOTICE)?;
                 let child = cmd.spawn()?;
-                Ok((child.id() as i32, LogPipe::new(r, LOG_NOTICE)?))
+                Ok((child.id() as i32, out))
             });
             match spawned {
                 Ok((pid, out)) => {
@@ -383,7 +386,7 @@ mod tests {
     #[test]
     fn a_stop_that_ignores_sigterm_is_killed_after_the_cancel_timeout() {
         let dir = tmpdir("kill");
-        script(&dir, "svc", "trap '' TERM; sleep 60");
+        script(&dir, "svc", "trap '' TERM; kill -STOP $$; exec sleep 60");
         let d = dir.to_str().unwrap();
         let mut q = RunQueue::default();
         q.queue(d, "svc", "stop", 0);
@@ -392,12 +395,17 @@ mod tests {
         // cancel timeout. Real time barely moves.
         q.pump(0);
         let pid = q.jobs[0].pid.expect("started");
-        // Give the shell real time to install its trap before the fake clock
-        // delivers SIGTERM, or the default disposition ends it.
-        std::thread::sleep(std::time::Duration::from_millis(300));
+        // The shell stops itself only after installing the trap. Observe that
+        // state without consuming its eventual exit status or guessing when
+        // it has run; even a heavily loaded test host now has a fixed order.
+        use rustix::process::{waitid, Pid, WaitId, WaitIdOptions};
+        let child = Pid::from_raw(pid).expect("spawned child pid");
+        waitid(WaitId::Pid(child), WaitIdOptions::STOPPED | WaitIdOptions::NOWAIT)
+            .unwrap()
+            .expect("child stopped after installing its TERM trap");
+        assert!(proc::signal(pid, 18)); // SIGCONT: the trap is now installed.
         q.pump(STOP_RUN_TIMEOUT_MS);
         assert_eq!(q.jobs[0].kill_at, Some(STOP_RUN_TIMEOUT_MS + STOP_CANCEL_TIMEOUT_MS));
-        std::thread::sleep(std::time::Duration::from_millis(100));
         assert!(proc::try_reap(pid).is_none(), "SIGTERM is ignored by the script");
 
         q.pump(STOP_RUN_TIMEOUT_MS + STOP_CANCEL_TIMEOUT_MS);

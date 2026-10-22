@@ -66,7 +66,6 @@ pub enum InstanceChange {
     Start,
 }
 
-#[derive(Debug)]
 pub struct Service {
     pub name: String,
     /// `instances`, keyed by instance name. BTreeMap because the C's vlist is
@@ -87,6 +86,21 @@ pub struct Service {
     pub deleted: bool,
     /// `update_start` seen, waiting for `update_complete`.
     pub update_pending: bool,
+}
+
+// The ubus data/trigger payloads may contain application credentials. Debug
+// retains the service lifecycle and redacted instance summaries only.
+impl std::fmt::Debug for Service {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Service")
+            .field("name", &self.name)
+            .field("instances", &self.instances)
+            .field("autostart", &self.autostart)
+            .field("deleted", &self.deleted)
+            .field("update_pending", &self.update_pending)
+            .field("data_count", &self.data.len())
+            .finish_non_exhaustive()
+    }
 }
 
 impl Service {
@@ -191,6 +205,19 @@ impl Service {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn service_debug_omits_opaque_data_and_triggers() {
+        let secret = b"service-secret-marker";
+        let mut service = Service::new("svc");
+        service.data.insert("opaque".into(), (3, secret.to_vec()));
+        service.trigger = Some(secret.to_vec());
+        let debug = format!("{service:?}");
+        assert!(!debug.contains(&format!("{secret:?}")));
+        assert!(!debug.contains("trigger"));
+        assert_eq!(service.trigger.as_deref(), Some(secret.as_slice()));
+    }
+
 
     #[test]
     fn filtered_lists_keep_order_last_field_rules_and_current_services() {

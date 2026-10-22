@@ -48,7 +48,7 @@ pub fn validate_call(file: &str) -> Result<Vec<u8>, String> {
     };
     // The reaper in the main loop collects the child; the C never waits
     // either. Dropping the handle does not kill or wait.
-    std::mem::forget(child);
+    drop(child);
 
     let mut acc: Vec<u8> = Vec::new();
     let mut buf = [0u8; 64];

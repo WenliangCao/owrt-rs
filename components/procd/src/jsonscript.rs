@@ -49,6 +49,9 @@ pub struct Ctx<'a> {
     out: Run,
     /// `ctx->abort`, set by `return`.
     abort: bool,
+    // Raw ubus blobs bypass JSON's parser limit. Share the conversion boundary
+    // so recursive command and expression evaluation cannot exhaust the stack.
+    depth: usize,
     /// The name of the already-running root file. A trigger can resolve only
     /// this name; hotplug also resolves other paths through its file cache.
     own_type: Option<&'a str>,
@@ -69,6 +72,7 @@ pub fn run_rule(block: Field<'_>, vars: &BTreeMap<String, String>, own_type: Opt
         vars,
         out: Run::default(),
         abort: false,
+        depth: 0,
         own_type,
         devname_fallback: false,
         files: None,
@@ -90,6 +94,7 @@ pub fn run_hotplug_rule(
         vars,
         out: Run::default(),
         abort: false,
+        depth: 0,
         own_type: Some(root),
         devname_fallback: true,
         files: Some(files),
@@ -122,6 +127,18 @@ impl Ctx<'_> {
     /// string the whole array is one command, otherwise each element is
     /// itself a block. `return` propagates as a value below -1.
     fn process_cmd(&mut self, block: Field<'_>) -> i32 {
+        if self.depth >= owrt_ubus::convert::MAX_CONTAINER_DEPTH {
+            self.error("Script nesting exceeds 64 containers");
+            self.abort = true;
+            return -1;
+        }
+        self.depth += 1;
+        let result = self.process_cmd_inner(block);
+        self.depth -= 1;
+        result
+    }
+
+    fn process_cmd_inner(&mut self, block: Field<'_>) -> i32 {
         if block.ty != MsgType::Array as u32 {
             self.error("Unexpected element type");
             return -1;
@@ -246,6 +263,18 @@ impl Ctx<'_> {
 
     /// `json_process_expr()`.
     fn process_expr(&mut self, cur: Field<'_>) -> Truth {
+        if self.depth >= owrt_ubus::convert::MAX_CONTAINER_DEPTH {
+            self.error("Script nesting exceeds 64 containers");
+            self.abort = true;
+            return Err(());
+        }
+        self.depth += 1;
+        let result = self.process_expr_inner(cur);
+        self.depth -= 1;
+        result
+    }
+
+    fn process_expr_inner(&mut self, cur: Field<'_>) -> Truth {
         if cur.ty != MsgType::Array as u32 {
             self.error("Unexpected element type");
             return Err(());
@@ -463,6 +492,56 @@ mod tests {
     }
 
     #[test]
+    fn raw_nested_commands_are_bounded_before_the_stack_is_exhausted() {
+        for depth in [63, 64, 256] {
+            let mut blob = BlobBuf::new();
+            let containers: Vec<_> = (0..depth).map(|_| blob.msg_open_array("")).collect();
+            blob.msg_string("", "run_script");
+            blob.msg_string("", "/bin/true");
+            for container in containers.into_iter().rev() {
+                blob.msg_close(container);
+            }
+            let result = run_script(&blob, &BTreeMap::new());
+            if depth <= 64 {
+                assert_eq!(result.commands, [("run_script".into(), vec!["/bin/true".into()])]);
+                assert!(result.errors.is_empty());
+            } else {
+                assert!(result.commands.is_empty());
+                assert_eq!(result.errors, ["Script nesting exceeds 64 containers"]);
+            }
+        }
+    }
+
+    #[test]
+    fn raw_nested_expressions_fail_without_running_either_branch() {
+        let mut blob = BlobBuf::new();
+        let command = blob.msg_open_array("");
+        blob.msg_string("", "if");
+        let mut expressions = Vec::new();
+        for _ in 0..256 {
+            expressions.push(blob.msg_open_array(""));
+            blob.msg_string("", "not");
+        }
+        let leaf = blob.msg_open_array("");
+        blob.msg_string("", "has");
+        blob.msg_string("", "VARIABLE");
+        blob.msg_close(leaf);
+        for expression in expressions.into_iter().rev() {
+            blob.msg_close(expression);
+        }
+        for branch in ["true", "false"] {
+            let action = blob.msg_open_array("");
+            blob.msg_string("", "run_script");
+            blob.msg_string("", branch);
+            blob.msg_close(action);
+        }
+        blob.msg_close(command);
+        let result = run_script(&blob, &BTreeMap::new());
+        assert!(result.commands.is_empty());
+        assert_eq!(result.errors, ["Script nesting exceeds 64 containers"]);
+    }
+
+    #[test]
     fn an_if_eq_rule_runs_its_command_with_the_variable_expanded() {
         let b = if_eq_script();
         let out = run_script(&b, &vars(&[("ACT", "go"), ("WHO", "first")]));
@@ -493,7 +572,7 @@ mod tests {
     #[test]
     fn percent_rules() {
         let v = vars(&[("A", "1")]);
-        let ctx = Ctx { vars: &v, out: Run::default(), abort: false, own_type: None,
+        let ctx = Ctx { vars: &v, out: Run::default(), abort: false, depth: 0, own_type: None,
             devname_fallback: false, files: None, visited: BTreeSet::new() };
         assert_eq!(ctx.eval_string("plain").unwrap(), "plain");
         assert_eq!(ctx.eval_string("%A%").unwrap(), "1");

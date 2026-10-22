@@ -29,11 +29,14 @@ pub struct InstanceSetup {
     pub uid: Option<u32>,
 }
 
-/// The sole caller is procd's existing instance_run child. Configuration is
-/// owned; limit parsing remains in the child, preserving its cgroup/nice/
-/// limits/groups/gid/uid order. The fixed warning reporter is noncapturing
-/// and retains procd's logging policy. The application stays single-threaded.
-pub fn configure_instance(
+/// Install the instance's cgroup, scheduling and credential setup before exec.
+///
+/// # Safety
+/// The caller must uphold `CommandExt::pre_exec`'s requirements when spawning
+/// this command, including for `warning`, `apply_limit`, and NSS group lookup.
+/// No inherited lock may be held and all post-fork operations must be valid in
+/// the child. A noncapturing function pointer alone does not ensure this.
+pub unsafe fn configure_instance(
     command: &mut Command,
     setup: InstanceSetup,
     warning: fn(&str, &io::Error),
@@ -113,9 +116,12 @@ fn cgroup_add_self(dir: &CStr) -> io::Result<()> {
     Ok(())
 }
 
-/// Existing inittab pre_exec sequence; patch is the fixed business path/fallback
-/// policy and never an arbitrary captured closure.
-pub fn configure_tty(
+/// Install the inittab session and terminal setup before exec.
+///
+/// # Safety
+/// The caller must uphold `CommandExt::pre_exec`'s post-fork requirements when
+/// spawning the command, including every operation performed by `patch`.
+pub unsafe fn configure_tty(
     command: &mut Command,
     device: Option<String>,
     patch: fn(Option<&str>, i32, bool) -> bool,
@@ -166,9 +172,13 @@ pub fn execvp(program: &CStr, args: &[CString]) -> io::Error {
     io::Error::last_os_error()
 }
 
-/// The existing non-exec hotplug firmware worker. Only its owned directory/
-/// event map and fixed noncapturing entry cross this application fork boundary.
-pub fn spawn_firmware<T: Send + 'static>(input: T, entry: fn(T)) -> Option<i32> {
+/// Fork a firmware worker that exits after running `entry`.
+///
+/// # Safety
+/// The process must be single-threaded at the fork. `input`, `entry`, and their
+/// destructors must not depend on parent locks or share mutable memory with the
+/// parent. The child must not unwind back into inherited application state.
+pub unsafe fn spawn_firmware<T: Send + 'static>(input: T, entry: fn(T)) -> Option<i32> {
     unsafe extern "C" {
         fn fork() -> i32;
     }

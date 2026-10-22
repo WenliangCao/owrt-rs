@@ -83,7 +83,6 @@ pub enum Run {
 /// Only the fields this build acts on are broken out. `raw` keeps the
 /// original blob so `list` can echo back what it was given and so an
 /// unhandled attribute is not silently dropped from the diff.
-#[derive(Debug)]
 pub struct Instance {
     pub name: String,
     /// argv. Empty means the config was rejected -- see `valid`.
@@ -178,6 +177,25 @@ pub struct Instance {
     /// `update_complete` stops whatever is still marked -- that is what
     /// vlist_update/vlist_flush do across a multi-call update.
     pub stale: bool,
+}
+
+// Commands, environments, data and raw trigger blobs may all carry secrets.
+// Keep diagnostic output focused on process state, independently of ubus dump.
+impl std::fmt::Debug for Instance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Instance")
+            .field("name", &self.name)
+            .field("valid", &self.valid)
+            .field("state", &self.state)
+            .field("pid", &self.pid)
+            .field("exit_code", &self.exit_code)
+            .field("respawn_count", &self.respawn_count)
+            .field("deadline", &self.deadline)
+            .field("has_jail", &self.has_jail)
+            .field("argument_count", &self.command.len())
+            .field("environment_count", &self.env.len())
+            .finish_non_exhaustive()
+    }
 }
 
 impl Instance {
@@ -866,6 +884,24 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn instance_debug_does_not_disclose_arguments_environment_or_blob_data() {
+        let secret = "service-token-that-must-not-be-logged";
+        let mut instance = Instance::new("service");
+        instance.command = vec!["/bin/service".into(), secret.into()];
+        instance.env.insert("TOKEN".into(), secret.into());
+        instance.data.insert("opaque".into(), (3, secret.as_bytes().to_vec()));
+        instance.triggers = Some(secret.as_bytes().to_vec());
+        let encoded = format!("{:?}", secret.as_bytes());
+        for debug in [format!("{instance:?}"), format!("{instance:#?}")] {
+            assert!(!debug.contains(secret), "credential leaked: {debug}");
+            assert!(!debug.contains(&encoded), "encoded credential leaked: {debug}");
+        }
+        assert_eq!(instance.command[1], secret);
+        assert_eq!(instance.env["TOKEN"], secret);
+    }
+
 
     /// R81 F21: `*self = new` dropped the running child's log pipes.
     #[test]

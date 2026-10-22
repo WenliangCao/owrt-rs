@@ -7,6 +7,10 @@ license = "MIT OR Apache-2.0"
 description = "procd replacement: service supervision, triggers and PID 1 (see docs/contracts/procd.md)"
 publish = false
 
+[features]
+default = []
+process-test-support = []
+
 [[bin]]
 name = "procd-rs"
 path = "src/main.rs"
@@ -22,3 +26,9 @@ lto = true
 opt-level = 3
 panic = "abort"
 strip = true
+
+[[test]]
+name = "process_owner"
+path = "tests/process_owner.rs"
+harness = false
+required-features = ["process-test-support"]

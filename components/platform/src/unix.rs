@@ -55,7 +55,7 @@ pub fn set_nonblocking(fd: i32) -> io::Result<()> {
 }
 
 /// Opaque disposition returned by libc; callers cannot invent function pointers.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct SignalDisposition(usize);
 
 fn disposition(number: i32, handler: usize) -> io::Result<SignalDisposition> {
@@ -73,9 +73,19 @@ pub fn observe_signal(number: i32) -> io::Result<SignalDisposition> {
     restore_signal(number, previous)?;
     Ok(previous)
 }
-/// Callers are the existing reviewed atomic/self-pipe handlers. They must keep
-/// their bodies async-signal-safe; this boundary does not run arbitrary closures.
-pub fn set_signal_handler(number: i32, handler: extern "C" fn(i32)) -> io::Result<()> {
+/// Register a process-wide signal handler.
+///
+/// # Safety
+/// `handler` and everything it calls must be async-signal-safe, including when
+/// interrupting another invocation. It must not allocate, lock, unwind, or use
+/// non-reentrant library functions. Any referenced state must remain valid for
+/// every possible delivery while the handler is installed.
+///
+/// ```compile_fail
+/// extern "C" fn handler(_: i32) {}
+/// owrt_platform::unix::set_signal_handler(1, handler).unwrap();
+/// ```
+pub unsafe fn set_signal_handler(number: i32, handler: extern "C" fn(i32)) -> io::Result<()> {
     disposition(number, handler as usize).map(|_| ())
 }
 /// Keep the original shell/CLI SIGPIPE inheritance across Command's runtime.

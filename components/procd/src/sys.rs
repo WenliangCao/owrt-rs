@@ -11,9 +11,6 @@ pub use owrt_platform::procd::identity::{lookup_group, lookup_user};
 use owrt_platform::procd::process::reboot_cmd;
 use owrt_platform::procd::signals::crash_reboot;
 
-pub fn take_inherited_watchdog(parse: fn(&str) -> u32) -> Option<io::Result<std::os::fd::OwnedFd>> {
-    owrt_platform::procd::watchdog::take_inherited_watchdog(parse)
-}
 pub fn watchdog_set_timeout(fd: impl std::os::fd::AsFd, value: &mut i32) -> io::Result<()> {
     owrt_platform::procd::watchdog::set_timeout(fd, value)
 }

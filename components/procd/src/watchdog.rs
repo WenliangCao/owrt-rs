@@ -40,14 +40,14 @@ impl Wdt {
         self.fd.as_ref().map(|f| f.as_raw_fd()).unwrap_or(-1)
     }
 
-    /// `watchdog_open()`: the WDTFD handover, else /dev/watchdog.
-    fn open(&mut self, cloexec: bool) -> bool {
+    /// `watchdog_open()`: an owned startup handover, else /dev/watchdog.
+    fn open(&mut self, cloexec: bool, inherited: Option<std::io::Result<OwnedFd>>) -> bool {
         if self.fd.is_some() {
             return true;
         }
-        // preinit has transferred the inherited descriptor across exec; tests
-        // explicitly relinquish it with into_raw_fd. Preserve that exact owner.
-        let fd = match crate::sys::take_inherited_watchdog(crate::sys::atoi_u32) {
+        // Startup establishes ownership before handing a descriptor to this
+        // safe API. Runtime reopens never adopt a number from the environment.
+        let fd = match inherited {
             Some(result) => result,
             None => rustix::fs::open(
                 c"/dev/watchdog",
@@ -94,9 +94,12 @@ impl Wdt {
         self.next_ping = Some(now + self.frequency as i64 * 1000);
     }
 
-    /// `watchdog_init()`.
-    pub fn init(&mut self, now: i64, preinit: bool) {
-        if !self.open(!preinit) {
+    /// Initialize the watchdog, consuming an optional owned preinit descriptor.
+    ///
+    /// Pass the startup handover only once; later initialization retries pass
+    /// `None` and reopen /dev/watchdog if the initial attempt failed.
+    pub fn init(&mut self, now: i64, preinit: bool, inherited: Option<std::io::Result<OwnedFd>>) {
+        if !self.open(!preinit, inherited) {
             return;
         }
         log!(crate::sys::LOG_INFO, "- watchdog -");
@@ -145,7 +148,7 @@ impl Wdt {
             let release = self.magicclose;
             self.close(release);
         } else {
-            self.open(true);
+            self.open(true, None);
             self.set_drv_timeout();
             self.ping_and_rearm(now);
         }
@@ -211,95 +214,6 @@ impl Wdt {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[cfg(target_os = "linux")]
-    #[test]
-    fn inherited_watchdog_exec_flags_and_final_close() {
-        use std::os::fd::{AsRawFd, IntoRawFd};
-        use std::process::Command;
-
-        // Keep WDTFD mutation and intentional fd inheritance out of the
-        // concurrent test process. The child runs only this existing test.
-        const CHILD: &str = "OWRT_PROCD_WDT_OWNERSHIP_TEST";
-        if std::env::var_os(CHILD).is_none() {
-            let status = Command::new(std::env::current_exe().unwrap())
-                .args([
-                    "--exact",
-                    "watchdog::tests::inherited_watchdog_exec_flags_and_final_close",
-                    "--test-threads=1",
-                ])
-                .env(CHILD, "1")
-                .env_remove("WDTFD")
-                .status()
-                .unwrap();
-            assert!(status.success(), "isolated watchdog ownership test failed");
-            return;
-        }
-
-        let (reader, writer) = rustix::pipe::pipe_with(
-            rustix::pipe::PipeFlags::CLOEXEC | rustix::pipe::PipeFlags::NONBLOCK,
-        )
-        .unwrap();
-        // A high fd avoids shell startup reusing a descriptor that should
-        // have disappeared at exec. Only the transferred writer remains.
-        let transferred = rustix::io::fcntl_dupfd_cloexec(&writer, 1000).unwrap();
-        drop(writer);
-        rustix::io::fcntl_setfd(&transferred, rustix::io::FdFlags::empty()).unwrap();
-        let inherited = transferred.into_raw_fd();
-        std::env::set_var("WDTFD", inherited.to_string());
-        let mut watchdog = Wdt::default();
-        watchdog.init(0, false);
-        assert!(std::env::var_os("WDTFD").is_none());
-        assert_eq!(
-            watchdog.handover_fd(),
-            Some(inherited),
-            "handover must not duplicate"
-        );
-
-        assert!(rustix::io::fcntl_getfd(watchdog.fd.as_ref().unwrap())
-            .unwrap()
-            .contains(rustix::io::FdFlags::CLOEXEC));
-
-        for cloexec in [true, false, true] {
-            watchdog.set_cloexec(cloexec);
-            let flags = rustix::io::fcntl_getfd(watchdog.fd.as_ref().unwrap()).unwrap();
-            assert_eq!(flags.contains(rustix::io::FdFlags::CLOEXEC), cloexec);
-            let script = if cloexec {
-                "test ! -e /proc/self/fd/\"$1\""
-            } else {
-                "test -e /proc/self/fd/\"$1\""
-            };
-            assert!(
-                Command::new("/bin/sh")
-                    .args(["-c", script, "watchdog-exec", &inherited.to_string()])
-                    .status()
-                    .unwrap()
-                    .success(),
-                "exec inheritance differs from CLOEXEC"
-            );
-        }
-
-        watchdog.set_magicclose(true);
-        watchdog.set_stopped(true, 0);
-        assert!(watchdog.stopped());
-        assert_eq!(watchdog.handover_fd(), None);
-        let mut bytes = [0; 8];
-        let count = rustix::io::read(&reader, &mut bytes).unwrap();
-        assert_eq!(&bytes[..count], b"XV", "one init ping then one magic close");
-        assert_eq!(
-            rustix::io::read(&reader, &mut bytes).unwrap(),
-            0,
-            "magic close left an extra writer reference alive"
-        );
-
-        let reused = rustix::io::fcntl_dupfd_cloexec(&reader, inherited).unwrap();
-        assert_eq!(reused.as_raw_fd(), inherited);
-        drop(watchdog);
-        assert!(
-            rustix::io::fcntl_getfd(&reused).is_ok(),
-            "drop closed a reused fd"
-        );
-    }
 
     #[test]
     fn the_method_arithmetic_matches_watchdog_set() {

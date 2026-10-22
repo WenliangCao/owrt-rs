@@ -5,6 +5,12 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 
+// The hand-written libc layouts below are verified for these deployment and
+// CI targets. Refuse other ABIs instead of exposing safe functions backed by
+// unverified struct sizes (notably time_t, timeval, ifreq and msghdr).
+#[cfg(not(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64"))))]
+compile_error!("owrt-platform supports only Linux aarch64 and x86_64 ABIs");
+
 #[cfg(target_os = "linux")]
 pub mod procd;
 #[cfg(target_os = "linux")]

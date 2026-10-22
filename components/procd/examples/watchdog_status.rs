@@ -1,9 +1,8 @@
 //! Exercise the production watchdog init/status path with ioctl injection.
-//! WDTFD always owns a socketpair; this program never opens /dev/watchdog.
-#![forbid(unsafe_code)]
+//! Each injected descriptor owns a socketpair; this never opens /dev/watchdog.
+#![deny(unsafe_code)]
 
 use std::io::Read;
-use std::os::fd::IntoRawFd;
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Mutex,
@@ -30,7 +29,7 @@ mod sys {
     pub fn atoi_u32(s: &str) -> u32 {
         s.parse().unwrap()
     }
-    pub use owrt_platform::procd::watchdog::{take_inherited_watchdog, WatchdogInfo};
+    pub use owrt_platform::procd::watchdog::WatchdogInfo;
     pub fn watchdog_set_timeout(
         _fd: impl std::os::fd::AsFd,
         value: &mut i32,
@@ -70,10 +69,9 @@ mod watchdog;
 fn main() {
     if std::env::args().any(|arg| arg == "--adjust-timeout") {
         let (writer, _reader) = std::os::unix::net::UnixStream::pair().unwrap();
-        std::env::set_var("WDTFD", writer.into_raw_fd().to_string());
         SCENARIO.store(5, Ordering::Relaxed);
         let mut watchdog = watchdog::Wdt::default();
-        watchdog.init(0, false);
+        watchdog.init(0, false, Some(Ok(writer.into())));
         println!("init={} set={}", watchdog.timeout(0), watchdog.timeout(17));
         return;
     }
@@ -86,15 +84,11 @@ fn main() {
     ];
     for (scenario, message) in expected.iter().enumerate() {
         let (writer, mut reader) = std::os::unix::net::UnixStream::pair().unwrap();
-        let fd = writer.into_raw_fd();
-        // Single-threaded test executable; init consumes this environment fd.
-        std::env::set_var("WDTFD", fd.to_string());
         SCENARIO.store(scenario, Ordering::Relaxed);
         LOGS.lock().unwrap().clear();
         IOCTLS.lock().unwrap().clear();
         let mut watchdog = watchdog::Wdt::default();
-        watchdog.init(0, false);
-        assert!(std::env::var_os("WDTFD").is_none());
+        watchdog.init(0, false, Some(Ok(writer.into())));
         let mut ping = [0u8];
         reader.read_exact(&mut ping).unwrap();
         assert_eq!(ping, *b"X");

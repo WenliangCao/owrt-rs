@@ -5,7 +5,7 @@ use std::sync::Mutex;
 unsafe extern "C" { fn crypt(key: *const c_char, salt: *const c_char) -> *mut c_char; }
 static CRYPT: Mutex<()> = Mutex::new(());
 pub fn with_crypt(key: &CStr, salt: &CStr, compare: impl FnOnce(&[u8]) -> bool) -> bool {
-    let _guard = CRYPT.lock().unwrap_or_else(|error| error.into_inner());
+    let _guard = CRYPT.lock().expect("crypt comparison panicked while holding libc output");
     // SAFETY: terminated inputs live across crypt; its global buffer stays
     // locked until the borrowed comparison finishes. No result pointer escapes.
     let result = unsafe { crypt(key.as_ptr(), salt.as_ptr()) };

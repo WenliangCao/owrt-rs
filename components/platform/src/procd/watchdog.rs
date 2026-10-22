@@ -4,18 +4,23 @@ use std::io;
 use std::os::fd::{AsFd, FromRawFd, OwnedFd};
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct WatchdogInfo {
     pub options: u32,
     pub firmware_version: u32,
     pub identity: [u8; 32],
 }
 
-/// Consume only procd's preinit-to-exec ownership transfer. The producer has
-/// relinquished this fd (tests explicitly use into_raw_fd); it has no existing
-/// Rust owner in procd. This is not an arbitrary raw-descriptor adoption API.
+/// Consume the preinit-to-exec watchdog descriptor named by `WDTFD`.
+///
 /// Removal precedes validation, as in watchdog_open(), including bad values.
-pub fn take_inherited_watchdog(parse: fn(&str) -> u32) -> Option<io::Result<OwnedFd>> {
+///
+/// # Safety
+/// The parsed descriptor must transfer sole ownership from preinit: it must
+/// have no live Rust owner or borrow, and no other thread may close/reuse it.
+/// The environment must be read and changed in a single-threaded startup phase.
+/// `F_GETFD` checks validity; it cannot establish exclusive ownership.
+pub unsafe fn take_inherited_watchdog(parse: fn(&str) -> u32) -> Option<io::Result<OwnedFd>> {
     let value = std::env::var("WDTFD").ok()?;
     std::env::remove_var("WDTFD");
     let fd = parse(&value) as i32;

@@ -265,7 +265,7 @@ impl Dispatch {
             match c.spawn() {
                 Ok(child) => {
                     j.child = Some(child.id() as i32);
-                    std::mem::forget(child);
+                    drop(child);
                 }
                 Err(e) => log!(crate::sys::LOG_ERR, "Failed to execute script: {e}"),
             }
@@ -286,10 +286,10 @@ impl Dispatch {
             if n == 0 { return; }
             let mut off = 0usize;
             // struct inotify_event: wd i32, mask u32, cookie u32, len u32, name[].
-            while off + 16 <= n as usize {
+            while off + 16 <= n {
                 let mask = u32::from_ne_bytes(buf[off + 4..off + 8].try_into().unwrap());
                 let len = u32::from_ne_bytes(buf[off + 12..off + 16].try_into().unwrap()) as usize;
-                let name_bytes = &buf[off + 16..(off + 16 + len).min(n as usize)];
+                let name_bytes = &buf[off + 16..(off + 16 + len).min(n)];
                 off += 16 + len;
                 if mask & IN_ISDIR == 0 {
                     continue;
