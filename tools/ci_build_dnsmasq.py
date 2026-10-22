@@ -31,6 +31,17 @@ PGO_BUILD_SLOT = Path("/home/ubuntu/dnsmasq-perf-20261015/root/private/sdk-build
 PGO_STAGES = ("generate", "candidate-use", "frozen-use")
 
 
+def image_spec():
+    """Use the same version/spec selection as the final image integration."""
+    version = os.environ.get("OPENWRT_VERSION", "")
+    audit.require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version), "set OPENWRT_VERSION to a release version")
+    path = Path(os.environ.get("OWRT_NATIVE_SPEC", REPO / f"packaging/image/native-{version}.json"))
+    audit.require(path.is_file(), f"no qualified native image specification for {version}: {path}")
+    spec = json.loads(path.read_text())
+    audit.require(spec["openwrt"] == version, "release version differs from pinned image")
+    return spec
+
+
 def write(path, value):
     path.write_text(json.dumps(value, indent=2) + "\n")
 
@@ -388,10 +399,9 @@ def main():
     parser.add_argument("work", type=Path)
     args = parser.parse_args()
     work = audit.safe_path(args.work.resolve())
-    image_spec = json.loads((REPO / "packaging/image/native-25.12.5.json").read_text())
+    selected = image_spec()
     audit.require(platform.system() == "Linux", "matching Linux SDK build host required")
-    audit.require(os.environ.get("OPENWRT_VERSION") == image_spec["openwrt"], "release version differs from pinned image")
-    spec = image_spec["dnsmasq_build"]
+    spec = selected["dnsmasq_build"]
     out = work / "out/dnsmasq"
     out.mkdir(parents=True, exist_ok=False)
     report = {"status": "building", "scope": "Fresh SDK build; final image runtime acceptance remains separate"}

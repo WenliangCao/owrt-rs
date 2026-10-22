@@ -1,0 +1,16 @@
+{
+  "25.12.5": {
+    "original_dtb_sha256": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0",
+    "original_fit_sha256": "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6",
+    "original_its_sha256": "9d1c6f765136a72fabee89c7a58497d5e492da21614bfaef70256a9240e5160b",
+    "kernel_payload_sha1": "a422b6a6bfff051626511cdaf910bdae50365105",
+    "source_date_epoch": 1782737960
+  },
+  "25.12.6": {
+    "original_dtb_sha256": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0",
+    "original_fit_sha256": "b46c731ce7c03b7c59debe041150034ec9fdd301f90565dec5a4e147dc07cd8f",
+    "original_its_sha256": "31a2752c5b03d180ed4a62cf424278a0b4f10317eea40a1eefe953a13be4ef6b",
+    "kernel_payload_sha1": "6012b7015c4b3c207f32fbcf1c4cfab791b9a2b0",
+    "source_date_epoch": 1792273538
+  }
+}

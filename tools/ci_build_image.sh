@@ -64,7 +64,7 @@ IB=$(ls -d "$WORK"/openwrt-imagebuilder-$ver-*/ | head -1); IB=${IB%/}
 # upstream DTB untouched; ImageBuilder consumes the prebuilt FIT, not that DTB.
 # Run before compiling packages so changed upstream inputs fail immediately.
 log "disable the absent MT7531 and append the AX3000T console level (AN8855 only)"
-python3 - "$ver" "$IB" "$WORK" "$OUT" > "$OUT/ax3000t-fit.log" 2>&1 <<'FITPY' || { cat "$OUT/ax3000t-fit.log"; exit 1; }
+python3 - "$ver" "$IB" "$WORK" "$OUT" "$REPO" > "$OUT/ax3000t-fit.log" 2>&1 <<'FITPY' || { cat "$OUT/ax3000t-fit.log"; exit 1; }
 import difflib
 import hashlib
 import json
@@ -76,7 +76,7 @@ import subprocess
 import sys
 import tempfile
 
-ver, ib, work, out = sys.argv[1:]
+ver, ib, work, out, repo = sys.argv[1:]
 ib, work, out = Path(ib), Path(work), Path(out)
 linux = ib / "build_dir/target-aarch64_cortex-a53_musl/linux-mediatek_filogic"
 fit = linux / "xiaomi_mi-router-ax3000t-kernel.bin"
@@ -96,12 +96,14 @@ def sha(path, algorithm="sha256"):
 def run(*args, env=None):
     return subprocess.check_output([str(arg) for arg in args], text=True, env=env)
 
-require(ver == "25.12.5", "AX3000T FIT patch is qualified only for OpenWrt 25.12.5")
-original_dtb = "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0"
-original_fit = "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6"
+versions = json.loads((Path(repo) / "packaging/image/ax3000t-fit-inputs.json").read_text())
+require(ver in versions, "unqualified OpenWrt version for the AX3000T FIT patch")
+inputs = versions[ver]
+original_dtb = inputs["original_dtb_sha256"]
+original_fit = inputs["original_fit_sha256"]
 require(sha(dtb) == original_dtb, "unqualified AX3000T input DTB")
 require(sha(fit) == original_fit, "unqualified AX3000T input FIT; use a fresh ImageBuilder")
-require(sha(its) == "9d1c6f765136a72fabee89c7a58497d5e492da21614bfaef70256a9240e5160b",
+require(sha(its) == inputs["original_its_sha256"],
         "unqualified AX3000T input ITS")
 for tool in ("dumpimage", "fdtget", "fdtput", "dtc"):
     require(shutil.which(tool), f"missing {tool}: install device-tree-compiler and u-boot-tools")
@@ -112,7 +114,7 @@ require(not {"bootargs-append", "bootargs-override"}.intersection(
         run("fdtget", "-p", dtb, "/chosen").split()), "chosen already has a command-line override")
 # Read the timestamp from the hash-pinned FIT itself, never from a copied file's mtime.
 epoch = int(run("fdtget", "-t", "u", fit, "/", "timestamp").strip())
-require(epoch == 1782737960, "unexpected original FIT timestamp")
+require(epoch == inputs["source_date_epoch"], "unexpected original FIT timestamp")
 env = dict(os.environ, SOURCE_DATE_EPOCH=str(epoch))
 mkimage = ib / "staging_dir/host/bin/mkimage"
 with tempfile.TemporaryDirectory(prefix="ax3000t-fit-", dir=work) as tmp:
@@ -122,7 +124,7 @@ with tempfile.TemporaryDirectory(prefix="ax3000t-fit-", dir=work) as tmp:
     run("dumpimage", "-T", "flat_dt", "-p", "1", "-o", extracted, fit)
     require(extracted.read_bytes() == dtb.read_bytes(), "FIT DTB differs from the pinned input DTB")
     kernel_sha1 = sha(kernel, "sha1")
-    require(kernel_sha1 == "a422b6a6bfff051626511cdaf910bdae50365105", "unexpected kernel payload")
+    require(kernel_sha1 == inputs["kernel_payload_sha1"], "unexpected kernel payload")
     shutil.copyfile(extracted, changed)
     run("fdtput", "-t", "s", changed, node, "status", "disabled")
     run("fdtput", "-t", "s", changed, "/chosen", "bootargs-append", bootargs_append)
@@ -162,7 +164,7 @@ with tempfile.TemporaryDirectory(prefix="ax3000t-fit-", dir=work) as tmp:
     require(kernel_check.read_bytes() == kernel.read_bytes() and sha(kernel_check, "sha1") == kernel_sha1,
             "repacked FIT changed the kernel payload")
     require(dtb_check.read_bytes() == changed.read_bytes(), "repacked FIT has the wrong DTB")
-    record = dict(change="disable-absent-mt7531-and-quiet-console", hardware_variant="AN8855-only", node=node,
+    record = dict(openwrt=ver, change="disable-absent-mt7531-and-quiet-console", hardware_variant="AN8855-only", node=node,
                   bootargs_append=bootargs_append,
                   status="disabled", source_date_epoch=epoch, kernel_payload_sha1=kernel_sha1,
                   original_dtb_sha256=original_dtb, original_fit_sha256=original_fit,

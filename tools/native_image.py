@@ -74,14 +74,17 @@ def run(*args):
 
 def verify_ax3000t_fit(kernel, original, metadata):
     """Audit the FIT extracted from the final image against the pinned stock FIT."""
+    versions = read(REPO / "packaging/image/ax3000t-fit-inputs.json")
+    # Historical 25.12.5 records predate the explicit version field.
+    version = metadata.get("openwrt", "25.12.5")
+    assert version in versions, "unqualified OpenWrt version for the AX3000T FIT patch"
+    inputs = versions[version]
     expected = {
         "change": "disable-absent-mt7531-and-quiet-console", "hardware_variant": "AN8855-only",
         "bootargs_append": " loglevel=4",
         "node": "/soc/ethernet@15100000/mdio-bus/switch@1f", "status": "disabled",
-        "source_date_epoch": 1782737960,
-        "kernel_payload_sha1": "a422b6a6bfff051626511cdaf910bdae50365105",
-        "original_dtb_sha256": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0",
-        "original_fit_sha256": "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6",
+        **{key: inputs[key] for key in ("source_date_epoch", "kernel_payload_sha1",
+                                       "original_dtb_sha256", "original_fit_sha256")},
     }
     for key, value in expected.items():
         assert metadata[key] == value, f"AX3000T FIT manifest mismatch: {key}"

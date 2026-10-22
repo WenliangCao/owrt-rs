@@ -13,6 +13,29 @@ import ci_dnsmasq_map_cc as map_cc
 
 
 class PgoReleaseTests(unittest.TestCase):
+    def test_image_selection_uses_version_and_never_falls_back_to_an_old_release(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            specs = root / "packaging/image"
+            specs.mkdir(parents=True)
+            for version in ("25.12.5", "25.12.6"):
+                (specs / f"native-{version}.json").write_text(json.dumps({"openwrt": version}))
+                with patch.object(builder, "REPO", root), patch.dict(os.environ, {"OPENWRT_VERSION": version}, clear=True):
+                    self.assertEqual(builder.image_spec()["openwrt"], version)
+            with patch.object(builder, "REPO", root), patch.dict(os.environ, {"OPENWRT_VERSION": "25.12.7"}, clear=True):
+                with self.assertRaisesRegex(ValueError, "no qualified native image specification"):
+                    builder.image_spec()
+
+    def test_explicit_image_spec_must_match_the_requested_version(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "candidate.json"
+            path.write_text(json.dumps({"openwrt": "25.12.6"}))
+            with patch.dict(os.environ, {"OPENWRT_VERSION": "25.12.6", "OWRT_NATIVE_SPEC": str(path)}, clear=True):
+                self.assertEqual(builder.image_spec()["openwrt"], "25.12.6")
+            with patch.dict(os.environ, {"OPENWRT_VERSION": "25.12.5", "OWRT_NATIVE_SPEC": str(path)}, clear=True):
+                with self.assertRaisesRegex(ValueError, "release version differs"):
+                    builder.image_spec()
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)

@@ -1,0 +1,102 @@
+{
+  "passed": true,
+  "inputs": {
+    "xiaomi_mi-router-ax3000t-kernel.bin": "b46c731ce7c03b7c59debe041150034ec9fdd301f90565dec5a4e147dc07cd8f",
+    "image-mt7981b-xiaomi-mi-router-ax3000t.dtb": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0",
+    "xiaomi_mi-router-ax3000t-kernel.bin.its": "31a2752c5b03d180ed4a62cf424278a0b4f10317eea40a1eefe953a13be4ef6b"
+  },
+  "script_sha256": "b2dba541eb664e8cb3d6162e1ab556a399697b80bab66ccdad056b5db8d0556d",
+  "verifier_sha256": "2733119c3a2598410c443d53f62603fe3df485d62ba350e82b02e74f02740ebc",
+  "pins_sha256": "c8f38eaa1ee16301b92cb3343af422e1a262474fa1ea7f97e0c464a2542da4f8",
+  "host_tools": {
+    "mkimage": {
+      "path": "/usr/bin/mkimage",
+      "sha256": "2c18b15391b849fa26175059f7c9540886b53e61ba432b2e6f35465ddcb7459e",
+      "version": "mkimage version 2025.10"
+    },
+    "dumpimage": {
+      "path": "/usr/bin/dumpimage",
+      "sha256": "9d4956efcceb5f5745f91e055f6a6dea20985f0a5a5a051d595a619a754adb92"
+    },
+    "dtc": {
+      "path": "/usr/bin/dtc",
+      "sha256": "4f744b47eb388b472d449b4366678aa96ea3ee40d2747280aa6570d9572aec9c"
+    },
+    "fdtget": {
+      "path": "/usr/bin/fdtget",
+      "sha256": "277e430e7413cc3639fd01234b1677801bb88701ae51baf867d613809d10f8f0"
+    },
+    "fdtput": {
+      "path": "/usr/bin/fdtput",
+      "sha256": "bd712844d309ce60557a024ce5781a5e83c7291e7fc9e34df94740a32295637f"
+    }
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "fit_sha256": "abc43bdc4368f888277164ef39e6214cea9080998473bd8c6ed9bd507c39dafb",
+      "metadata": {
+        "openwrt": "25.12.6",
+        "change": "disable-absent-mt7531-and-quiet-console",
+        "hardware_variant": "AN8855-only",
+        "node": "/soc/ethernet@15100000/mdio-bus/switch@1f",
+        "bootargs_append": " loglevel=4",
+        "status": "disabled",
+        "source_date_epoch": 1792273538,
+        "kernel_payload_sha1": "6012b7015c4b3c207f32fbcf1c4cfab791b9a2b0",
+        "original_dtb_sha256": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0",
+        "original_fit_sha256": "b46c731ce7c03b7c59debe041150034ec9fdd301f90565dec5a4e147dc07cd8f",
+        "dtb_sha256": "5ebbe0671eabe9b16f08573a6bc26192d7552e7447aadbc4c8a090c5b2ee1f3f",
+        "fit_sha256": "abc43bdc4368f888277164ef39e6214cea9080998473bd8c6ed9bd507c39dafb"
+      }
+    },
+    {
+      "round": 2,
+      "fit_sha256": "abc43bdc4368f888277164ef39e6214cea9080998473bd8c6ed9bd507c39dafb",
+      "metadata": {
+        "openwrt": "25.12.6",
+        "change": "disable-absent-mt7531-and-quiet-console",
+        "hardware_variant": "AN8855-only",
+        "node": "/soc/ethernet@15100000/mdio-bus/switch@1f",
+        "bootargs_append": " loglevel=4",
+        "status": "disabled",
+        "source_date_epoch": 1792273538,
+        "kernel_payload_sha1": "6012b7015c4b3c207f32fbcf1c4cfab791b9a2b0",
+        "original_dtb_sha256": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0",
+        "original_fit_sha256": "b46c731ce7c03b7c59debe041150034ec9fdd301f90565dec5a4e147dc07cd8f",
+        "dtb_sha256": "5ebbe0671eabe9b16f08573a6bc26192d7552e7447aadbc4c8a090c5b2ee1f3f",
+        "fit_sha256": "abc43bdc4368f888277164ef39e6214cea9080998473bd8c6ed9bd507c39dafb"
+      }
+    }
+  ],
+  "negative": [
+    {
+      "case": "unsupported-version",
+      "returncode": 1,
+      "reason": "unqualified OpenWrt version for the AX3000T FIT patch"
+    },
+    {
+      "case": "wrong-version",
+      "returncode": 1,
+      "reason": "unqualified AX3000T input FIT; use a fresh ImageBuilder"
+    },
+    {
+      "case": "wrong-input-hash",
+      "returncode": 1,
+      "reason": "unqualified AX3000T input FIT; use a fresh ImageBuilder"
+    },
+    {
+      "case": "verifier-version",
+      "reason": "AX3000T FIT manifest mismatch: source_date_epoch"
+    },
+    {
+      "case": "verifier-hash",
+      "reason": "final image does not contain the repacked FIT"
+    },
+    {
+      "case": "verifier-bootargs",
+      "reason": "AX3000T FIT manifest mismatch: bootargs_append"
+    }
+  ],
+  "original_inputs_unchanged": true
+}
