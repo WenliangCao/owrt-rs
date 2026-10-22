@@ -99,7 +99,7 @@ fn backpressure(n: u64, filter: &str) {
         let table = signature.msg_open_table("method_0000");
         signature.msg_string("large", &"x".repeat(16384));
         signature.msg_close(table);
-        s.reg.types.get_mut(&TYPE).unwrap().methods[0].blob = signature.payload().to_vec();
+        s.reg.types.get_mut(&TYPE).unwrap().methods[0] = obj::Method::new(signature.payload().to_vec());
         for mode in ["all", "prefix"] {
             let mut b = BlobBuf::new();
             if mode == "prefix" {

@@ -90,11 +90,17 @@ fn probe(sock: &str, bytes: &[u8]) -> String {
     let _ = s.set_read_timeout(Some(Duration::from_millis(400)));
     // drain the HELLO the daemon sends on connect
     let mut hello = [0u8; HELLO_LEN];
-    let _ = s.read(&mut hello);
+    if s.read_exact(&mut hello).is_err() {
+        return "incomplete_hello".into();
+    }
     if s.write_all(bytes).is_err() {
         return "write_failed".into();
     }
-    let mut buf = [0u8; 4096];
+    response(&mut s)
+}
+
+fn response(input: &mut impl Read) -> String {
+    let mut prefix = [0u8; 12];
     // A daemon that closes the connection is "disconnected" whether the peer
     // observes EOF or ECONNRESET: the kernel raises the reset only when the
     // closer still had unread bytes queued, which for the same input depends
@@ -102,18 +108,22 @@ fn probe(sock: &str, bytes: &[u8]) -> String {
     // daemon reads a 12-byte prefix first; a read-ahead daemon takes the
     // whole write). "silent" is left for a daemon that keeps the connection
     // open without answering.
-    match s.read(&mut buf) {
-        Ok(0) => "disconnected".into(),
-        Err(e) if e.kind() == std::io::ErrorKind::ConnectionReset => "disconnected".into(),
-        Ok(n) => {
+    match input.read_exact(&mut prefix) {
+        Err(e) if matches!(e.kind(), std::io::ErrorKind::ConnectionReset | std::io::ErrorKind::UnexpectedEof) => "disconnected".into(),
+        Ok(()) => {
             // report only the type byte and the status when present: everything
             // else carries random ids
-            let ty = if n >= 2 { buf[1] } else { 0xff };
+            let ty = prefix[1];
+            let raw_len = u32::from_be_bytes(prefix[8..12].try_into().unwrap()) & 0x00ff_ffff;
             // Only a STATUS message carries a status word. A DATA reply's
             // payload holds object ids, which are random per run and must not
             // reach the transcript.
-            let status = if ty == 1 && n >= 20 {
-                Some(u32::from_be_bytes([buf[16], buf[17], buf[18], buf[19]]))
+            let status = if ty == 1 && raw_len >= 12 {
+                let mut field = [0; 8];
+                if input.read_exact(&mut field).is_err() {
+                    return "incomplete_status".into();
+                }
+                Some(u32::from_be_bytes(field[4..8].try_into().unwrap()))
             } else {
                 None
             };
@@ -123,6 +133,30 @@ fn probe(sock: &str, bytes: &[u8]) -> String {
             }
         }
         Err(_) => "silent".into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fragmented_replies_have_the_same_verdict_as_contiguous_frames() {
+        struct Fragmented<'a>(&'a [u8], usize);
+        impl Read for Fragmented<'_> {
+            fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
+                let limit = output.len().min(self.1);
+                self.0.read(&mut output[..limit])
+            }
+        }
+        let status = message(1, 7, 0, &u32_attr(1, 6));
+        let data = message(2, 7, 0, &u32_attr(3, 0x1234));
+        for chunk in 1..=20 {
+            assert_eq!(response(&mut Fragmented(&status, chunk)), "reply_type=1_status=6");
+            assert_eq!(response(&mut Fragmented(&data, chunk)), "reply_type=2");
+        }
+        assert_eq!(response(&mut &status[..12]), "incomplete_status");
+        assert_eq!(response(&mut &[][..]), "disconnected");
     }
 }
 

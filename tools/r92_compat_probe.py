@@ -660,7 +660,9 @@ def main():
             destination.mkdir()
             with tempfile.TemporaryDirectory(prefix="r92-compat-") as temporary:
                 root = Path(temporary) / "root"
-                shutil.copytree(args.rootfs, root, symlinks=True)
+                # Exact extracted root filesystems can contain device nodes;
+                # copy them as nodes instead of opening them as regular files.
+                subprocess.run(["cp", "-a", str(args.rootfs), str(root)], check=True)
                 for directory in ("out", "run/ubus", "lock", "state", "initd", "rcd"):
                     (root / "tmp" / directory).mkdir(parents=True, exist_ok=True)
                 shutil.copy2(args.bins / (component + "-rs"), root / "tmp" / (component + "-rs"))

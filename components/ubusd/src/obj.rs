@@ -20,13 +20,50 @@ pub const SYSTEM_OBJECT_MONITOR: u32 = 3;
 /// The ACL name is read from that same blob so registration does not retain a
 /// second allocation for identical bytes.
 pub struct Method {
-    pub blob: Vec<u8>,
+    blob: Vec<u8>,
+}
+
+/// A method attribute's declared name is missing, truncated or unterminated.
+#[derive(Debug)]
+pub struct InvalidMethodName;
+
+impl std::fmt::Display for InvalidMethodName {
+    fn fmt(&self, output: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        output.write_str("method attribute lacks a complete NUL-terminated name")
+    }
+}
+
+impl std::error::Error for InvalidMethodName {}
+
+impl TryFrom<Vec<u8>> for Method {
+    type Error = InvalidMethodName;
+
+    /// Validate the name extent before retaining canonical signature bytes.
+    ///
+    /// # Errors
+    /// Returns [`InvalidMethodName`] for missing length bytes or a missing name terminator.
+    fn try_from(blob: Vec<u8>) -> Result<Self, Self::Error> {
+        let header = blob.get(4..6).ok_or(InvalidMethodName)?;
+        let length = usize::from(u16::from_be_bytes([header[0], header[1]]));
+        if blob.get(6 + length) != Some(&0) {
+            return Err(InvalidMethodName);
+        }
+        Ok(Self { blob })
+    }
 }
 
 impl Method {
     /// `blob` must be a validated, canonical method attribute.
+    ///
+    /// # Panics
+    /// Panics if the attribute does not contain its complete, terminated name.
     pub fn new(blob: Vec<u8>) -> Self {
-        Self { blob }
+        Self::try_from(blob).expect("canonical method name must fit and end in NUL")
+    }
+
+    /// Borrow the canonical signature without allowing its name bounds to change.
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.blob
     }
 
     pub fn name(&self) -> &[u8] {
@@ -153,19 +190,20 @@ impl Registry {
         self.paths.get(path).copied()
     }
 
-    /// Bind a path to an object. Fails when the path is already taken, which
-    /// in the C daemon makes the whole add_object fail.
+    /// Bind an unclaimed path to an existing, unnamed object.
+    /// Returns false without mutation if the object is missing or either side is bound.
     pub fn set_path(&mut self, id: u32, path: &[u8]) -> bool {
-        if self.paths.contains_key(path) {
+        let Some(obj) = self.objects.get_mut(&id) else {
+            return false;
+        };
+        if obj.path.is_some() || self.paths.contains_key(path) {
             return false;
         }
         // Both indexes own the same immutable bytes. The single-threaded
         // registry needs neither atomics nor a second path allocation.
         let path: Rc<[u8]> = path.into();
         self.paths.insert(path.clone(), id);
-        if let Some(obj) = self.objects.get_mut(&id) {
-            obj.path = Some(path);
-        }
+        obj.path = Some(path);
         true
     }
 
@@ -255,6 +293,25 @@ mod tests {
     use super::*;
 
     #[test]
+    fn method_name_preserves_binary_bytes_inside_its_validated_extent() {
+        let bytes = [0x82, 0, 0, 12, 0, 3, b'p', 0xff, b'g', 0, 0, 0];
+        let method = Method::new(bytes.to_vec());
+        assert_eq!(method.name(), &[b'p', 0xff, b'g']);
+        assert_eq!(method.as_bytes(), bytes);
+    }
+
+    #[test]
+    fn method_constructor_rejects_a_name_beyond_its_storage() {
+        for bytes in [
+            vec![],
+            vec![0x82, 0, 0, 8, 0, 4, b'x', 0],
+            vec![0x82, 0, 0, 8, 0, 1, b'x', b'y'],
+        ] {
+            assert!(Method::try_from(bytes).is_err());
+        }
+    }
+
+    #[test]
     fn strmatch_matches_c_semantics() {
         assert_eq!(strmatch_len(b"network", b"network"), (true, 7));
         assert_eq!(strmatch_len(b"network.interface", b"network"), (false, 7));
@@ -288,6 +345,20 @@ mod tests {
         // duplicate path is refused, which makes add_object fail in the C daemon
         r.objects.insert(3000, Object::new(None));
         assert!(!r.set_path(3000, b"network"));
+    }
+
+    #[test]
+    fn failed_path_binding_preserves_both_registry_indexes() {
+        let mut registry = Registry::default();
+        assert!(!registry.set_path(2000, b"missing"));
+        assert!(registry.by_path(b"missing").is_none());
+        registry.objects.insert(2000, Object::new(None));
+        assert!(registry.set_path(2000, b"original"));
+        assert!(!registry.set_path(2000, b"replacement"));
+        assert_eq!(registry.by_path(b"original"), Some(2000));
+        assert!(registry.by_path(b"replacement").is_none());
+        registry.destroy(2000).unwrap();
+        assert!(registry.paths.is_empty());
     }
 
     #[test]

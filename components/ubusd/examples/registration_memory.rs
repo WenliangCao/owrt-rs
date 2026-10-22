@@ -67,7 +67,7 @@ fn main() {
         for t in s.reg.types.values() {
             assert_eq!(t.refcount, 1);
             assert_eq!(t.methods.len(), methods);
-            assert_eq!(t.methods.iter().map(|m| (m.blob.len() + 3) & !3).sum::<usize>(), bytes_per_type);
+            assert_eq!(t.methods.iter().map(|m| (m.as_bytes().len() + 3) & !3).sum::<usize>(), bytes_per_type);
         }
         drop(s);
         drop(peer);

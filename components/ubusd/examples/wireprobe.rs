@@ -184,7 +184,7 @@ fn field_type_name(t: u32) -> &'static str {
 }
 
 /// `name:TYPE` for every field, nested containers spelled out in brackets.
-fn describe(fields: impl Iterator<Item = Field<'static>>) -> String {
+fn describe<'a>(fields: impl Iterator<Item = Field<'a>>) -> String {
     let mut parts = Vec::new();
     for f in fields {
         let mut s = format!("{}:{}", f.name, field_type_name(f.ty));
@@ -505,8 +505,7 @@ fn aclquery(sock: &str) {
         if h.ty != ty::DATA {
             continue;
         }
-        // the payload is leaked on purpose: the probe exits right after
-        let data: &'static [u8] = Box::leak(data_fields(blob).to_vec().into_boxed_slice());
+        let data = data_fields(blob);
         for f in blob::fields(data) {
             match f.name {
                 "seq" => println!("seq_type={}", field_type_name(f.ty)),

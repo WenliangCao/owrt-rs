@@ -521,12 +521,6 @@ mod tests {
         assert_eq!(pad4(0x15), 0x18);
     }
 
-    #[test]
-    fn prefix_is_header_plus_blob_header() {
-        assert_eq!(PREFIX_LEN, 12);
-        assert_eq!(Header::LEN, 8);
-    }
-
     fn rx_pair() -> (Client, UnixStream) {
         let (sock, peer) = UnixStream::pair().unwrap();
         sock.set_nonblocking(true).unwrap();

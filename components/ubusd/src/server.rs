@@ -333,8 +333,14 @@ impl Server {
 
         if let Some(p) = attrs[attr::OBJPATH as usize] {
             let path = obj::cstr_bytes(p.payload);
-            let cred = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
-            let allowed = self.acl.check(cred.as_ref(), Some(&path), None, AclType::Publish);
+            let cred = self.clients.get(&client).map(|c| Cred {
+                uid: c.uid,
+                gid: c.gid,
+                extra_gid: &c.extra_gid,
+            });
+            let allowed = self
+                .acl
+                .check(cred.as_ref(), Some(path), None, AclType::Publish);
             if !allowed || !self.reg.set_path(id, path) {
                 self.reg.destroy(id);
                 return Outcome::Status(status::INVALID_ARGUMENT);
@@ -513,15 +519,29 @@ impl Server {
         // Retain the existing 16 KiB eligibility bound and one-write policy.
         // Stop the sizing walk immediately when the bound is exceeded.
         let bytes = if self.monitors.is_empty() && !(all && resumed) {
-            paths.clone().try_fold(Header::LEN + 12, |mut bytes, (_, &id)| {
-                if let Some(o) = self.reg.get(id) {
-                    if let (Some(path), Some(t)) = (o.path.as_deref(), o.type_id.and_then(|id| self.reg.types.get(&id))) {
-                        bytes += Header::LEN + 4 + crate::client::pad4(4 + path.len() + 1) + 8 + 8 + 4;
-                        bytes += t.methods.iter().map(|m| crate::client::pad4(m.blob.len())).sum::<usize>();
+            paths
+                .clone()
+                .try_fold(Header::LEN + 12, |mut bytes, (_, &id)| {
+                    if let Some(o) = self.reg.get(id) {
+                        if let (Some(path), Some(t)) = (
+                            o.path.as_deref(),
+                            o.type_id.and_then(|id| self.reg.types.get(&id)),
+                        ) {
+                            bytes += Header::LEN
+                                + 4
+                                + crate::client::pad4(4 + path.len() + 1)
+                                + 8
+                                + 8
+                                + 4;
+                            bytes += t
+                                .methods
+                                .iter()
+                                .map(|m| crate::client::pad4(m.as_bytes().len()))
+                                .sum::<usize>();
+                        }
                     }
-                }
-                (bytes <= 16 * 1024).then_some(bytes)
-            })
+                    (bytes <= 16 * 1024).then_some(bytes)
+                })
         } else {
             None
         };
@@ -594,7 +614,7 @@ impl Server {
         for m in &t.methods {
             all += 1;
             if acl.check(cred, Some(path), Some(m.name()), AclType::Access) {
-                b.put_raw_fields(&m.blob);
+                b.put_raw_fields(m.as_bytes());
                 visible += 1;
             }
         }
@@ -912,7 +932,7 @@ impl Server {
         }
         let caller = self.clients.get(&client);
         let cred = caller.map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
-        if !self.acl.check(cred.as_ref(), Some(&id), None, AclType::Send) {
+        if !self.acl.check(cred.as_ref(), Some(id), None, AclType::Send) {
             return status::PERMISSION_DENIED;
         }
         self.dispatch_event(Some(client), id, |b| {
@@ -1371,7 +1391,7 @@ mod tests {
         payload.extend_from_slice(b"ping\0");
         payload.resize(8, 0); // pad4(2 + 4 + 1)
         let a = blob::Attr { id: 2, extended: true, payload: &payload };
-        assert_eq!(check_method(&a).as_deref(), Some(&b"ping"[..]));
+        assert_eq!(check_method(&a), Some(&b"ping"[..]));
         for (wire_name, expected) in [(&b"ping\0suffix"[..], &b"ping"[..]),
                                       (b"\0suffix", b""), (b"p\xffng", b"p\xffng")] {
             let mut payload = (wire_name.len() as u16).to_be_bytes().to_vec();
@@ -1379,7 +1399,7 @@ mod tests {
             payload.push(0);
             payload.resize(crate::client::pad4(payload.len()), 0);
             let attr = blob::Attr { id: 2, extended: true, payload: &payload };
-            assert_eq!(check_method(&attr).as_deref(), Some(expected));
+            assert_eq!(check_method(&attr), Some(expected));
         }
         // a zero-length name is refused when a name is required
         let mut zero = 0u16.to_be_bytes().to_vec();
