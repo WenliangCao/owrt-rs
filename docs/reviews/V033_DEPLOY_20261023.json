@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "status": "deployed_and_continuous_twenty_minute_window_accepted",
+  "source_commit": "1e25d61dc707833f97afa5a56148f4dbceb50ed3",
+  "image_sha256": "5b4e7511b228f97b477b875ebfca4c93117e84e450d5c0f5178725e8bab3b151",
+  "version": "v0.3.3",
+  "openwrt_version": "25.12.6",
+  "hardware": "stock-bootloader AN8855 AX3000T",
+  "one_config_preserving_sysupgrade": true,
+  "original_backup_members": 47,
+  "rollback_version": "v0.3.2",
+  "rollback_image_sha256": "9f8e4b10225ca9c49e0e08d096cf645667c5687b1b42784adab50d3751a3e179",
+  "original_observation": {
+    "passed": false,
+    "start_utc": "2026-10-23T15:47:33.386840+00:00",
+    "end_utc": "2026-10-23T16:07:46.261496+00:00",
+    "requested_seconds": 1200,
+    "endpoint_started_seconds": 1200.001674458,
+    "samples": 61,
+    "passed_samples": 60,
+    "failures": [
+      20
+    ]
+  },
+  "accepted_continuation": {
+    "start_utc": "2026-10-23T15:54:33.389977+00:00",
+    "end_utc": "2026-10-23T16:14:33.645988+00:00",
+    "actual_span_seconds": 1200.2560110092163,
+    "first_index": 21,
+    "last_index": 81,
+    "samples": 61,
+    "passed_samples": 61
+  },
+  "overall_samples": 82,
+  "overall_passed_samples": 81,
+  "overall_failed_samples": 1,
+  "failure": {
+    "index": 20,
+    "at": "2026-10-23T15:54:13.389339+00:00",
+    "error": "RuntimeError('dig exited 9')",
+    "root_cause": "unknown; original probe omitted DNS record family and subprocess output",
+    "followup": "A and AAAA returned NOERROR after failure; subsequent continuous20min accepted; no failure overwritten or retried into a passing record"
+  },
+  "final_checks": {
+    "verified_components": [
+      "dnsmasq",
+      "fw4",
+      "httpd",
+      "logd",
+      "netifd",
+      "odhcpd",
+      "procd",
+      "reload-config",
+      "rpcd",
+      "ubusd",
+      "uci"
+    ],
+    "client_interface": "en0",
+    "client_dhcp": true,
+    "interfaces_up": [
+      "loopback",
+      "lan",
+      "wan",
+      "wan6"
+    ],
+    "ap_bridges": [
+      "phy0-ap0",
+      "phy1-ap0"
+    ],
+    "watchdog_running": true,
+    "local_http_https": true,
+    "dns_ipv4": true,
+    "dns_ipv6": true,
+    "router_internet_https": true,
+    "client_dns_transport": "tcp",
+    "client_dns_ipv4": true,
+    "client_https_ipv4": true,
+    "client_dns_ipv6": true,
+    "client_https_ipv6": true
+  },
+  "runtime_daemon_generations_unchanged": true,
+  "config_and_protected_hashes_verified": 32,
+  "log_observations": {
+    "initial_lines": 591,
+    "final_lines": 4794,
+    "initial_lines_retained": true,
+    "dmesg_lines": 268,
+    "dmesg_byte_identical": true,
+    "startup_dnsmasq_lost_entries": 11,
+    "additional_dnsmasq_lost_entries": 0,
+    "wan6_broken_pipe_total": 5,
+    "new_legacy_dt_missing_interrupt_names": 2,
+    "startup_wan6_lla_socket_errors": 24,
+    "startup_wan6_rs_solicit_unavailable_each": 1
+  },
+  "cleanup": {
+    "passed": true,
+    "guard_normally_disarmed": true,
+    "temporary_trial_removed": true,
+    "client_health_passed": true,
+    "original_backup_preserved": true,
+    "log_settings_marker_preserved": true,
+    "no_reboot_or_rollback": true,
+    "ended_at": "2026-10-23T16:15:35.839396+00:00"
+  },
+  "physical_power_cycle_tested": false,
+  "long_term_or_performance_validation": false,
+  "promotion": "pending; separate promotion receipt records actual GitHub state",
+  "private_evidence_sha256": {
+    "private/v033-deploy-20261023/deploy/recovery-gate.json": "29142d909c0151f301e6a0fe6e10913ba5b80575ad7fbf837c1b665d514764bf",
+    "private/v033-deploy-20261023/deploy/observation-1200s/result.json": "a50583425e197daa51630ec414a2e7e017ac5274919fa4be750fbe8b4efa74f4",
+    "private/v033-deploy-20261023/deploy/observation-1200s/health.jsonl": "0d7436db107230eee53c1490cbea73c3e190ef5c8a193e86d1eb0fbdf9f37889",
+    "private/v033-deploy-20261023/deploy/observation-extension-index61-81/result.json": "105baa501d01584eedcf20ac3f508a2c2ed73a88269330d7888f27010e9c31bc",
+    "private/v033-deploy-20261023/deploy/observation-extension-index61-81/health.jsonl": "fbf0dc9cff3363e07ee2f996b383864288efb33e114962346de2ca3ef402af20",
+    "private/v033-deploy-20261023/deploy/accepted-window.json": "60c771a2213dffb96a1a40eaf1145ff964dbbb98f93d376352f0b4e6096f9a6f",
+    "private/v033-deploy-20261023/deploy/cleanup/result.json": "e8d7549b262da5fb08a1fcf9f41e96891f50d4813473cb8db25fe43cd41be13b",
+    "private/v033-deploy-20261023/deploy/observation-1200s/initial/receipt.json": "75b7bf0645c3263ff57fb286deff15c7087935c9325d57746d13d92b61db9b68",
+    "private/v033-deploy-20261023/deploy/observation-extension-index61-81/final/receipt.json": "79ef306206befeaef4d130f4235baedf252a2911d06d175aa8657b080f59d8ae",
+    "private/v033-deploy-20261023/clean-backup-result.json": "6d7f346c923593fe74e9fa6aaee7c2229684b311e7e115e76425d4a7880178bf"
+  },
+  "clean_post_deployment_backup": {
+    "passed": true,
+    "members": 47,
+    "original_member_bytes_and_modes_identical": true,
+    "temporary_guard_absent": true,
+    "at": "2026-10-23T16:16:18.028055+00:00"
+  }
+}
