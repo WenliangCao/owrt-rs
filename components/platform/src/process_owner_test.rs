@@ -72,7 +72,7 @@ fn main() {
     let during = read_mask();
     drop(guard);
     // Linux does not allow SIGKILL (9) or SIGSTOP (19) to be blocked.
-    assert_eq!(during, u64::MAX & !(1 << (9 - 1)) & !(1 << (19 - 1)));
+    assert_eq!(during, !(1u64 << (9 - 1)) & !(1u64 << (19 - 1)));
     assert_eq!(read_mask(), fixture_mask);
 
     let name = OsStr::new("OWRT_PROCESS_OWNER_REGRESSION_20261023");

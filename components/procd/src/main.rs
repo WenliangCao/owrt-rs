@@ -9,7 +9,7 @@
 //! 58eb263d5abe03f8c1280bdfa65a3b052614215d, mainly `service/service.c` and
 //! `service/instance.c`.
 
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![cfg_attr(target_os = "linux", deny(warnings))]
@@ -39,6 +39,7 @@ mod jsonscript;
 mod proc;
 mod rcs;
 mod service;
+pub mod startup;
 mod sys;
 mod sysobj;
 mod sysupgrade;
@@ -94,6 +95,7 @@ struct PendingSet {
 }
 
 struct Procd {
+    process: Option<owrt_platform::procd::process::Process>,
     conn: Connection,
     objects: Objects,
     services: BTreeMap<String, Service>,
@@ -205,13 +207,13 @@ impl Procd {
         // also make the instance un-deletable, since collect_stopped uses it
         // to tell "ran out of retries" from "was asked to go away".
         inst.crash_looped = false;
-        #[expect(
-            unsafe_code,
-            reason = "the private supervisor owner controls its single-threaded lifecycle"
-        )]
-        // SAFETY: run owns this supervisor and starts no threads. This private
-        // owner path holds no application lock while spawning the instance.
-        let started = unsafe { proc::start(inst, svc) };
+        let started = self
+            .process
+            .as_ref()
+            .ok_or_else(|| {
+                io::Error::other("instance startup requires registered process operations")
+            })
+            .and_then(|process| proc::start(inst, svc, process));
         match started {
             Ok((pid, out, err)) => {
                 inst.pid = pid;
@@ -925,10 +927,7 @@ impl Procd {
             let a = &self.inittab[i];
             (a.argv.clone(), a.id.clone(), a.kind, a.respawn_ms)
         };
-        #[expect(unsafe_code, reason = "inittab runs on the sole supervisor thread")]
-        // SAFETY: this private inittab owner is entered only by the supervisor
-        // lifecycle, which starts no threads and holds no lock across spawn.
-        let spawned = unsafe { proc::spawn_tty(&argv, &id) };
+        let spawned = proc::spawn_tty(&argv, &id);
         match spawned {
             Ok(pid) => {
                 debug!(4, "Launched new {kind:?} action, pid={pid}");
@@ -1002,13 +1001,11 @@ impl Procd {
             return;
         }
         if let Some(mut hp) = self.hotplug.take() {
-            #[expect(
-                unsafe_code,
-                reason = "firmware workers are owned by the single-threaded supervisor"
-            )]
-            // SAFETY: the private event owner starts no threads and holds no
-            // application lock while hotplug may fork its firmware worker.
-            let (console, events) = unsafe { hp.pump(now) };
+            let process = self
+                .process
+                .as_ref()
+                .expect("hotplug owner has process operations");
+            let (console, events) = hp.pump(now, process);
             if console {
                 // start-console: run the console handlers again for a tty
                 // that appeared late (ttyGS). Done here, in the parent, so
@@ -1453,19 +1450,19 @@ impl Procd {
         }
 
         self.service_stop_all();
-        #[expect(unsafe_code, reason = "sysupgrade runs on the sole supervisor thread")]
-        // SAFETY: this private owner dispatches on the sole daemon thread;
-        // service_stop_all creates no threads or concurrent environment users.
-        unsafe {
-            sysupgrade::exec_upgraded(
-                &prefix,
-                &path,
-                backup.as_deref(),
-                command.as_deref(),
-                &options,
-                &mut self.wdt,
-            );
-        }
+        let process = self
+            .process
+            .as_ref()
+            .expect("sysupgrade owner has process operations");
+        sysupgrade::exec_upgraded(
+            &prefix,
+            &path,
+            backup.as_deref(),
+            command.as_deref(),
+            &options,
+            &mut self.wdt,
+            process.owner(),
+        );
         // exec_upgraded only returns on failure.
         status::UNKNOWN_ERROR
     }
@@ -2565,8 +2562,9 @@ fn syslog_ident(arg0: &str, pid: i32) -> String {
     ident
 }
 
-fn main() {
-    if let Err(e) = run() {
+/// Run procd with the platform adapter's owned startup state.
+pub fn run(startup: startup::Startup) {
+    if let Err(e) = run_inner(startup) {
         log!(sys::LOG_ERR, "{e}");
         std::process::exit(1);
     }
@@ -2593,7 +2591,10 @@ fn arg_path(flag: &str, default: &str) -> String {
 /// `procd -h <rules>`: the standalone hotplug daemon preinit runs
 /// (`hotplug_run()`) -- the uevent loop and nothing else, no ubus, no
 /// supervision, until the parent kills it.
-fn run_hotplug_daemon(rules: &str) -> io::Result<()> {
+fn run_hotplug_daemon(
+    rules: &str,
+    process: &owrt_platform::procd::process::Process,
+) -> io::Result<()> {
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
     let base = Instant::now();
     let Some(mut hp) = hotplug::Hotplug::new(rules) else {
@@ -2602,10 +2603,7 @@ fn run_hotplug_daemon(rules: &str) -> io::Result<()> {
     };
     loop {
         let now = base.elapsed().as_millis() as i64;
-        #[expect(unsafe_code, reason = "standalone hotplug owns the sole event thread")]
-        // SAFETY: this standalone loop starts no threads and holds no
-        // application lock while processing the firmware queue.
-        let _ = unsafe { hp.pump(now) };
+        let _ = hp.pump(now, process);
         while let Some((pid, st)) = proc::reap_any() {
             hp.reaped(pid, st);
         }
@@ -2613,7 +2611,11 @@ fn run_hotplug_daemon(rules: &str) -> io::Result<()> {
     }
 }
 
-fn run() -> io::Result<()> {
+fn run_inner(startup: startup::Startup) -> io::Result<()> {
+    let startup::Startup {
+        process,
+        inherited_watchdog,
+    } = startup;
     // procd.c main(): setsid() before anything else, in every mode.
     proc::become_session_leader();
     // `-h <path>`: run as hotplug daemon (procd.c's getopt case 'h').
@@ -2622,22 +2624,13 @@ fn run() -> io::Result<()> {
         while let Some(a) = args.next() {
             if a == "-h" {
                 if let Some(rules) = args.next() {
-                    return run_hotplug_daemon(&rules);
+                    return run_hotplug_daemon(&rules, &process);
                 }
             }
         }
     }
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
 
-    #[expect(
-        unsafe_code,
-        reason = "adopt the exec-transferred watchdog before allocating daemon resources"
-    )]
-    // SAFETY: startup has created no threads. WDTFD, when present, names the
-    // live descriptor transferred across exec with no Rust owner in this
-    // process. Consume it once; non-PID1 mode defers opening until its ubus call.
-    let inherited_watchdog =
-        unsafe { owrt_platform::procd::watchdog::take_inherited_watchdog(sys::atoi_u32) };
     let pid1 = std::process::id() == 1;
     // procd.c main(): DBGLVL from the environment (then unset), `-d <level>`,
     // and ulog_open(): kmsg by default, stderr with `-S`; STATE_INIT moves
@@ -2646,7 +2639,7 @@ fn run() -> io::Result<()> {
     // host's kernel log.
     if let Some(l) = std::env::var_os("DBGLVL") {
         sys::set_debug_level(sys::atoi_u32(&l.to_string_lossy()) as i32);
-        std::env::remove_var("DBGLVL");
+        process.owner().remove_var(std::ffi::OsStr::new("DBGLVL"))?;
     }
     if arg_flag("-d") {
         sys::set_debug_level(sys::atoi_u32(&arg_path("-d", "0")) as i32);
@@ -2691,10 +2684,7 @@ fn run() -> io::Result<()> {
                 h.coldplug(sys::is_container());
                 loop {
                     let now = base.elapsed().as_millis() as i64;
-                    #[expect(unsafe_code, reason = "PID 1 coldplug runs before any threads exist")]
-                    // SAFETY: this early-boot owner has one thread and holds
-                    // no application lock while processing firmware requests.
-                    let _ = unsafe { h.pump(now) };
+                    let _ = h.pump(now, &process);
                     while let Some((pid, st)) = proc::reap_any() {
                         h.reaped(pid, st);
                     }
@@ -2747,10 +2737,7 @@ fn run() -> io::Result<()> {
         let mut spawn_at = Instant::now();
         let conn = loop {
             if pid == 0 && Instant::now() >= spawn_at {
-                #[expect(unsafe_code, reason = "PID 1 owns single-threaded early ubus startup")]
-                // SAFETY: early boot has started no threads and holds no
-                // application locks; this owner retains the instance state.
-                let started = unsafe { proc::start(&inst, "ubus") };
+                let started = proc::start(&inst, "ubus", &process);
                 pid = match started {
                     Ok((pid, _, _)) => pid,
                     Err(error) => {
@@ -2799,6 +2786,7 @@ fn run() -> io::Result<()> {
     conn.set_server_io_timeout(std::time::Duration::from_secs(1));
 
     let mut p = Procd {
+        process: Some(process),
         conn,
         objects: Objects::default(),
         services: BTreeMap::new(),
@@ -3048,6 +3036,7 @@ mod watch_tests {
     pub(super) fn supervisor(conn: Connection) -> Procd {
         let (wakeup, _write) = owrt_ubus::sys::pipe().unwrap();
         Procd {
+            process: None,
             conn,
             objects: Objects::default(),
             services: BTreeMap::new(),

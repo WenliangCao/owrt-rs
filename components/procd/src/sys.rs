@@ -420,33 +420,6 @@ pub const RB_AUTOBOOT: i32 = 0x01234567;
 pub const RB_POWER_OFF: i32 = 0x4321fedc;
 pub const RB_DISABLE_CAD: i32 = 0;
 
-/// `patch_fd()`: redirect one of stdin/stdout/stderr to a device. A relative
-/// name is under /dev; a failed open falls back to /dev/null; NULL means
-/// /dev/null outright.
-pub fn patch_fd(device: Option<&str>, fd: i32, write: bool) -> bool {
-    let path = match device {
-        None => "/dev/null".to_string(),
-        Some(d) if d.starts_with('/') => d.to_string(),
-        Some(d) => format!("/dev/{d}"),
-    };
-    let Ok(path_c) = CString::new(path.as_str()) else {
-        return false;
-    };
-    let flags = (if write {
-        rustix::fs::OFlags::WRONLY
-    } else {
-        rustix::fs::OFlags::RDONLY
-    }) | rustix::fs::OFlags::NOCTTY;
-    let file = rustix::fs::open(&path_c, flags, rustix::fs::Mode::empty()).or_else(|error| {
-        if path != "/dev/null" {
-            rustix::fs::open(c"/dev/null", flags, rustix::fs::Mode::empty())
-        } else {
-            Err(error)
-        }
-    });
-    file.is_ok_and(|file| replace_standard(file, fd))
-}
-
 /// `set_stdio()`: point 0/1/2 at a tty and make stderr non-blocking, as
 /// STATE_UBUS does with "console".
 pub fn set_stdio(tty: &str) {

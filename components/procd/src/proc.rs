@@ -1,10 +1,8 @@
 //! Starting and reaping one instance's child.
 //!
-//! `instance_run()` does its work between fork and exec. Here that is a
-//! `pre_exec` closure. The inherited credential, logging and terminal setup
-//! requires the caller's single-threaded process lifecycle, with no application
-//! lock held across spawning. The unsafe entry points expose that requirement;
-//! their tests run on a standalone main thread rather than a libtest worker.
+//! Fixed child setup is registered by the platform startup adapter. Instance
+//! spawning rechecks process exclusivity immediately before fork; tty setup
+//! prepares all owned paths before its syscall-only child hook.
 //!
 //! Deliberate difference from the C, recorded in the contract: the child is
 //! reaped by polling `waitpid(WNOHANG)` from the event loop rather than from
@@ -199,16 +197,10 @@ pub fn jail_argv(inst: &Instance) -> Vec<String> {
 ///
 /// A jailed instance skips the privilege drop entirely -- ujail does it, and
 /// doing it here as well would leave ujail unable to set up the sandbox.
-/// # Safety
-/// Spawn only from a single-threaded process with no held application locks.
-/// The inherited cgroup-warning and NSS setup must remain valid after fork.
-#[expect(
-    unsafe_code,
-    reason = "callers must establish the inherited post-fork setup contract"
-)]
-pub unsafe fn start(
+pub fn start(
     inst: &Instance,
     service: &str,
+    process: &owrt_platform::procd::process::Process,
 ) -> io::Result<(i32, Option<LogPipe>, Option<LogPipe>)> {
     if inst.command.is_empty() && !(inst.has_jail && inst.bundle.is_some()) {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
@@ -292,27 +284,8 @@ pub unsafe fn start(
         gid: (!inst.has_jail && gid != 0).then_some(gid),
         uid: (!inst.has_jail && uid != 0).then_some(uid),
     };
-    fn cgroup_warning(context: &str, error: &io::Error) {
-        sys::ulog(sys::LOG_WARNING, &format!("{context}: {error}"));
-    }
     inherit_ignored_sigpipe(&mut cmd);
-    #[expect(
-        unsafe_code,
-        reason = "fixed instance setup in the single-threaded supervisor"
-    )]
-    // SAFETY: the supervisor is single-threaded; setup owns every captured
-    // value and these fixed callbacks retain no parent locks or borrows. The
-    // child executes the configured setup once and then execs or exits.
-    unsafe {
-        owrt_platform::procd::process::configure_instance(
-            &mut cmd,
-            setup,
-            cgroup_warning,
-            sys::apply_limit,
-        );
-    }
-
-    let mut child = cmd.spawn()?;
+    let mut child = process.spawn_instance(cmd, setup)?;
     let pid = child.id() as i32;
     let pipes = (|| -> io::Result<_> {
         let out = child
@@ -400,34 +373,15 @@ pub fn signal_status(pid: i32, sig: i32) -> i32 {
 /// `fork_worker()`: start one inittab action -- new session, stdio on
 /// /dev/<id> (or /dev/null when the open fails), controlling tty, foreground
 /// process group, then execvp. The pid is reaped by the main loop.
-/// # Safety
-/// Spawn only from a single-threaded process with no held application locks;
-/// the existing terminal path setup allocates after fork and before exec.
-#[expect(
-    unsafe_code,
-    reason = "callers must establish the inherited terminal setup contract"
-)]
-pub unsafe fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
+pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
     if argv.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
     }
     let mut cmd = Command::new(&argv[0]);
     cmd.args(&argv[1..]);
     inherit_ignored_sigpipe(&mut cmd);
-    let dev = if id.is_empty() {
-        None
-    } else {
-        Some(id.to_string())
-    };
-    #[expect(
-        unsafe_code,
-        reason = "fixed tty setup in the single-threaded supervisor"
-    )]
-    // SAFETY: this is the single-threaded inittab path; the callback captures
-    // no parent locks or borrows, and the owned tty name lives through exec.
-    unsafe {
-        owrt_platform::procd::process::configure_tty(&mut cmd, dev, sys::patch_fd)
-    };
+    let dev = (!id.is_empty()).then_some(id);
+    owrt_platform::procd::process::configure_tty(&mut cmd, dev);
     let child = cmd.spawn()?;
     let pid = child.id() as i32;
     drop(child);

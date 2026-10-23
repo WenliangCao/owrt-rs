@@ -128,22 +128,14 @@ pub fn option_env(name: &str, ty: u32, data: &[u8]) -> Option<(String, String)> 
 
 /// `sysupgrade_exec_upgraded()`. Returns only when something failed; on
 /// success execvp replaces this process with /sbin/upgraded.
-///
-/// # Safety
-/// Call only from the sole process thread, with no concurrent readers or
-/// writers of libc environment storage. The handover mutates the environment
-/// before exec and restores watchdog inheritance if exec fails.
-#[expect(
-    unsafe_code,
-    reason = "the process owner must establish environment mutation prerequisites"
-)]
-pub unsafe fn exec_upgraded(
+pub fn exec_upgraded(
     prefix: &str,
     path: &str,
     backup: Option<&str>,
     command: Option<&str>,
     options: &[(String, String)],
     wdt: &mut crate::watchdog::Wdt,
+    owner: &owrt_platform::process_owner::ProcessOwner,
 ) {
     let Ok(cprefix) = CString::new(prefix) else {
         return;
@@ -153,29 +145,37 @@ pub unsafe fn exec_upgraded(
         return;
     }
 
-    if let Some(fd) = wdt.handover_fd() {
-        wdt.set_cloexec(false);
-        std::env::set_var("WDTFD", fd.to_string());
-    }
-    if let Some(b) = backup {
-        std::env::set_var("UPGRADE_BACKUP", b);
-    }
-    for (k, v) in options {
-        std::env::set_var(k, v);
-    }
-
-    let argv0 = CString::new("/sbin/upgraded").unwrap();
-    let mut argv: Vec<CString> = vec![argv0.clone(), CString::new(path).unwrap_or_default()];
-    if let Some(c) = command {
-        if let Ok(c) = CString::new(c) {
-            argv.push(c);
+    let _attempt = (|| -> std::io::Result<()> {
+        if let Some(fd) = wdt.handover_fd() {
+            wdt.set_cloexec(false);
+            owner.set_var(
+                std::ffi::OsStr::new("WDTFD"),
+                std::ffi::OsStr::new(&fd.to_string()),
+            )?;
         }
-    }
-    let _ = owrt_platform::procd::process::execvp(&argv0, &argv);
+        if let Some(backup) = backup {
+            owner.set_var(
+                std::ffi::OsStr::new("UPGRADE_BACKUP"),
+                std::ffi::OsStr::new(backup),
+            )?;
+        }
+        for (key, value) in options {
+            owner.set_var(std::ffi::OsStr::new(key), std::ffi::OsStr::new(value))?;
+        }
+
+        let argv0 = CString::new("/sbin/upgraded").unwrap();
+        let mut argv: Vec<CString> = vec![argv0.clone(), CString::new(path).unwrap_or_default()];
+        if let Some(command) = command {
+            if let Ok(command) = CString::new(command) {
+                argv.push(command);
+            }
+        }
+        Err(owrt_platform::procd::process::execvp(&argv0, &argv))
+    })();
 
     // Cleanup on failure, exactly the C's order.
     crate::sys::stderr_line("Failed to exec upgraded.");
-    std::env::remove_var("WDTFD");
+    let _ = owner.remove_var(std::ffi::OsStr::new("WDTFD"));
     wdt.set_cloexec(true);
     let Ok(dot) = CString::new(".") else { return };
     if rustix::process::chroot(&dot).is_err() {

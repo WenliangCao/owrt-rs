@@ -14,10 +14,13 @@ pub struct WatchdogInfo {
 /// Consume the preinit-to-exec watchdog descriptor named by `WDTFD`.
 ///
 /// Removal precedes validation, as in watchdog_open(), including bad values.
+/// Standard descriptors 0..=2 are rejected without closing them: they can have
+/// process-global stdio borrowers and cannot become an exclusive watchdog owner.
 ///
 /// # Safety
-/// The parsed descriptor must transfer sole ownership from preinit: it must
-/// have no live Rust owner or borrow, and no other thread may close/reuse it.
+/// Any accepted descriptor (at least 3) must transfer sole ownership from
+/// preinit: it must have no live Rust owner or borrow, and no other thread may
+/// close/reuse it. Rejected standard/negative values need no ownership transfer.
 /// The environment must be read and changed in a single-threaded startup phase.
 /// `F_GETFD` checks validity; it cannot establish exclusive ownership.
 pub unsafe fn take_inherited_watchdog(parse: fn(&str) -> u32) -> Option<io::Result<OwnedFd>> {
@@ -27,7 +30,7 @@ pub unsafe fn take_inherited_watchdog(parse: fn(&str) -> u32) -> Option<io::Resu
     unsafe extern "C" {
         fn fcntl(fd: i32, command: i32, ...) -> i32;
     }
-    if fd < 0 {
+    if fd < 3 {
         return Some(Err(io::Error::from_raw_os_error(9)));
     }
     // SAFETY: F_GETFD validates a scalar fd without claiming ownership.

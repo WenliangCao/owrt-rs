@@ -47,9 +47,15 @@ impl Wdt {
         }
     }
 
+    /// Borrow the currently open watchdog without transferring its close duty.
+    pub fn descriptor(&self) -> Option<std::os::fd::BorrowedFd<'_>> {
+        use std::os::fd::AsFd;
+        self.fd.as_ref().map(AsFd::as_fd)
+    }
+
     fn raw_fd(&self) -> i32 {
         use std::os::fd::AsRawFd;
-        self.fd.as_ref().map(|f| f.as_raw_fd()).unwrap_or(-1)
+        self.descriptor().map(|fd| fd.as_raw_fd()).unwrap_or(-1)
     }
 
     /// `watchdog_open()`: an owned startup handover, else /dev/watchdog.

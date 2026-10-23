@@ -1,57 +1,26 @@
 //! Existing watchdog handover assertions run without environment-reading peers.
+#![forbid(unsafe_code)]
 use crate::watchdog::Wdt;
 
 fn flags(watchdog: &Wdt) -> rustix::io::FdFlags {
-    let raw = watchdog
-        .handover_fd()
-        .expect("watchdog owns its open descriptor");
-    #[expect(
-        unsafe_code,
-        reason = "observe the live watchdog descriptor without duplicating ownership"
-    )]
-    // SAFETY: the shared owner borrow keeps this descriptor alive throughout
-    // the synchronous fcntl call. BorrowedFd does not take ownership or close it.
-    let fd = unsafe { std::os::fd::BorrowedFd::borrow_raw(raw) };
-    rustix::io::fcntl_getfd(fd).unwrap()
+    rustix::io::fcntl_getfd(watchdog.descriptor().expect("watchdog owns its descriptor")).unwrap()
 }
 
-/// # Safety
-/// The calling process must have one thread; it must own its WDTFD handover.
-#[expect(
-    unsafe_code,
-    reason = "the runner must establish environment and descriptor ownership"
-)]
-pub(super) unsafe fn run() {
-    inherited_watchdog_exec_flags_and_final_close();
+pub(super) fn run(reader: std::os::fd::OwnedFd, handover: std::os::fd::OwnedFd) {
+    inherited_watchdog_exec_flags_and_final_close(reader, handover);
     supervisor_handover_waits_for_the_first_watchdog_method();
 }
 
-fn inherited_watchdog_exec_flags_and_final_close() {
-    use std::os::fd::{AsRawFd, IntoRawFd};
+fn inherited_watchdog_exec_flags_and_final_close(
+    reader: std::os::fd::OwnedFd,
+    handover: std::os::fd::OwnedFd,
+) {
+    use std::os::fd::AsRawFd;
     use std::process::Command;
 
-    // This runner has no libtest worker; environment and fd ownership are local.
-    let (reader, writer) = rustix::pipe::pipe_with(
-        rustix::pipe::PipeFlags::CLOEXEC | rustix::pipe::PipeFlags::NONBLOCK,
-    )
-    .unwrap();
-    // A high fd avoids shell startup reusing a descriptor that should
-    // have disappeared at exec. Only the transferred writer remains.
-    let transferred = rustix::io::fcntl_dupfd_cloexec(&writer, 1000).unwrap();
-    drop(writer);
-    rustix::io::fcntl_setfd(&transferred, rustix::io::FdFlags::empty()).unwrap();
-    let inherited = transferred.into_raw_fd();
-    std::env::set_var("WDTFD", inherited.to_string());
+    let inherited = handover.as_raw_fd();
     let mut watchdog = Wdt::default();
-    #[expect(
-        unsafe_code,
-        reason = "exercise explicit ownership transfer from preinit"
-    )]
-    // SAFETY: into_raw_fd above relinquished the only owner of this live
-    // descriptor. This isolated subprocess alone consumes its WDTFD.
-    let handover =
-        unsafe { owrt_platform::procd::watchdog::take_inherited_watchdog(crate::sys::atoi_u32) };
-    watchdog.init(0, false, handover);
+    watchdog.init(0, false, Some(Ok(handover)));
     assert!(std::env::var_os("WDTFD").is_none());
     assert_eq!(
         watchdog.handover_fd(),

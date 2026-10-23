@@ -276,13 +276,7 @@ impl Hotplug {
         true
     }
 
-    /// # Safety
-    /// Any queued firmware command must satisfy spawn_firmware's fork contract.
-    #[expect(
-        unsafe_code,
-        reason = "propagate the firmware worker contract to the event owner"
-    )]
-    unsafe fn start_next(&mut self) {
+    fn start_next(&mut self, process: Option<&owrt_platform::procd::process::Process>) {
         if self.child.is_some() {
             return;
         }
@@ -302,12 +296,7 @@ impl Hotplug {
             // reaches the fork path.
             CmdKind::StartConsole => {}
             CmdKind::Firmware => {
-                #[expect(
-                    unsafe_code,
-                    reason = "the pump caller owns the firmware fork prerequisite"
-                )]
-                // SAFETY: start_next inherits this queued firmware prerequisite from pump.
-                let pid = unsafe { spawn_firmware(&cmd) };
+                let pid = process.and_then(|process| spawn_firmware(&cmd, process));
                 if let Some(pid) = pid {
                     self.child = Some((pid, cmd));
                 }
@@ -336,15 +325,19 @@ impl Hotplug {
     /// console handlers, and the events received (for `hotplug_ubus_event`'s
     /// per-subsystem notification).
     ///
-    /// # Safety
-    /// If rules or queued work can run a firmware command, the process must
-    /// have one thread and hold no application locks across its fork. A closed
-    /// fixture with no event input and only Exec/Button work needs no such fork.
-    #[expect(
-        unsafe_code,
-        reason = "the event owner must establish firmware worker prerequisites"
-    )]
-    pub unsafe fn pump(&mut self, now: i64) -> (bool, Vec<BTreeMap<String, String>>) {
+    pub fn pump(
+        &mut self,
+        now: i64,
+        process: &owrt_platform::procd::process::Process,
+    ) -> (bool, Vec<BTreeMap<String, String>>) {
+        self.pump_inner(now, Some(process))
+    }
+
+    fn pump_inner(
+        &mut self,
+        now: i64,
+        process: Option<&owrt_platform::procd::process::Process>,
+    ) -> (bool, Vec<BTreeMap<String, String>>) {
         let mut console_request = false;
         let mut events = Vec::new();
         let mut buf = [0u8; 4096];
@@ -395,14 +388,7 @@ impl Hotplug {
                 continue;
             }
             let before = self.queue.len();
-            #[expect(
-                unsafe_code,
-                reason = "propagate the event owner's firmware fork contract"
-            )]
-            // SAFETY: pump's caller establishes the prerequisite for any firmware work.
-            unsafe {
-                self.start_next()
-            };
+            self.start_next(process);
             if self.queue.len() == before {
                 break;
             }
@@ -566,31 +552,18 @@ fn spawn_exec(cmd: &Queued) -> Option<i32> {
     }
 }
 
-/// `handle_firmware` in a forked child.
-/// # Safety
-/// The process must have one thread and hold no application locks at fork.
-#[expect(
-    unsafe_code,
-    reason = "preserve the platform firmware fork prerequisite"
-)]
-unsafe fn spawn_firmware(cmd: &Queued) -> Option<i32> {
-    let dir = cmd.argv.first()?.clone();
-    let vars = cmd.vars.clone();
-    // Owned event data only; the fixed firmware child never returns into
-    // the supervisor. Preserve the existing fork and exit(1) behavior.
-    fn transfer((dir, vars): (String, BTreeMap<String, String>)) {
-        firmware_child(&dir, &vars);
-    }
-    #[expect(
-        unsafe_code,
-        reason = "fixed firmware worker in the single-threaded supervisor"
-    )]
-    // SAFETY: the hotplug supervisor has one thread. The child owns the
-    // cloned strings/map, runs this fixed transfer, and exits without returning
-    // into the parent's event loop; no parent lock or borrowed data is captured.
-    unsafe {
-        owrt_platform::procd::process::spawn_firmware((dir, vars), transfer)
-    }
+/// Queue the fixed worker using only owned firmware input.
+fn spawn_firmware(cmd: &Queued, process: &owrt_platform::procd::process::Process) -> Option<i32> {
+    let request = owrt_platform::procd::process::FirmwareRequest {
+        directory: cmd.argv.first()?.clone(),
+        variables: cmd.vars.clone(),
+    };
+    process.spawn_firmware(request).ok()
+}
+
+/// Registered only by the platform adapter; no parent resource is accessed.
+pub(crate) fn transfer_firmware(request: owrt_platform::procd::process::FirmwareRequest) {
+    firmware_child(&request.directory, &request.variables);
 }
 
 fn firmware_child(dir: &str, vars: &BTreeMap<String, String>) {
@@ -652,15 +625,7 @@ mod tests {
         ]);
         hp.dispatch("button", argv.clone(), &vars, 100);
 
-        #[expect(
-            unsafe_code,
-            reason = "closed button fixture cannot enqueue a firmware fork"
-        )]
-        // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
-        // fixture enqueues only Button/Exec commands, never Firmware.
-        unsafe {
-            hp.pump(100);
-        };
+        hp.pump_inner(100, None);
         assert!(hp.child.is_some(), "press handler must have started");
 
         // Release arrives before the press child has been reaped. The press
@@ -679,26 +644,10 @@ mod tests {
         reap(&mut hp);
         assert_eq!(hp.buttons.len(), 1, "press completion must arm the timeout");
 
-        #[expect(
-            unsafe_code,
-            reason = "closed button fixture cannot enqueue a firmware fork"
-        )]
-        // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
-        // fixture enqueues only Button/Exec commands, never Firmware.
-        unsafe {
-            hp.pump(100);
-        };
+        hp.pump_inner(100, None);
         reap(&mut hp);
 
-        #[expect(
-            unsafe_code,
-            reason = "closed button fixture cannot enqueue a firmware fork"
-        )]
-        // SAFETY: fd is /dev/null (recv always fails), rules are empty, and this
-        // fixture enqueues only Button/Exec commands, never Firmware.
-        unsafe {
-            hp.pump(1200);
-        };
+        hp.pump_inner(1200, None);
         let stale_timeout = hp.child.is_some();
         if stale_timeout {
             reap(&mut hp);

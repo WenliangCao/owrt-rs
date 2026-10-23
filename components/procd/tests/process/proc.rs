@@ -1,28 +1,18 @@
 //! Existing child-setup assertions run on a standalone process main thread.
+#![forbid(unsafe_code)]
 use crate::instance::Instance;
 use crate::proc::{reap_any, spawn_tty, start, try_reap, SETLBF};
 
-/// # Safety
-/// The calling process must have one thread and no held application locks.
-#[expect(
-    unsafe_code,
-    reason = "the runner must establish post-fork prerequisites"
-)]
-pub(super) unsafe fn run() {
+pub(super) fn run(process: &owrt_platform::procd::process::Process) {
     reap_any_collects_an_exited_inittab_session();
-    a_child_inherits_sigpipe_ignored_like_the_c_child();
-    a_piped_stdout_gets_libsetlbf_preloaded();
-    an_unpiped_stdout_preserves_the_inherited_preload();
+    a_child_inherits_sigpipe_ignored_like_the_c_child(process);
+    a_piped_stdout_gets_libsetlbf_preloaded(process);
+    an_unpiped_stdout_preserves_the_inherited_preload(process);
 }
 
 fn reap_any_collects_an_exited_inittab_session() {
     // No libtest worker or sibling test owns children in this process.
-    #[expect(
-        unsafe_code,
-        reason = "standalone main verifies the terminal fork prerequisites"
-    )]
-    // SAFETY: run is entered by the sole process thread and holds no locks.
-    let pid = unsafe { spawn_tty(&["/bin/sh".into(), "-c".into(), "exit 23".into()], "null") }
+    let pid = spawn_tty(&["/bin/sh".into(), "-c".into(), "exit 23".into()], "null")
         .expect("start the actual inittab child setup");
     // Wait for this child to exit without consuming its status. The
     // production nonblocking reaper must then collect the new session.
@@ -59,17 +49,12 @@ fn reap_any_collects_an_exited_inittab_session() {
 
 /// Run `script` through start() with a piped stdout and return what it
 /// printed, reaping the child.
-fn run_piped(script: &str) -> Vec<String> {
+fn run_piped(script: &str, process: &owrt_platform::procd::process::Process) -> Vec<String> {
     let mut i = Instance::new("one");
     i.valid = true;
     i.command = vec!["/bin/sh".into(), "-c".into(), script.into()];
     i.stdout_to_log = true;
-    #[expect(
-        unsafe_code,
-        reason = "standalone main verifies the instance fork prerequisites"
-    )]
-    // SAFETY: run is entered by the sole process thread and holds no locks.
-    let (pid, out, err) = unsafe { start(&i, "svc") }.expect("spawn /bin/sh");
+    let (pid, out, err) = start(&i, "svc", process).expect("spawn /bin/sh");
     assert!(err.is_none(), "stderr was not asked for");
     let mut out = out.expect("stdout pipe");
     // These fixed grep/echo fixtures emit less than one pipe buffer. Wait for
@@ -91,9 +76,11 @@ fn run_piped(script: &str) -> Vec<String> {
 
 /// R81 F21 (second half): the C child inherits SIGPIPE ignored from
 /// procd_signal(); std resets it to SIG_DFL, which this puts back.
-fn a_child_inherits_sigpipe_ignored_like_the_c_child() {
+fn a_child_inherits_sigpipe_ignored_like_the_c_child(
+    process: &owrt_platform::procd::process::Process,
+) {
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
-    let lines = run_piped("grep SigIgn /proc/self/status");
+    let lines = run_piped("grep -E 'Sig(Ign|Blk)' /proc/self/status", process);
     let mask = lines
         .iter()
         .find_map(|l| l.strip_prefix("SigIgn:"))
@@ -101,16 +88,33 @@ fn a_child_inherits_sigpipe_ignored_like_the_c_child() {
         .expect("SigIgn line");
     let bit = 1u64 << (owrt_ubus::sys::SIGPIPE - 1);
     assert_ne!(mask & bit, 0, "SIGPIPE not ignored: {mask:#x}");
+    let blocked = lines
+        .iter()
+        .find_map(|line| line.strip_prefix("SigBlk:"))
+        .map(|mask| u64::from_str_radix(mask.trim(), 16).unwrap())
+        .unwrap();
+    let parent = std::fs::read_to_string("/proc/self/status").unwrap();
+    let parent_blocked = parent
+        .lines()
+        .find_map(|line| line.strip_prefix("SigBlk:"))
+        .map(|mask| u64::from_str_radix(mask.trim(), 16).unwrap())
+        .unwrap();
+    assert_eq!(
+        blocked, parent_blocked,
+        "exec inherited the temporary guard mask"
+    );
 }
 
 /// R81 F22: `setlbf = _stdout >= 0` -- a piped stdout gets the preload.
-fn a_piped_stdout_gets_libsetlbf_preloaded() {
-    let lines = run_piped("echo LD_PRELOAD=$LD_PRELOAD");
+fn a_piped_stdout_gets_libsetlbf_preloaded(process: &owrt_platform::procd::process::Process) {
+    let lines = run_piped("echo LD_PRELOAD=$LD_PRELOAD", process);
     let want = format!("LD_PRELOAD={SETLBF}");
     assert!(lines.iter().any(|l| l == &want), "{lines:?}");
 }
 
-fn an_unpiped_stdout_preserves_the_inherited_preload() {
+fn an_unpiped_stdout_preserves_the_inherited_preload(
+    process: &owrt_platform::procd::process::Process,
+) {
     use std::os::unix::ffi::OsStrExt;
     let directory = std::env::temp_dir().join(format!("procd-unpiped-{}", std::process::id()));
     std::fs::create_dir(&directory).unwrap();
@@ -124,12 +128,7 @@ fn an_unpiped_stdout_preserves_the_inherited_preload() {
         "preload-test".into(),
         output.to_str().unwrap().into(),
     ];
-    #[expect(
-        unsafe_code,
-        reason = "standalone main verifies the instance fork prerequisites"
-    )]
-    // SAFETY: run is entered by the sole process thread and holds no locks.
-    let (pid, out, err) = unsafe { start(&i, "svc") }.expect("start unpiped child");
+    let (pid, out, err) = start(&i, "svc", process).expect("start unpiped child");
     assert!(out.is_none() && err.is_none());
     let child = rustix::process::Pid::from_raw(pid).unwrap();
     let (_, status) = rustix::process::waitpid(Some(child), rustix::process::WaitOptions::empty())
