@@ -1,0 +1,232 @@
+{
+  "source_commit": "6af33a614fc59802bb45402111c56492ae62c0fb",
+  "canonical_run": "39933294568",
+  "canonical_manifest_sha256": "09b2781f08ddc3cf2fcaef27ebc6c91a526ab859dc854ba2b883b707d919a58d",
+  "image_manifest_sha256": "7543b442f82ff788f03bad2c1e8983bc46752b40f84e8ca9137c4f7d190b8cae",
+  "openwrt": "25.12.6",
+  "binary_sha256": {
+    "uci-rs": "04efbab9c439bcf6957a6170be4687fc95a112f45baf633c464732c6550846d1",
+    "fw4-rs": "76637e0b3ace492a5f0d170250e86f2ef79b063010c165cdedbabe35fa7e7771",
+    "reload_config_rs": "a39bfc75dda3bc6245227e1a558416f5312681599bfe9905eed591eea2d2a33e",
+    "logd-rs": "3a0311a3d965ea6473a2b4e9970a105aca69da4983bc4bf9d12a3b70c3c2fd35",
+    "httpd-rs": "50f502f2c52ff2ddfa0bbd8d98e47727c18a6ca546964f6c7866e0a81dcc2870",
+    "rpcd-rs": "6f99dd171fd2ef5aec8cfe676726c843820cc22443443fc6e82f9285e3f6e152",
+    "procd-rs": "f55a4287fffb36f617c16727c672593b93676ae6c87dfd41d9b10ba3f4ad08a7",
+    "ubusd-rs": "de5e9e3ff9f97deeb23073c0a8a6beee6e1edf68221dba7dca1e43ee5151ab76",
+    "netifd-rs": "58bd1ea035c87afe0179ddcf97bdce2b0ebc63ccad9fede7d627cc792943071d",
+    "odhcpd-rs": "3eb5dee79aacd920f772f7fd13af4ba48278f51ec3deb92ee2a27cb01f8255e1"
+  },
+  "stock_input_sha256": {
+    "etc/openwrt_release": "3ddf59489ec7d24f02ba3aeb4ee0d6f6315e3223f24875837e9361bb3cacc70c",
+    "sbin/rpcd": "860925534eab87157eeb447c8c962bfcef5f552d5379e4a3c83ab3c0376a11a5",
+    "usr/sbin/uhttpd": "89cbd5610d0a306e8185fb007a6efbad4aacad88c8ed837cd2dcb088c6d52e28",
+    "sbin/ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "bin/ubus": "9bc20e73e500c724e0ad8132b894e7dba7ca49a41cd20c38dd0b9fa23f9412eb",
+    "bin/busybox": "aeeda86015e809106a5d247fd8504ac45e01bde0711f4d80af60fc2885ee923a",
+    "sbin/uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+    "sbin/reload_config": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15"
+  },
+  "helper_inputs_sha256": {
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_httpd_25126.py": "94d4dcdd53bfd0bac62c30f78516b69c300d9085910961366a95af63aae3d811",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_rpcd_25126.py": "0a1c1a06bb0e4baf909f5ee99c01401a951e6ca6c99c599a3670d46c33ea88e5",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_rpcd_apply_owner.py": "a0af21ef22bb60bc61322283345bccf8dd2d41d3770ba41de841af9357fe1530",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_rpcd_snapshot_failure.py": "7256e4af05ff150968ff8e67c4638d83d2b4b86b896eb81a02dd82cada6d3d60",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_rpcd_restore_failure.py": "111d5b3c91a1b56505cc895d4ee58fabf823bdb7f2ab5b1668c236ebefe02a90",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/r92_compat_probe.py": "ec22c65920436d9bee471aa84e790edde32bf0a1fed16286072ff88b00118532",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/r92_recovery_probe.py": "b9b05c21571e11c007903e77879e024becb6bd151ad8a1e057fb26751871e20c",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/r92_httpd_probe.py": "949ab93c19e7cf7eb3eef45ba89f14382e4aae74a20874afb2175496747eeb2a",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/r93_rpcd_reconnect.py": "e2379c1d17c504f6fa4a0804b44d37baa1c38bfa9d6437f0d1020a167fbf9518",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/private/v033-frontend/signal_smoke.py": "06d760327b701c47b8d1d818a62f6a531774128ff01d46db7f1352494509fdcf"
+  },
+  "runner_sha256": "fbefd5efc6dfe0f70e561c8c95de2849cfdd083ec09693d1707d2cc85120f650",
+  "runs": [
+    {
+      "name": "httpd",
+      "command": [
+        "python3",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_httpd_25126.py",
+        "--rootfs",
+        "/home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs",
+        "--candidate",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/canonical-core-39933294568/core-candidates/httpd-rs",
+        "--output",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/frontend-canonical-39933294568/httpd"
+      ],
+      "returncode": 0,
+      "seconds": 3.6705344608053565,
+      "log_sha256": "2f813b676167e1ef00d33a8c1a10a3e3fcba0933983ef5c11c1597a797ec42f3"
+    },
+    {
+      "name": "rpcd",
+      "command": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_rpcd_25126.py",
+        "/home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/canonical-core-39933294568/core-candidates/rpcd-rs",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/frontend-canonical-39933294568/rpcd"
+      ],
+      "returncode": 0,
+      "seconds": 0.7153199859894812,
+      "log_sha256": "f0cac450573357d9776e5a9e204dc721b081746c220b413b07eaa036c60ee735"
+    },
+    {
+      "name": "rpcd-apply",
+      "command": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_rpcd_apply_owner.py",
+        "/home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/canonical-core-39933294568/core-candidates/rpcd-rs",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/frontend-canonical-39933294568/rpcd-apply"
+      ],
+      "returncode": 0,
+      "seconds": 5.7238142234273255,
+      "log_sha256": "796eebd1861c32ae27790430a3172204808330f16d2d2303fe99b02c14978b72"
+    },
+    {
+      "name": "rpcd-snapshot",
+      "command": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_rpcd_snapshot_failure.py",
+        "/home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/canonical-core-39933294568/core-candidates/rpcd-rs",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/frontend-canonical-39933294568/rpcd-snapshot"
+      ],
+      "returncode": 0,
+      "seconds": 10.531850507948548,
+      "log_sha256": "693b8f7eacfe620e8cc48b3145454be7ddcd07df42554846cbc38fb203ef626c"
+    },
+    {
+      "name": "rpcd-restore",
+      "command": [
+        "sudo",
+        "-n",
+        "python3",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/tools/test_rpcd_restore_failure.py",
+        "/home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/canonical-core-39933294568/core-candidates/rpcd-rs",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/frontend-canonical-39933294568/rpcd-restore",
+        "--faults",
+        "healthy",
+        "manual",
+        "timer",
+        "delta",
+        "full",
+        "cancel",
+        "delta-cancel",
+        "delta-confirm",
+        "ownership",
+        "dangling"
+      ],
+      "returncode": 0,
+      "seconds": 37.62893654406071,
+      "log_sha256": "826e8e9857f8ca43d4722bc5e7aec5c9b12c3bca91ac95d3984d4ee4447d6fb2"
+    },
+    {
+      "name": "signals",
+      "command": [
+        "sudo",
+        "-n",
+        "unshare",
+        "--mount",
+        "--net",
+        "--pid",
+        "--fork",
+        "--kill-child",
+        "python3",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/candidate/private/v033-frontend/signal_smoke.py",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/candidate",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/canonical-core-39933294568/core-candidates",
+        "/home/ubuntu/owrt-v033-25126-release-20261023/private/frontend-canonical-39933294568"
+      ],
+      "returncode": 0,
+      "seconds": 0.21460440242663026,
+      "log_sha256": "477e3a2cf6618aeff39356050371b4c3ad084aa072230ba1024d59404a786b68"
+    }
+  ],
+  "physical_router_touched": false,
+  "binary_inputs_unchanged": true,
+  "helper_inputs_unchanged": true,
+  "stock_inputs_unchanged": true,
+  "canonical_manifest_unchanged": true,
+  "httpd": {
+    "case_count": 49,
+    "exact_cases": 39,
+    "differences": [],
+    "passed": true,
+    "reference_sha256": "89cbd5610d0a306e8185fb007a6efbad4aacad88c8ed837cd2dcb088c6d52e28",
+    "candidate_sha256": "50f502f2c52ff2ddfa0bbd8d98e47727c18a6ca546964f6c7866e0a81dcc2870"
+  },
+  "case_counts": {
+    "rpcd": {
+      "files": 2,
+      "expected": 2,
+      "sha256": {
+        "rpcd/candidate/result.json": "c20b84954cfd2d92d9a28ad72478336aeb43299dda4362c4329e3a6608cef3d0",
+        "rpcd/original/result.json": "7772923170946b4e9b8b5c7936601ba73c51fbdcd923bdd0c2433559121e4207"
+      },
+      "checks_per_side": [
+        34,
+        34
+      ]
+    },
+    "rpcd-apply": {
+      "files": 2,
+      "expected": 2,
+      "sha256": {
+        "rpcd-apply/candidate-other-0/result.json": "78d034fa2a37677bea622398c4fde8e66e9e2fe5bf9ef8fdb26c2b68b48d80cd",
+        "rpcd-apply/candidate-owner-0/result.json": "9936b00ff518cbcbe6b00c302406d7688b942ef2def9824e1e668b04a8e78234"
+      }
+    },
+    "rpcd-snapshot": {
+      "files": 3,
+      "expected": 3,
+      "sha256": {
+        "rpcd-snapshot/candidate-full-delta-0/result.json": "06beb6ec9255990e265e36519ad9f84d364a81daba5a5ed905ab101019973ab0",
+        "rpcd-snapshot/candidate-full-files-0/result.json": "ff1e0a634bc6c2d672342536fab95ea79ffb7d33a4148ccb245a08ceefcd5e99",
+        "rpcd-snapshot/candidate-healthy-0/result.json": "5fb02bed09fe91a4b34ee24a344be493bb74297e17f4dcf189d8290fc0085b12"
+      }
+    },
+    "rpcd-restore": {
+      "files": 10,
+      "expected": 10,
+      "sha256": {
+        "rpcd-restore/candidate-cancel-0/result.json": "8eb0532e83990b42560b1453fef20e983de2a77fa13ec6af6bd00f030297da33",
+        "rpcd-restore/candidate-dangling-0/result.json": "dab73e4c093c154e4ca677d709cc3d305ce118616025c06af645bb72cf26bb49",
+        "rpcd-restore/candidate-delta-0/result.json": "a0ccb401395b3eacf71e4669ad1b750b0e3d92631fc5d37a300f21c0c00203f6",
+        "rpcd-restore/candidate-delta-cancel-0/result.json": "2b80eb8b8bca3a1327be93c3cd3c74e81d630382e2e51fa072d59d8bcdf1aff8",
+        "rpcd-restore/candidate-delta-confirm-0/result.json": "bae85b2a0814100d49cb2e8ff149b13fedcd7e6c0dd6ffe5968806fbc6159cab",
+        "rpcd-restore/candidate-full-0/result.json": "2bc4efdde9e9f79e9054fc8ac2e9cae76deb2edcd3fa645fdbc2f87720841a28",
+        "rpcd-restore/candidate-healthy-0/result.json": "520ff07b62a6173ae98e7e5f911b20cf0917dd0b4e819964eb35c0a348a71931",
+        "rpcd-restore/candidate-manual-0/result.json": "143d0cb587b16bda3977a014b6a73011d64833d5f1ddc9c3ff3ac2738a2c68fa",
+        "rpcd-restore/candidate-ownership-0/result.json": "7b7c16fde83a0fb16fad5291a338356cab046724157fd62ab82b1ec0082c981a",
+        "rpcd-restore/candidate-timer-0/result.json": "bb7f261c345cf50ddc393bf0d8e37157cee1969c3abeed6a37242653f5af2e89"
+      }
+    }
+  },
+  "passed": true,
+  "signals": {
+    "rpcd_start_and_session": true,
+    "rpcd_guarded_environment_and_worker_wake": true,
+    "rpcd_hup_same_pid_and_session_thaw": true,
+    "rpcd_reexec_environment_cleared": true,
+    "rpcd_usr1_exits_cleanly": true,
+    "ubusd_hup_keeps_service": true,
+    "ubusd_term_exits_cleanly": true,
+    "ubusd_int_exits_cleanly": true,
+    "reload_SIGINT_cancels_held_lock": true,
+    "reload_SIGTERM_cancels_held_lock": true
+  },
+  "qualification_scope": {
+    "artifacts": "Only actual canonical core-safe CI 39933294568 ELF bytes; no locally rebuilt product substitutes.",
+    "http": "49 cases on each side; 39 exact normalized-response comparisons, remaining cases assert framing/security invariants. Includes TLS 1.2 static GET and 32 KiB CGI POST echo.",
+    "rpcd": "34 checks per side plus 2 apply ownership, 3 snapshot and 10 restore-fault scenarios. Documented parent-symlink deletion security tightening relative to upstream remains explicit in the existing harness.",
+    "signals": "10 actual canonical-process checks in private mount/network/PID namespaces on oracle; distinct from exact-.6 chroot differential suites.",
+    "limits": "No physical-router execution, flash, Wi-Fi/client hardware qualification or new performance claim."
+  }
+}
