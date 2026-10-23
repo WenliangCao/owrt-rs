@@ -1,0 +1,198 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "scope": "Actual canonical CI image 39947459422; complete eight existing offline groups plus exact OpenWrt 25.12.6 NAND routing extension",
+  "result": {
+    "passed": true,
+    "groups": {
+      "fit": {
+        "passed": true,
+        "fit_sha256": "abc43bdc4368f888277164ef39e6214cea9080998473bd8c6ed9bd507c39dafb",
+        "dtb_sha256": "5ebbe0671eabe9b16f08573a6bc26192d7552e7447aadbc4c8a090c5b2ee1f3f",
+        "dts_added_lines": 2,
+        "dts_removed_lines": 0,
+        "switch_status": "disabled",
+        "bootargs_append": " loglevel=4",
+        "kernel_payload_sha1": "6012b7015c4b3c207f32fbcf1c4cfab791b9a2b0"
+      },
+      "boot": {
+        "passed": true,
+        "client_passed": true,
+        "dnsmasq_sha256": "b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41"
+      },
+      "image": {
+        "passed": true,
+        "checks": 11,
+        "NAND_mock_positive_cases": 5,
+        "NAND_mock_rejected_negative_controls": 1
+      },
+      "apk": {
+        "passed": true,
+        "real_reinstalls": 2,
+        "negative_controls": 8
+      },
+      "guard": {
+        "passed": true,
+        "branches": 23
+      },
+      "handoff": {
+        "passed": true,
+        "cases": {
+          "normal": {
+            "passed": true,
+            "elapsed_seconds": 6.475038500968367
+          },
+          "delayed-service-stop": {
+            "passed": true,
+            "elapsed_seconds": 71.48341123200953
+          }
+        }
+      },
+      "rollback_bundle": {
+        "passed": true,
+        "original_members_identical": 46,
+        "recovery_files_verified": 13,
+        "archive_sha256": "80d3d603f7e0b31008b87d94876b42cf3e7dcf8ba5b80bdb0eab17b2aaf4a2ff",
+        "non_current_backup_fixture": true,
+        "deployment_ready": false
+      },
+      "log_settings": {
+        "passed": true,
+        "migration_checked_on_exact_image": true,
+        "no_build_apk_log": true,
+        "cases": 16,
+        "c_and_rust_rounds_per_phase": 4
+      }
+    },
+    "physical_router_accessed": false,
+    "physical_flash_tested": false,
+    "physical_boot_time_measured": false,
+    "ci_run_id": "39947459422",
+    "source_snapshot_commit": "967b28ae74b5aed1ebfa1f2dce4c6caf2938b82b",
+    "backup_is_non_current_offline_fixture": true,
+    "deployment_ready": false,
+    "source_commit": "1e25d61dc707833f97afa5a56148f4dbceb50ed3",
+    "image_sha256": "5b4e7511b228f97b477b875ebfca4c93117e84e450d5c0f5178725e8bab3b151",
+    "manifest_sha256": "bf9af6d93dc942dc115a00326b3f726997e6a563284800ad96098d31f69c9984",
+    "rollback_sha256": "9f8e4b10225ca9c49e0e08d096cf645667c5687b1b42784adab50d3751a3e179",
+    "rollback_version": "v0.3.2",
+    "accepted_component_elfs_verified": 11,
+    "inputs_source_and_rootfs_unchanged": true
+  },
+  "artifact": {
+    "filename": "openwrt-25.12.6-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+    "bytes": 14192928,
+    "sha256": "5b4e7511b228f97b477b875ebfca4c93117e84e450d5c0f5178725e8bab3b151",
+    "native_APK_sha256": "84170c766d6bc0fdeb01df52ed69eb0b4a6fbe18801ecccd0a81802a5b834a49",
+    "component_ELF_sha256": {
+      "fw4": "76637e0b3ace492a5f0d170250e86f2ef79b063010c165cdedbabe35fa7e7771",
+      "httpd": "50f502f2c52ff2ddfa0bbd8d98e47727c18a6ca546964f6c7866e0a81dcc2870",
+      "logd": "3a0311a3d965ea6473a2b4e9970a105aca69da4983bc4bf9d12a3b70c3c2fd35",
+      "netifd": "58bd1ea035c87afe0179ddcf97bdce2b0ebc63ccad9fede7d627cc792943071d",
+      "procd": "f55a4287fffb36f617c16727c672593b93676ae6c87dfd41d9b10ba3f4ad08a7",
+      "reload-config": "a39bfc75dda3bc6245227e1a558416f5312681599bfe9905eed591eea2d2a33e",
+      "rpcd": "6f99dd171fd2ef5aec8cfe676726c843820cc22443443fc6e82f9285e3f6e152",
+      "ubusd": "de5e9e3ff9f97deeb23073c0a8a6beee6e1edf68221dba7dca1e43ee5151ab76",
+      "uci": "04efbab9c439bcf6957a6170be4687fc95a112f45baf633c464732c6550846d1",
+      "dnsmasq": "b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41",
+      "odhcpd": "3eb5dee79aacd920f772f7fd13af4ba48278f51ec3deb92ee2a27cb01f8255e1"
+    }
+  },
+  "evidence": {
+    "qualification": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/result.json",
+      "sha256": "47d89878dbbfc0b2f9678f3e8c6070207ecd589e177858044f411d297679f584",
+      "bytes": 2454
+    },
+    "boot": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/boot-final/result.json",
+      "sha256": "7f5d7676c805965eba354d3ceb587dd6a3365b8a633c3a6cd49c4f4bdabca2c0",
+      "bytes": 16767
+    },
+    "image": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/image-checks/result.json",
+      "sha256": "5db19dcd54a19dd2b329717cd4e2dc21e0992ea5b416e31b6994546d12adfec4",
+      "bytes": 793
+    },
+    "NAND_mock": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/upgrade-25126-checks/result.json",
+      "sha256": "3c35a060eeec5734cc816c259967faf0058250a75e70d5d50aa4524d45a22993",
+      "bytes": 8902
+    },
+    "APK": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/apk-checks/result.json",
+      "sha256": "a2816c10b6a96d1e476f8458a7f43762a226e31efdcc0a2c3a7a01828c0f06f2",
+      "bytes": 1517
+    },
+    "guard": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/guard-checks/result.json",
+      "sha256": "826775bffb3950e2b6b03a38c646299526acc9553d5bd4641aeaf551ef717d1c",
+      "bytes": 1216
+    },
+    "handoff": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/handoff-checks/result.json",
+      "sha256": "e6f3691b31b258f6afb78975855d9bd266e793205240fd7b1cf30915d472b93a",
+      "bytes": 7412
+    },
+    "log_settings": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/log-settings-checks/results.json",
+      "sha256": "894b593c217ec9471ca9b2a69cf683acb5673c7cd61b721a5aee4b8a1f6df9af",
+      "bytes": 14272
+    },
+    "rootfs_tree_before": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/rootfs-tree-before.json",
+      "sha256": "487bd1ea21cb3be2963bd1883511e1c5d4793971608ff9878ee805665dd49b02",
+      "bytes": 193224
+    },
+    "rootfs_tree_after": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/rootfs-tree-after.json",
+      "sha256": "487bd1ea21cb3be2963bd1883511e1c5d4793971608ff9878ee805665dd49b02",
+      "bytes": 193224
+    },
+    "recorded_inputs": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/runs/final-01/inputs.json",
+      "sha256": "f74144799d635abe3a13bdc38b2339efc4294bf46c0bb0f3a1ef79f9029946dd",
+      "bytes": 6101
+    },
+    "runner": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/qualify.py",
+      "sha256": "b24dcedeabf402930cca9f3e28e8f35dae5e8a001574b9f2147c043650a4a44a",
+      "bytes": 24848
+    },
+    "source_receipt": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/source-receipt.json",
+      "sha256": "a8c99d9717d8c812ba1ff7337ec171adc3fd09dbf359f25efe34e0048f55e66a",
+      "bytes": 196285
+    },
+    "source_archive": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/qualification-39947459422/source-public.tar",
+      "sha256": "cb9468b0270b81b9846018e414d56fe6bb6b2391093cef9d667bb71d04f949c1",
+      "bytes": 15380480
+    },
+    "isolation_smoke": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/namespace-isolation-smoke-02/result.json",
+      "sha256": "858ce75e99714a2c0125a7f130999af9dfc93db190cad9f82101be731dc0a989",
+      "bytes": 1489
+    }
+  },
+  "isolation": {
+    "hardware_hotplug_disabled_only_in_boot_and_handoff_copies": true,
+    "original_hotplug_sha256": "5bdcecd7029d08c50bcc10c5a5cf7e71067010591b1fa9f446f546ae508701a6",
+    "kernel_log_mask_same_device_and_inode_checked_outside_and_inside_chroot": true,
+    "UTS_and_network_sysctl_smoke_preserved_host_values": true,
+    "PID1_fixtures_have_fresh_read_only_sysfs_and_no_cgroupfs_mount": true,
+    "sync_calls_still_request_global_filesystem_writeback": true,
+    "review": "docs/reviews/V033_NAMESPACE_ISOLATION_20261023.md"
+  },
+  "limits": [
+    "Oracle offline namespaces do not qualify physical flash, physical boot, hardware hotplug, Wi-Fi or hardware timing.",
+    "Historical backup is a non-current offline fixture; generated rollback archives must not be deployed.",
+    "Stock APK owner fixtures contain exact 25.12.6 image payloads but are unsigned offline fixtures, not the original signed APKs. Actual canonical native APK was used.",
+    "No CPU or latency performance conclusion is inferred from these functional tests."
+  ],
+  "preserved_failure": {
+    "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/namespace-isolation-smoke-01",
+    "classification": "Fixture-only assumption: exact image has no stat command; corrected to host stat plus runtime shell identity checks before final image gates.",
+    "final_image_gate_failures": 0
+  }
+}
