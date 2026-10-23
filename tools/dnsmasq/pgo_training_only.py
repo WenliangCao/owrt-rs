@@ -31,6 +31,12 @@ import sys
 # it contains no old product/source/profile identity.
 WORKLOAD_PLAN_SHA256 = "8568f3e496cbe1d11663bbcc0696c291fdce3e46d3dfdac8271b82ead37943cd"
 HELPER_SHA256 = "bdf39f4d42d601f0141360f4bdd2ab8b11ba540cb4ceed47ab4f319a5b7d1d6a"
+WORKLOAD_MANIFESTS = {
+    WORKLOAD_PLAN_SHA256: HELPER_SHA256,
+    # New .6 SDK workload-helper builds; the 11 scenes and source inputs remain fixed.
+    "391baf0274fda9b33f22034310b4137ea0f85881e40892eddce1205e6161d9f4":
+        "a402ab05d5f48477b26ac8cb67460fe9806700b8dc36a0a2a7a1c363a0337a02",
+}
 
 
 def require(condition, message):
@@ -68,7 +74,7 @@ def empty_directory(path, *, fresh=False):
 
 def reference_plan(item):
     path = checked_file(item)
-    require(sha(path) == WORKLOAD_PLAN_SHA256, "frozen workload manifest changed")
+    require(sha(path) in WORKLOAD_MANIFESTS, "frozen workload manifest changed")
     return path, json.loads(path.read_text())
 
 
@@ -168,7 +174,8 @@ def prepare(request, base):
     require(helper_build["source_sha256"] == reference["training_lifecycle_source_sha256"]
             == hashlib.sha256(source.encode()).hexdigest(), "reused helper source differs")
     require(helper_build["compiler_sha256"] == reference["helper_compiler_sha256"] == sha(reference["sdk_cc"])
-            and helper_build["elf_sha256"] == reference["helper_elf_sha256"] == sha(helper) == HELPER_SHA256
+            and helper_build["elf_sha256"] == reference["helper_elf_sha256"] == sha(helper)
+            == WORKLOAD_MANIFESTS[sha(reference_path)]
             and helper_build["argv"] == reference["helper_build_argv"], "reused helper compiler/ELF differs")
     shutil.copy2(helper, base / "device_perf_lifecycle")
     shutil.copy2(helper_base / "helper-build.json", base / "helper-build.json")

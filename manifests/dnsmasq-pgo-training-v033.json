@@ -1,0 +1,247 @@
+{
+  "schema": 1,
+  "scope": "v0.3.3 OpenWrt 25.12.6 workload sources and freshly rebuilt SDK helpers only; no dnsmasq product/profile identity is reused",
+  "recovered_tools_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+  "original_plan_sha256": "1ff57e91a438a2b56e161d688fc19e65aa9214c6c0827c8a7aa20a344be9af26",
+  "loadgen_source_commit": "ca9fea5b32952578b125d3daee3a41f17ea65f04",
+  "sdk": {
+    "archive_sha256": "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
+    "view_manifest_sha256": "a561c7387824f6f90586282fda8ce145d85b637d5ad81c46bf53ec6068ad16f5",
+    "scope": "Oracle SDK view only for deterministic AArch64 C workload helpers; canonical Rust product builds run on native x86 GitHub runners"
+  },
+  "cpu": 0,
+  "training_seed": 539365398,
+  "evaluation_seed": 2699265,
+  "expected_profile_count": 50,
+  "passes": 1,
+  "weight_policy": "One pass per scene, each raw file unit weight; no selective reruns or evaluation/smoke profiles",
+  "scenes": [
+    [
+      "udp-hit",
+      "udp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-miss",
+      "udp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "udp-mixed",
+      "udp",
+      "mixed",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-hit",
+      "tcp",
+      "hit",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "tcp-miss",
+      "tcp",
+      "miss",
+      200,
+      5,
+      20,
+      150
+    ],
+    [
+      "dhcp-home6",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      6
+    ],
+    [
+      "dhcp",
+      "dhcp",
+      "hit",
+      100,
+      5,
+      20,
+      150
+    ],
+    [
+      "startup-small",
+      "life-startup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "config-small",
+      "life-config",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-small",
+      "life-hup",
+      7,
+      6,
+      20,
+      1000,
+      150
+    ],
+    [
+      "hup-large",
+      "life-hup",
+      999,
+      150,
+      20,
+      1000,
+      150
+    ]
+  ],
+  "input_sha256": {
+    "pgo_train.py": "10d5fc63b9fc55d639b5182c9f9b0afb53a4b77da6824ddb9888bfaadc72ee0a",
+    "pgo_train_cargo.py": "fd5c7494c8f390f312bf4ae8904507f7a4bde2c69e3c22216b9f094c7e2c6b35",
+    "pgo_sdk_smoke.py": "4157e50ae1d53a422c6365d426c3ae3f23c957d086e17d1913c4980d0e49ae66",
+    "perf_opt_device_run.py": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df",
+    "perf_opt_oracle_run.py": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3",
+    "perf_opt_device_case.sh": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2",
+    "device_perf_lifecycle.c": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4",
+    "pgo_lifecycle_exit.c": "2e3ad050bb5d33a97796068618f2fd6b0b87861a83a06e67cf1b8b444127cc2d"
+  },
+  "workload_tools": {
+    "m6a_loadgen": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-tools-01/m6a_loadgen",
+      "sha256": "0119564f89abaed0f3ef7422b2b2a47278ba1608d76e9e7a4bbca994b87bdda4",
+      "source_sha256": "f932f729166f9e9f8dfc75c062d123b4d80de41f38b7261276c764c7ac0ee4c4"
+    },
+    "m6a_upstream": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-tools-01/m6a_upstream",
+      "sha256": "a345429925458b22481710be19091ac201a9d3f8e78e5e77d22234d47c7ae158",
+      "source_sha256": "09fd1d28603053bb3255f288d3ffeee84da4da6aca348711f9d0e2e9a94968ee"
+    },
+    "device_perf_resource_probe": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-tools-01/device_perf_resource_probe",
+      "sha256": "451db9f3a26dca1711a946b6b5abf7220d881777a306382109c7e9713e441ec3",
+      "source_sha256": "3ff3c4aa5e7a0fbea7c2c51c69c504c3c42066d4839eee716a1e76dd84b803ea"
+    },
+    "device_perf_netns": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-tools-01/device_perf_netns",
+      "sha256": "85c437a700fb6609d730dabeaa6b07bbc9c0cf262a95e07b49dd63812ae41b3e",
+      "source_sha256": "9d61cf294038710f8492a2fc9266997c8d66ade5f4def17e6163f2d6795654d4"
+    },
+    "nice10": {
+      "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-tools-01/nice10",
+      "sha256": "0f3c285067cd46dea8c29b96bc326e99a86e96496ab8072c478e7901966f9d05",
+      "source_sha256": "a641b57d814b9261824d30873e253976e06c3c9823e0f5ae047a9fb625cdc047"
+    }
+  },
+  "profdata": {
+    "path": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+    "version": "LLVM 22.1.8-rust-1.98.1-stable",
+    "sha256": "c7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e",
+    "observation": "Reported by loop and root; reverify on the reserved host before use"
+  },
+  "attempt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-tools-01",
+  "training_lifecycle_source_sha256": "49666bd37b81a2a089db389b6b9543d52156f3c4b865c54f0d5e479b8d27cb48",
+  "sdk_cc": "/home/ubuntu/owrt-v033-25126-release-20261023/private/tooling/sdk-view-02/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+  "helper_build_argv": [
+    "/home/ubuntu/owrt-v033-25126-release-20261023/private/tooling/sdk-view-02/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+    "-Os",
+    "-static",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-tools-01/device_perf_lifecycle.c",
+    "-o",
+    "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-tools-01/device_perf_lifecycle"
+  ],
+  "helper_elf_sha256": "a402ab05d5f48477b26ac8cb67460fe9806700b8dc36a0a2a7a1c363a0337a02",
+  "helper_compiler_sha256": "423bb8e99c85b682b9efeeb40a810faaed6a917a75096c5f3dd40e67250b6783",
+  "openwrt": "25.12.6",
+  "workload_source_provenance": {
+    "pgo_train.py": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "10d5fc63b9fc55d639b5182c9f9b0afb53a4b77da6824ddb9888bfaadc72ee0a"
+    },
+    "pgo_train_cargo.py": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "fd5c7494c8f390f312bf4ae8904507f7a4bde2c69e3c22216b9f094c7e2c6b35"
+    },
+    "pgo_sdk_smoke.py": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "4157e50ae1d53a422c6365d426c3ae3f23c957d086e17d1913c4980d0e49ae66"
+    },
+    "perf_opt_device_run.py": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "7c93cfb1ec060a11cebfa14d1a5cf1a31d6bdf40853ed6c4287b4630108e21df"
+    },
+    "perf_opt_oracle_run.py": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "1e80a915686c14ed7a07dc163f38019fe842f60dde2ce43c0fce63f13670ecb3"
+    },
+    "perf_opt_device_case.sh": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "79f4d3e9333e6e0023be4ad55aa37e973eddbc2d46495444fc08c62c1a6d28c2"
+    },
+    "device_perf_lifecycle.c": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4"
+    },
+    "pgo_lifecycle_exit.c": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "2e3ad050bb5d33a97796068618f2fd6b0b87861a83a06e67cf1b8b444127cc2d"
+    },
+    "m6a_loadgen.c": {
+      "original_commit": "ca9fea5b32952578b125d3daee3a41f17ea65f04",
+      "resolved_commit": "95bbae9efc81ad8ad46ece54037223a939744aff",
+      "sha256": "f932f729166f9e9f8dfc75c062d123b4d80de41f38b7261276c764c7ac0ee4c4"
+    },
+    "m6a_upstream.c": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "09fd1d28603053bb3255f288d3ffeee84da4da6aca348711f9d0e2e9a94968ee"
+    },
+    "device_perf_resource_probe.c": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "3ff3c4aa5e7a0fbea7c2c51c69c504c3c42066d4839eee716a1e76dd84b803ea"
+    },
+    "device_perf_netns.c": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "9d61cf294038710f8492a2fc9266997c8d66ade5f4def17e6163f2d6795654d4"
+    },
+    "perf_opt_nice10.c": {
+      "original_commit": "2e5cf7920271f680c3b4745f8f22fc1a6ea52731",
+      "resolved_commit": "fbb81257695b110cf651ab54dfba3c8f69e62130",
+      "sha256": "a641b57d814b9261824d30873e253976e06c3c9823e0f5ae047a9fb625cdc047"
+    }
+  },
+  "workload_build_receipt_sha256": "6b88ba85b603d0e6b5fadd34a60cff2ad9a51c9a52b1cbdc691db5960adcf981"
+}

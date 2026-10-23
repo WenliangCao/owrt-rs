@@ -31,8 +31,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--imagebuilder", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--openwrt-version", default="25.12.5",
+                        help="version key in packaging/image/ax3000t-fit-inputs.json")
+    parser.add_argument("--mkimage", type=Path,
+                        help="optional native host tool for diagnostic runs on non-x86 Linux")
     args = parser.parse_args()
     original, output = args.imagebuilder.resolve(), args.output.resolve()
+    pins = json.loads((REPO / "packaging/image/ax3000t-fit-inputs.json").read_text())
+    if args.openwrt_version not in pins:
+        parser.error("OpenWrt version has no reviewed AX3000T FIT inputs")
+    mkimage = args.mkimage.resolve() if args.mkimage else original / "staging_dir/host/bin/mkimage"
+    if not mkimage.is_file() or not os.access(mkimage, os.X_OK):
+        parser.error(f"mkimage is not executable: {mkimage}")
     output.mkdir(parents=True, exist_ok=False)
     spec = importlib.util.spec_from_file_location("native_image", REPO / "tools/native_image.py")
     module = importlib.util.module_from_spec(spec)
@@ -53,7 +63,11 @@ def main():
     }
     (output / "plan.json").write_text(json.dumps(plan, indent=2) + "\n")
     result = {"passed": False, "inputs": inputs, "script_sha256": sha(source),
-              "verifier_sha256": sha(REPO / "tools/native_image.py"), "rounds": []}
+              "verifier_sha256": sha(REPO / "tools/native_image.py"),
+              "openwrt": args.openwrt_version,
+              "mkimage": {"path": str(mkimage), "sha256": sha(mkimage),
+                          "native_diagnostic_override": args.mkimage is not None},
+              "rounds": []}
     try:
         for repeat in range(1, 5):
             case = output / str(repeat)
@@ -61,7 +75,11 @@ def main():
             (ib / LINUX).mkdir(parents=True)
             out.mkdir()
             (ib / "staging_dir").mkdir()
-            (ib / "staging_dir/host").symlink_to(original / "staging_dir/host", target_is_directory=True)
+            if args.mkimage:
+                (ib / "staging_dir/host/bin").mkdir(parents=True)
+                (ib / "staging_dir/host/bin/mkimage").symlink_to(mkimage)
+            else:
+                (ib / "staging_dir/host").symlink_to(original / "staging_dir/host", target_is_directory=True)
             for name in inputs:
                 path = ib / LINUX / name
                 shutil.copyfile(original / LINUX / name, path)
@@ -72,7 +90,8 @@ def main():
             (case / "before.stderr").write_bytes(red.stderr)
             assert red.returncode != 0 and b"FDT_ERR_NOTFOUND" in red.stderr
             with (case / "build.log").open("wb") as log:
-                subprocess.run([sys.executable, str(block), "25.12.5", str(ib), str(case), str(out)],
+                subprocess.run([sys.executable, str(block), args.openwrt_version,
+                                str(ib), str(case), str(out), str(REPO)],
                                env=dict(os.environ, SOURCE_DATE_EPOCH=str(repeat)),
                                stdout=log, stderr=subprocess.STDOUT, check=True)
             metadata = json.loads((out / "ax3000t-fit.json").read_text())

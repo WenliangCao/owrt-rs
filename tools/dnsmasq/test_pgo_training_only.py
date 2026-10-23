@@ -69,6 +69,19 @@ class TrainingOnlyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SDK archive differs"):
             training.validate_ci(self.ci, self.reference, reference, self.elf)
 
+    def test_new_workload_plan_binds_its_own_sdk_and_fresh_helpers(self):
+        manifest = Path(__file__).resolve().parents[2] / "manifests/dnsmasq-pgo-training-v033.json"
+        _, reference = training.reference_plan({"path": str(manifest), "sha256": training.sha(manifest)})
+        self.assertEqual(reference["openwrt"], "25.12.6")
+        self.assertEqual(reference["sdk"]["archive_sha256"],
+            "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e")
+        self.assertEqual(reference["helper_elf_sha256"], training.WORKLOAD_MANIFESTS[training.sha(manifest)])
+        self.assertNotEqual(reference["helper_elf_sha256"], training.HELPER_SHA256)
+        self.assertEqual(len(reference["scenes"]), 11)
+        self.assertEqual(reference["expected_profile_count"], 50)
+        self.assertNotIn("source_commit", reference)
+        self.assertNotIn("merged_profile", reference)
+
     def test_old_host_plain_and_different_source_refused(self):
         for key, bad in (("status", "built-and-audited"), ("release_qualified", True),
                          ("pgo_stage", "use"), ("source_commit", "f" * 40), ("source_digest", "f" * 64)):
