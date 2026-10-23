@@ -16,6 +16,15 @@ COMPONENTS = (
     "platform", "ubus", "uci", "reload-config", "logd", "httpd", "fw4",
     "rpcd", "ubusd", "netifd", "procd", "dnsmasq/platform", "dnsmasq", "odhcpd",
 )
+# These are business roots, even when a platform binary adapter invokes them.
+# Forbid is deliberately stronger than deny: no descendant may opt out.
+BUSINESS_ROOTS = (
+    "dnsmasq/src/lib.rs", "dnsmasq/src/main.rs", "fw4/src/lib.rs",
+    "procd/src/main.rs", "reload-config/src/main.rs", "rpcd/src/main.rs",
+    "ubusd/src/main.rs", "ubus/src/lib.rs", "uci/src/lib.rs",
+    "httpd/src/main.rs", "logd/src/main.rs", "netifd/src/lib.rs",
+    "netifd/src/main.rs",
+)
 # These ignored tests require only the namespace supplied by our runner. The
 # remaining ignored tests require an independently built exact-C oracle/corpus.
 DNS_NAMESPACE_PREFIXES = (
@@ -28,6 +37,15 @@ DNS_NAMESPACE_PREFIXES = (
 def linux_only():
     if platform.system() != "Linux":
         raise RuntimeError("Rust gates require Linux; use ssh oracle or CI, not a Mac build")
+
+
+def verify_business_boundaries(root=ROOT):
+    """Reject weakening a business root before a compiler can hide the change."""
+    required = re.compile(r"^\s*#!\[forbid\(unsafe_code\)\]\s*$", re.M)
+    for relative in BUSINESS_ROOTS:
+        source = root / "components" / relative
+        if not required.search(source.read_text()):
+            raise RuntimeError(f"business root must retain #![forbid(unsafe_code)]: {relative}")
 
 
 def run_test(arguments):
@@ -52,7 +70,9 @@ def configuration(manifest):
     text = manifest.read_text()
     features = bool(re.search(r"^\[features\]$", text, re.M))
     library = re.search(r"^\[lib\]\n(.*?)(?=^\[|\Z)", text, re.M | re.S)
-    docs = (manifest.parent / "src/lib.rs").is_file() and not (
+    explicit_path = re.search(r'^path\s*=\s*"([^"\n]+)"\s*$', library[1], re.M) if library else None
+    library_path = explicit_path[1] if explicit_path else "src/lib.rs"
+    docs = (manifest.parent / library_path).is_file() and not (
         library and re.search(r"^doctest\s*=\s*false\s*$", library[1], re.M)
     )
     return features, docs
@@ -115,7 +135,9 @@ def namespace_tests(manifest, host, output, env):
         names = [line.removesuffix(": test") for line in listing.read_text().splitlines()
                  if line.endswith(": test")]
         for index, name in enumerate(names):
-            if not name.startswith(DNS_NAMESPACE_PREFIXES):
+            # The platform binary adapter nests the unchanged business owner
+            # under daemon; preserve the exact discovered name when executing.
+            if not name.removeprefix("daemon::").startswith(DNS_NAMESPACE_PREFIXES):
                 print(f"requires separate oracle/corpus: {name}", flush=True)
                 continue
             execute([*base, name, "--", "--exact", "--ignored", "--test-threads=1"],
@@ -131,6 +153,7 @@ def main(arguments):
     parser.add_argument("--output", type=Path, default=ROOT / "work/out/rust-host")
     args = parser.parse_args(arguments)
     linux_only()
+    verify_business_boundaries()
     if os.geteuid() == 0:
         raise RuntimeError("run Rust gates as an ordinary user; only the test runner uses sudo")
     if shutil.which("mbx") is None:

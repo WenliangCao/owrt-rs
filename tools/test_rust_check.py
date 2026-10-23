@@ -13,12 +13,30 @@ import rust_check as gate
 
 
 class RustGateTests(unittest.TestCase):
+    def test_business_boundary_rejects_deny_and_conditional_forbid(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / "components/example/src/lib.rs"
+            source.parent.mkdir(parents=True)
+            with patch.object(gate, "BUSINESS_ROOTS", ("example/src/lib.rs",)):
+                source.write_text("#![forbid(unsafe_code)]\npub fn safe() {}\n")
+                gate.verify_business_boundaries(root)
+                for weakened in (
+                    "#![deny(unsafe_code)]",
+                    "#![cfg_attr(test, forbid(unsafe_code))]",
+                    "// #![forbid(unsafe_code)]",
+                ):
+                    source.write_text(weakened + "\n")
+                    with self.assertRaisesRegex(RuntimeError, "must retain"):
+                        gate.verify_business_boundaries(root)
+
     def recorded_entry(self, arguments):
         output = io.StringIO()
         with patch.object(gate.platform, "system", return_value="Linux"), \
                 patch.object(gate.os, "geteuid", return_value=1000), \
                 patch.object(gate.shutil, "which", return_value="/tools/mbx"), \
                 patch.object(gate.subprocess, "check_output", return_value="host: x86_64-unknown-linux-gnu\n"), \
+                patch.object(gate, "verify_business_boundaries"), \
                 patch.object(gate, "execute") as execute, \
                 contextlib.redirect_stdout(output):
             self.assertEqual(gate.main(arguments), 0)
@@ -82,6 +100,34 @@ class RustGateTests(unittest.TestCase):
         self.assertIn("--examples", rows["examples-default"])
         self.assertNotIn("--all-targets", rows["examples-default"])
         self.assertEqual(rows["clippy-default"][-3:], ["--", "-D", "warnings"])
+
+    def test_explicit_business_library_path_keeps_doctest_gate(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "src").mkdir()
+            (root / "src/main.rs").write_text("#![forbid(unsafe_code)]\n")
+            manifest = root / "Cargo.toml"
+            manifest.write_text('[package]\nname="fixture"\n[lib]\npath="src/main.rs"\n')
+            self.assertEqual(gate.configuration(manifest), (False, True))
+            rows = dict(gate.commands("test", manifest, "x86_64-unknown-linux-gnu"))
+            self.assertIn("--doc", rows["doc"])
+
+    def test_namespace_discovery_keeps_platform_adapter_test_names(self):
+        name = "daemon::tests::dns_listener_factories_preserve_bound_ipv4_policy_on_rebind"
+        executed = []
+
+        def capture(command, log, env):
+            executed.append(command)
+            if "--list" in command:
+                log.write_text(name + ": test\n" if "--bin" in command else "")
+
+        with tempfile.TemporaryDirectory() as folder, patch.object(gate, "execute", capture):
+            gate.namespace_tests(gate.ROOT / "components/dnsmasq/Cargo.toml",
+                                 "x86_64-unknown-linux-gnu", Path(folder), {})
+        invocations = [row for row in executed if "--list" not in row]
+        self.assertEqual(len(invocations), 1)
+        self.assertIn(name, invocations[0])
+        self.assertIn("--exact", invocations[0])
 
     def test_compilation_failure_cannot_be_reported_as_success(self):
         with tempfile.TemporaryDirectory() as folder:
