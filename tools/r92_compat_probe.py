@@ -300,6 +300,17 @@ def take(fd):
         chunks.append(data)
 
 
+def backlog_admission_matches(statuses, bounded):
+    """The long-record 2 MiB corpus admits two histories, then hits 6 MiB."""
+    if len(statuses) != 4 or statuses[:2] != [0, 0]:
+        return False
+    if not bounded:
+        return statuses[2:] == [0, 0]
+    # Pipe buffering can move the rejection between the third and fourth
+    # history. Either way, an unbounded or old 1 MiB limit must fail this gate.
+    return statuses[2:] in ([0, 8], [8, 8])
+
+
 def logd_limits(f):
     f.start_bus()
     f.start_subject("-S", "2048", obj="log")
@@ -327,9 +338,11 @@ def logd_limits(f):
         client.invoke(obj, "write", string("event", "release replacement"))
         for _ in range(8):
             assert stream() == 0
-        # < 1 MiB input per reader, but > 4 MiB across eight readers, so
-        # disconnects here can only be the aggregate bound.
-        for i in range(820):
+        # v0.3.2 already budgets max(1 MiB, 3 * ring) per stream and
+        # max(4 MiB, per-stream) in total: this 2 MiB ring has a 6 MiB budget.
+        # 1100 long frames each stay below one stream's cap, while eight
+        # undrained copies exceed 6 MiB even after their pipe buffering.
+        for i in range(1100):
             assert client.invoke(obj, "write", string("event", f"{i:04d}-".encode() + b"x" * 995))[0] == 0
         time.sleep(0.05)
         f.subject.send_signal(signal.SIGSTOP)
@@ -343,8 +356,26 @@ def logd_limits(f):
         readers.clear()
         for i in range(1500):
             assert client.invoke(obj, "write", string("event", f"backlog-{i:04d}-".encode() + b"x" * 980))[0] == 0
-        # Ring has > 1 MiB, while a requested ten-line oneshot still works.
-        f.check("initial_backlog_bound", stream(message("oneshot", 7, b"\x01")), 0 if f.side == "original" else 8)
+        # A full ring is a legal history stream; rejecting it at 1 MiB is
+        # the retired behavior. Multiple unread histories must still hit the
+        # aggregate cap. Keep the accepted descriptors alive through refusal.
+        statuses = [stream(message("oneshot", 7, b"\x01")) for _ in range(4)]
+        f.observations["initial_backlog_statuses"] = statuses
+        f.check("full_ring_allowed", statuses[:2], [0, 0])
+        f.check("initial_backlog_bound", backlog_admission_matches(statuses, f.side != "original"))
+        history = bytearray()
+
+        def history_complete():
+            data, eof = take(readers[0])
+            history.extend(data)
+            return eof
+
+        f.check("existing_history_after_refusal", f.wait(history_complete)
+                and len(history) > 1024 * 1024 and b"backlog-1499-" in history)
+        for fd in readers:
+            os.close(fd)
+        readers.clear()
+        assert client.invoke(obj, "write", string("event", "release histories"))[0] == 0
         f.check("bounded_oneshot", stream(integer("lines", 10) + message("oneshot", 7, b"\x01")), 0)
         payload = bytearray()
 
@@ -623,7 +654,7 @@ CASES = {
     "uci_rename": ("uci", uci_rename, {label + "_" + what for label in ("section", "option") for what in ("raw_rename", "raw_delta", "no_replacement", "diagnostic", "config_untouched", "fresh_load")}),
     "ubusd_wire": ("ubusd", ubusd_wire, {"identity", "reused_type_reply", "padded_prefix", "event_first_fields", "event_send", "event_bytes_and_first_data", "event_wrong_object_type", "target_first_four", "target_unsubscribe", "target_short", "serving"} | {f"short_{what}_{n}" for what in ("top", "signature") for n in (1, 2, 3)}),
     "logd_bytes": ("logd", logd_bytes, {"identity", "datagram_bytes", "serving"} | {f"write_bytes_{i}" for i in range(5)}),
-    "logd_limits": ("logd", logd_limits, {"identity", "first_64", "client_65", "capacity_recovers", "aggregate_bound", "aggregate_keeps_readers", "initial_backlog_bound", "bounded_oneshot", "oneshot_complete", "serving"}),
+    "logd_limits": ("logd", logd_limits, {"identity", "first_64", "client_65", "capacity_recovers", "aggregate_bound", "aggregate_keeps_readers", "full_ring_allowed", "initial_backlog_bound", "existing_history_after_refusal", "bounded_oneshot", "oneshot_complete", "serving"}),
     "netifd_restart": ("netifd", netifd_restart, {"identity", "delayed_reexec", "same_pid_and_argv", "fresh_objects", "serving"}),
     "procd_bundle": ("procd", procd_bundle, {"identity", "serving"} | {f"bundle_{label}_{what}" for label in ("only", "ignored") for what in ("spawn", "argv", "running")}),
     "rpcd_compat": ("rpcd", rpcd_compat, {"identity", "serving", "acl_file_invalid_bytes", "acl_file_no_replacement", "acl_file_whole_rejection", "invalid_revoke_no_promotion", "valid_revoke", "invalid_function_no_promotion", "invalid_function_disposition", "invalid_sid_disposition", "uci_get_bytes", "uci_state_bytes"} | {f"glob_{i}" for i in range(len(GLOB_CASES))} | {user + "_" + obj for user in ("r92", "r92negative") for obj in ("r92.allowed", "r92.denied")}),
