@@ -31,6 +31,15 @@ EXPECTED_ARTIFACTS = {
     "sbin/reload_config": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
     "sbin/uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
 }
+# The original identity remains the 25.12.5 oracle. The .6 stock image changes
+# BusyBox while retaining uci, ubus and the reload script byte for byte.
+EXPECTED_RELEASE_ARTIFACTS = {
+    "25.12.5": EXPECTED_ARTIFACTS,
+    "25.12.6": {
+        **EXPECTED_ARTIFACTS,
+        "bin/busybox": "aeeda86015e809106a5d247fd8504ac45e01bde0711f4d80af60fc2885ee923a",
+    },
+}
 EMPTY_MD5 = "d41d8cd98f00b204e9800998ecf8427e"
 SAFE_TOKEN = re.compile(r"^[A-Za-z0-9_<>.-]{1,64}$")
 EXPECTED_CASE_IDS = {
@@ -402,17 +411,28 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
 
 
 def prepare_rootfs(source: Path, destination: Path, *, delivery_adapter: bool = True) -> dict[str, str]:
+    release = (source / "etc/openwrt_release").read_text()
+    match = re.search(r"(?m)^DISTRIB_RELEASE=['\"]([^'\"]+)['\"]\s*$", release)
+    version = match[1] if match else None
+    if version not in EXPECTED_RELEASE_ARTIFACTS:
+        raise SystemExit(f"unsupported rootfs release: {version!r}")
+    expected = EXPECTED_RELEASE_ARTIFACTS[version]
     observed = {
-        path: sha256_file(source / path) for path in EXPECTED_ARTIFACTS
+        path: sha256_file(source / path) for path in expected
     }
-    if observed != EXPECTED_ARTIFACTS:
+    if observed != expected:
         raise SystemExit(
-            f"rootfs identity gate failed: expected={EXPECTED_ARTIFACTS}, observed={observed}"
+            f"rootfs identity gate failed: expected={expected}, observed={observed}"
         )
-    shutil.copytree(source, destination, symlinks=True)
+    if destination.exists() or destination.is_symlink():
+        raise FileExistsError(destination)
+    # Extracted official roots contain device nodes/FIFOs. Preserve them as
+    # nodes and retain ownership/mode; never open them as ordinary file data.
+    subprocess.run(["cp", "-a", str(source), str(destination)], check=True)
     null = destination / "dev/null"
     null.parent.mkdir(parents=True, exist_ok=True)
-    null.touch()
+    if not null.exists():
+        null.touch()
     if delivery_adapter:
         adapter = destination / "bin/ubus"
         adapter.write_text(UBUS_ADAPTER)

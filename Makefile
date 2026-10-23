@@ -64,6 +64,7 @@ check-tools:
 check-harnesses:
 	@python3 tools/test_rust_check.py
 	@python3 tools/test_mbx_cargo.py
+	@python3 tools/test_r1_reference_oracle.py
 	@python3 tools/dnsmasq/test_build_package.py
 	@python3 tools/test_audit_checks.py
 	@python3 tools/test_r85_procd_busy_gate.py
