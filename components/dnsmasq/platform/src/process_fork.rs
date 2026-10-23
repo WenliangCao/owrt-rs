@@ -3,10 +3,9 @@
 //! The two callers pass only owned Config/scalar or Vec<ServerRule> snapshots.
 //! Send + 'static and noncapturing fn are interface bounds, not a proof of
 //! ownership or fork safety. The actual production owner is single-threaded;
-//! the audited call graph has no shared writable mmap, external atfork callback
-//! or held lock/stdio guard which either worker reacquires. These are this
-//! application's premises, as in K, not new runtime proof gates. Changes to
-//! these callers or dependencies must review them. libc fork retains libc's
+//! registration audits private snapshots, fixed child entries and the
+//! executable's atfork/mapping/handler policy. Each fork independently verifies
+//! exclusive address-space ownership with signal delivery blocked. libc fork retains libc's
 //! own atfork bookkeeping; no worker can return into the parent owner graph.
 
 use rustix::process::Pid;
@@ -93,23 +92,45 @@ fn nonblocking(fd: impl AsFd) -> io::Result<()> {
 
 pub type HelperProcess<T> = (T, Pid, File, File);
 
-/// Only helper::process's audited pure-data startup snapshot/entry may call
-/// this application boundary. Return the original snapshot, PID, command
-/// writer and event reader to the parent; the child receives its own copies.
+/// A fixed fork entry audited by the executable's platform adapter.
 ///
-/// # Safety
-///
-/// The process must be single-threaded, with no shared writable mappings or
-/// application atfork callbacks. Neither the snapshot nor the child entry may
-/// access inherited descriptor owners, locks or parent state. The entry may
-/// use only its owned snapshot, the supplied pipes and valid standard streams.
-/// In particular, `Send` does not prove that a snapshot is safe to duplicate.
-/// Any inherited signal handler or panic hook reachable by the child must also
-/// avoid abandoned parent descriptor owners, shared state and held locks. The
-/// panic hook runs before `catch_unwind` can catch the payload.
-pub unsafe fn spawn_helper<T: Send + 'static>(
+/// Construction is restricted to that adapter. Safe callers cannot replace
+/// the function or use an arbitrary closure as a fork entry.
+pub struct AuditedWorker<F> {
+    pub(super) entry: F,
+}
+
+impl<F> std::fmt::Debug for AuditedWorker<F> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("AuditedWorker")
+    }
+}
+
+impl<F> AuditedWorker<F> {
+    /// Register a fixed entry whose complete child call graph was reviewed.
+    ///
+    /// # Safety
+    ///
+    /// For every accepted input, the complete entry call graph (including
+    /// destructors, allocator and NSS callbacks) may use only owned private data,
+    /// the supplied pipes and standard streams. It must not access abandoned
+    /// descriptor owners or shared writable mappings, or reacquire a lock held
+    /// across fork. Operations before the platform releases its signal/thread
+    /// guard must not create threads or restore signal delivery early.
+    /// The executable must keep application atfork callbacks absent and retain
+    /// the audited signal-handler/resource policy throughout this registration's
+    /// lifetime. A per-fork thread check does not establish these requirements.
+    pub unsafe fn new(entry: F) -> Self {
+        Self { entry }
+    }
+}
+
+/// Start a fixed helper entry registered by the executable's platform adapter.
+/// The parent retains its snapshot and nonblocking command/event channels.
+/// A fresh kernel check rejects a shared address space before every fork.
+pub fn spawn_helper<T: Send + 'static>(
     snapshot: T,
-    entry: fn(T, File, File) -> i32,
+    worker: &AuditedWorker<fn(T, File, File) -> i32>,
 ) -> io::Result<HelperProcess<T>> {
     let mask = SignalMask::block()?;
     let (commands, command_writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?;
@@ -122,11 +143,11 @@ pub unsafe fn spawn_helper<T: Send + 'static>(
     ) -> i32 {
         entry(snapshot, commands, events)
     }
-    // SAFETY: the caller supplies the process and snapshot guarantees above;
-    // both pipe pairs are fresh, disjoint owners created in this function.
+    // SAFETY: the registered worker guarantees every input and child operation;
+    // fork_worker performs a fresh thread check. These pipes are disjoint owners.
     let ((snapshot, _), pid, [command_writer, event_reader]) = unsafe {
         fork_worker(
-            (snapshot, entry),
+            (snapshot, worker.entry),
             [File::from(commands), File::from(events)],
             [File::from(command_writer), File::from(event_reader)],
             enter::<T>,
@@ -137,18 +158,11 @@ pub unsafe fn spawn_helper<T: Send + 'static>(
     Ok((snapshot, pid, command_writer, event_reader))
 }
 
-/// Only config::dns::lookup's owned (Vec<ServerRule>, bool) snapshot and fixed
-/// resolver entry may call this boundary. No input encoding or extra request
-/// pipe is needed; the parent's original rules remain available for decoding.
-///
-/// # Safety
-///
-/// The process, snapshot and entry must meet [`spawn_helper`]'s requirements.
-/// Only the supplied result writer and valid standard streams remain open in
-/// the child; the snapshot must not contain any descriptor owner or borrower.
-pub unsafe fn spawn_lookup<T: Send + 'static>(
+/// Start a fixed resolver entry registered by the platform adapter.
+/// The parent retains its snapshot and one nonblocking result channel.
+pub fn spawn_lookup<T: Send + 'static>(
     snapshot: T,
-    entry: fn(T, File) -> i32,
+    worker: &AuditedWorker<fn(T, File) -> i32>,
 ) -> io::Result<(T, Pid, File)> {
     let mask = SignalMask::block()?;
     let (reader, writer) = rustix::pipe::pipe_with(rustix::pipe::PipeFlags::CLOEXEC)?;
@@ -156,11 +170,11 @@ pub unsafe fn spawn_lookup<T: Send + 'static>(
     fn enter<T>((snapshot, entry): (T, fn(T, File) -> i32), [writer]: [File; 1]) -> i32 {
         entry(snapshot, writer)
     }
-    // SAFETY: the caller supplies the process and snapshot guarantees above;
-    // the result pipe has fresh, distinct descriptor owners.
+    // SAFETY: the registered worker guarantees every input and child operation;
+    // fork_worker performs a fresh thread check and the pipe owners are distinct.
     let ((snapshot, _), pid, [reader]) = unsafe {
         fork_worker(
-            (snapshot, entry),
+            (snapshot, worker.entry),
             [File::from(writer)],
             [File::from(reader)],
             enter::<T>,
@@ -179,6 +193,9 @@ unsafe fn fork_worker<T: Send + 'static, const CHILD: usize, const PARENT: usize
     helper: bool,
     mut mask: SignalMask,
 ) -> io::Result<(T, Pid, [File; PARENT])> {
+    if std::thread::panicking() {
+        return Err(io::Error::other("cannot fork from a panic handler"));
+    }
     let mut keep = child_files.each_ref().map(AsRawFd::as_raw_fd);
     keep.sort_unstable();
     if keep.iter().any(|fd| *fd <= 2) || parent_files.iter().any(|fd| fd.as_raw_fd() <= 2) {
@@ -186,21 +203,25 @@ unsafe fn fork_worker<T: Send + 'static, const CHILD: usize, const PARENT: usize
             "worker requires valid inherited standard streams",
         ));
     }
-    // SAFETY: these two audited entries run from the fixed production owner,
-    // with the single-thread/no-shared-mapping/no-held-lock premises above.
-    // Daemon signals are blocked. libc fork preserves libc/TLS bookkeeping.
-    // Only the parent returns to its graph; the child owns its copied pure
-    // snapshot and terminates inside this boundary. This is not a generic
-    // guarantee supplied by T: Send or the function-pointer type.
+    let owner = owrt_platform::process_owner::ProcessOwner::acquire()?;
+    // SAFETY: only the fixed libc fork follows the final signal/thread check.
+    // Registration establishes the separate callback and snapshot contract.
+    let guard = unsafe { owner.enter()? };
+    // SAFETY: the guard verifies exclusive address-space ownership with signals
+    // blocked. The registered entry owns only its permitted private snapshot;
+    // libc fork preserves libc bookkeeping and the child cannot return here.
     let pid = unsafe { fork() };
     if pid < 0 {
         return Err(io::Error::last_os_error());
     }
     if pid > 0 {
         drop(child_files);
+        drop(guard);
         mask.restore();
         return Ok((snapshot, Pid::from_raw(pid).unwrap(), parent_files));
     }
+
+    replace_panic_hook();
 
     // Before closing anything, sever the only inherited signal-to-FD edge.
     // Remaining HUP/USR handlers touch only copied numeric atomics. No worker
@@ -234,6 +255,7 @@ unsafe fn fork_worker<T: Send + 'static, const CHILD: usize, const PARENT: usize
     }
     // Standard streams 0/1/2 stay valid for std I/O and panic/OOM paths. This
     // matches helper behavior; resolver retains three more descriptors than K.
+    drop(guard);
     mask.restore();
     let status = exit_status(catch_unwind(AssertUnwindSafe(|| {
         entry(snapshot, child_files)
@@ -241,6 +263,14 @@ unsafe fn fork_worker<T: Send + 'static, const CHILD: usize, const PARENT: usize
     // SAFETY: only this child reaches _exit; no inherited parent destructor or
     // Rust frame can run after the audited entry completes or panics.
     unsafe { _exit(status) }
+}
+
+/// Sever a copied hook before closing inherited descriptors. Taking the hook
+/// moves its captures without dropping them; the child exits without running
+/// those destructors. The replacement is zero-sized and touches no parent state.
+pub(super) fn replace_panic_hook() {
+    std::mem::forget(std::panic::take_hook());
+    std::panic::set_hook(Box::new(|_| {}));
 }
 
 /// A terminating fork branch must not run an arbitrary panic payload's Drop:

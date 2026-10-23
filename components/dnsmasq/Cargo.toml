@@ -21,6 +21,10 @@ rustix = { version = "=1.1.5", features = ["event", "fs", "mm", "net", "param", 
 name = "dnsmasq_rs"
 path = "src/lib.rs"
 
+[[bin]]
+name = "dnsmasq-rs"
+path = "platform/entry.rs"
+
 [profile.release]
 opt-level = 3
 lto = true
@@ -30,12 +34,12 @@ strip = true
 
 [[test]]
 name = "process_forks"
-path = "tests/process_forks.rs"
+path = "platform/tests/process_forks.rs"
 harness = false
 required-features = ["process-test-support"]
 
 [[test]]
 name = "process_owner"
-path = "tests/process_owner.rs"
+path = "platform/tests/process_owner.rs"
 harness = false
 required-features = ["process-test-support"]

@@ -28,6 +28,9 @@ if [ "$build_kind" = fuzz ]; then
     # Build in an output-owned copy so Cargo.lock/corpus never alter the freeze.
     mkdir -p "$output_dir/input/components"
     cp -R "$source_dir/components/dnsmasq" "$source_dir/components/ubus" "$output_dir/input/components/"
+    if [ -d "$source_dir/components/platform" ]; then
+        cp -R "$source_dir/components/platform" "$output_dir/input/components/"
+    fi
     unset RUSTFLAGS CARGO_ENCODED_RUSTFLAGS RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER
     unset CARGO_BUILD_TARGET RUSTUP_TOOLCHAIN
     export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
@@ -51,7 +54,7 @@ import hashlib, json, os, pathlib, sys
 source, out = map(pathlib.Path, sys.argv[1:])
 def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 files = {str(path.relative_to(source)): digest(path)
-         for component in ('dnsmasq', 'ubus')
+         for component in ('dnsmasq', 'ubus', 'platform')
          for path in (source / 'components' / component).rglob('*')
          if path.is_file() and 'target' not in path.parts
          and path != source / 'components/dnsmasq/fuzz/Cargo.lock'}

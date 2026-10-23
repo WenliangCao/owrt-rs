@@ -5,7 +5,7 @@
 //! remains single-threaded throughout startup, service and shutdown.
 
 #![cfg_attr(target_os = "linux", deny(warnings))]
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 
@@ -117,7 +117,7 @@ fn owner_poll_timeout(deadline: Option<Instant>, now: Instant, runnable: bool) -
         .min(i32::MAX as u128) as i32
 }
 
-fn main() {
+pub fn main() {
     #[cfg(all(
         target_os = "linux",
         target_env = "musl",
@@ -754,10 +754,6 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     result
 }
 
-#[expect(
-    unsafe_code,
-    reason = "the binary owns its single-threaded process startup"
-)]
 fn run_inner(
     args: &[OsString],
     #[cfg(target_os = "linux")] startup: &mut dnsmasq_rs::startup::daemonize::StartupChannel,
@@ -1015,15 +1011,11 @@ fn run_inner(
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let lease_init_now = now_seconds();
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    // SAFETY: main has created no threads, shared mappings or atfork hooks;
-    // no stdio or owner lock is held, and the helper receives only owned config.
-    let initial_leases = unsafe {
-        dnsmasq_rs::startup::lease_init::initialize(
-            &dhcp_config,
-            runtime.process.debug,
-            &mut early_logger,
-        )
-    }?;
+    let initial_leases = dnsmasq_rs::startup::lease_init::initialize(
+        &dhcp_config,
+        runtime.process.debug,
+        &mut early_logger,
+    )?;
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     if !dhcp_config.ranges.is_empty() || !dhcp_config.relay.is_empty() {
         return Err(Box::new(Error("DHCP listener requires 64-bit Linux")));
@@ -1265,9 +1257,7 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     let have_cap_chown = identity.check_capabilities(capabilities)?;
     #[cfg(target_os = "linux")]
-    // SAFETY: startup remains single-threaded with private writable memory.
-    // Reporting uses fresh pipes and standard I/O with no lock guards held.
-    match unsafe { startup.begin(&runtime.process) } {
+    match startup.begin(&runtime.process) {
         Ok(true) => return Ok(()),
         Ok(false) => {}
         Err(error) => {
@@ -1329,11 +1319,7 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    // SAFETY: the daemon has no worker threads or shared writable mappings.
-    // NSS and logging calls have returned; no lock guard crosses the fork.
-    let dhcp_helper = helper_config
-        .map(|config| unsafe { Helper::start(config) })
-        .transpose()?;
+    let dhcp_helper = helper_config.map(Helper::start).transpose()?;
     #[cfg(target_os = "linux")]
     identity
         .drop_privileges(&runtime.process, capabilities)
@@ -3784,10 +3770,6 @@ impl SinglePoll {
     }
 
     #[cfg(target_os = "linux")]
-    #[expect(
-        unsafe_code,
-        reason = "private single-threaded owner controls resolver forks"
-    )]
     fn step_dns_files(&mut self) {
         if self.hosts_work_pending() {
             self.files_runnable = false;
@@ -3825,11 +3807,7 @@ impl SinglePoll {
             return;
         }
         let was_initializing = files.initializing();
-        // SAFETY: production runs only in main's single thread, with private
-        // mappings and no atfork hooks. All RefCell/stdio guards have dropped.
-        // Threaded unit fixtures use only literal endpoints; process tests
-        // exercise helper/hostname workers in the dedicated standalone runner.
-        let step = unsafe { files.step_with_watch_readiness(watch_ready) };
+        let step = files.step_with_watch_readiness(watch_ready);
         let initial_finished = was_initializing && !files.initializing();
         self.files_runnable = step.runnable;
         let checks_servers = step.update.is_some()
@@ -9281,20 +9259,12 @@ mod tests {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[cfg(feature = "process-test-support")]
-    #[expect(
-        unsafe_code,
-        reason = "called only by the standalone process test runner"
-    )]
     pub(super) fn ready_test_helper() -> Helper {
-        // SAFETY: the standalone runner starts on main with one thread, no
-        // shared mappings/atfork hooks and no held locks; config is owned.
-        let mut helper = unsafe {
-            Helper::start(HelperConfig {
-                script: "/bin/true".into(),
-                script_user: None,
-                debug: false,
-            })
-        }
+        let mut helper = Helper::start(HelperConfig {
+            script: "/bin/true".into(),
+            script_user: None,
+            debug: false,
+        })
         .unwrap();
         let deadline = Instant::now() + Duration::from_secs(5);
         while !helper.ready() {

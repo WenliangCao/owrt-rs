@@ -33,6 +33,7 @@ class PackageBuildTests(unittest.TestCase):
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(name)
+            (root / "components/dnsmasq/Cargo.toml").write_text('[package]\nname = "dnsmasq-rs"\n')
             self.assertEqual(set(package.inputs(root)), set(required))
             source = root / "components/dnsmasq/platform/src/lib.rs"
             before = package.inputs(root)
@@ -42,6 +43,40 @@ class PackageBuildTests(unittest.TestCase):
             source.symlink_to(root / "rust-toolchain.toml")
             with self.assertRaisesRegex(ValueError, "symlink"):
                 package.inputs(root)
+
+    def test_executable_platform_adapters_are_snapshotted_and_missing_targets_fail(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "source"
+            files = ["rust-toolchain.toml", "manifests/release-25.12.5.json",
+                     "packaging/openwrt/owrt-dnsmasq/Makefile", "tools/dnsmasq/build_package.sh",
+                     "tools/dnsmasq/build_package.py", "components/dnsmasq/Cargo.lock"]
+            for component in ("dnsmasq", "dnsmasq/platform", "ubus", "platform"):
+                files += [f"components/{component}/Cargo.toml", f"components/{component}/src/lib.rs"]
+            adapters = ["platform/entry.rs", "platform/register.rs",
+                        "platform/tests/process_forks.rs", "platform/tests/process_owner.rs",
+                        "platform/tests/panic_hook.rs", "tests/process_forks.rs", "tests/process_owner.rs"]
+            for name in files + ["components/dnsmasq/" + path for path in adapters]:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(name)
+            (root / "components/dnsmasq/Cargo.toml").write_text(
+                '[package]\nname = "dnsmasq-rs"\n[[bin]]\nname = "dnsmasq-rs"\n'
+                'path = "platform/entry.rs"\n'
+                '[[test]]\nname = "process_forks"\npath = "platform/tests/process_forks.rs"\n'
+                '[[test]]\nname = "process_owner"\npath = "platform/tests/process_owner.rs"\n')
+            expected = package.inputs(root)
+            destination = Path(temp) / "snapshot"
+            package.snapshot(root, destination, expected)
+            for name in adapters:
+                self.assertEqual((destination / "components/dnsmasq" / name).read_bytes(),
+                                 (root / "components/dnsmasq" / name).read_bytes())
+            for name in adapters[:4]:
+                path = root / "components/dnsmasq" / name
+                saved = path.read_bytes()
+                path.unlink()
+                with self.assertRaisesRegex(ValueError, "missing"):
+                    package.inputs(root)
+                path.write_bytes(saved)
 
     def test_automatic_activation_allows_only_the_executable_file_dependency(self):
         stock = b'#!/bin/sh\n\tprocd_set_param file $CONFIGFILE\n\tprocd_set_param respawn\n'

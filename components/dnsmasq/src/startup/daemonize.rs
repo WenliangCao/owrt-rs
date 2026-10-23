@@ -5,6 +5,17 @@ use std::fs::File;
 use std::io::{self, IoSlice, Read, Write};
 use std::os::fd::AsFd;
 
+static CALLBACKS: std::sync::OnceLock<dnsmasq_platform::process::StartupCallbacks> =
+    std::sync::OnceLock::new();
+
+/// Install the executable's fixed startup-report callbacks exactly once.
+#[doc(hidden)]
+pub fn install_worker(
+    callbacks: dnsmasq_platform::process::StartupCallbacks,
+) -> Result<(), dnsmasq_platform::process::StartupCallbacks> {
+    CALLBACKS.set(callbacks)
+}
+
 #[derive(Default)]
 pub struct StartupChannel {
     writer: Option<File>,
@@ -17,21 +28,9 @@ impl StartupChannel {
     }
 
     /// Returns true in the original parent after successful child startup.
-    /// The detached service and foreground modes return false.
-    ///
-    /// # Safety
-    ///
-    /// Background mode requires a single-threaded process with private writable
-    /// mappings, no application atfork callbacks, and no held locks used by
-    /// startup reporting or standard I/O. Foreground modes do not fork.
-    /// Inherited signal handlers and panic hooks must not access copied parent
-    /// resource owners or held locks; see
-    /// [`dnsmasq_platform::process::background_startup`].
-    #[expect(
-        unsafe_code,
-        reason = "daemonization explicitly requires process ownership"
-    )]
-    pub unsafe fn begin(&mut self, config: &ProcessConfig) -> Result<bool, StartupError> {
+    /// The detached service and foreground modes return false. Background mode
+    /// requires the fixed callbacks installed by the platform executable.
+    pub fn begin(&mut self, config: &ProcessConfig) -> Result<bool, StartupError> {
         if config.debug {
             return Ok(false);
         }
@@ -44,17 +43,17 @@ impl StartupChannel {
             .map_err(|error| failure("cannot create pipe", error.into()))?;
         rustix::fs::fcntl_setfl(&writer, rustix::fs::OFlags::NONBLOCK)
             .map_err(|error| failure("cannot create pipe", error.into()))?;
-        // SAFETY: the caller supplies the process guarantees above. These
-        // fixed callbacks only consume their pipe and emit startup diagnostics;
-        // neither can return through or access the copied service owners.
-        let writer = unsafe {
-            dnsmasq_platform::process::background_startup(
-                File::from(reader),
-                File::from(writer),
-                parent_report,
-                fork_failed,
+        let callbacks = CALLBACKS.get().ok_or_else(|| {
+            failure(
+                "cannot fork into background",
+                io::Error::other("startup callbacks are not installed"),
             )
-        }
+        })?;
+        let writer = dnsmasq_platform::process::background_startup(
+            File::from(reader),
+            File::from(writer),
+            callbacks,
+        )
         .map_err(|error| failure("cannot fork into background", error))?;
         self.writer = Some(writer);
         Ok(false)
@@ -195,7 +194,8 @@ fn read_startup_event(
 
 /// The original parent reports startup and exits inside the platform boundary;
 /// it never returns through the service's inherited Rust ownership graph.
-fn parent_report(mut reader: File) -> i32 {
+#[doc(hidden)]
+pub fn parent_report(mut reader: File) -> i32 {
     let mut bytes = None;
     let Err(error) = read_startup_event(&mut reader, &mut bytes) else {
         return 0;
@@ -221,7 +221,8 @@ fn parent_report(mut reader: File) -> i32 {
     error.code
 }
 
-fn fork_failed(writer: File, error: io::Error) {
+#[doc(hidden)]
+pub fn fork_failed(writer: File, error: io::Error) {
     let mut channel = StartupChannel {
         writer: Some(writer),
         failure_bytes: None,

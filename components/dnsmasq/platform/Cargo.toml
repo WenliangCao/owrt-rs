@@ -5,6 +5,9 @@ edition = "2021"
 rust-version = "1.98.1"
 license = "GPL-2.0-only OR GPL-3.0-only"
 publish = false
+# tests/ contains executable adapters declared by the parent dnsmasq package.
+autotests = false
 
 [dependencies]
+owrt-platform = { path = "../../platform" }
 rustix = { version = "=1.1.5", features = ["event", "fs", "mm", "net", "param", "pipe", "process", "stdio", "system", "thread", "time", "try_close"] }

@@ -28,11 +28,25 @@ fn nonblocking(fd: impl AsFd) -> io::Result<()> {
 
 // Only pure owned data crosses the restricted platform fork boundary. No
 // borrowed parent state, FD owner, lock guard or callback is in this snapshot.
-struct HelperStartup {
+#[doc(hidden)]
+#[derive(Debug)]
+pub struct HelperStartup {
     config: Config,
     init_capacity: Option<usize>,
     identity: Option<(u32, u32)>,
     initialization_only: bool,
+}
+
+#[doc(hidden)]
+pub type HelperWorker =
+    dnsmasq_platform::process::AuditedWorker<fn(HelperStartup, File, File) -> i32>;
+
+static WORKER: std::sync::OnceLock<HelperWorker> = std::sync::OnceLock::new();
+
+/// Install the executable's fixed helper entry exactly once.
+#[doc(hidden)]
+pub fn install_worker(worker: HelperWorker) -> Result<(), HelperWorker> {
+    WORKER.set(worker)
 }
 
 fn start_error(error: io::Error) -> StartError {
@@ -59,36 +73,19 @@ pub struct Helper {
 }
 
 impl Helper {
-    /// Call before daemon privilege drop, from the sole service thread. Like C,
-    /// the helper retains startup credentials unless script-user changes them.
-    ///
-    /// # Safety
-    ///
-    /// The process must be single-threaded, without shared writable mappings,
-    /// application atfork callbacks or held locks that the helper may acquire.
-    /// The helper uses its owned configuration, pipes, libc and standard I/O.
-    /// Inherited signal handlers and panic hooks must not access copied parent
-    /// descriptor owners, shared state or held locks, as required by
-    /// [`dnsmasq_platform::process::spawn_helper`].
-    #[expect(unsafe_code, reason = "explicit application fork contract")]
-    pub unsafe fn start(config: Config) -> Result<Self, StartError> {
-        // SAFETY: this forwards the same process contract and owned config.
-        unsafe { Self::start_with_init(config, None) }
+    /// Call before daemon privilege drop. The platform executable must have
+    /// installed the fixed helper worker before any helper is requested.
+    pub fn start(config: Config) -> Result<Self, StartError> {
+        Self::start_with_init(config, None)
     }
 
     /// Leasefile-ro initialization runs in the helper before credentials drop.
     /// The owner consumes bounded InitRecord/InitEnd/InitExit notices in its poll.
-    ///
-    /// # Safety
-    ///
-    /// The caller must meet the process requirements of [`Self::start`].
-    #[expect(unsafe_code, reason = "explicit application fork contract")]
-    pub unsafe fn start_with_init(
+    pub fn start_with_init(
         config: Config,
         init_capacity: Option<usize>,
     ) -> Result<Self, StartError> {
-        // SAFETY: this forwards the caller's process contract unchanged.
-        unsafe { Self::start_inner(config, init_capacity, false) }
+        Self::start_inner(config, init_capacity, false)
     }
 
     /// Preflight has no pipes, fork, credential changes or producer execution.
@@ -131,21 +128,11 @@ impl Helper {
 
     /// The prefork owner receives only initialization records and diagnostics.
     /// This child never drops script credentials, emits READY or reads commands.
-    ///
-    /// # Safety
-    ///
-    /// The caller must meet the process requirements of [`Self::start`].
-    #[expect(unsafe_code, reason = "explicit application fork contract")]
-    pub unsafe fn start_initializer(config: Config, maximum: usize) -> Result<Self, StartError> {
-        // SAFETY: this forwards the caller's process contract unchanged.
-        unsafe { Self::start_inner(config, Some(maximum), true) }
+    pub fn start_initializer(config: Config, maximum: usize) -> Result<Self, StartError> {
+        Self::start_inner(config, Some(maximum), true)
     }
 
-    #[expect(
-        unsafe_code,
-        reason = "audited owned helper snapshot at the fork boundary"
-    )]
-    unsafe fn start_inner(
+    fn start_inner(
         config: Config,
         init_capacity: Option<usize>,
         initialization_only: bool,
@@ -157,15 +144,11 @@ impl Helper {
             identity,
             initialization_only,
         };
-        // NSS preflight has returned; this call holds no stdio/allocator/lock
-        // guard. child accesses only this snapshot, its two channels, standard
-        // streams and the audited libc/process helpers, never parent owners.
-        // SAFETY: the unsafe caller guarantees the process prerequisites.
-        // HelperStartup owns only path/name buffers and scalar config; child
-        // uses only this snapshot and the two fresh IPC channels passed to it.
+        let worker = WORKER
+            .get()
+            .ok_or_else(|| start_error(io::Error::other("helper worker is not installed")))?;
         let (startup, pid, writer, reader) =
-            unsafe { dnsmasq_platform::process::spawn_helper(startup, child) }
-                .map_err(start_error)?;
+            dnsmasq_platform::process::spawn_helper(startup, worker).map_err(start_error)?;
         let config = startup.config;
         Ok(Self {
             pid: pid.as_raw_nonzero().get(),
@@ -554,7 +537,8 @@ fn send(events: &mut File, notice: Notice) -> io::Result<()> {
     }
 }
 
-fn child(startup: HelperStartup, mut commands: File, mut events: File) -> i32 {
+#[doc(hidden)]
+pub fn worker_entry(startup: HelperStartup, mut commands: File, mut events: File) -> i32 {
     let HelperStartup {
         config,
         init_capacity,
@@ -787,22 +771,11 @@ fn run_script(config: &Config, call: Invocation, events: &mut File) -> io::Resul
 
 #[cfg(feature = "process-test-support")]
 #[path = "process_tests.rs"]
-#[expect(
-    unsafe_code,
-    reason = "standalone process tests establish the fork prerequisites"
-)]
 mod process_tests;
 
 #[cfg(feature = "process-test-support")]
-/// # Safety
-/// Run only on a standalone process main thread, without shared writable
-/// mappings, application atfork hooks or held locks.
 #[doc(hidden)]
-#[expect(
-    unsafe_code,
-    reason = "test runner must preserve the explicit fork contract"
-)]
-pub unsafe fn run_process_tests() {
+pub fn run_process_tests() {
     process_tests::run();
 }
 

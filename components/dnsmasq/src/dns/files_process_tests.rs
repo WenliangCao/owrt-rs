@@ -45,8 +45,7 @@ fn server_file_keeps_distinct_lines_partial_errors_and_reverse_origin() {
     files.request(ReloadReason::Init);
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
     let update = loop {
-        // SAFETY: the standalone runner has one thread, private memory, no held locks or atfork hooks.
-        let result = unsafe { files.step() };
+        let result = files.step();
         if let Some(update) = result.update {
             break update;
         }

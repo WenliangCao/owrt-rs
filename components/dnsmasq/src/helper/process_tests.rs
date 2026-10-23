@@ -98,8 +98,8 @@ pub(super) fn run() {
 
 fn only_unreaped_eof_needs_an_owner_recheck() {
     let (folder, config) = script("exit 0");
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+    let mut helper = Helper::start(config).unwrap();
     until(&mut helper, |helper, _| helper.ready());
     assert!(!helper.needs_reap(), "live idle helper has no timer");
     // Model EOF observed just before the child's exit becomes waitable.
@@ -116,8 +116,8 @@ fn only_unreaped_eof_needs_an_owner_recheck() {
 }
 fn initialization_is_streamed_before_ready_without_waiting_in_owner() {
     let (folder, config) = gated_script(r#"[ "$1" = init ] || exit 8; printf lease-data; exit 7"#);
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start_with_init(config, Some(1)) }.unwrap();
+
+    let mut helper = Helper::start_with_init(config, Some(1)).unwrap();
     until(&mut helper, |_, _| folder.join("started").exists());
     assert!(!helper.ready() && !helper.is_finished());
     std::fs::write(folder.join("release"), b"").unwrap();
@@ -134,8 +134,8 @@ fn initialization_rejects_excess_leases_before_ready() {
     let (folder, config) = script(
         r#"printf '%s\n' '0 02:00:00:00:00:01 127.0.0.11 one *' '0 02:00:00:00:00:02 127.0.0.12 two *'"#,
     );
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start_with_init(config, Some(1)) }.unwrap();
+
+    let mut helper = Helper::start_with_init(config, Some(1)).unwrap();
     let notices = until(&mut helper, |helper, _| helper.is_finished());
     assert!(notices.contains(&Notice::InitError(5)));
     assert!(!notices.contains(&Notice::Ready));
@@ -148,9 +148,8 @@ fn initialization_rejects_excess_leases_before_ready() {
 fn initialization_preserves_ignored_sigpipe() {
     let (folder, config) =
         script(r#"kill -PIPE "$$"; printf '%s\n' '0 02:00:00:00:00:01 127.0.0.11 one *'"#);
-    // SAFETY: the standalone main creates no threads, shared mappings or
-    // atfork callbacks, and holds no I/O locks while starting this helper.
-    let mut helper = unsafe { Helper::start_initializer(config, 1) }.unwrap();
+
+    let mut helper = Helper::start_initializer(config, 1).unwrap();
     let notices = until(&mut helper, |helper, _| helper.is_finished());
     assert!(notices.iter().any(|notice| matches!(
         notice,
@@ -165,8 +164,8 @@ fn initialization_preserves_ignored_sigpipe() {
 
 fn serial_scripts_progress_without_blocking_owner_and_eof_reaps() {
     let (folder, config) = gated_script("printf '%s\\n' \"$*\"; exit 7");
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+    let mut helper = Helper::start(config).unwrap();
     until(&mut helper, |h, _| h.ready());
     let event = Event::Lease(super::super::tests::lease());
     assert!(helper.enqueue(&event).unwrap());
@@ -197,8 +196,8 @@ fn serial_scripts_progress_without_blocking_owner_and_eof_reaps() {
 fn script_output_preserves_empty_lines_and_eof_tail_with_a_bounded_prefix() {
     let (folder, config) =
         script("printf 'one\\n\\n'; head -c 4096 /dev/zero | tr '\\000' x; printf '\\ntail'");
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+    let mut helper = Helper::start(config).unwrap();
     until(&mut helper, |helper, _| helper.ready());
     assert!(helper
         .enqueue(&Event::Lease(super::super::tests::lease()))
@@ -228,8 +227,8 @@ fn helper_closes_inherited_service_fds_before_script() {
     // Clear CLOEXEC to verify helper isolation, not Command's exec closure.
     rustix::io::fcntl_setfd(&file, rustix::io::FdFlags::empty()).unwrap();
     config.debug = false;
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+    let mut helper = Helper::start(config).unwrap();
     until(&mut helper, |h, _| h.ready());
     assert!(helper
         .enqueue(&Event::Lease(super::super::tests::lease()))
@@ -269,8 +268,8 @@ echo "output after parent closed: $n"
 case "$n" in 1) exit 7;; 2) kill -USR1 "$$";; esac
 "#,
     );
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+    let mut helper = Helper::start(config).unwrap();
     until(&mut helper, |h, _| h.ready());
     let event = Event::Lease(super::super::tests::lease());
     assert!(helper.enqueue(&event).unwrap());
@@ -298,15 +297,11 @@ case "$n" in 1) exit 7;; 2) kill -USR1 "$$";; esac
 fn unknown_user_is_configuration_failure_and_missing_script_is_event() {
     let (folder, mut config) = script("exit 0");
     config.script_user = Some(b"dnsmasq-m5-nonexistent-user-87943".to_vec());
-    assert_eq!(
-        /* SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks. */
-        unsafe { Helper::start(config.clone()) }.err().unwrap().code,
-        1
-    );
+    assert_eq!(Helper::start(config.clone()).err().unwrap().code, 1);
     config.script_user = None;
     config.script = folder.join("missing");
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+    let mut helper = Helper::start(config).unwrap();
     until(&mut helper, |h, _| h.ready());
     helper
         .enqueue(&Event::Lease(super::super::tests::lease()))
@@ -320,8 +315,8 @@ fn unknown_user_is_configuration_failure_and_missing_script_is_event() {
 }
 fn malformed_ipc_is_rejected_without_executing_fixed_script() {
     let (folder, config) = script("echo unexpected");
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+    let mut helper = Helper::start(config).unwrap();
     until(&mut helper, |h, _| h.ready());
     helper.pending = wire::frame(&[1, 255]);
     helper.begin_shutdown();
@@ -333,8 +328,8 @@ fn malformed_ipc_is_rejected_without_executing_fixed_script() {
 }
 fn killed_helper_drops_pipe_frame_without_poisoning_owner_or_reap() {
     let (folder, config) = script("exit 0");
-    // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-    let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+    let mut helper = Helper::start(config).unwrap();
     until(&mut helper, |h, _| h.ready());
     rustix::process::kill_process(
         Pid::from_raw(helper.pid()).unwrap(),
@@ -360,8 +355,8 @@ fn partial_and_invalid_notice_frames_close_ipc_then_reap() {
         vec![1, 0, 0, 0, 255],
     ] {
         let (folder, config) = script("echo must-not-run");
-        // SAFETY: standalone runner asserts one thread; fixtures use private memory and no atfork hooks or held locks.
-        let mut helper = unsafe { Helper::start(config) }.unwrap();
+
+        let mut helper = Helper::start(config).unwrap();
         until(&mut helper, |h, _| h.ready());
         // Substitute the notice transport only, leaving the real helper
         // idle on its command pipe. EOF/error must close that command pipe,

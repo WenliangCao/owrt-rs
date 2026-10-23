@@ -94,6 +94,17 @@ def inputs(root):
              "packaging/openwrt/owrt-dnsmasq", "tools/dnsmasq/build_package.sh",
              "tools/dnsmasq/build_package.py", "components/dnsmasq/Cargo.lock",
              "components/dnsmasq/platform/Cargo.toml", "components/dnsmasq/platform/src"]
+    manifest = tomllib.loads((root / "components/dnsmasq/Cargo.toml").read_text())
+    if any(target.get("path") == "platform/entry.rs" for target in manifest.get("bin", [])):
+        # Current executables register fixed platform workers outside src/.
+        # Detect the declared path, not file existence: a missing adapter must
+        # fail rather than silently looking like an older frozen source tree.
+        paths += ["components/dnsmasq/platform/entry.rs",
+                  "components/dnsmasq/platform/register.rs",
+                  "components/dnsmasq/platform/tests", "components/dnsmasq/tests"]
+        for target in manifest.get("test", []):
+            if "path" in target:
+                paths.append("components/dnsmasq/" + target["path"])
     # Older frozen trees predate the shared core boundary; current trees must
     # bind all of it alongside ubus, without sweeping local build artifacts in.
     if (root / "components/platform/Cargo.toml").is_file():

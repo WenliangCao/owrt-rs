@@ -164,61 +164,38 @@ pub use crate::libc_format::preserve_ignored_sigpipe;
 
 #[path = "process_fork.rs"]
 mod worker;
-pub use worker::{spawn_helper, spawn_lookup};
+pub use worker::{spawn_helper, spawn_lookup, AuditedWorker};
 
-/// A dedicated daemon startup fork: only the detached child can return. The
-/// parent executes a noncapturing startup-report function and then _exit;
-/// it cannot run destructors from the service's copied ownership graph.
-///
-/// Runtime checks reject threads and shared writable mappings. The service
-/// must call this during startup, before installing handlers that execute
-/// Rust code or registering third-party atfork callbacks. Its only installed
-/// handlers store signal flags. This crate's libc fork (not kernel_fork) keeps
-/// libc's own atfork bookkeeping. The checks fail closed when /proc is absent.
-/// This applies only to background daemonization. Foreground procd/ujail
-/// invocations, including a jail without procfs, never call this function;
-/// independent background invocations still require procfs for these proofs.
-///
-/// # Safety
-///
-/// The caller must ensure a single-threaded process without application atfork
-/// callbacks, shared writable mappings or locks acquired by either callback.
-/// The callbacks may access only their supplied pipe, ordinary private data
-/// and standard streams; they must not reach other inherited resource owners.
-/// Inherited signal handlers and panic hooks must satisfy the same restriction;
-/// a panic hook executes before the terminating branch can catch its payload.
-/// The `/proc` checks are a diagnostic guard, not a proof of these conditions.
-pub unsafe fn background_startup(
+pub type StartupCallbacks = AuditedWorker<(fn(File) -> i32, fn(File, io::Error))>;
+
+/// Detach with the executable's registered startup-report callbacks.
+/// Only the final service child returns. The original parent reports through
+/// its pipe and exits without running the service's copied destructors.
+/// The kernel thread check needs no procfs; callback/memory restrictions are
+/// established by the unsafe registration, independently of this runtime check.
+pub fn background_startup(
     reader: File,
     writer: File,
-    report: fn(File) -> i32,
-    fork_failed: fn(File, io::Error),
+    callbacks: &StartupCallbacks,
 ) -> io::Result<File> {
-    if std::fs::read_dir("/proc/self/task")?
-        .collect::<io::Result<Vec<_>>>()?
-        .len()
-        != 1
-        || std::fs::read_to_string("/proc/self/maps")?
-            .lines()
-            .any(|line| {
-                line.split_whitespace().nth(1).is_some_and(|permissions| {
-                    permissions.as_bytes().get(1) == Some(&b'w')
-                        && permissions.as_bytes().get(3) == Some(&b's')
-                })
-            })
-    {
-        return Err(io::Error::other(
-            "background startup requires one thread and private writable mappings",
-        ));
+    let (report, fork_failed) = callbacks.entry;
+    if std::thread::panicking() {
+        return Err(io::Error::other("cannot fork from a panic handler"));
     }
-    // SAFETY: checked single-thread/private-memory startup plus the restricted
-    // parent path above prevents concurrent Rust ownership after libc fork.
+    let owner = owrt_platform::process_owner::ProcessOwner::acquire()?;
+    // SAFETY: the final thread/signal check is followed only by the fixed fork;
+    // registration guarantees the executable's callback and memory policy.
+    let guard = unsafe { owner.enter()? };
+    // SAFETY: the guard excludes concurrent threads and signal callbacks; only
+    // the registered report path runs in the terminating original parent.
     let pid = unsafe { fork() };
     if pid < 0 {
         return Err(io::Error::last_os_error());
     }
     if pid > 0 {
+        worker::replace_panic_hook();
         drop(writer);
+        drop(guard);
         let status = worker::exit_status(std::panic::catch_unwind(|| report(reader)));
         // SAFETY: the parent must never unwind/return into service state.
         unsafe { _exit(status) }
@@ -230,6 +207,7 @@ pub unsafe fn background_startup(
     let pid = unsafe { fork() };
     if pid < 0 {
         let errno = io::Error::last_os_error().raw_os_error().unwrap_or(5);
+        worker::replace_panic_hook();
         let _ = worker::exit_status(std::panic::catch_unwind(|| {
             fork_failed(writer, io::Error::from_raw_os_error(errno));
             0
@@ -242,5 +220,6 @@ pub unsafe fn background_startup(
         // SAFETY: the intermediate child must not run service destructors.
         unsafe { _exit(0) }
     }
+    drop(guard);
     Ok(writer)
 }

@@ -44,6 +44,7 @@ dependencies = [
 name = "dnsmasq-platform"
 version = "0.1.0"
 dependencies = [
+ "owrt-platform",
  "rustix",
 ]
 

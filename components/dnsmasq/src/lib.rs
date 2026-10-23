@@ -5,7 +5,7 @@
 //! `dnsmasq-platform` owns the Linux ABI boundaries.
 
 #![cfg_attr(target_os = "linux", deny(warnings))]
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 

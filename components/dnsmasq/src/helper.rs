@@ -16,6 +16,9 @@ pub use packet::{cpe_data, extra_data};
 mod wire;
 #[cfg(target_os = "linux")]
 pub use process::Helper;
+#[cfg(target_os = "linux")]
+#[doc(hidden)]
+pub use process::{install_worker, worker_entry, HelperStartup, HelperWorker};
 
 #[derive(Clone, Debug)]
 pub struct Config {

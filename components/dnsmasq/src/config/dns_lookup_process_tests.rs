@@ -38,15 +38,14 @@ fn fork_lookup_preserves_rules_and_cancel_reaps_before_result() {
         endpoint.host = ServerHost::Name(b"127.0.0.2".to_vec());
     }
     let expected = endpoints::resolve_rules(&rules, false);
-    // SAFETY: the standalone runner is single-threaded with private mappings and no held locks.
-    let mut lookup = unsafe { EndpointLookup::start(rules.clone(), false) }.unwrap();
+
+    let mut lookup = EndpointLookup::start(rules.clone(), false).unwrap();
     let result = finish(&mut lookup);
     assert_eq!(result.rules, expected.rules);
     assert!(result.error.is_none());
     assert!(lookup.pid.is_none());
 
-    // SAFETY: the standalone runner is single-threaded with private mappings and no held locks.
-    let mut cancelled = unsafe { EndpointLookup::start(rules, false) }.unwrap();
+    let mut cancelled = EndpointLookup::start(rules, false).unwrap();
     cancelled.cancel();
     let result = finish(&mut cancelled);
     assert!(result.rules.is_empty() && result.error.is_none());
@@ -58,8 +57,8 @@ fn large_result_uses_one_read_interest_and_bounded_owner_turns() {
         .unwrap()
         .remove(0);
     let rules = vec![one; 512];
-    // SAFETY: the standalone runner is single-threaded with private mappings and no held locks.
-    let mut lookup = unsafe { EndpointLookup::start(rules.clone(), false) }.unwrap();
+
+    let mut lookup = EndpointLookup::start(rules.clone(), false).unwrap();
     let mut fds = Vec::new();
     lookup.append_poll_fds(&mut fds);
     assert_eq!(fds.len(), 1);

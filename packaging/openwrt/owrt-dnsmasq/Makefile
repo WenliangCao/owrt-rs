@@ -64,6 +64,10 @@ define Build/Prepare
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/dnsmasq/platform/src
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/platform/Cargo.toml $(PKG_BUILD_DIR)/dnsmasq/platform/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/platform/src/. $(PKG_BUILD_DIR)/dnsmasq/platform/src/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/platform/entry.rs $(OWRT_COMPONENTS_SOURCE)/dnsmasq/platform/register.rs $(PKG_BUILD_DIR)/dnsmasq/platform/
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/dnsmasq/platform/tests $(PKG_BUILD_DIR)/dnsmasq/tests
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/platform/tests/. $(PKG_BUILD_DIR)/dnsmasq/platform/tests/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/dnsmasq/tests/. $(PKG_BUILD_DIR)/dnsmasq/tests/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/. $(PKG_BUILD_DIR)/ubus/src/
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/platform/src

@@ -1,4 +1,5 @@
-//! Reuse owner fixtures in a standalone main, without libtest worker threads.
+//! Reuse owner fixtures from the platform standalone test entry.
+#![forbid(unsafe_code)]
 // The included daemon contains other tests and their fixtures. Their #[test]
 // entry points are absent in this harness; they remain checked by normal tests.
 #[allow(
@@ -9,6 +10,6 @@
 #[path = "../src/main.rs"]
 mod daemon;
 
-fn main() {
+pub fn run() {
     daemon::run_process_tests();
 }

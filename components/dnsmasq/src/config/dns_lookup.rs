@@ -9,6 +9,24 @@ use std::io::{self, Read, Write};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::os::fd::AsRawFd;
 
+/// Owned resolver input; only this module constructs its rules and policy.
+#[doc(hidden)]
+#[derive(Debug)]
+pub struct LookupInput {
+    rules: Vec<ServerRule>,
+    reverse: bool,
+}
+
+#[doc(hidden)]
+pub type LookupWorker = dnsmasq_platform::process::AuditedWorker<fn(LookupInput, File) -> i32>;
+static WORKER: std::sync::OnceLock<LookupWorker> = std::sync::OnceLock::new();
+
+/// Install the executable's fixed resolver entry exactly once.
+#[doc(hidden)]
+pub fn install_worker(worker: LookupWorker) -> Result<(), LookupWorker> {
+    WORKER.set(worker)
+}
+
 pub struct LookupResult {
     pub rules: Vec<ServerRule>,
     pub error: Option<String>,
@@ -26,29 +44,15 @@ pub struct EndpointLookup {
 }
 
 impl EndpointLookup {
-    /// The fixed worker receives only owned rules and its result writer.
-    /// No live service owner calls the blocking resolver or a blocking wait.
-    ///
-    /// # Safety
-    ///
-    /// The process must be single-threaded, without shared writable mappings,
-    /// application atfork callbacks or held locks used by libc name lookup.
-    /// Inherited signal handlers and panic hooks must not access copied parent
-    /// descriptor owners, shared state or held locks, as required by
-    /// [`dnsmasq_platform::process::spawn_lookup`].
-    #[expect(
-        unsafe_code,
-        reason = "audited owned resolver snapshot at the fork boundary"
-    )]
-    pub unsafe fn start(rules: Vec<ServerRule>, reverse: bool) -> io::Result<Self> {
-        // All fields are owned names/IPs/scalars, not references or FD owners.
-        // The poll turn holds no lock/stdio guard and worker_entry never
-        // reaches the service's discarded owner graph or reinstalls handlers.
-        // SAFETY: the caller guarantees the process prerequisites. ServerRule
-        // owns only byte buffers, addresses and scalars, with no descriptors;
-        // worker_entry only resolves those rules and writes the provided pipe.
-        let ((rules, _), pid, reader) =
-            unsafe { dnsmasq_platform::process::spawn_lookup((rules, reverse), worker_entry) }?;
+    /// Start the fixed resolver worker installed by the platform executable.
+    /// The worker receives only owned rules and its result writer.
+    pub fn start(rules: Vec<ServerRule>, reverse: bool) -> io::Result<Self> {
+        let worker = WORKER
+            .get()
+            .ok_or_else(|| io::Error::other("resolver worker is not installed"))?;
+        let (input, pid, reader) =
+            dnsmasq_platform::process::spawn_lookup(LookupInput { rules, reverse }, worker)?;
+        let rules = input.rules;
         Ok(Self {
             pid: Some(pid.as_raw_nonzero().get()),
             reader,
@@ -154,7 +158,9 @@ impl Drop for EndpointLookup {
     }
 }
 
-fn worker_entry((rules, reverse): (Vec<ServerRule>, bool), mut writer: File) -> i32 {
+#[doc(hidden)]
+pub fn worker_entry(input: LookupInput, mut writer: File) -> i32 {
+    let LookupInput { rules, reverse } = input;
     let expanded = endpoints::resolve_rules(&rules, reverse);
     i32::from(writer.write_all(&encode(&rules, expanded)).is_err())
 }
@@ -232,22 +238,11 @@ fn decode(original: &[ServerRule], bytes: &[u8]) -> Result<LookupResult, ()> {
 
 #[cfg(feature = "process-test-support")]
 #[path = "dns_lookup_process_tests.rs"]
-#[expect(
-    unsafe_code,
-    reason = "standalone process tests establish the fork prerequisites"
-)]
 mod process_tests;
 
 #[cfg(feature = "process-test-support")]
-/// # Safety
-/// Run only on a standalone process main thread, without shared writable
-/// mappings, application atfork hooks or held locks.
 #[doc(hidden)]
-#[expect(
-    unsafe_code,
-    reason = "test runner must preserve the explicit fork contract"
-)]
-pub unsafe fn run_process_tests() {
+pub fn run_process_tests() {
     process_tests::run();
 }
 
