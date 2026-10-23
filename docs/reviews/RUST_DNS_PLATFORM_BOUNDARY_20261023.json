@@ -1,0 +1,431 @@
+{
+  "schema": 1,
+  "scope": "dnsmasq business forbid(unsafe_code) restored with registered fixed platform workers and a per-fork process guard; no physical router changes",
+  "elf_sha256": "14561cf0d4120b77ca7de8cd650e327e5c0d3e09935e745f44f02a46ecf35728",
+  "jail_input_files": 221,
+  "jail_inputs_and_artifact_unchanged": true,
+  "test_gates": {
+    "all_feature_libtest_passes": 964,
+    "individual_target_counts": [
+      861,
+      0,
+      0,
+      0,
+      0,
+      85,
+      0,
+      1,
+      0,
+      17
+    ],
+    "standalone_cases": 25,
+    "namespace_cases": 18,
+    "doc_tests_passed": true,
+    "checks_and_clippy_passed": true,
+    "fuzz_targets_compiled": 5,
+    "note": "The first all-feature run used the same production code before the subsequent EINVAL-only bounded post-join test retry; root owns final full-suite validation of that last test-only adjustment."
+  },
+  "config": {
+    "passed": 157,
+    "inputs_unchanged": true,
+    "libtest_sha256": "27950e6ee167f9edea7e6a59697c263ded72d7e7cdeaf98bb98519817161ff2d"
+  },
+  "lease_init": {
+    "passed": true,
+    "scenarios": 6,
+    "negative_control_detected": true,
+    "inputs_unchanged": true
+  },
+  "primitive": {
+    "families": [
+      {
+        "family": "cache",
+        "cases": 205,
+        "commands": 205,
+        "passed": 205
+      },
+      {
+        "family": "lease",
+        "cases": 36,
+        "commands": 269,
+        "passed": 265
+      },
+      {
+        "family": "stale",
+        "cases": 5,
+        "commands": 1100,
+        "passed": 1100
+      },
+      {
+        "family": "cache-transfer",
+        "cases": 36,
+        "commands": 307,
+        "passed": 307,
+        "failed": 0
+      }
+    ],
+    "lease_c_differences": [
+      {
+        "family": "lease",
+        "case": "fqdn-short-republication-new-leaf",
+        "row": 9,
+        "c": {
+          "id": 10544,
+          "flags": 34176,
+          "questions": [
+            [
+              "alias",
+              5,
+              1
+            ]
+          ],
+          "sections": [
+            [
+              "answer",
+              [
+                [
+                  "alias",
+                  5,
+                  1,
+                  58,
+                  [
+                    "example"
+                  ]
+                ]
+              ]
+            ],
+            [
+              "authority",
+              []
+            ],
+            [
+              "additional",
+              []
+            ]
+          ]
+        },
+        "rust": null
+      },
+      {
+        "family": "lease",
+        "case": "fqdn-short-republication-new-leaf",
+        "row": 10,
+        "c": "N 1",
+        "rust": "N 0"
+      },
+      {
+        "family": "lease",
+        "case": "fqdn-short-republication-new-domain",
+        "row": 9,
+        "c": {
+          "id": 10544,
+          "flags": 34176,
+          "questions": [
+            [
+              "alias",
+              5,
+              1
+            ]
+          ],
+          "sections": [
+            [
+              "answer",
+              [
+                [
+                  "alias",
+                  5,
+                  1,
+                  58,
+                  [
+                    "other"
+                  ]
+                ]
+              ]
+            ],
+            [
+              "authority",
+              []
+            ],
+            [
+              "additional",
+              []
+            ]
+          ]
+        },
+        "rust": null
+      },
+      {
+        "family": "lease",
+        "case": "fqdn-short-republication-new-domain",
+        "row": 10,
+        "c": "N 1",
+        "rust": "N 0"
+      }
+    ],
+    "lease_baseline_regression": {
+      "commit": "a2cc00d6e77e04168383fafbf126427f7dc9a3c0",
+      "commands": 269,
+      "byte_equal": true
+    },
+    "source_artifact_c_inputs_unchanged": true,
+    "fresh_c_transfer_receipt": {
+      "mode": "fresh-c-primitive",
+      "primitive": "cache-transfer",
+      "receipt_sha256": "9ce411c55d5265c966f5836ba3d57a46b8ccd53df78a477da5fc73c6f5f74e14",
+      "identity_sha256": "b50b01d2820b06bb73ba51269a5ee1f45f58e634fd5fd4a9e4d6bba0f9fcef70",
+      "plan_sha256": "7502e674a279a3c784062a69fa30ce101644553ebdbf015bfbec704565632fff",
+      "result_sha256": "d3b161f0c8a80538a8d43ffcbff144f6f9b42660f5b883f8ad17ee904b65ebed",
+      "compiler_probes_sha256": "f9b6002f0b92681429f05add5f0521665d73a679cac17373ab26d6eda7e29329",
+      "image_daemon_qualification": false,
+      "scope": "fresh exact-source/compiler ABI/argv/corpus C primitive; not image daemon 097a9e21"
+    },
+    "new_rust_transfer_probe_sha256": "4107c88bb8865341ad09fdda4492df762dd51770ae8146943a12ffbf5e5bb3d1",
+    "binding": "225 private-snapshot files including separately recorded shared platform dependency inputs match the final candidate after execution",
+    "limitation": "The strict C lease comparator still exits 1 on four existing layout-reuse differences. Raw output is not relabeled as a full C match; all 269 Rust observations are byte-identical to the source-bound a2cc00d6 baseline."
+  },
+  "no_proc_jail": {
+    "passed": true,
+    "cases": [
+      {
+        "mode": "helper",
+        "passed": true,
+        "exit": 0,
+        "owner_uid": [
+          453,
+          453,
+          453,
+          453
+        ],
+        "owner_seccomp": 0,
+        "worker_valid": true
+      },
+      {
+        "mode": "resolver",
+        "passed": true,
+        "exit": 0,
+        "owner_uid": [
+          453,
+          453,
+          453,
+          453
+        ],
+        "owner_seccomp": 0,
+        "worker_valid": true
+      }
+    ],
+    "scope": "Private mount/net/PID namespaces and exact .6 rootfs copy without /proc, root startup followed by own drop to UID/GID453 and CapEff0x3400; host /proc observes real helper/lookup FDs and credentials. This is not a complete ujail policy replica.",
+    "fixture_adjustment": "Task-private copy of selfexec_jail_boundary.py uses cp -a for exact rootfs device nodes, instead of shutil.copytree; no expected result changed."
+  },
+  "background": {
+    "passed": true,
+    "cases": 4,
+    "expectation": "Exact image C and new musl candidate both return parent success with matching DNS answer and return exit3 for post-fork pid-file failure; child terminated cleanly."
+  },
+  "seccomp_source_audit": {
+    "image_init_sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+    "image_procd_shell_sha256": "496d6c5246390db3c514ca1dc9c34305f5806fb59cc627127072617ffd0719e1",
+    "matching_procd_revision": "58eb263d5abe03f8c1280bdfa65a3b052614215d",
+    "instance_c_sha256": "28e43ad5657de62132a231766dc165b5c7dd27c64ee6692434cb84ca2f8fc36f",
+    "jail_c_sha256": "6a12f291e115966ded3ede81fd3abf9442e5a86dce0798335b573efd17c7be65",
+    "conclusion": "Exact .6 dnsmasq init supplies -k and jail ubus/log flags, no seccomp policy. _procd_add_jail does not invent one; matching procd instance.c adds -S only for in->seccomp and jail.c sets SECCOMP_FILE/LD_PRELOAD only for an explicit policy. Custom external seccomp policies are not qualified."
+  },
+  "raw_root": "/home/ubuntu/owrt-platform-boundary-20261023/candidate/private/dns-platform-boundary-20261023",
+  "receipts": {
+    "receipt.json": "0e60c38508a585f7ed3eb6e071a1b9abc997d675328f2e3417577f5ed8628ea4",
+    "config-lease/config-result.json": "14c9e341f751770732c4944d19f75c3a9c78d08d495b5287926782789c8e391e",
+    "config-lease/lease-result.json": "f4601e7735e602c7fbd6a0ab3b34363d5d81813c9f6ef655d928fe68a9ffbe8c",
+    "primitive-comparison/result.json": "c11c1c80058ad5587a4094dad4d69ba55bbbcba3797d005d198dc6a7cb0adf50",
+    "primitive-comparison/baseline-comparison.json": "bd36646497ba74ac3497f40a4153ee858d12429ee3e6ff9ce7c68832fdf78d79",
+    "transfer-comparison/result.json": "23b83f39734b75311f625445d718f62e75bc49bff06aa3ff16a38dedb1939745",
+    "background/result.json": "b35b6659a3ad022264234f59bd2ebc919210d8346f6f2e2107251ec29422f776",
+    "jail-01/result.json": "a3560536cd2233f7dc04e171505897d34059d59ab23a48b496a74ad79764bcb1"
+  },
+  "logs": {
+    "logs/dns-check-02.log": "cd11830f0b72e6d5ef6238ba4d5aa4dbf19a9c16cd8af7bd8e0fc7ab6f96a659",
+    "logs/dns-platform-check-02.log": "6d77f64dfc8c5325b90fdbe05d8be367bdd578bcccec24f275c5ffee7d03dd6e",
+    "logs/dns-fuzz-check.log": "da953a74bc8a9614103c0a42c36e61d078565983463fd7ebf7e38ee36f6b2501",
+    "logs/dns-clippy-01.log": "bceed1b40c323ee2b67ad9fd409ae52924b5bc119b3b93a7455ee65752541672",
+    "logs/dns-platform-clippy-01.log": "f8a533a5e9655fc31fb433899bcef381117efb8f62f8548265ec64189256aea5",
+    "logs/dns-musl-final.log": "77bd15c4a3634c0d2b797c43be1f188bef2a04fd6258772ec9f4da0997fd0e00"
+  },
+  "changed_files": [
+    {
+      "path": "components/dnsmasq/Cargo.lock",
+      "lines": 91,
+      "sha256": "e915a9cd005cfcbfc4f688a21829c7ce3ac7a907bb4a3bffda0e049edc1cb219",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/Cargo.toml",
+      "lines": 45,
+      "sha256": "df1b7c61ec3e6a783b85d81ecb90f024cac3d7cae106651b0bed0c9a3f0dff9c",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/fuzz/Cargo.lock",
+      "lines": 172,
+      "sha256": "abbed6430a54aae5108678826f19b4ce52f5e747080ac7f55a293e1d94ee5e4a",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/Cargo.lock",
+      "lines": 74,
+      "sha256": "b9aec17e245983f2fa483470440a652c16e5d2f32f4156a6200e53d1cc290dea",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/Cargo.toml",
+      "lines": 13,
+      "sha256": "0bf1c6393e7df44c45e136d0d2f63293ff9d3225f19c300cec6ac86e4807b48c",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/entry.rs",
+      "lines": 19,
+      "sha256": "0999b52ec1b3044e957af996d128b17a2dcd007d34ff65f6df5e9addf8002394",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/register.rs",
+      "lines": 28,
+      "sha256": "57c70a80adcd40d8c8065e3aa283444a37d775dd83c479c6fb2641a2bd1fb701",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/process.rs",
+      "lines": 225,
+      "sha256": "fe8312b165cfbf8a3c8699a5cc8cb8a147d7393896ad4f36669ca941db564507",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/process_fork.rs",
+      "lines": 341,
+      "sha256": "385f21298562e528e608e865cf165cf20a4672c0ecde990273b9f43a4d63db4f",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/tests/panic_hook.rs",
+      "lines": 79,
+      "sha256": "c4a9df5e4da56021f7e7c29149a5692e90f390bbdb674de98df83ada1049525b",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/tests/process_forks.rs",
+      "lines": 16,
+      "sha256": "218ece20468bf59150db7657983a344a91233dcecc2ed8dcabdd2ef392ba786f",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/platform/tests/process_owner.rs",
+      "lines": 13,
+      "sha256": "97432416829f17216fd4208e9a91fb58c5b1c8cb0e60b6dc578a75ece4d98a76",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_lookup.rs",
+      "lines": 265,
+      "sha256": "c53071240c420416b60dba891b3328e4ffd9238500d19c23c5697ac6e492fbe7",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_lookup_process_tests.rs",
+      "lines": 70,
+      "sha256": "01204f9853f61841d498ff107ea2b909588aaaa9798e440ad49e39b5c436eada",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/files_process_tests.rs",
+      "lines": 64,
+      "sha256": "3ddc953c9d7fb0f65a154924d8ca23300b0a7f127651335b8cd8378227fc4266",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/files_runtime.rs",
+      "lines": 1138,
+      "sha256": "39fee8253552c6b6143322e750861ae45ae080f108c48de12e4f2a750fcb0d79",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/helper/process.rs",
+      "lines": 824,
+      "sha256": "3194a909ab5df538e17ca7372c12a446c36c56cdc284424e704b88160b25a38d",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/helper/process_tests.rs",
+      "lines": 379,
+      "sha256": "9b92dc4da46b3483ba1e858a7479e26992cc922afaac47aad52d4c248f9816ca",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/helper.rs",
+      "lines": 652,
+      "sha256": "2ecd4002129561ca0498940b902133b09c3d0a395eb7ccf989600724fb24d207",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/lib.rs",
+      "lines": 45,
+      "sha256": "ce767c124c5a4ba4bc507ee4e99e6ea62f9aa77dd9465abd057cbb31ab85df88",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "lines": 10438,
+      "sha256": "3dc11fe7ebe0cb8e2d887b6bc1b0efed3f3f9071693ce9ddde19248304776a80",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/startup/daemonize.rs",
+      "lines": 305,
+      "sha256": "d4606d8d8a4b889f46a3745b1b01a436bce6195556e1cf8ece8036e64b34ea65",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/src/startup/lease_init.rs",
+      "lines": 153,
+      "sha256": "8e9bfd5be5f5f72ccf17b4995ff1af6db5902e5a14183d47468e24afd019327b",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/tests/process_forks.rs",
+      "lines": 134,
+      "sha256": "61be2a43f7c3193108482677c6de2b5dd2b37c00e798babd29c99f8baded3e54",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "components/dnsmasq/tests/process_owner.rs",
+      "lines": 15,
+      "sha256": "fcd2e8ad69c476f030d01756777b579ff421cf91259cba10b626c222ed09e044",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    },
+    {
+      "path": "packaging/openwrt/owrt-dnsmasq/Makefile",
+      "lines": 128,
+      "sha256": "74d1ac91f226b22d5d82f482003234f310676d08dcd1201c4f9d2d6935686160",
+      "review_basis": "Changed interface/implementation/test hunks reviewed against d6719f66; unchanged implementation remains covered by the 2026-10-22 per-file ledgers."
+    }
+  ],
+  "implementation": [
+    "The library and business main retain crate/module forbid(unsafe_code); no business unsafe call/definition or scoped unsafe lint override remains.",
+    "Platform entry and standalone adapters register three fixed typed capabilities once. Pure-data HelperStartup/LookupInput fields remain opaque; safe spawn accepts the audited capability, not an arbitrary function.",
+    "Each fork checks a fresh ProcessOwner critical section; live threads and panic-handler reentry fail before fork. Runtime checks prove thread conditions only; adapter registration documents the separate callback, allocator/NSS, mapping and inherited-resource obligations.",
+    "Fork workers forget inherited panic-hook captures and install a silent hook before abandoning descriptors. The successful detached service retains its original hook; only terminating startup branches replace it.",
+    "Packaging copies the new platform entry/registration/test files. The platform subcrate disables automatic discovery of parent-package adapters; its existing library unit tests remain enabled. Three lockfiles only add path dependency relationships; all registry package blocks are unchanged."
+  ],
+  "rules": [
+    "M-UNSOUND",
+    "M-UNSAFE",
+    "M-UNSAFE-IMPLIES-UB",
+    "M-STRONG-TYPES-GUARD",
+    "M-TEST-UTIL",
+    "M-TAUTOLOGICAL-TESTS",
+    "M-STATIC-VERIFICATION"
+  ],
+  "new_negative_controls": [
+    "Before registration, helper and resolver starts return explicit missing-worker errors.",
+    "After registration, a live std thread makes both starts fail without changing SigBlk, descriptor numbers or child list; after join, only transient EINVAL is retried at the real resolver boundary, and resolver/helper then complete.",
+    "A child panic neither invokes nor drops an inherited custom hook capture and exits 5. The parent hook remains installed, and attempting Helper::start from that hook returns the explicit panic-handler rejection."
+  ],
+  "performance_scope": "No DNS/DHCP packet-processing hot path changed. New process checks run only at fork boundaries; this task ran correctness gates and no CPU benchmark."
+}

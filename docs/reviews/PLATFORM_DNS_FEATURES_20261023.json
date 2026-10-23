@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "feature": "m6b-diagnostics",
+      "command": [
+        "mbx",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--no-default-features",
+        "--features",
+        "m6b-diagnostics",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-gnu"
+      ],
+      "passed": true,
+      "log": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/logs/dns-final-feature-m6b-diagnostics.log",
+      "log_sha256": "e17d70c8e9d621c9c4fa372f62e087d1255c1cca169bac0e406f122ab08dc6c8"
+    },
+    {
+      "feature": "process-test-support",
+      "command": [
+        "mbx",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "components/dnsmasq/Cargo.toml",
+        "--no-default-features",
+        "--features",
+        "process-test-support",
+        "--all-targets",
+        "--target",
+        "aarch64-unknown-linux-gnu"
+      ],
+      "passed": true,
+      "log": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/logs/dns-final-feature-process-test-support.log",
+      "log_sha256": "e8dc61f3157c5fce303a5d954b34d66350431ba2e930df822bedb0ca0b81a47e"
+    }
+  ],
+  "package_tests_confirmation": {
+    "discovered_tests": 27,
+    "new_case_in_suite": true,
+    "log_hash_matches": true,
+    "test_source_hash_matches_report": true
+  },
+  "input_sha256": {
+    "components/dnsmasq/Cargo.toml": "df1b7c61ec3e6a783b85d81ecb90f024cac3d7cae106651b0bed0c9a3f0dff9c",
+    "components/dnsmasq/Cargo.lock": "e915a9cd005cfcbfc4f688a21829c7ce3ac7a907bb4a3bffda0e049edc1cb219",
+    "components/dnsmasq/platform/Cargo.toml": "0bf1c6393e7df44c45e136d0d2f63293ff9d3225f19c300cec6ac86e4807b48c",
+    "components/dnsmasq/platform/entry.rs": "0999b52ec1b3044e957af996d128b17a2dcd007d34ff65f6df5e9addf8002394",
+    "components/dnsmasq/platform/register.rs": "57c70a80adcd40d8c8065e3aa283444a37d775dd83c479c6fb2641a2bd1fb701"
+  },
+  "scope": "Frozen-source single-feature compile checks only; root owns complete default/all-features test/check/fmt/benchmark gates.",
+  "frozen_pins": {
+    "file": "packaging/image/native-25.12.5.json",
+    "sha256": "9f31af33f62f2a42a492fc5ea8227dd8435c181966a4c9067ce3a2b17a44b4e2",
+    "unchanged_against_head": true
+  }
+}

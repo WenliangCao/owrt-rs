@@ -1,0 +1,315 @@
+{
+  "scope": "Move only fixed service signal callbacks, atomic state and lifetime-owned wake pipes into the platform; restore forbid(unsafe_code) in reload-config/rpcd/ubusd. No arbitrary safe signal callback registration API.",
+  "compatibility": [
+    "The same libc signal registration keeps the existing signal mask/restart semantics.",
+    "RPCD HUP/USR1 retain last-pending-action semantics; CHLD wakes child reaping without replacing the action.",
+    "ubusd reload and stop flags remain independent; HUP reload occurs before stopping/client service.",
+    "Pipe writer/reader remain nonblocking and CLOEXEC. Platform OnceLock owns both until exec/process exit; repeated installation reuses the same pipe. Handler writers cannot become stale through application drop.",
+    "Wake writes preserve errno and original byte values (rpcd 1, ubusd 0); full pipes never block.",
+    "reload SIGINT/TERM latch the existing cancellation AtomicBool; the engine keeps its injectable flag interface.",
+    "RPCD delayed child environment cleanup now uses ProcessOwner::acquire/remove_var, rejecting a failed main-thread safety check instead of relying on an unchecked Rust2021 environment setter."
+  ],
+  "rules": [
+    "M-UNSOUND",
+    "M-UNSAFE",
+    "M-FFI-TRANSLATES",
+    "M-STRONG-TYPES-GUARD",
+    "M-TAUTOLOGICAL-TESTS"
+  ],
+  "changed_source_sha256": {
+    "components/platform/src/reload_signals.rs": "7a201611762deea02c3a9bb77549ea269231d4ec2c28cbf525834622c09eb2b4",
+    "components/platform/src/rpcd_signals.rs": "9a4fe86d585e0cd8b5177a0bb3f7eb44a8692a7c171016ccc90136922108f046",
+    "components/platform/src/ubusd_signals.rs": "6f8aac7478b5f1db0681ea4001ff075d297b0a5ed7157f5834e01f4e1d83464c",
+    "components/reload-config/src/main.rs": "4abd49f5d4d67c7797cd4023bbb00a78eb04a30eca980903128f52364f180424",
+    "components/reload-config/src/engine.rs": "e331b09104f3fe275f072ddd8e598e9485b0ea6fc16fb196a69377874622b49a",
+    "components/reload-config/src/unix.rs": "e3c6f0ae1aacdd0b7e95bc1ca45e2f51674ffcaae03b22b6b0b726381cfb3c87",
+    "components/rpcd/src/main.rs": "fee7541682fb2a6ebdc406ad944fe401dd2bde9ba9f5ffd636d0bb1846dd6967",
+    "components/rpcd/src/delayed.rs": "48f6dd258c9441cc1245961a075ba561ca9eaa1c6dcd90ad47883f785940047d",
+    "components/ubusd/src/main.rs": "88006513c1fdc9ae44ca29bec5f30a8b73aa4e5dd4f8a49e17f0987d73e4393c",
+    "components/ubusd/src/sys.rs": "8c04fc82d02f831c4e5693fe8b259bbb3e09aa2e73a972bcd6359bef9d16f2b4"
+  },
+  "platform_signal_tests": {
+    "command": [
+      "mbx",
+      "test",
+      "--locked",
+      "--manifest-path",
+      "components/platform/Cargo.toml",
+      "--lib",
+      "signals::",
+      "--",
+      "--test-threads=1"
+    ],
+    "new_distinct_tests": 3,
+    "existing_netifd_test": 1,
+    "passed": true,
+    "coverage": [
+      "real thread-directed raise delivery in isolated child processes",
+      "SIGINT/SIGTERM cancellation",
+      "HUP/USR1/CHLD pending action semantics",
+      "independent HUP and termination flags",
+      "errno preserved with a full self-pipe",
+      "NONBLOCK and CLOEXEC flags",
+      "repeated installation reuses descriptor ownership",
+      "bounded parent deadline detects blocked signal writes"
+    ]
+  },
+  "component_tests": {
+    "reload-config": {
+      "test_command": [
+        "mbx",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/reload-config/Cargo.toml",
+        "--all-targets",
+        "--",
+        "--test-threads=1"
+      ],
+      "test_passed_rows": [
+        21
+      ],
+      "clippy_passed": true,
+      "note": "Rows include child-process and imported-module example invocations; do not sum them as distinct tests."
+    },
+    "rpcd": {
+      "test_command": [
+        "mbx",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/rpcd/Cargo.toml",
+        "--all-targets",
+        "--",
+        "--test-threads=1"
+      ],
+      "test_passed_rows": [
+        1,
+        85,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "clippy_passed": true,
+      "note": "Rows include child-process and imported-module example invocations; do not sum them as distinct tests."
+    },
+    "ubusd": {
+      "test_command": [
+        "mbx",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/ubusd/Cargo.toml",
+        "--all-targets",
+        "--",
+        "--test-threads=1"
+      ],
+      "test_passed_rows": [
+        59,
+        0,
+        15,
+        59,
+        1,
+        59,
+        59,
+        59,
+        8,
+        0
+      ],
+      "clippy_passed": true,
+      "note": "Rows include child-process and imported-module example invocations; do not sum them as distinct tests."
+    }
+  },
+  "normal_examples_check": {
+    "rpcd": true,
+    "ubusd": true
+  },
+  "builds": {
+    "reload-config-native": {
+      "path": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/candidate/components/reload-config/target/release/reload-config-rs",
+      "sha256": "31937d24bf663164b4d93d5d6068cafb426383916e28e9e289f6ee8d92873c7c"
+    },
+    "reload-config-musl": {
+      "path": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/candidate/components/reload-config/target/aarch64-unknown-linux-musl/release/reload-config-rs",
+      "sha256": "1a25500f2bdf14ade078a21cfe40b1142a8d512bd20b4a5d188df6276c584a3c"
+    },
+    "rpcd-native": {
+      "path": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/candidate/components/rpcd/target/release/rpcd-rs",
+      "sha256": "2e01d7977fe37ecd1cb56cef25b358dd14c51d8b92b77e7388c09b24edfaf701"
+    },
+    "rpcd-musl": {
+      "path": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/candidate/components/rpcd/target/aarch64-unknown-linux-musl/release/rpcd-rs",
+      "sha256": "4279ced9eb02d15c5c2d992c47e24b1ab633e69f53122dc33cf7045b140b81ed"
+    },
+    "ubusd-native": {
+      "path": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/candidate/components/ubusd/target/release/ubusd-rs",
+      "sha256": "67152e6dfe257c69e3c64d5eb3763b18bb1c30ff751246149c2472afc7f93f68"
+    },
+    "ubusd-musl": {
+      "path": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/candidate/components/ubusd/target/aarch64-unknown-linux-musl/release/ubusd-rs",
+      "sha256": "6d0796c0e51557da394195613f51dc878226925e2efd5c7f9acb9f9b3d112487"
+    }
+  },
+  "native_main_smoke": {
+    "checks": {
+      "rpcd_start_and_session": true,
+      "rpcd_guarded_environment_and_worker_wake": true,
+      "rpcd_hup_same_pid_and_session_thaw": true,
+      "rpcd_reexec_environment_cleared": true,
+      "rpcd_usr1_exits_cleanly": true,
+      "ubusd_hup_keeps_service": true,
+      "ubusd_term_exits_cleanly": true,
+      "ubusd_int_exits_cleanly": true,
+      "reload_SIGINT_cancels_held_lock": true,
+      "reload_SIGTERM_cancels_held_lock": true
+    },
+    "harness": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/frontend-signal-smoke.py",
+    "harness_sha256": "5074c25f2d45b73eabafde137a6ee9c9ec53a78f9cb815a15ad8616b46b1dcd2",
+    "scope": "private mount/network/PID namespace; temporary /run and fixture root; no physical-router state"
+  },
+  "rpcd_differential": {
+    "checks": 68,
+    "apply_snapshot_restore_cases": 15,
+    "all_passed": true,
+    "receipt": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/rpcd-differential/receipt.json",
+    "receipt_sha256": "4484ef88ae027490cffe7f0163011c2ce9ac86790a1112bebaf5ed9144306576",
+    "inputs_unchanged_during_suite": true,
+    "artifact_unchanged_during_suite": true,
+    "tested_input_sha256": {
+      "components/rpcd/Cargo.toml": "47156f47e37380ca4a98d186513a0d6c27113133e70e3b5a1fdbc61cf2487cd1",
+      "components/rpcd/Cargo.lock": "d630f048f148b70004e5af092d3e45859dc6fdf1a8f44d7e7af8a41fbfac294e",
+      "components/rpcd/src/rc.rs": "c74fa62b234ea881d1995da6d04aa47095327987140a35308bf397b7d432f8ed",
+      "components/rpcd/src/util.rs": "038abcab9b5fbe21f8012b151be974a6471e33a01144230ed93ea0dc4ff2376c",
+      "components/rpcd/src/glob.rs": "66e69647fe346bd85695b51cbdabac83e7ed5f7b3919d93005df949d4a5646ac",
+      "components/rpcd/src/rtnl.rs": "005f0bd43f1e0c7455b1743695db2e0db0ec9dc3e1ab6bb10209dbe46c835b08",
+      "components/rpcd/src/rpcsys.rs": "a237b258bb65cc55a09b81d41a471527fa0c93e2ed9b92ad699b7b0cdf579b5b",
+      "components/rpcd/src/reply.rs": "62eddecb3813c81e7a42814a46f8cb74dd2203bf91a466a002aef5c89c9f1279",
+      "components/rpcd/src/main.rs": "fee7541682fb2a6ebdc406ad944fe401dd2bde9ba9f5ffd636d0bb1846dd6967",
+      "components/rpcd/src/delayed.rs": "48f6dd258c9441cc1245961a075ba561ca9eaa1c6dcd90ad47883f785940047d",
+      "components/rpcd/src/iwinfoobj.rs": "e1de4107a647cb6e69c19435b62fa0b16144b7a3cc90bab368cf0ca43c4c300b",
+      "components/rpcd/src/uciobj.rs": "a44081c78e21b1164eaedc20ea5805ecf25e8bd79a2902793b1004521041c56f",
+      "components/rpcd/src/procwait.rs": "fc277fd7c6a53a97c2e36ec82449982c0de08c2a67d22226987da04d010155f5",
+      "components/rpcd/src/session.rs": "7cdbfcafb42b13f2fa41d2ff5c8567aca2894c7d3c2bfc7e6e4127b1b655f0ab",
+      "components/rpcd/src/lucirpc.rs": "3abf0e384b810be2d0a8f4c40ddc31919572d1284bd3c68c6adedbd125178dab",
+      "components/rpcd/src/luci.rs": "cbbeda4f9367d20c30bd48a71cf2658ec890f42b6f44a3aa33baa2cbfa804adb",
+      "components/rpcd/src/ip.rs": "ea4a28ebbe9c1a47b3274a49c9b8e33dbe67acca0d88804bf11dd057a85396ff",
+      "components/rpcd/src/file.rs": "2b681919f8da3397686fcead5ab8f9b3819ecd8a31f4f1a8e4ab311ed18e05c8",
+      "components/rpcd/src/readiness.rs": "ca6ea68b9ba27023ef612ae9facf7ddd4d6458e726c11d04a41aa8d66cb711fa",
+      "components/rpcd/src/rrdns.rs": "1e49c15778b85364f379dd7fb12e2cd6f407f6f67a752a89227dd935ef7cb4fb",
+      "components/rpcd/src/iwinfo/nl80211.rs": "8f63266c7bf4825e015d5f6e64b4ac2c61cd0c964732574a4785da0f6ecbd7c8",
+      "components/rpcd/src/iwinfo/sys.rs": "10a2a8f090505eff780f103b47d7e812747782d5424ef05727b3334dc6bbc5e0",
+      "components/rpcd/src/iwinfo/mod.rs": "5b53314247bf21dc405c1962cae516edc6b52afbfad1156d5436fc44faf6e16e",
+      "components/rpcd/src/iwinfo/utils.rs": "a27a07687fb0e195f0f9d958bccde37f38e62f8f540ab76f4d2d168cd2a00928",
+      "components/rpcd/src/iwinfo/tables.rs": "09b7c22aeb92e55904ad4195f2309354eeb917b3a4aed6958fb3887133cc2e4c",
+      "components/rpcd/src/iwinfo/netlink.rs": "5cc90f46f96d3974b284519e398786ee948ca86b65393ce443455bb1fb02d91a",
+      "components/ubus/Cargo.toml": "67cd30392be982d0cc8dde2c1cb4d759c4c853153da0c4b3433ce30aa80d14c9",
+      "components/ubus/Cargo.lock": "7f619ebc3fd35d8f561e6d85086703919aaa35dfaa091593a12338e405573796",
+      "components/ubus/src/sys.rs": "5c9ad140bd20802a928edcb53aaf0fc7cac6b35bd9cf8018cf060ab6977fea80",
+      "components/ubus/src/connect.rs": "11f84f840e2c1944d215796c87d1a70626838b033caf2ad39a9b9f6e3fab4d0b",
+      "components/ubus/src/digest.rs": "58130610b32fdeeb06101665984a976bd940a378158d52cee995f5e70cca849d",
+      "components/ubus/src/conn.rs": "f259a0a00dd1387b5edc200b84f28d220158dc2dcfd4f2f280c5ba9dfb23e4a8",
+      "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+      "components/ubus/src/json.rs": "35f05157da1ae8849a2aa9f7ca662f1d5b0619bbcfb9d7003f5ed3b84169b177",
+      "components/ubus/src/readiness.rs": "ae5e87940bf3d865da87b88bd8ff163e4925a3eddf607b4c4e20bdc518d5c569",
+      "components/ubus/src/convert.rs": "074488af98c4046a665a3a4acd7443fd7286e3e122a8a0b5131a0925d35248ff",
+      "components/ubus/src/blob.rs": "caaac032a0c67cc18a288fdda21b2b05c6a2fed5584ac572027c8e2d354f6e61",
+      "components/ubus/src/lib.rs": "c9c7cab80f58eb4bb737f243223e7318f42dab699a59ca7895c2b666008b7c60",
+      "components/uci/Cargo.toml": "96e75a28c04d531f26db8a9474420cdf5d53bd36f0f5e3dfb7dff2c8758bb680",
+      "components/uci/Cargo.lock": "ae0b44b8a7a50dae454e95ae13cdfdc1e80f27b03fe7eeeb3075f23b37b450d0",
+      "components/uci/src/sys.rs": "0f3f2420f37bc46385509f808f3224214963da22d04969058099b0778d01be13",
+      "components/uci/src/cli.rs": "df80ce8e4a397c051f07f764bd2b7e69bfc66e28db813fc109db73ff4f565a0e",
+      "components/uci/src/read_cache.rs": "36f062e3e69d52fd5b28e033d3f0e9cf63de060a19136165469b57aa7073d37d",
+      "components/uci/src/ops.rs": "0d4ab316f7b9543546634fb831e7137a67b71952272b1d6b8f530a4689d91540",
+      "components/uci/src/export.rs": "d54089ee2b648564b184b1ff95b0d2e70848f107aa06f4675fa04df4355a6c5f",
+      "components/uci/src/show.rs": "561ab180320aca87a00d3fc94e75644965695e6489ecdc2131997179fcdf3ae6",
+      "components/uci/src/model.rs": "4cddb9ae187052ce871715a14f802b0b1efdc5ccdaed4125617c8032eea57123",
+      "components/uci/src/delta.rs": "f8bdba947488a34005da1bcaf97c4ae8d1d939b576845cffe891b08dd5269c6c",
+      "components/uci/src/context.rs": "754f149ad0ac13c3ddd99d5526d9ab9bdbdbc2de9ed3eef555ad3f7e6089a57f",
+      "components/uci/src/error.rs": "6663d39e9316e5edb283fb1be8f2c47db96328730ea6ca993b74bc6d86a68cec",
+      "components/uci/src/file.rs": "6c85ab09855597cf6da44edf283d355fdcf292372624f2dd11773b19e1f21876",
+      "components/uci/src/lib.rs": "b993f0f78a2402682690e0d9fed839af8d4bffc590244de5064035bd7c1ab7f1",
+      "components/uci/src/parse.rs": "a6fd1785ae0134104f10426a5557d68a62436b4c615784f0670c25451881f443",
+      "components/platform/Cargo.toml": "ed4b3a09d154084b5b899a1e086929949509578f793722ed77421325d31cae9f",
+      "components/platform/Cargo.lock": "7fc9b3dd192aeefb55ec14eee5133fadaec2ba1c167ff5992f16520fdff8de7b",
+      "components/platform/src/reload_signals.rs": "7a201611762deea02c3a9bb77549ea269231d4ec2c28cbf525834622c09eb2b4",
+      "components/platform/src/ubusd_signals.rs": "6f8aac7478b5f1db0681ea4001ff075d297b0a5ed7157f5834e01f4e1d83464c",
+      "components/platform/src/directory.rs": "fb6c8196be8d4dee76e9803802073d41bc26fbb065a60fdd0a16370e7fadc910",
+      "components/platform/src/process_owner.rs": "ecd8041cc4d25fbc7524aace269f7c221c0d24d2d47c3e35290861ef58c03ccb",
+      "components/platform/src/rpcd.rs": "c5716cab3acf538ed3b2ef35388c01d7bfc26cda39524924e66e79cb992addac",
+      "components/platform/src/unix.rs": "d431ebe1fd7bcf1a467bd30c420e14a9f4fa1cd98e45c516d1d4d75cb1fc6526",
+      "components/platform/src/process_owner_test.rs": "03a511005f06c15634aba5a515349a73dbc37cdf3c4eba0464cd7d27eb96c7ed",
+      "components/platform/src/ubusd.rs": "236b8b7a7e82777330c1776e2e3c28c2da198c56bd3871389b2442c8f5ccbf46",
+      "components/platform/src/identity.rs": "e02fa07087aa261004e2e6bd04e12eb7d8a836cf9e03e57a9fdf263884a06cc5",
+      "components/platform/src/readiness.rs": "91b9ff4bdd0a506041de41083e13d2551a8ddbb670a88e022d7a2c0583bb2304",
+      "components/platform/src/text.rs": "6c94ce661309fbfcbe2d608d83218c0a53bac809ff8816eee20347b4cc89197d",
+      "components/platform/src/rpcd_signals.rs": "9a4fe86d585e0cd8b5177a0bb3f7eb44a8692a7c171016ccc90136922108f046",
+      "components/platform/src/httpd.rs": "52014d9b012da124359e488c390a81563821c56c75dbf444ce57da4c860fb757",
+      "components/platform/src/lib.rs": "0307388083edc099cfc8b926bbb725a30a6291c13b0a62af6e273f3b1dca54ef",
+      "components/platform/src/netifd.rs": "7898450e2811609814c6030f49f89e759067715305065ceeeaef32eed7638760",
+      "components/platform/src/procd.rs": "b7309412d3c1a1c2b6964017976820f44567dfa200459e872df1cd1a46c657fa",
+      "components/platform/src/ipc.rs": "823b2fe77e179369d5cfb49d278807d13ecf490c7d6e13e7881658ff39fa433d",
+      "components/platform/src/netifd/signals.rs": "7e6e68f3570a246320d11fb6c98d9ecdaa7378811a122606230e2e422a46fbf8",
+      "components/platform/src/procd/watchdog.rs": "91ff71afd5de548c62e4ec945563c17d46e8c36a4470e68a17cbd7c034341517",
+      "components/platform/src/procd/process.rs": "e3d17231e352aa1820f0e5659ef65d071c3c3f9218971f8da0bbc53a658d7f4b",
+      "components/platform/src/procd/signals.rs": "922cd1a45986722be825666e05ef426cde8c098002bdd4670145c036cc17762c",
+      "components/platform/src/procd/compatibility.rs": "c577219bda9112bd8d7c36eaa11b03bffb1d62576b9459d461c458784271140e",
+      "components/platform/src/rpcd/readiness.rs": "583ce5d931392d6c9d3dcd810b4687bf6cd2a37264cd6493393a166b9b7fa928"
+    }
+  },
+  "ubusd_differential": {
+    "r83_identical_nonempty_lines": 37,
+    "r83_transcript_sha256": "d59558243931d5cc4a4114e328455a6853aa51444cbf36e775b7de865349ee36",
+    "r92_passed_checks": 44,
+    "r92_result_sha256": "12ca31035c617e9c55d0206592c0c7bd9b394eabbc5210132b5cc7dc65aa537a",
+    "known_exception": "Short TARGET retains the existing explicit expectation: exact C status 4, Rust status 2."
+  },
+  "exact_image": {
+    "rootfs": "oracle:/home/ubuntu/owrt-25126-review/upstream/25.12.6/rootfs",
+    "release": "DISTRIB_ID='OpenWrt'\nDISTRIB_RELEASE='25.12.6'\nDISTRIB_REVISION='r33311-981c978eff'\nDISTRIB_TARGET='mediatek/filogic'\nDISTRIB_ARCH='aarch64_cortex-a53'\nDISTRIB_DESCRIPTION='OpenWrt 25.12.6 r33311-981c978eff'\nDISTRIB_TAINTS=''\n",
+    "stock_rpcd_sha256": "860925534eab87157eeb447c8c962bfcef5f552d5379e4a3c83ab3c0376a11a5",
+    "stock_ubusd_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+  },
+  "logs": {
+    "logs/frontend-platform-cache-explain.log": "007c895e9de4c03a65e7564bc724bd10201a0a7d2b2ff0daac4fda643c29b207",
+    "logs/frontend-reload-config-build-cache.log": "d6d76bc9edcb05048f391c81fd953587844d3f7de3596d5874b296e271ba2a57",
+    "logs/frontend-reload-config-clippy.log": "6a1d7244ac806d5fead9fac604199adae5fd0017ddced0ffed27a84d0bd63bb1",
+    "logs/frontend-reload-config-musl-build.log": "3166865e96a0905e00a9ddd5a7525009fe27deae2cb905117e065e2ff7b6e19e",
+    "logs/frontend-reload-config-native-build.log": "64952951de793c1180aeadf102e392a2347e6ef12252a99618d7d5a2df056cd3",
+    "logs/frontend-reload-config-test.log": "3a3ecedf0ecff7d1687b329258049c9c9edcb412a31c9f734d50ba79706ed273",
+    "logs/frontend-rpcd-build-cache.log": "744bf461644a77390297547f02ef5084ea2544308ddec3580c460b4e3b83c5a0",
+    "logs/frontend-rpcd-cache-explain.log": "4f879a1ae384b2125837abf1a895aff012f39a277271c69a8ff0bf5cb5cbc25c",
+    "logs/frontend-rpcd-clippy.log": "c3fb8f7412a18688d15a8bce97b92382a3ecabbc39741f6eb6da6ed58201673a",
+    "logs/frontend-rpcd-differential.log": "d58678e765e6fee74b72c24d7a3f96ce1aeb670f0b5ff0b1d78d27965f194d30",
+    "logs/frontend-rpcd-examples.log": "19a8c7cd578ad53a54b21f4a3a5786917d01441569de0b2bc0778c151c2566a0",
+    "logs/frontend-rpcd-musl-build.log": "52b55aac646c8f522cd521d5674e76dd0cb2d9fceade3a8a41ec99ea052a49e3",
+    "logs/frontend-rpcd-native-build.log": "9ad09e404e17675268a47e12635aa4f9e47850cb49aad5a947fffe53a8982e52",
+    "logs/frontend-rpcd-test.log": "05707961fb8bd8bd2a161fa89840e1924acc9d21f6cf54cc992c6a0b8e73a3d6",
+    "logs/frontend-signal-smoke.log": "477e3a2cf6618aeff39356050371b4c3ad084aa072230ba1024d59404a786b68",
+    "logs/frontend-signals-test-02.log": "a9c659accc359cea3a5b7583571604831f5c079080519c2768de6aae6e5d33a3",
+    "logs/frontend-signals-test.log": "701f09fb655d88923db4d70cb2646f47ea393224eec942c6e3ce0857aa2131fc",
+    "logs/frontend-ubusd-build-cache.log": "c0a6eb1d8e31cbc99a1c22135feca024c54acabf9d77b41e9e580f9047d12485",
+    "logs/frontend-ubusd-cache-explain.log": "e27beec6fa86e1581d8be8f930dae44f27701d9a5c8ff2bb2100a18e47cf6c19",
+    "logs/frontend-ubusd-clippy.log": "beded69c9d34c8ec8742f5326b343fa4d7b0677e667abc77b04d795690dfe334",
+    "logs/frontend-ubusd-examples.log": "e7a1914ec7ae909b99dd7fb0d4d4b5b7724adc3e1887367f92c0917cedb2be9c",
+    "logs/frontend-ubusd-musl-build.log": "9e05fadbecd776845aba2e214176fe8194a6daec1f3099338c8b3146194b84f3",
+    "logs/frontend-ubusd-native-build.log": "e696fb5ee9f989d6c842c973cc8c20454130f77a5eae3f063de94fb2588764e1",
+    "logs/frontend-ubusd-r83.log": "02a5c429f74928249564d43efb695487d79de47044a8b55920400ee2a46168dd",
+    "logs/frontend-ubusd-r92.log": "3166bfdfc83231ce23c148d199d6d773afe931ccc8c5d7ba3f4be64aac30ee5e",
+    "logs/frontend-ubusd-test.log": "e3dda34ea014e02e94cb3c0aec1319e7e6486d9d376a900a5c2e97e9456e843c",
+    "logs/frontend-wireprobe-musl-build.log": "7ed45cc0f64426570cb1c7075c0c56ea243fb57a9b0a9cb2c1e9a3be40aaecc1"
+  },
+  "prior_failure": "First platform test stopped at E0583 because process_owner.rs had not yet been synchronized to the new task path. Its log is retained; the complete platform signal test passed after that missing module was copied.",
+  "limits": [
+    "Signal/FFI code is tested on Linux AArch64 native and musl, not Miri or physical hardware.",
+    "This task moves platform boundaries and preserves behavior; no throughput optimization or new performance claim.",
+    "Shared platform sources remain concurrently owned by root/other agents. The RPCD suite records its precise inputs; root final integration gates determine the final project-wide snapshot."
+  ]
+}

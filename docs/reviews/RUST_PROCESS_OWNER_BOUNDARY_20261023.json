@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "reviewer": "audit_dns_core",
+  "guideline_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "files": [
+    {
+      "path": "components/platform/src/process_owner.rs",
+      "sha256": "ecd8041cc4d25fbc7524aace269f7c221c0d24d2d47c3e35290861ef58c03ccb",
+      "line_count": 239,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          239
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-UNSAFE-IMPLIES-UB",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Safe environment operations validate/allocate inputs before a private fixed-operation interval. Every use blocks all blockable kernel signals, checks acquiring PID/TID/main-thread identity and invokes unshare(CLONE_VM), a kernel no-op that rejects live shared address spaces. Signal restoration is automatic on success/error; failed restoration exits without unwinding. Unsafe enter documents that no user callback, thread creation or early signal restore may occur and does not claim to prove separate fork worker invariants. ChildSignalMask restores the exact pre-guard mask as the last exec setup step.",
+      "coverage_basis": "Entire new implementation/test and each subsequent patch read; final formatted source inspected in full."
+    },
+    {
+      "path": "components/platform/src/process_owner_test.rs",
+      "sha256": "871dda657f2447af9b8136800ff9afd2b181956532e387a15e8db0e4711b28f7",
+      "line_count": 174,
+      "full_read": true,
+      "coverage_ranges": [
+        [
+          1,
+          174
+        ]
+      ],
+      "rules": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-UNSAFE-IMPLIES-UB",
+        "M-CANONICAL-DOCS",
+        "M-MOCKABLE-SYSCALLS",
+        "M-STATIC-VERIFICATION"
+      ],
+      "conclusion": "Standalone harness=false main exercises actual kernel acceptance under ordinary ubuntu UID, refusal with a synchronized live std thread, inherited owner revalidation after join, untouched environment on failures, non-UTF8 and invalid arguments, full blockable mask, exact success/error restoration and an exec child that verifies its restored mask. No sleep ordering; child startup uses a fixed pre_exec mask restoration hook.",
+      "coverage_basis": "Entire new implementation/test and each subsequent patch read; final formatted source inspected in full. Final identity_op cleanup removes only a redundant u64::MAX operand; final hash and native test/Clippy results are current."
+    }
+  ],
+  "validation": [
+    {
+      "command": "mbx test --locked --test process_owner",
+      "host": "ssh oracle, ordinary ubuntu user",
+      "result": "passed",
+      "log": "/home/ubuntu/owrt-platform-boundary-20261023/logs/process-owner-test-final02.log"
+    },
+    {
+      "command": "mbx test --locked --target aarch64-unknown-linux-musl --test process_owner",
+      "host": "ssh oracle, ordinary ubuntu user",
+      "result": "passed",
+      "log": "/home/ubuntu/owrt-platform-boundary-20261023/logs/process-owner-musl-test.log",
+      "note": "Executed before test-only identity_op expression cleanup; production module bytes unchanged."
+    },
+    {
+      "command": "mbx clippy --locked --all-targets -- -D warnings",
+      "result": "passed after equivalent test expression cleanup",
+      "log": "/home/ubuntu/owrt-platform-boundary-20261023/logs/process-owner-clippy-final02.log"
+    }
+  ],
+  "limitations": [
+    "Main-thread restriction is an explicit daemon API constraint, stronger than environment exclusivity alone.",
+    "unshare may be denied by seccomp or an unsupported kernel and fails closed; no procfs fallback weakens the proof.",
+    "The credential is not a permanent ban on thread creation. Arbitrary callback execution or returning while a proof is held is forbidden by unsafe enter, not by safe token acquisition.",
+    "This type does not establish fork atfork/panic-hook/shared-MAP/descriptor contracts. Fixed worker registrations must separately own those safety obligations."
+  ],
+  "references": [
+    "https://github.com/torvalds/linux/blob/v6.12/kernel/fork.c",
+    "https://github.com/torvalds/linux/blob/v6.12/lib/is_single_threaded.c",
+    "https://man7.org/linux/man-pages/man2/unshare.2.html",
+    "https://doc.rust-lang.org/std/os/unix/process/trait.CommandExt.html#tymethod.pre_exec"
+  ],
+  "independent_integration_review": {
+    "scope": "Current capability registration, fixed fork/pre_exec entry paths, owned child data, descriptor handover and corresponding changed business call sites. This is a targeted independent boundary review, not additional whole-file coverage for the delegated files.",
+    "files": {
+      "components/dnsmasq/platform/src/process_fork.rs": "385f21298562e528e608e865cf165cf20a4672c0ecde990273b9f43a4d63db4f",
+      "components/dnsmasq/platform/src/process.rs": "fe8312b165cfbf8a3c8699a5cc8cb8a147d7393896ad4f36669ca941db564507",
+      "components/dnsmasq/platform/register.rs": "57c70a80adcd40d8c8065e3aa283444a37d775dd83c479c6fb2641a2bd1fb701",
+      "components/dnsmasq/platform/entry.rs": "0999b52ec1b3044e957af996d128b17a2dcd007d34ff65f6df5e9addf8002394",
+      "components/dnsmasq/src/helper/process.rs": "3194a909ab5df538e17ca7372c12a446c36c56cdc284424e704b88160b25a38d",
+      "components/dnsmasq/src/config/dns_lookup.rs": "c53071240c420416b60dba891b3328e4ffd9238500d19c23c5697ac6e492fbe7",
+      "components/dnsmasq/src/startup/daemonize.rs": "d4606d8d8a4b889f46a3745b1b01a436bce6195556e1cf8ece8036e64b34ea65",
+      "components/platform/src/procd/process.rs": "e3d17231e352aa1820f0e5659ef65d071c3c3f9218971f8da0bbc53a658d7f4b",
+      "components/platform/src/procd/watchdog.rs": "54886d4eb04d441fbd3523becd24007eec413b229bc4f26121addbeab70363f6",
+      "components/procd/platform/entry.rs": "ba7421a4d4903dbd688e1940bc0ba0f73acb3a759b0a158396eff1fe9ef18994",
+      "components/procd/src/startup.rs": "1f4439a8ea73f0600c6e380dc5ee7cfbaf4085b17a641df003a18d01fcdf6991"
+    },
+    "conclusion": "No additional confirmed blocking defect after standard-descriptor rejection was added to WDTFD intake.",
+    "confirmed": [
+      "DNS worker construction is unsafe and its stored callback cannot be changed by safe callers; private input fields contain owned data only. Each spawn performs a new kernel thread check.",
+      "DNS workers take and forget copied panic hooks before abandoning parent descriptors, sever the inherited wake-FD edge, drop only boundary-owned parent pipe ends before the raw sweep, and terminate without returning to parent frames. Successful background service branch preserves its original panic hook.",
+      "Procd Process keeps the configured Command inside the guarded spawn operation and restores the old signal mask in its final pre_exec step. Firmware input owns strings/maps and child execution terminates at the platform boundary.",
+      "WDTFD intake rejects 0..=2 without closing them. Valid >=3 startup handover is adopted exactly once without duplication, preserving final-close behavior. The fixed Rust1.98.1 Unix startup contract is a maintained premise.",
+      "DNS and procd post-join fixtures now wait for the actual kernel-exclusive condition with a bounded retry/yield; other errors remain failures."
+    ],
+    "remaining_contracts": [
+      "Unsafe registration retains responsibility for the complete worker call graph and capability lifetime, including allocator/NSS, atfork callbacks, inherited handlers, private mappings and held locks. Runtime thread checks do not replace this proof.",
+      "A seccomp policy denying unshare makes the operation fail closed; target jail compatibility must be checked with the final build."
+    ],
+    "startup_fd_evidence": {
+      "toolchain": "Rust 1.98.1, fixed Linux aarch64/x86_64 targets",
+      "reason": "Unix runtime init sanitizes only standard descriptors0..2, configures signals/alternate stack, and records argv; it retains no OwnedFd>=3. Musl stack guard lookup is skipped; glibc stack lookup temporary resources belong to libc and are not retained as Rust FD owners. Preinit handover is adopted before business code opens descriptors. This premise requires re-audit on toolchain/runtime changes.",
+      "sources": [
+        "https://github.com/rust-lang/rust/blob/1.98.1/library/std/src/rt.rs",
+        "https://github.com/rust-lang/rust/blob/1.98.1/library/std/src/sys/pal/unix/mod.rs",
+        "https://github.com/rust-lang/rust/blob/1.98.1/library/std/src/sys/pal/unix/stack_overflow.rs"
+      ]
+    },
+    "compatibility_tightening": "WDTFD values parsed as0,1,2, including malformed text that atoi maps to0, now produce EBADF without closing standard streams; normal inherited descriptors>=3 retain their original number and single final-close ownership."
+  }
+}

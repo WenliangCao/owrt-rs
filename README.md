@@ -6,6 +6,12 @@
 
 以下按时间倒序记录，日期统一使用 Europe/Berlin。链接指向当时的报告与发布记录。
 
+## 2026-10-23
+
+- 返工 Rust 审查中的业务 unsafe 边界：dnsmasq、fw4、procd、reload-config、rpcd、ubusd
+  恢复 `forbid(unsafe_code)`；固定信号处理、进程凭证和受审 fork 操作由 platform 承担。
+  门禁禁止再把业务根降为 `deny`。[修复与验证](docs/reviews/PLATFORM_BOUNDARY_REWORK_20261023.md)
+
 ## 2026-10-22
 
 - 完成 OpenWrt 25.12.6 全组件源码审查，修复 rpcd 文件 ACL/会话目录和 httpd 解析/鉴权问题，

@@ -1,0 +1,1782 @@
+{
+  "input_sha256": "1d55708690c22294f99c086a90adf470e49340d248c06be53c35997a6c6e5151",
+  "commands": [
+    {
+      "name": "check",
+      "argv": [
+        "python3",
+        "tools/rust_check.py",
+        "check",
+        "--output",
+        "/home/ubuntu/owrt-platform-boundary-20261023/final-gates"
+      ],
+      "exit_code": 0,
+      "seconds": 83.12358508910984,
+      "log": "/home/ubuntu/owrt-platform-boundary-20261023/final-gates/check-driver.log",
+      "sha256": "e7e4f04c2c36671d6b53ec7bb9e465370c8e02679a723b313f00e9329b5bb5cf"
+    },
+    {
+      "name": "fmt",
+      "argv": [
+        "python3",
+        "tools/rust_check.py",
+        "fmt-check",
+        "--output",
+        "/home/ubuntu/owrt-platform-boundary-20261023/final-gates"
+      ],
+      "exit_code": 0,
+      "seconds": 4.870043958071619,
+      "log": "/home/ubuntu/owrt-platform-boundary-20261023/final-gates/fmt-driver.log",
+      "sha256": "d5370bc227deca2e98cec7df93ff0d3d45a0f5b73e83950ea5f88fae3ad8ec65"
+    },
+    {
+      "name": "test",
+      "argv": [
+        "python3",
+        "tools/rust_check.py",
+        "test",
+        "--output",
+        "/home/ubuntu/owrt-platform-boundary-20261023/final-gates"
+      ],
+      "exit_code": 0,
+      "seconds": 208.90390679519624,
+      "log": "/home/ubuntu/owrt-platform-boundary-20261023/final-gates/test-driver.log",
+      "sha256": "61ba8056b7af2fb62d5b32542dfc1477f8ee8b5717a625135dc04be8e7471ac8"
+    },
+    {
+      "name": "benchmark",
+      "argv": [
+        "make",
+        "check-benchmark"
+      ],
+      "exit_code": 0,
+      "seconds": 25.60690783057362,
+      "log": "/home/ubuntu/owrt-platform-boundary-20261023/final-gates/benchmark-driver.log",
+      "sha256": "d596366d04f89d3cc142953e258a3fc60aed5a3298da301e07dd393ff45f96de"
+    },
+    {
+      "name": "tools",
+      "argv": [
+        "make",
+        "check-tools",
+        "check-harnesses"
+      ],
+      "exit_code": 2,
+      "seconds": 4.1258888356387615,
+      "log": "/home/ubuntu/owrt-platform-boundary-20261023/final-gates/tools-driver.log",
+      "sha256": "0ad4d4ecd380d2ab68fd0391c9da32e5310d1dd2eff024775cf73db1f975e83a"
+    }
+  ],
+  "baseline": "d6719f66",
+  "scope": "14 crates default/all-feature targets, docs, normal examples, strict Clippy, 15 crate formatting plus fuzz, benchmark full harness and Python tooling",
+  "status": "passed after retaining tools fixture failures and restoring required Git metadata",
+  "rust_inputs_unchanged": true,
+  "final_inputs_sha256": "8ecb773a434cd562097c903064bcfb0845e63b642384b8dfd075770caf12b950",
+  "post_rust_gate_change": {
+    "path": "Makefile",
+    "change": "Add existing DNS package harness to check-harnesses; verified in tools-driver-03.log",
+    "rust_sources_changed": false
+  },
+  "tool_retry": {
+    "command": [
+      "make",
+      "check-tools",
+      "check-harnesses"
+    ],
+    "exit_code": 0,
+    "log": "final-gates/tools-driver-03.log",
+    "cause": "File-only remote sync omitted Git history required by synthetic release tests. Empty metadata was insufficient for git show; import of the actual repository bundle restored the fixture. No test assertion was relaxed.",
+    "git_metadata_is_build_identity": false
+  },
+  "logs": [
+    {
+      "path": "final-gates/benchmark-driver.log",
+      "sha256": "d596366d04f89d3cc142953e258a3fc60aed5a3298da301e07dd393ff45f96de",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/check-driver.log",
+      "sha256": "e7e4f04c2c36671d6b53ec7bb9e465370c8e02679a723b313f00e9329b5bb5cf",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-check-all-features.log",
+      "sha256": "8f6e73c2cb00d290bdad00c2edc92939a94068d3e87b2f3bd5bc63807c530514",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-check-default.log",
+      "sha256": "96f09b17d4d1d29748e711a07d74de27239c0a3a16c583e0b3a056a943134a2d",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-clippy-all-features.log",
+      "sha256": "f6665ff30f0559b11b2bb8c76a7bbf4414fdfd2c9a2093ad5b48af7bb24dd88f",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-clippy-default.log",
+      "sha256": "f669ce38e3932dfe617e8af57f0fa47840aa3bde9e74a3cbfe7bf4969e1375a1",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-doc.log",
+      "sha256": "c452544836f2a288e2f9cf65a9e90c824a4708dc3515756d87e3867585032135",
+      "libtest_invocations": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-dnsmasq-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-platform-check-default.log",
+      "sha256": "0204cd456abadbecf14fd0583a06b232d66b33e8caa0897cb69fdf186088a2d4",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-platform-clippy-default.log",
+      "sha256": "f4b8e27c687d06c44a5d187f567ed51510cc159ef9c5fccb03ab00890dae6811",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-platform-doc.log",
+      "sha256": "e71da552cf3b8caf8523b465da25fae86011f85d3813dfb1c1ab3adf6014171e",
+      "libtest_invocations": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-dnsmasq-platform-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-dnsmasq-platform-test-default.log",
+      "sha256": "f4f1855f5f609b78c22751f4831d348357eb13e4264c7f5972f155fc71131c86",
+      "libtest_invocations": [
+        {
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-dnsmasq-test-all-features.log",
+      "sha256": "49697a27a263d7ee7348e914f3c786f4230a85f3341dc4d374f59ef1973cbbd5",
+      "libtest_invocations": [
+        {
+          "passed": 861,
+          "failed": 0,
+          "ignored": 22
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 85,
+          "failed": 0,
+          "ignored": 4
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 17,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-dnsmasq-test-default.log",
+      "sha256": "79bec313af12a810c241df0637647880d1bee3ad2012c9984355d673140ce94a",
+      "libtest_invocations": [
+        {
+          "passed": 861,
+          "failed": 0,
+          "ignored": 22
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 85,
+          "failed": 0,
+          "ignored": 4
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 17,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-fw4-check-default.log",
+      "sha256": "ba8dc5570801787ec172fb15fa660e1d630b28ca0e436d56f47eb75571b77e6f",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-fw4-clippy-default.log",
+      "sha256": "1201eaadc15e1cb20ec8eb4d513104fc9d12a81996b7e8ad5eb1c252c2a9992c",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-fw4-doc.log",
+      "sha256": "c7e9c8bdbcbb68b5b7d2401ea4d2ed5ed44077e6f3a8d98e234336f064adab8d",
+      "libtest_invocations": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-fw4-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-fw4-test-default.log",
+      "sha256": "121f97e5d765ac9a6487d144063090e362dbd48e849ee16a94170cceeaabec6e",
+      "libtest_invocations": [
+        {
+          "passed": 21,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-httpd-check-default.log",
+      "sha256": "7643d6a0713aa4aa5b90bf53b035a83e01fe5adb320c3024f46b18f77158525d",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-httpd-clippy-default.log",
+      "sha256": "6510bf84b97442ecf161c4e789bb99f3f7b06a99ad79037e4944b37bd56ee347",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-httpd-examples-default.log",
+      "sha256": "d1fac4e451e58dbe339d7e2a5060bf28439bab4142db6753e661a947d8e6efd7",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-httpd-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-httpd-test-default.log",
+      "sha256": "c62466c6add1ccd6aff0218397a65fb25ca5b458d43b089b8abe0e1f58322072",
+      "libtest_invocations": [
+        {
+          "passed": 72,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 49,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-logd-check-default.log",
+      "sha256": "3dd819b32e5d4ae9dbcea6cd32b38a8ac461df9d10d024df410521cf67df3b55",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-logd-clippy-default.log",
+      "sha256": "345271d08e4e7a595de9cae2e632fef8ffea82607bf91e1557411c8d0a874002",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-logd-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-logd-test-default.log",
+      "sha256": "1c0fa77f133b54e060c2c02c2f9bd6741199396f1a3cfa9516cbdbbb4accf088",
+      "libtest_invocations": [
+        {
+          "passed": 22,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-netifd-check-default.log",
+      "sha256": "e28cd73c85bcf4cdb4ebcae70d224141af3579a09e1080c52575379bd6a5f35e",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-netifd-clippy-default.log",
+      "sha256": "e945d51897eb4ea2b0b1d3bc3cc97d6c7ba9df9634ed7257effb1b9e2a1bb1ec",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-netifd-examples-default.log",
+      "sha256": "7e9f5012a9cb56b062ff8150a6bd4b14d06af6e7ccc328b51c2df723537e7a48",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-netifd-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-netifd-test-default.log",
+      "sha256": "40f419210315ef36317e97e61b7fd37a7e5c2bb3c197185e4fe47291fe533d60",
+      "libtest_invocations": [
+        {
+          "passed": 124,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 188,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-odhcpd-check-default.log",
+      "sha256": "289bdb38fabe5889fbf362fb757e0a94a96f40e47b1c4cff7f2a01c51a77b68e",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-odhcpd-clippy-default.log",
+      "sha256": "4d6566a17c68ef8599c3aecdee302393bd883b8b7bc14ac08d8730d947071469",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-odhcpd-doc.log",
+      "sha256": "8d6a5e792d43efcec31e4a952cb6fc2b2cab39ca430d52e30fd2629e85534f3e",
+      "libtest_invocations": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-odhcpd-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-odhcpd-test-default.log",
+      "sha256": "9584a6bec607ccbd9421f48d7fe2bc544c4021519593694aa06fe4efa9b14094",
+      "libtest_invocations": [
+        {
+          "passed": 58,
+          "failed": 0,
+          "ignored": 2
+        },
+        {
+          "passed": 12,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-platform-check-default.log",
+      "sha256": "8d3912334ba9472750e72838217eaa3ce6e1698afcbd2f1ca673fd5e588a2508",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-platform-clippy-default.log",
+      "sha256": "26c177f7dc662b3b79a139f75231263dc291455b4acd39c1637ec0ac1c42f7c1",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-platform-doc.log",
+      "sha256": "9963a0eb97921969a3ac2b3b3bb61a56c73b61a6c990e9fc6cf4afa87ab45ea0",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-platform-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-platform-test-default.log",
+      "sha256": "e1122cc17b6689ba4aa840040eaf08c5249a6be92c90e2fded15aff57e57afde",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 13,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-procd-check-all-features.log",
+      "sha256": "5c529d12287dad6273b32154b2baeb8f928a9dcbf2c275001731037679d6380e",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-procd-check-default.log",
+      "sha256": "a6684239decd96aee34b75f29aa1200d3da51c891a2af5713a80440280e9e153",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-procd-clippy-all-features.log",
+      "sha256": "ab8340d2bf7547f798c5edc65b7fe3186773f30da0026d8982be01896420f6a1",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-procd-clippy-default.log",
+      "sha256": "f1e789365855444946ca0aa589962c38525c7db209c1aff6d561a6bb1cc6f39e",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-procd-doc.log",
+      "sha256": "4828c61ee7893562b4eaaa9d83821dd317f22d10726c241a00352164cf762930",
+      "libtest_invocations": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-procd-examples-all-features.log",
+      "sha256": "be35daeaf2f644cfd2ef26250a339360ee8feafa2f2e8a1ec59ceecc48eb4d41",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-procd-examples-default.log",
+      "sha256": "256d057fda3a9f071c96596c22d0ab1c8a099dc3ab009492d9d3794e164b9228",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-procd-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-procd-test-all-features.log",
+      "sha256": "f5343d05910f844272a1cfc3a4f8ae3b019b11dbce55ab5993eeb50df1d396f9",
+      "libtest_invocations": [
+        {
+          "passed": 91,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-procd-test-default.log",
+      "sha256": "01e562c751b0a9b2897feb0557816df96e4cd6bba6af822f6c548bf00b1a0d80",
+      "libtest_invocations": [
+        {
+          "passed": 91,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-reload-config-check-default.log",
+      "sha256": "218d69e337b3fa1012cf50f33bbf31c47335eaa55a432de0377990c10bb341ea",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-reload-config-clippy-default.log",
+      "sha256": "bb927abf352191fedf6206eb705e35ca7594897adbaaf8e108c82744d9b58d17",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-reload-config-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-reload-config-test-default.log",
+      "sha256": "3fe4c79a0dbfd377b151681e289c78ff248733d07c1400d1ec16c241c36cf83f",
+      "libtest_invocations": [
+        {
+          "passed": 21,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-rpcd-check-default.log",
+      "sha256": "b7542c12d5c3467fe058dc2b33a8ddbb7e8d0ecfd55a8761231144729dcd8cfa",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-rpcd-clippy-default.log",
+      "sha256": "70a35b6dc4a0fabde6d512a907b31814bcd54819e3b835be4ce2be49c70c4a97",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-rpcd-examples-default.log",
+      "sha256": "39c05e04f7513ea955a6e48f7a509ae19e3e4428363a58ab66ef99696ad38cb2",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-rpcd-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-rpcd-test-default.log",
+      "sha256": "b48442716a6b9a55104d25bc973e7e710273a82b283066d776203fad3c3e7cf8",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 85,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-ubus-check-default.log",
+      "sha256": "6a1b57ab210ccf7f7c35a676c84136036713aa8fdedbdd3468a14785b686272f",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-ubus-clippy-default.log",
+      "sha256": "f0e3b77659e75f86ad2588a8f0031627967ef1da6b3c73548b5355c387b94ef4",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-ubus-doc.log",
+      "sha256": "800b73f3461debb23cf65e9e6fe083e69659b2d5c56f7381058da5447b70862a",
+      "libtest_invocations": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-ubus-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-ubus-test-default.log",
+      "sha256": "747fec5e85bb8f5e5ff06689d86df7565352c1ab1eeb318cdfa030ad97b302e3",
+      "libtest_invocations": [
+        {
+          "passed": 75,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-ubusd-check-default.log",
+      "sha256": "bdd6a75e3631f671c261442624b497f65d95a96307b28093ff21af3faf806884",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-ubusd-clippy-default.log",
+      "sha256": "b74fc32de3d2cc100f28f29d7fff81aba004afc3e0159951d5aedd479ad6d2d1",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-ubusd-examples-default.log",
+      "sha256": "57d5c559e5e0b95cc0f02ade97ef1b588506c71afb8f39fb115bc4c2caeaec73",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-ubusd-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-ubusd-test-default.log",
+      "sha256": "787e50d47b3a46f4ad0aa32a44fafbe94d16da354bb9077376f55755a237e471",
+      "libtest_invocations": [
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 15,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 59,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-uci-check-default.log",
+      "sha256": "7dab3427adf7b9f2dea453adb79d9760734dc29cc6adf065d2718b6f90ac7802",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-uci-clippy-default.log",
+      "sha256": "3270090717d61620330c57e2645f2fe35743453569b321ff8d6381167518e3d7",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-uci-doc.log",
+      "sha256": "64f54bd0f10b19cb6defd10d4bf46eb3acd2ecacd0b0cb562d700b79266e5f3a",
+      "libtest_invocations": [
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/components-uci-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/components-uci-test-default.log",
+      "sha256": "6cd0cfba00d9d1a622b5fa06ed7b2c1536ffa5f17412b78278952681b91dc2d1",
+      "libtest_invocations": [
+        {
+          "passed": 23,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 17,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-fuzz-check.log",
+      "sha256": "23e8ddb02f1c9566a9e754b5b686f8eb1303b6ab559c38751697e770ece63884",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/dnsmasq-fuzz-fmt-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/dnsmasq-ignored-bin.log",
+      "sha256": "29f62c1bc574a55f9f8c51b06606127912421ba30ec9ba17d9c86e67ed279d2b",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/dnsmasq-ignored-lib.log",
+      "sha256": "98415ae774bd462754e7d3eba584ac37fee072b14f3e9ff73db247d2b526cdfa",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-bin-0.log",
+      "sha256": "22365ec513ad566e45570ef18f2bc47f25ec3144e1501584e77aee3bc0ba3daa",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-bin-1.log",
+      "sha256": "bf01280eb56fd9fdf4e7c0fcaa563cff62a648689b75666de2b3c2e62edf95df",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-bin-2.log",
+      "sha256": "c6fd6d2c1b86d272fab990d76ef4d125f8a4ce277721078ed2899e1934be18f4",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-bin-3.log",
+      "sha256": "8869a8ebf65b092aba84dc0f4110ef2174ea9faef76c10760d3ab490f3713921",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-13.log",
+      "sha256": "4acea4a8fefaa654e960fcdf6671b15ba8923dde81aab0565ee54f6a00ea782b",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-14.log",
+      "sha256": "bbf2ff7f95d3d09af7c39d42d3f24f2ce0c2811245739858e68cee2f9e785349",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-15.log",
+      "sha256": "902fa94edce3221fc7fa296365d1833040f08b65b85376b833e2cdcc1f08f64c",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-16.log",
+      "sha256": "569a26002ad417fa681a09473d251f51d3d0dbf66c3aa0465aa19c5d69cd3006",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-17.log",
+      "sha256": "331b584283ce8d7af7f9ef58fe0911793453a012e6993e21f21112c958379e61",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-18.log",
+      "sha256": "51b45d79fc9a2383eac9b4e402c8467b8df3ca3f7118484ffea877f21f0e6ee9",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-19.log",
+      "sha256": "2e99adf7a7fd3091f1700f6040ada89ddfa704a81946e2c111114050b20e792f",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-20.log",
+      "sha256": "fd70273ce336fb6f24e9cf51e0fdb83b99f5de6fdf74800639176ba5197cdfb6",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-21.log",
+      "sha256": "23c22731d6cdbb00ec4d55a650578e9886f8036e29b0c972c2b10ddaee7ff29f",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-4.log",
+      "sha256": "63ef4a16caf399cda35f7970c9f850fcfd0a475966a0e6813c6fac465125bd2f",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-5.log",
+      "sha256": "4743eea3c6620877a13f0a12517a63ae6877fb2ebac2d2fb7753f038f9449a38",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-6.log",
+      "sha256": "0c3d22600180148aa18b4e1267c0f187b634ac004a1400b26c031c0e9744f260",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-7.log",
+      "sha256": "76c26e2201d8f4e8819d75def302afce4ad0a117b6e313c3e3138fef69683656",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/dnsmasq-namespace-lib-8.log",
+      "sha256": "33da94fb2b56144c9c3e0930f413ca8d58e73b34eef1b1b665d8d73d66789379",
+      "libtest_invocations": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "final-gates/fmt-driver.log",
+      "sha256": "d5370bc227deca2e98cec7df93ff0d3d45a0f5b73e83950ea5f88fae3ad8ec65",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/test-driver.log",
+      "sha256": "61ba8056b7af2fb62d5b32542dfc1477f8ee8b5717a625135dc04be8e7471ac8",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/tools-benchmark-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/tools-driver-02.log",
+      "sha256": "2ebcf25b3464fd4a72971e81d21e55aeffa7d8c521859b9be2bcfce5c3838735",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/tools-driver-03.log",
+      "sha256": "a1b159ee3a83fa195fe7133d41513601657236ef02ed17042e68baf4f810833d",
+      "libtest_invocations": []
+    },
+    {
+      "path": "final-gates/tools-driver.log",
+      "sha256": "0ad4d4ecd380d2ab68fd0391c9da32e5310d1dd2eff024775cf73db1f975e83a",
+      "libtest_invocations": []
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-build.log",
+      "sha256": "5419a41d221cd325ca8dc5319a999884d2ce7829d3cf9f22dda6392c8f7b0a0e",
+      "libtest_invocations": []
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-check-all-features.log",
+      "sha256": "9d5abc73383074d7a86a0571a2f99137bad940ebdbb81f2461109874c9405784",
+      "libtest_invocations": []
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-check-default.log",
+      "sha256": "abcf8132a95afc310fbf83483cbf023573065166a8072c577149ee98c3df7b20",
+      "libtest_invocations": []
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-clippy-all-features.log",
+      "sha256": "f62cf8c77e293e15ad8677e2ed467dedb044ce743c3c5d21152ddfc36f500a13",
+      "libtest_invocations": []
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-clippy-default.log",
+      "sha256": "6faa97a77f5c3f4ee6ca8146c93ada2f08c838d6f7fb849d4c958540e9beebfb",
+      "libtest_invocations": []
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-examples-all-features.log",
+      "sha256": "d398f7e0da1a3c1e55230fee51f31a49187fc77be47c5c68780a1b59d50839a8",
+      "libtest_invocations": []
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-examples-default.log",
+      "sha256": "faadaf760fb715f6133f09406595a97267382a400a9b41dd448ae74df006077b",
+      "libtest_invocations": []
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-test-all-features.log",
+      "sha256": "62f174e3fdfcd3b99f95dee77f1915a7d2d2799f650e3e0e0bd96b91edc2d49d",
+      "libtest_invocations": [
+        {
+          "passed": 16,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    {
+      "path": "candidate/work/out/rust-host/benchmark-test-default.log",
+      "sha256": "7210f8a3dcdaee2ee86cc67c8ea0a91c89e039e46869ff716d2e5537745fe429",
+      "libtest_invocations": [
+        {
+          "passed": 15,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    }
+  ],
+  "counting_note": "Counts are invocations, not unique cases; imported example modules and feature runs repeat tests. Standalone process harness results are in their actual logs; --ignored --list is not execution.",
+  "tested_inputs": {
+    "Makefile": "d87af7a193c1feec52c580ec27b01311d1541cdeac7842dd9b53fbc935fc3a8d",
+    "components/dnsmasq/Cargo.lock": "e915a9cd005cfcbfc4f688a21829c7ce3ac7a907bb4a3bffda0e049edc1cb219",
+    "components/dnsmasq/Cargo.toml": "df1b7c61ec3e6a783b85d81ecb90f024cac3d7cae106651b0bed0c9a3f0dff9c",
+    "components/dnsmasq/fuzz/Cargo.lock": "abbed6430a54aae5108678826f19b4ce52f5e747080ac7f55a293e1d94ee5e4a",
+    "components/dnsmasq/fuzz/Cargo.toml": "db488a9edd27655ad3f93a11e70476debbaf9545f27676f07293087a5f3ee7c9",
+    "components/dnsmasq/fuzz/fuzz_targets/config_line.rs": "28cc1df6f9a614364773772a9ce4f18ea6d2004ae2ae8219364f23116dd05aaf",
+    "components/dnsmasq/fuzz/fuzz_targets/dhcp_packet.rs": "e5a69ff7db71fa2d569344da6a470ad8519cc308910ec72d8cd5ef5b8f1c235e",
+    "components/dnsmasq/fuzz/fuzz_targets/dns_local_answer.rs": "6561a6cbf941441f5b167e07c397b6c56c04b47b409ff3dfa7225647b1ed9077",
+    "components/dnsmasq/fuzz/fuzz_targets/dns_wire.rs": "f9f32da9a17b01f964b7782bf0802de9f11eded82e55cd7e808b0fe6e94d261d",
+    "components/dnsmasq/fuzz/fuzz_targets/tftp_packet.rs": "1ad412411a7cf7151ff2f582c5983878eacae376bdfe68eb8d70bb9f4953c056",
+    "components/dnsmasq/platform/Cargo.lock": "b9aec17e245983f2fa483470440a652c16e5d2f32f4156a6200e53d1cc290dea",
+    "components/dnsmasq/platform/Cargo.toml": "0bf1c6393e7df44c45e136d0d2f63293ff9d3225f19c300cec6ac86e4807b48c",
+    "components/dnsmasq/platform/entry.rs": "0999b52ec1b3044e957af996d128b17a2dcd007d34ff65f6df5e9addf8002394",
+    "components/dnsmasq/platform/register.rs": "57c70a80adcd40d8c8065e3aa283444a37d775dd83c479c6fb2641a2bd1fb701",
+    "components/dnsmasq/platform/src/datagram.rs": "092b673743cb96fddd27a0cf80be8245fc559c2a42e327b1a22ae505d3b91099",
+    "components/dnsmasq/platform/src/interfaces.rs": "5eefb4f1a1c86f078af3ed2e5764226ee312777594f999fe46d6cd829c9c37a3",
+    "components/dnsmasq/platform/src/lib.rs": "aa6cd3db9a0a15e8db47a50c4dc8f86a33b43794c190186c639eacf1a08d43e5",
+    "components/dnsmasq/platform/src/libc_format.rs": "cd20917676c27c86786370ff3608c87b650f2aa20ed37e49e663d2a934b51b97",
+    "components/dnsmasq/platform/src/limits.rs": "a5b33fc9cb63efc49ae96d76cb9a9eb702acfe47d5c88b90d628e0381bbbf774",
+    "components/dnsmasq/platform/src/poll.rs": "c102c4935916986e48629cde858643f9bc3e11beb123955dc35b7c8a72dd7041",
+    "components/dnsmasq/platform/src/process.rs": "fe8312b165cfbf8a3c8699a5cc8cb8a147d7393896ad4f36669ca941db564507",
+    "components/dnsmasq/platform/src/process_fork.rs": "385f21298562e528e608e865cf165cf20a4672c0ecde990273b9f43a4d63db4f",
+    "components/dnsmasq/platform/src/resolver.rs": "8f07c6534396a3a0efdb5ff49fc843bc41774b521979150c9b75a45c8a0c9324",
+    "components/dnsmasq/platform/src/signals.rs": "7b2e16d3301012a773bba34ab3c1f481bc790d433841369e31f0f2ff0e8aed20",
+    "components/dnsmasq/platform/src/socket_options.rs": "8d8a60ea8ca9d3a5aaa2b5b168c2c1759d5bca5fae2ce490085b4a612ae45240",
+    "components/dnsmasq/platform/src/startup_relro.rs": "e5c0e1055e249e1962d14e5ff88e2c981eafd24fc96b7814cc5ac9268b972004",
+    "components/dnsmasq/platform/tests/panic_hook.rs": "c4a9df5e4da56021f7e7c29149a5692e90f390bbdb674de98df83ada1049525b",
+    "components/dnsmasq/platform/tests/process_forks.rs": "218ece20468bf59150db7657983a344a91233dcecc2ed8dcabdd2ef392ba786f",
+    "components/dnsmasq/platform/tests/process_owner.rs": "97432416829f17216fd4208e9a91fb58c5b1c8cb0e60b6dc578a75ece4d98a76",
+    "components/dnsmasq/src/bin/dhcp_event_order_probe.rs": "4d26c4837353910a0cf9b4b49ec9cfa4c17a16e7e7f78bb21ecffd0bc3320e4a",
+    "components/dnsmasq/src/bin/dhcp_events_probe.rs": "9fb950f0cda0c885c9bb28334e17bb0ab350d93dccef14d24e9067f41b83374a",
+    "components/dnsmasq/src/bin/dhcp_message_metrics_probe.rs": "1f343f2362da7f11d72d88ed1ac966c9c83f399ce7550b3eab0f1ccf4bc1f969",
+    "components/dnsmasq/src/bin/dhcp_reply_probe.rs": "98dcc9408815f2ab627574dd7c9f273ab6e035b6c46288705f18fadff0133f2c",
+    "components/dnsmasq/src/bin/lease_names_probe.rs": "f9390b3fe82b2084e895db9e1ba5593b1e405f57a42666242d483a34324e0283",
+    "components/dnsmasq/src/bin/local_answer_probe.rs": "d19c50dfa413727847313673ec2531479060b654ee884af58a3d38e736b947b4",
+    "components/dnsmasq/src/bin/udp_query_probe.rs": "1cd1bbe1a215baa09c9219c601cfc07c9dcfd2dd86c52a60d4a97b224b00697b",
+    "components/dnsmasq/src/config/auth.rs": "8405ff39ffb305cdedbd08f1ae463be56d3321e5c9a106ea4e764a27fb90bfcb",
+    "components/dnsmasq/src/config/dhcp.rs": "6c55ccb39c1c4d956917d841cdfa6e720b89144db24948107d8b4a1bcd89355e",
+    "components/dnsmasq/src/config/dhcp_device.rs": "573d0dd2d5c23b487329c715c110fee7d5203d56bdf58cffc3ae8378158230fe",
+    "components/dnsmasq/src/config/dhcp_host.rs": "e5ba5431a13affbb48e682e3440b1035437982b4883560b674a0252194a79536",
+    "components/dnsmasq/src/config/dhcp_host_files.rs": "6c8c0fff79d258daaededa0ec949a54b57a487e1434ae26e9f59238e3b3bdfa0",
+    "components/dnsmasq/src/config/dhcp_network.rs": "3754e4d2951e632d097a68e77ebfaef9fa9f581b9c6adb5da3c72ede31b5d0cb",
+    "components/dnsmasq/src/config/dhcp_options.rs": "3db989f55496d2ae1272145d4c509aba1179a138db9eb7003347168cb6af6c45",
+    "components/dnsmasq/src/config/dhcp_pxe.rs": "c1cfa6d0d45269b53723fedffcecdc1e9883e4d15d29ccf49f93dcfbedbde67b",
+    "components/dnsmasq/src/config/dhcp_relay.rs": "38891c5d050a72acc9d5e8f5b982d6703e11ac26eb3c81a767f27890fdd34368",
+    "components/dnsmasq/src/config/dhcp_tags.rs": "7fb2ecec21a58b15e4fa1d879cf8b74b2ce8d41b67510824660c16225499c3a4",
+    "components/dnsmasq/src/config/dns.rs": "8553d97f3b1af15f2998e8c9027db24e457f8e5746a0bc771539520da30d23a7",
+    "components/dnsmasq/src/config/dns_endpoints.rs": "4eb046cbfd1465eddd1676d173960896fff8a886f602bbbda9e5c0930fd81902",
+    "components/dnsmasq/src/config/dns_lookup.rs": "c53071240c420416b60dba891b3328e4ffd9238500d19c23c5697ac6e492fbe7",
+    "components/dnsmasq/src/config/dns_lookup_process_tests.rs": "01204f9853f61841d498ff107ea2b909588aaaa9798e440ad49e39b5c436eada",
+    "components/dnsmasq/src/config/domains.rs": "b2ac6d23cc25276dfbdbffde188bd2290ca64b68dcf16d09e55d19c4db4a8a9b",
+    "components/dnsmasq/src/config/dump.rs": "dc6cd827fd0d3a958f4b9e6655a68edd3ebca3c7eadcb6b608384fcef8eed081",
+    "components/dnsmasq/src/config/edns.rs": "5e9708c5f6d3f7bfb371be2200388e9133bec5f65858d4bf5ea58eef24f5bda3",
+    "components/dnsmasq/src/config/ethers.rs": "522908bfe7d9c1c48bb1813db00c62ec6136d0e5acae1507d5d15d6f010e519e",
+    "components/dnsmasq/src/config/interface_records.rs": "a983ea953d7bf22490f50acc5a8e362d6f93c9f63ecbaf5b6b2759e293a71bd9",
+    "components/dnsmasq/src/config/loader.rs": "817bfefbb3ca901052c3631d7ae6d58f9894e90c2458492c0510dd21674ee4ea",
+    "components/dnsmasq/src/config/logging.rs": "6503db9d5925761df96b956dab6672bcdb39bf232f11c986970468bb26ff981d",
+    "components/dnsmasq/src/config/mod.rs": "9325772941cadd9b50f07a728ab6fb138ca40f261e38d840e91b3c572c8e98d8",
+    "components/dnsmasq/src/config/options.rs": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+    "components/dnsmasq/src/config/records.rs": "7d1fdd3db3f31645301c033d1f2f1ee311fe00a99d059633964cd54c8a19b141",
+    "components/dnsmasq/src/config/rrtypes.rs": "4beb7498145eac6aec139185574c171275b74a74149182956b08323d2f7f6cdd",
+    "components/dnsmasq/src/config/scalar.rs": "6b2aa5f389f6558893b12e8bf3717c10d3ea28b71ce33cac06978ddccb4dc60a",
+    "components/dnsmasq/src/config/script_arp.rs": "ac01a84b32de86dd7136d7c08612d6419bb484a140beb573d740b7c19ad08c30",
+    "components/dnsmasq/src/config/state_probe.rs": "50eb02410e62b96bd0d5ba193a6fbe1165a09d1e767fdc3e1993efe57390d832",
+    "components/dnsmasq/src/config/synth_domain.rs": "4aa266efac8f74d413f7110fa952acab680cc993ed01704beea0190c2bb328e0",
+    "components/dnsmasq/src/config/tftp.rs": "1552ca002df7aa3c313c79e863e01f9deb3540f5b8fb1816d714dc63b0de078a",
+    "components/dnsmasq/src/config/ubus.rs": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+    "components/dnsmasq/src/dhcp/allocation.rs": "705360c84b87531c52859608d45220689cd5fb9d7463c7a5ee8042d9baa6225a",
+    "components/dnsmasq/src/dhcp/context.rs": "0c47e67c969750e3a886b40f3728e2537e4263209dce5f9915b1399dd979cea7",
+    "components/dnsmasq/src/dhcp/daemon.rs": "42f9e0e735355a6cec16c2288239f16a002266265c76c12d6560d42d538953a5",
+    "components/dnsmasq/src/dhcp/files_runtime.rs": "d7ca6b86f10b61b0f7312baee5bcb9e34dcb40bb717f328574a608ae54d7ce70",
+    "components/dnsmasq/src/dhcp/filewatch.rs": "e88efb2d48597c59609fcfa8019a88cbcf00ec70e25b63784a1709d03f37d42a",
+    "components/dnsmasq/src/dhcp/interface_admission.rs": "3f993ae940a388c51ba1604f9e4e87f485fca3571dfa8b95fceb135397a59a0c",
+    "components/dnsmasq/src/dhcp/lease.rs": "2b4cd3877605fc4cd4ff7f6d725ed9f4cd2bde970be71c669fa5e23d8d754c71",
+    "components/dnsmasq/src/dhcp/lease_file.rs": "d55bcfd324b33baa9c3b3afbee3ab17c9e5ffb78cdfc8deeec9a34ab22d94452",
+    "components/dnsmasq/src/dhcp/lease_query.rs": "3f326dbfde5aff61aab012014f9a35f9efe8689f185e771d0f4453fa082e203d",
+    "components/dnsmasq/src/dhcp/logging.rs": "ca43bca5a60eb6fae9610190f14dec290537bdad9346dd902c014236ef16d290",
+    "components/dnsmasq/src/dhcp/message_counters.rs": "e8a0beab47e9a42d028d17802a68cb45081c98a90710f526da7c2250fea8af01",
+    "components/dnsmasq/src/dhcp/mod.rs": "f356460e5f194ce789d27e6ebbaee2852a06f7fe299609b6117347478e1c600b",
+    "components/dnsmasq/src/dhcp/packet.rs": "d759abf3a1f0591af75c270ff37c91f3a998fceb58b2b3694b467cf08a180b3f",
+    "components/dnsmasq/src/dhcp/persistence.rs": "1b4d0a0e4a2766af1645fa84015aec15f56a77d01f4d3755d4939fdce55ff33a",
+    "components/dnsmasq/src/dhcp/probe.rs": "f4bf28dc9f2c72541ba8e41c6147a19b71eecbb74cd18df717ef4a88dd7d5fe3",
+    "components/dnsmasq/src/dhcp/pxe.rs": "d53ea0708f676942876a25f4e4d64ec33056b73c63caf1f239233a5632a487d8",
+    "components/dnsmasq/src/dhcp/relay.rs": "c47c2a50b5a1f6c9012ead77392e1e32106c6a1c2374284391e0b1df08854fba",
+    "components/dnsmasq/src/dhcp/reply.rs": "94409e0b39b121340b0fffb5cb84100cdcc1298629b48ccd63e33f144165feb2",
+    "components/dnsmasq/src/dhcp/reply_delay.rs": "85d53a4540b9301ccf663b9dda9fadedfc2175dda1b3e547cd81c7160442175a",
+    "components/dnsmasq/src/dhcp/request.rs": "c414cc72cdc60955de2ced43ee54fae515d9e5afbdf8303fecaf5256bc37651f",
+    "components/dnsmasq/src/dhcp/runtime.rs": "8f0a06e7901f8cc96fff48e583841bc28f5ffd09737b0ef3aa54493c20b5c50b",
+    "components/dnsmasq/src/dhcp/service.rs": "5b5eaf42e172ad98115d7f96ca7158aa39361664ce974d729ff0a09c6153b0b3",
+    "components/dnsmasq/src/dhcp/state.rs": "b0b9547c6bff050d3c21c64ce789d25ea5f97ea786349312b44dbe8b664fbf2b",
+    "components/dnsmasq/src/dns/cache.rs": "fa5f676f45118bcda13eca2619bee9adf1a00d8c16cde8e6b174c8d9819ec944",
+    "components/dnsmasq/src/dns/cache_engine.rs": "6caad11ec775fa5db7b59401cc1ceaff41ff222e5f4ea285d0e50e1909ccfd9f",
+    "components/dnsmasq/src/dns/cache_name_index.rs": "d35df651a11ceffac933336ef5927f85800ab21d27b45c490f85efacba181249",
+    "components/dnsmasq/src/dns/cache_plain_udp_tests.rs": "b883281e9310f9c92ac97b3ea5448848932fd614c735ac95e04a99c208f142ce",
+    "components/dnsmasq/src/dns/cache_reply.rs": "f77a58ce7ad27e43ff71ac59f3c2d2f156c19f1810b4250cb5553c087ce5e94d",
+    "components/dnsmasq/src/dns/cache_reply_tests.rs": "37f27bf522c6c05024b02d75f0816d9e3342d8795f4644ac6789c443b934d311",
+    "components/dnsmasq/src/dns/cache_tests.rs": "36ea80fcfd4d4655443c7a893e536031d5e379b01ab6c1751fc26bdf4b66a14b",
+    "components/dnsmasq/src/dns/cache_transfer_tests.rs": "79051d1ca2612695c596fddbac1ae65063373b03b514d9ef819832b1acae9d48",
+    "components/dnsmasq/src/dns/daemon.rs": "2c611e84063c0d9c6f9c6e7ca19b55885620d03e047d2627f578a0dddb983992",
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": "894450ddf7b5f2159bd013a5e93f81ef26a72d4542d034e43e9516241019ab88",
+    "components/dnsmasq/src/dns/daemon_dump.rs": "08f19a944d4a640fb1e614d2ad3f55373e3279596b92a409629cc681edecb569",
+    "components/dnsmasq/src/dns/daemon_lease_cache_tests.rs": "ef727982c1c997760067ddc41b2dc01e11aeea2f53a386c5aab3196ea9a58f1b",
+    "components/dnsmasq/src/dns/daemon_policy_tests.rs": "8b0f6daafc2976cdc9666de4f7fb01c091c95812a361179798b654c3f44d1c77",
+    "components/dnsmasq/src/dns/daemon_poll_tests.rs": "de3e3c7dc34f2ced4265e0e1aac56bc249bff965a7fae0a0c57ad8fef53aa61f",
+    "components/dnsmasq/src/dns/daemon_route_resend_tests.rs": "8cbdd7c0957cad2765927bfb9c2b7ff2380051dd428093472caeb2fdfe8a1bad",
+    "components/dnsmasq/src/dns/daemon_stale_tests.rs": "c3c772459ea70b40ad2b7357b1dfa8cc0278d018128f5be16ffcdb34aff851d8",
+    "components/dnsmasq/src/dns/doctor.rs": "19a85b10556766b0881b853a51c08fefc12057c7e2c77648713288da8350b8b4",
+    "components/dnsmasq/src/dns/edns_policy.rs": "dbc099b1b084cd021e097baec22ce5172466ac940179af448419fe3c1a7487ea",
+    "components/dnsmasq/src/dns/files.rs": "a4a585c316c7b55495ceb76e72d3f6ea6088f2f95f15d1d663efc611bc77bbb1",
+    "components/dnsmasq/src/dns/files_process_tests.rs": "3ddc953c9d7fb0f65a154924d8ca23300b0a7f127651335b8cd8378227fc4266",
+    "components/dnsmasq/src/dns/files_runtime.rs": "39fee8253552c6b6143322e750861ae45ae080f108c48de12e4f2a750fcb0d79",
+    "components/dnsmasq/src/dns/filewatch.rs": "98086f5478cadb34ee5c5c2700da3602c3b8e8a08f64c1f5acbc8425fbc3d477",
+    "components/dnsmasq/src/dns/forward.rs": "1f2fd016833eea32b86cab251f7eed40fcbc5ac1d280f16ec46862b9fefff2ea",
+    "components/dnsmasq/src/dns/forward_service.rs": "e667be7556e1bbb5874a8f7470712701c30499df9cb9aefc9de0d5665a834dcf",
+    "components/dnsmasq/src/dns/forward_tests.rs": "dd4b19e398619f052e8e186ef5a61fc08e976d62845a743cc50588eafed63df1",
+    "components/dnsmasq/src/dns/hostsdir.rs": "a1e41c5ac7228a97af35a924e34f2b12e1ea9763bc4c18dea85f8728eaa419b6",
+    "components/dnsmasq/src/dns/hostsdir_runtime.rs": "ff6bf269312e9d9778ecfe0c9abc5bfaa376d076949ce95989f6b7247797e519",
+    "components/dnsmasq/src/dns/interface_collect.rs": "60e4ff0fd20cb9c481a672ff5621e82ed6a2185fb7ab616a94d19ded239c1738",
+    "components/dnsmasq/src/dns/interface_records.rs": "04a6a18dfa5b503d9465d1ec4012451818f9c5f91bb59217f828a99fe7c58ea3",
+    "components/dnsmasq/src/dns/lease_names.rs": "cc5dc2226f6b281a9b6ed399b68be808380a0a1f2124ee9a2635cec4904fb902",
+    "components/dnsmasq/src/dns/local.rs": "01b6d2e50cd1b7a2018bb8552dce00944cc2d2253159908407e3ecae157c57d4",
+    "components/dnsmasq/src/dns/local_negative_tests.rs": "a0ad32a1bc9d8f69ad98d7681ee6d1ddb1b2dd0eb179323a70ae450af81ab549",
+    "components/dnsmasq/src/dns/loop_detect.rs": "25cb0883b4fdab3ae363880c98e7a6e30a0861de366b6d78d82957285dc40db4",
+    "components/dnsmasq/src/dns/mod.rs": "4efa873f4c656dbe60c95843b28e6754498d7b3c07178ddcf119a621054ead1a",
+    "components/dnsmasq/src/dns/process.rs": "a9271ad0a641b18a6422aab130b93b77f596c4e249fb499a1ab47876296b2912",
+    "components/dnsmasq/src/dns/query_policy.rs": "3e8f1bf6a56922279407f68eb214870412f17ad491e65e89279535b35cf76e74",
+    "components/dnsmasq/src/dns/reply.rs": "1cc6fe0a3652468cc6d51c097425c7c20552e027e4d54e71b5db4e4d3477cdb4",
+    "components/dnsmasq/src/dns/routing.rs": "621535122d1571c31671c1a57c9658ca9b059ba88d3a73c59c55f9a9e8a816eb",
+    "components/dnsmasq/src/dns/service.rs": "c627fc0baa8f6cfa9aa75db38ca5c63a082068b7ca1a6b38815ea7c350d066ba",
+    "components/dnsmasq/src/dns/source_sockets.rs": "5bb2608ab2692448014c971512856a732e6b679be3bbbb8e1d45359c4962b189",
+    "components/dnsmasq/src/dns/tcp_connect.rs": "9e93d3f285fa235e1e6e1b7cbfc4dd6d2092542e87e33f46507ec985af397567",
+    "components/dnsmasq/src/dns/tcp_exchange.rs": "63500525bb7d7c09833b02842ad0c48184a8fd92b09ec47b377a4c8b0e16a491",
+    "components/dnsmasq/src/dns/tcp_service.rs": "3d4512c30e2f35a156cf3b56f1140c227dce8fe709dde042cbd2a9ee6a7d107b",
+    "components/dnsmasq/src/dns/tcp_upstream.rs": "c485f5c9d446572e476971e5e44d1c463fe678408538d605ffd4c2563fb7f997",
+    "components/dnsmasq/src/dns/tcp_upstream_tests.rs": "1608d29968328c4f6e3af738e65a1416243511fe86bdba8b7b8047b26e68deb7",
+    "components/dnsmasq/src/dns/udp_query.rs": "94b75bd399e864021fb13d26c358745f8d8303868fbe3ef2e876457a6eaa532d",
+    "components/dnsmasq/src/dns/upstream.rs": "59492fae929c37b99e214e68a65cb74fdf2a49c2f006e243d7767ff3b6a784c6",
+    "components/dnsmasq/src/dns/upstream_owner_wake_tests.rs": "3f5b40ed2e853fb9413834853aebf96bd8a169a1c9c7176dce931d93e2964770",
+    "components/dnsmasq/src/dns/upstream_route_resend_tests.rs": "22c82e8290873dfe753269cc5a6e14099babaddf0573873bfc316d32c55767d6",
+    "components/dnsmasq/src/dns/wire.rs": "517d5c2131d2aa340c1e7c81fe9ba5cfdd34597a3b9bc4fff5c5776525772002",
+    "components/dnsmasq/src/dns/wire_tests.rs": "5400ac3aeb6f37c5b9564f8cd43fe0318bf18a323fe0ec895cb29c927869f743",
+    "components/dnsmasq/src/dump.rs": "8343bea2ca070ddade1c29a58fc3da52f33a7366cb39c693228a3656721c5fc3",
+    "components/dnsmasq/src/helper.rs": "2ecd4002129561ca0498940b902133b09c3d0a395eb7ccf989600724fb24d207",
+    "components/dnsmasq/src/helper/packet.rs": "50d10ea430daaa10a0fc865c892bb898f13fa4614d90b8eddcfbda752724f02f",
+    "components/dnsmasq/src/helper/process.rs": "3194a909ab5df538e17ca7372c12a446c36c56cdc284424e704b88160b25a38d",
+    "components/dnsmasq/src/helper/process_tests.rs": "9b92dc4da46b3483ba1e858a7479e26992cc922afaac47aad52d4c248f9816ca",
+    "components/dnsmasq/src/helper/wire.rs": "be985aeed10c230b61cbcb00cd8e320626abe4164cb8762511835f227990adba",
+    "components/dnsmasq/src/hosts.rs": "c1bb07c1dae8af38126a7eeb19ae150bbba86dd86de3cd96745bf581a9298483",
+    "components/dnsmasq/src/interfaces.rs": "68119ead054169c20de50fdce975fb5269c35eb6ff5de4c1afbad3b74b485f1e",
+    "components/dnsmasq/src/interfaces_broadcast.rs": "1277b1f39d16cfc0944e56773b17b256a9fb45c826e71ab002603eb1947390f7",
+    "components/dnsmasq/src/interfaces_ipv4.rs": "2394bae15853ef4ed07ed498d4c455067c864b1bd26d31db2140e6c18fe03a6e",
+    "components/dnsmasq/src/lib.rs": "ce767c124c5a4ba4bc507ee4e99e6ea62f9aa77dd9465abd057cbb31ab85df88",
+    "components/dnsmasq/src/listeners.rs": "3141925b6a52918da4ee317e67a7e96d828e4e9de81a078ab0a67f09728c9990",
+    "components/dnsmasq/src/logging.rs": "dec42d7993cfed82fd5540a8d74c6eefbab5bfe9699238a8ea8e8faf261291cd",
+    "components/dnsmasq/src/logging/address.rs": "c340104a6c274b15a4398337f42c2a602b04bb91876870858757a9ffd5d19150",
+    "components/dnsmasq/src/logging/query.rs": "66382d8eb7bf51dc76384e3617f7520c937db05478aa7365d1a264711cf91b2a",
+    "components/dnsmasq/src/logging/startup.rs": "bac5619389108bf806a9335a2c8f72178adde1f7fd26647e932c167f1ecb03f1",
+    "components/dnsmasq/src/main.rs": "3dc11fe7ebe0cb8e2d887b6bc1b0efed3f3f9071693ce9ddde19248304776a80",
+    "components/dnsmasq/src/main_hosts_initial_hup_tests.rs": "025cd64d2da0eb7466db195d7e031df4d2f362ff85569d2f44e25dc71c9368b3",
+    "components/dnsmasq/src/main_hostsdir_init_tests.rs": "70c424c14f7b28026c65590b0f2805fb15c5cb5efbffa72dd92e785f256c3a3f",
+    "components/dnsmasq/src/main_neighbor_tail_tests.rs": "e874f2661dbae09b399f8e7260ad904401c878317d089fd70f5f09cac1307902",
+    "components/dnsmasq/src/main_newaddress_tests.rs": "301ba8b94638bef8dafbcf8082cc834c7809dee1c71332e4478daa43c49a9e8a",
+    "components/dnsmasq/src/main_route_resend_tests.rs": "fa53ddee990b44d54f91e63c9d5a68a0147dbab2ae3380935dcfa4fb5390bdb4",
+    "components/dnsmasq/src/main_stale_refresh_log_tests.rs": "d2406e1c6de8ad8ad87a75080bf1302234f06a44998983e92ba03fd54b23739c",
+    "components/dnsmasq/src/main_tcp_import_local_tests.rs": "a495c200b18eaf3cc75390fe306a2071814280e2745a6d491ff77c298d7220ef",
+    "components/dnsmasq/src/main_tftp_admission_tests.rs": "98b56635cf9bb82f9c987c9134dee629d2325d9fefe07c20aa0b21048bc64e73",
+    "components/dnsmasq/src/main_udp_acl_tests.rs": "e1997e08ff64561e6c54ba823653f72dca23a459717de4dc03092684f6d5e273",
+    "components/dnsmasq/src/main_udp_dispatch_tests.rs": "025eddc9aeb5d4721a8d4bec2f11f934b38770f043947e90fae8414825318949",
+    "components/dnsmasq/src/metrics.rs": "c4770247b2bd1ab345b289aa5e845e67e47b9134043e0417dd9c4829a7645032",
+    "components/dnsmasq/src/neighbors.rs": "98424f41f979b23a9dc4ec9ca88cd97b99c7fbbc30b9b47cab913145081672a8",
+    "components/dnsmasq/src/net.rs": "922a829826e3288d0800dbb900fb9fb958a32314586da4d1d03769ac4a91fd73",
+    "components/dnsmasq/src/sorting.rs": "4d7ee2eb9cceb659495f46bf2dbb4221a438ce7fa8b82d2eafeb923b353a1ee6",
+    "components/dnsmasq/src/startup.rs": "03a27ab445692cebb481f40b35649091c6fbd3c2b60fd50e6b0e60c1b40c278e",
+    "components/dnsmasq/src/startup/cli.rs": "74cb7a008e65ae20be77658550efe8decf5acb0d7da2ce26a82f73315edc0c61",
+    "components/dnsmasq/src/startup/daemonize.rs": "d4606d8d8a4b889f46a3745b1b01a436bce6195556e1cf8ece8036e64b34ea65",
+    "components/dnsmasq/src/startup/lease_init.rs": "8e9bfd5be5f5f72ccf17b4995ff1af6db5902e5a14183d47468e24afd019327b",
+    "components/dnsmasq/src/tftp.rs": "7d3290c8961809de9bec6ffb9475ab24aa03e20ea49518ca89d5b699f87bcf93",
+    "components/dnsmasq/src/tftp_listener.rs": "0507ca00afb90190c9119bb4eee3a442646b29932a780974467475ccbad6a4c8",
+    "components/dnsmasq/src/tftp_policy.rs": "2128e7f4b5a5ebcfbbc7a3484cfe3b35e8ddf163586f3c31f309eeb1d1abd8e3",
+    "components/dnsmasq/src/tftp_runtime.rs": "1e3926dd10d856057b6c04bee2f9d20f5a03693519a380174fe92d08152914ca",
+    "components/dnsmasq/src/tftp_service.rs": "d42e5df856996f79c47c510603ba6564359e34c86a284b04f0dd84dbdf1bc104",
+    "components/dnsmasq/src/ubus_service.rs": "b325ca4263bc15359a143dbd71d9e3e3336fd0eedcce2a11dd08cbe8b9361df7",
+    "components/dnsmasq/tests/hosts_allocations.rs": "7408ce82c23b048f9e1250be642422e33287a2bde075a9eb3f8398f8e02818d3",
+    "components/dnsmasq/tests/process_forks.rs": "61be2a43f7c3193108482677c6de2b5dd2b37c00e798babd29c99f8baded3e54",
+    "components/dnsmasq/tests/process_owner.rs": "fcd2e8ad69c476f030d01756777b579ff421cf91259cba10b626c222ed09e044",
+    "components/fw4/Cargo.lock": "0c1fa13e7ce0c79245fe660c6b272ddf895f1140a8c75a6920ddaa1d52782bef",
+    "components/fw4/Cargo.toml": "373cc6d3cae30e894aef95e20ccbfddb81345f349bdd9755c8dd65cf4accc2ee",
+    "components/fw4/build.rs": "a17deb59027f7738283bb647df9a330e473e082f7c0b393729523982d88e9d5b",
+    "components/fw4/platform/entry.rs": "dcc55263937da3a790ec0967149f1e93eac63f96eeaf6b53730e4b8396fa8a30",
+    "components/fw4/src/emit.rs": "39660df6b5de959c78dc613eff55a84952f629229510d159cf8bca15eeb38bcc",
+    "components/fw4/src/flowtable.rs": "b257e59956f449134be1b4866761bbc407250541dee6759ff36154f3f4207a28",
+    "components/fw4/src/input.rs": "fd6188e1b42eed9ad64347e9bef96cdd288105a1fdf87890035c636b76eb545d",
+    "components/fw4/src/ip.rs": "d89470c72475e132deef7f66b2f9e24e4b528c1c6f57a548f6d858edce8b3cf0",
+    "components/fw4/src/lib.rs": "378db1c773865efd42c112413d98a2ea1ef3afb72b5d4af047efe51c7b13720b",
+    "components/fw4/src/parse.rs": "e6e959a8157c6d601aab76d5670b45361f0a8a40d4b4b36997994f02be51efe6",
+    "components/fw4/src/reload.rs": "cab0a4024dab3ad8246435a8cb47f547b9206bb21755b7e850da9033c0a67ac2",
+    "components/fw4/src/render.rs": "9f993878dffca7f77ee8a1218e5052649752deacde2b990a8e0fd653af34905d",
+    "components/fw4/src/sections.rs": "ae22d53144421570e930af53a5788b596dcf9a9419e48a85e74cb7ef4e288dc4",
+    "components/fw4/src/state.rs": "f576e2e98848be41fee9b62d456eb6a7e38c46acf9cf2793a8f423272e46afda",
+    "components/fw4/src/statefile.rs": "ca07938ac812012ccb7e26c812a2413232e0b224c1951845b814205fda0a4cb5",
+    "components/fw4/src/uci.rs": "464367bba782c239f1b33c60661c97f40a4e8bea35fec706651ba37ea278c3d8",
+    "components/fw4/src/val.rs": "d7b9a79cf06b3227847507a9af02a060b3df01ad8189b90e2ef33d98c3e9f1ee",
+    "components/httpd/Cargo.lock": "3fddedcb78d8076b244b8ab0cd8385680cd23f0cf34d24eab96b3414d2b1692f",
+    "components/httpd/Cargo.toml": "c1e54e3dae87b71269618503acf9bfbcbebeddbf4ce57274cf4573a0a0a588cb",
+    "components/httpd/examples/profile.rs": "486f1b7d53f1aca43dad2d276c5760312eb2d99433417c67de94d6a2ac3fac9a",
+    "components/httpd/src/auth.rs": "2bb8301fa20d56dd5937a1f18e26dc3a4e2a2ab905d226546abebb702712d494",
+    "components/httpd/src/bridge.rs": "99c9386a1603b14bbeabbbf839cd32d2d4f5afe1d25de3a2a477ed917c58fb97",
+    "components/httpd/src/cgi.rs": "786ba059cabfe7155fb1dc3299dcc50b9ff8f9640a232779f3cf7dcbca240cc4",
+    "components/httpd/src/fast.rs": "21612687c533b8e9c6ea3b282cfc56322232bb787aed5a39c1813492348c342b",
+    "components/httpd/src/fast_tests.rs": "f74216737633b25001086805ed3b78c3132bbfdae9b3c9a9b1db577f188b2c9c",
+    "components/httpd/src/files.rs": "4b0323f6926cf116c129fe8f3bd29078976675d09470d43c964728a8251825ab",
+    "components/httpd/src/head_cache_tests.rs": "e1ebb60c17ac3612be40e8ae28f5efb56114c9dc8651886da6cb21afb6becafe",
+    "components/httpd/src/http.rs": "638ee4d1e2a457a538a7bf96f7f16c4eb6af5807bf6e09f62d57c85bb6749361",
+    "components/httpd/src/main.rs": "7ae4da5dd2b936d6ab3ebbcd5a196465cafdace732bd3f9dc668ea1d66922ebc",
+    "components/httpd/src/tls.rs": "be7a09a6587be569add65bff4dea7ed183cc6ac57163bc777a97dcbfb4d84f41",
+    "components/logd/Cargo.lock": "d5e1ba7108f94b2b78893ce9381e3504a293f138fecc141c31006d0c628f1e9c",
+    "components/logd/Cargo.toml": "f131850dea6cb62082e300bd24632c5010b2973bcf612175987af1aeace8124c",
+    "components/logd/src/frame.rs": "af7e139325f5f9e052b69a33f13d2e36ae53e6a482c32d17a350a84ed5680443",
+    "components/logd/src/main.rs": "97120b1d9ac901b9c31f3c3108f690df145130dd40842217f9586778734881b2",
+    "components/logd/src/ring.rs": "ddb23fa338edca0c99c0cacb6ff7a6cfd82fb7235a92d5a6b31dfd92d4917f3a",
+    "components/netifd/Cargo.lock": "e95abdba553323633ddba06c5357bb1e9d4956a9dacd25268f8316f3e12bffc3",
+    "components/netifd/Cargo.toml": "fcfffef6500ae3e4c9042d82c831a5c9ddcffcc363c91a3bd83a18f7de8beecc",
+    "components/netifd/examples/devstatus.rs": "7089121a9b14a0cf2759c187bd030df3a4529e23efd4fe7e0ac4fe91cbdb87c8",
+    "components/netifd/examples/ifstatus.rs": "28ddcf424b9c4d6ca54f8d42d3b42360780a0dfe64b10af5b55a6f634dab3b5e",
+    "components/netifd/examples/profile.rs": "ed4d0d3878a21c824f9f7b4f3196f672ca640c13daabf86e1dd1cc0cdf261511",
+    "components/netifd/examples/sysprobe.rs": "42e25862318859b38e32aa8e6f4e826fbfba8a8c38069d64ee1fe693df6ca92a",
+    "components/netifd/src/clock.rs": "05fbbe703850b23ee26b49e8072062c2233f9ef209398a8abf6d7d8300e9f9c9",
+    "components/netifd/src/config.rs": "e6128bcb0dd5537d0a26bfa2efddb852f6b8836e27de033e3453d7462b13759d",
+    "components/netifd/src/device.rs": "000d2d379e0d55f43013d23f249ec891f9993d6321c04b930522014b1b83a859",
+    "components/netifd/src/ethtool.rs": "4facaf2cb7bdf9f8fcdd582c6132485ff04b4c6a56d12e525c916be1a92684ab",
+    "components/netifd/src/ethtool_modes.rs": "7ba8b559cd295a74ddd4443597ac454585426bf70719f9022facfc49a9b37f11",
+    "components/netifd/src/interface.rs": "d7bc99ab4406f51b67486a706ba3d931f87427b715db325308b2f76a9170769c",
+    "components/netifd/src/ip.rs": "40ebe991a3a1478ccf4d34ce280a86377497b3c15b9ffe81f265c40706b82e0c",
+    "components/netifd/src/lib.rs": "6bce55c31b793ffa991a912d94dc1395400fead11d5e4a472fefedd5766157e6",
+    "components/netifd/src/logging.rs": "2fa949b1eced7c18026f7355c15fd94d9e5b0d35f7394014a0ac42f3494581e6",
+    "components/netifd/src/main.rs": "c4f10f81bd173b4e317f34ff6f82bab41066710da50afdc8bdd726e86d869af6",
+    "components/netifd/src/netdev_types.rs": "085718f655d0e31aaa46030145c94105e718b2aab4977a816cb817bbf7ef8650",
+    "components/netifd/src/netlink.rs": "f985c14603176178a2e419d6654299150f5e6ae337964fb8195ac114a0f5e8e4",
+    "components/netifd/src/process.rs": "9f9e916a8a009137e18c9cfaf2f3342df432732ec40c5f37b8f2d5efedbb0fda",
+    "components/netifd/src/proto.rs": "cd52fd3ed66be47d2e7a1800b6dbb11e5d684ef3ef11877d05cc8b7a7ef1ab62",
+    "components/netifd/src/rt.rs": "e1e7c04ee8d86ad749233b55c0e4498b15e230a3aba38ece4a45d67379b9dd75",
+    "components/netifd/src/sys.rs": "585373b2a7bb2fe90858147075b3858101ebc99e463cc7de6b8d627be85fcdfa",
+    "components/netifd/src/ubus.rs": "b854a910a24ea50a4f394d7b2abfb913a107602a56294ea039e06bc5dcbd880d",
+    "components/netifd/src/wireless.rs": "7625eac2940f5acd37937e5c8edd3994879c1a91280f7c15d0571d15aadf7e42",
+    "components/odhcpd/Cargo.lock": "4ad1f56f9e65d801856f00fd7ba0d4f7d61b71ed99688a1456ee12d10621cb6a",
+    "components/odhcpd/Cargo.toml": "014207b3fdbf79aa98c9b73e2ee536227c71118e063988df19856a60deab1a1b",
+    "components/odhcpd/src/config.rs": "f1feaee6a1ed60e09f9aa7ba1e8fba3c837e507e13617b25aa8c22a57c0c9a66",
+    "components/odhcpd/src/control.rs": "90c3328ee2d6d9323410e4349593ed9437f7454008730910ec350221a5772842",
+    "components/odhcpd/src/dhcpv6.rs": "513115732b2faed0c2a5dd9557067e2f08b24795d9a90961b752eb4a0277652f",
+    "components/odhcpd/src/kernel.rs": "c8ee40bb8ceca1c94d59ea5ebc7268b62ea2a1d58badabe9611f2bf4eb0bbf57",
+    "components/odhcpd/src/leases.rs": "95cdead41cef7c9684fac18f744afb08431c4e0d5d0bdbb7138972863f34f401",
+    "components/odhcpd/src/lib.rs": "a3dd58d12af9dd8d0388e4883b2d56f1a9722f36d91fe11060911a5a5c36e121",
+    "components/odhcpd/src/main.rs": "d0d37db281d85c8811191c894414298cf2aa1b5b71f3b7b249fa0713370d3e1d",
+    "components/odhcpd/src/model.rs": "84d8833c38f704461f9e1f18227a8ba8a3aecc333caf5dd5fef8f7ffbb2df878",
+    "components/odhcpd/src/netio.rs": "7d15f0aa5080d953f081741de07f91f279cae30ac5ec1b1beadab70037c32ac4",
+    "components/odhcpd/src/router.rs": "de6bcfee441d6638c791d7bc5622368c23c8e013d70fbfc9ebbb3be63cabe146",
+    "components/odhcpd/tests/dns_option_bounds.rs": "3744c9259e6cde414628e2a8459420a5c93d5f4d8d28ba9e9220b19535eaadf9",
+    "components/odhcpd/tests/trigger_lifecycle.rs": "d800616226b24c9d6f66aa02a23aec2e0950b427e7851364e2cc1d703ec10709",
+    "components/platform/Cargo.lock": "7fc9b3dd192aeefb55ec14eee5133fadaec2ba1c167ff5992f16520fdff8de7b",
+    "components/platform/Cargo.toml": "ed4b3a09d154084b5b899a1e086929949509578f793722ed77421325d31cae9f",
+    "components/platform/src/directory.rs": "fb6c8196be8d4dee76e9803802073d41bc26fbb065a60fdd0a16370e7fadc910",
+    "components/platform/src/httpd.rs": "52014d9b012da124359e488c390a81563821c56c75dbf444ce57da4c860fb757",
+    "components/platform/src/identity.rs": "e02fa07087aa261004e2e6bd04e12eb7d8a836cf9e03e57a9fdf263884a06cc5",
+    "components/platform/src/ipc.rs": "823b2fe77e179369d5cfb49d278807d13ecf490c7d6e13e7881658ff39fa433d",
+    "components/platform/src/lib.rs": "0307388083edc099cfc8b926bbb725a30a6291c13b0a62af6e273f3b1dca54ef",
+    "components/platform/src/netifd.rs": "7898450e2811609814c6030f49f89e759067715305065ceeeaef32eed7638760",
+    "components/platform/src/netifd/signals.rs": "7e6e68f3570a246320d11fb6c98d9ecdaa7378811a122606230e2e422a46fbf8",
+    "components/platform/src/procd.rs": "b7309412d3c1a1c2b6964017976820f44567dfa200459e872df1cd1a46c657fa",
+    "components/platform/src/procd/compatibility.rs": "c577219bda9112bd8d7c36eaa11b03bffb1d62576b9459d461c458784271140e",
+    "components/platform/src/procd/process.rs": "e3d17231e352aa1820f0e5659ef65d071c3c3f9218971f8da0bbc53a658d7f4b",
+    "components/platform/src/procd/signals.rs": "922cd1a45986722be825666e05ef426cde8c098002bdd4670145c036cc17762c",
+    "components/platform/src/procd/watchdog.rs": "54886d4eb04d441fbd3523becd24007eec413b229bc4f26121addbeab70363f6",
+    "components/platform/src/process_owner.rs": "ecd8041cc4d25fbc7524aace269f7c221c0d24d2d47c3e35290861ef58c03ccb",
+    "components/platform/src/process_owner_test.rs": "871dda657f2447af9b8136800ff9afd2b181956532e387a15e8db0e4711b28f7",
+    "components/platform/src/readiness.rs": "91b9ff4bdd0a506041de41083e13d2551a8ddbb670a88e022d7a2c0583bb2304",
+    "components/platform/src/reload_signals.rs": "7a201611762deea02c3a9bb77549ea269231d4ec2c28cbf525834622c09eb2b4",
+    "components/platform/src/rpcd.rs": "c5716cab3acf538ed3b2ef35388c01d7bfc26cda39524924e66e79cb992addac",
+    "components/platform/src/rpcd/readiness.rs": "583ce5d931392d6c9d3dcd810b4687bf6cd2a37264cd6493393a166b9b7fa928",
+    "components/platform/src/rpcd_signals.rs": "9a4fe86d585e0cd8b5177a0bb3f7eb44a8692a7c171016ccc90136922108f046",
+    "components/platform/src/text.rs": "6c94ce661309fbfcbe2d608d83218c0a53bac809ff8816eee20347b4cc89197d",
+    "components/platform/src/ubusd.rs": "236b8b7a7e82777330c1776e2e3c28c2da198c56bd3871389b2442c8f5ccbf46",
+    "components/platform/src/ubusd_signals.rs": "6f8aac7478b5f1db0681ea4001ff075d297b0a5ed7157f5834e01f4e1d83464c",
+    "components/platform/src/unix.rs": "d431ebe1fd7bcf1a467bd30c420e14a9f4fa1cd98e45c516d1d4d75cb1fc6526",
+    "components/procd/Cargo.lock": "9f9df687d2b5fbb545791187bf6a98e16432b1e5206ab568b3a29276f1fdc874",
+    "components/procd/Cargo.toml": "98bce223b25e190bc874c6dc37d1280071404252739fc41747010224c0cbb2b2",
+    "components/procd/examples/notifier.rs": "fc205f6850fc959a389acc75e401d9bda718e8c16ce29ef0f29b800433bf31f0",
+    "components/procd/examples/profile.rs": "3018049d71ef0aa763f87d91c3a237500e66546a9fc4210ec05b2813218cbc96",
+    "components/procd/examples/ptyhold.rs": "d015cbc94a7d1f8fd1199d980134dcf4cbe833c06f302fc8355114f4e99a1c5b",
+    "components/procd/examples/watchdog_status.rs": "e906cf94bab3b9b306cbbe2bb6f1db213ca4dfc1fe58a3fdd4e4b28115dba63b",
+    "components/procd/platform/entry.rs": "ba7421a4d4903dbd688e1940bc0ba0f73acb3a759b0a158396eff1fe9ef18994",
+    "components/procd/platform/process_owner.rs": "69f4bdca0279ed4732c4d7b435729bc090a4c117bb0a0269e0c017b9d1eb1349",
+    "components/procd/src/dispatch.rs": "5914185e49205e8484f85a8dd21e592d60f0bd7122691d46d93456aa192626ba",
+    "components/procd/src/hotplug.rs": "06aa506473c6090ddfe3f8a0bf872ce98879980400dadb2355076267562f8354",
+    "components/procd/src/inittab.rs": "6fdd83018eee8fda866ce2e191923f563fee06dbc7f982830d0d88d60a8cde92",
+    "components/procd/src/instance.rs": "c173f6570c08d213ee07ecb3349c1b9f49a3d1398bf36b1b45778cfb874d9098",
+    "components/procd/src/jsonscript.rs": "f1949e0141c0f7f636057a5a74d3c48f4dd5d1107ae9db81a50c5b8a65e5ad4d",
+    "components/procd/src/main.rs": "72f0afb28e2fa66cfd06e9de8f3d0a701e0c27d0497039f960eeddd738e33f5b",
+    "components/procd/src/proc.rs": "07eee2069666a7fd7b3783d370ab695ec304c41c2953dfbe4daec8f658b3537e",
+    "components/procd/src/rcs.rs": "9777b031264881b25fe9d565240c1c4227c2bc6d12102597eb9a8bee90f8090d",
+    "components/procd/src/service.rs": "95fa2c0d7f0e54f7d65089c99de7f24f81d22e08c96acb546034e0ca3b62f67b",
+    "components/procd/src/startup.rs": "1f4439a8ea73f0600c6e380dc5ee7cfbaf4085b17a641df003a18d01fcdf6991",
+    "components/procd/src/sys.rs": "9a27cd108223c847d4985a76baad0450d717d31364b7bdd9ef0c4a625ae98242",
+    "components/procd/src/sysobj.rs": "ac1fdf81074ffc14388522fab879476316e4fa6ca21ae75b381b0f57fe0cecb5",
+    "components/procd/src/sysupgrade.rs": "c99219e398c9e624a29e6875ea7ddb0801d0ce644e11bc6187ed9e32f57558e5",
+    "components/procd/src/trigger.rs": "113defd24ce061e3c08b80d5b6babfa0d0d74d1a136b6579c72847363f36a351",
+    "components/procd/src/ubus.rs": "18e99afb41c23eb4ca8c8d0009fd12c7c215da30553486c3e9449cb4c2f1fe39",
+    "components/procd/src/watchdog.rs": "a2d6b87706f26370fd5cc97d51e872b190d9428b0829257754f1cf1433bc6b9e",
+    "components/procd/tests/process/proc.rs": "010afe8f4ad89ccc45a04768de22a2e69d13990573968265a56fb09a14ce9ca2",
+    "components/procd/tests/process/watchdog.rs": "b682e9f8b9f2960bf8ce47f18f38ce70dc02c7dfc3110137e68982648d04207d",
+    "components/procd/tests/process_owner.rs": "6ff25136494b17359d5ec14fc29d02fedc5f9436071a8406ca69c6d9431847be",
+    "components/reload-config/Cargo.lock": "b01da450996ef37b964b4cf08850c14507f67a3943df230f38620390e7dac3dc",
+    "components/reload-config/Cargo.toml": "9e04db2a8dfc4feffb33d39147135a6761225c10b6840c882f88279eab4043d3",
+    "components/reload-config/src/engine.rs": "e331b09104f3fe275f072ddd8e598e9485b0ea6fc16fb196a69377874622b49a",
+    "components/reload-config/src/json.rs": "fe0052b8c92239930f1f33ea2cc9cab59b82801dfe99805927391777786d7eec",
+    "components/reload-config/src/main.rs": "4abd49f5d4d67c7797cd4023bbb00a78eb04a30eca980903128f52364f180424",
+    "components/reload-config/src/md5.rs": "2fba978f9d3dc9f7f5daf89a67a426cc55e6bbfaa8b087098191a5c259ccaf99",
+    "components/reload-config/src/syslog.rs": "84807a7db1172fe01338bf1e8780319f30ea46ec0165f3fd09d6e307f63e9566",
+    "components/reload-config/src/trace.rs": "1395184c21aab00440188cb3931c01a5623ee6f6d96e7e6ea1d319886cbc1ab2",
+    "components/reload-config/src/unix.rs": "e3c6f0ae1aacdd0b7e95bc1ca45e2f51674ffcaae03b22b6b0b726381cfb3c87",
+    "components/rpcd/Cargo.lock": "d630f048f148b70004e5af092d3e45859dc6fdf1a8f44d7e7af8a41fbfac294e",
+    "components/rpcd/Cargo.toml": "47156f47e37380ca4a98d186513a0d6c27113133e70e3b5a1fdbc61cf2487cd1",
+    "components/rpcd/examples/file_profile.rs": "53e1aad98c591d07fccd310ed328028d0551200131e1560c5db55ec4190288a1",
+    "components/rpcd/examples/luci_profile.rs": "d444a06542615267a6af882252bfa693385f96bbea291ef555c97ac5685c1215",
+    "components/rpcd/examples/lucirpc_profile.rs": "9be0f3fe1d93984d1e95528b71bf633b957ddb80bd7f0db6e2d5dbdf56f06515",
+    "components/rpcd/examples/output_lifecycle.rs": "63faa577cdb54af464febb8e0db8c3735c01d702d656b5c3ba1559208b11b948",
+    "components/rpcd/examples/profile_support/mod.rs": "072c26ae6d474f5c211338d49b06a905b3a40c876e05734f3ddca6b95763b550",
+    "components/rpcd/examples/raw_bytes.rs": "94d383c6a83fad853ee76ab4ee975be9bdf7aa7e2f76abec483edb6757985bb9",
+    "components/rpcd/examples/readiness_profile.rs": "19860fed3696ff4ad2b3aaf4d2a8b499aa46274dcad3c7a1818e88f8c535a5c4",
+    "components/rpcd/examples/receive_loop_profile.rs": "7a0f00767507e2e12fe7c795d239e1f7e8c8514cc701e05a063f8fe9576e9a7c",
+    "components/rpcd/examples/rpc_profile.rs": "4b68b6bb871b19140b08c532db5a298f2752e819a7bc8b6f72c295e35fec5881",
+    "components/rpcd/examples/session_acl_profile.rs": "2d5d0cb0287950ecb6057cf9357981e42e9806682017c0ab0684dc0ef57af001",
+    "components/rpcd/examples/uci_profile.rs": "b8aaf81a7b022c2da1404e39fe56d58d50468931f980c5d454e2c0e9d0501e22",
+    "components/rpcd/examples/uci_reply_profile.rs": "d63d7dd82cfe038baa53a49c5faaa9dde4bead1aeceed2f3a447f3fa9d8a119e",
+    "components/rpcd/src/delayed.rs": "48f6dd258c9441cc1245961a075ba561ca9eaa1c6dcd90ad47883f785940047d",
+    "components/rpcd/src/file.rs": "2b681919f8da3397686fcead5ab8f9b3819ecd8a31f4f1a8e4ab311ed18e05c8",
+    "components/rpcd/src/glob.rs": "66e69647fe346bd85695b51cbdabac83e7ed5f7b3919d93005df949d4a5646ac",
+    "components/rpcd/src/ip.rs": "ea4a28ebbe9c1a47b3274a49c9b8e33dbe67acca0d88804bf11dd057a85396ff",
+    "components/rpcd/src/iwinfo/mod.rs": "5b53314247bf21dc405c1962cae516edc6b52afbfad1156d5436fc44faf6e16e",
+    "components/rpcd/src/iwinfo/netlink.rs": "5cc90f46f96d3974b284519e398786ee948ca86b65393ce443455bb1fb02d91a",
+    "components/rpcd/src/iwinfo/nl80211.rs": "8f63266c7bf4825e015d5f6e64b4ac2c61cd0c964732574a4785da0f6ecbd7c8",
+    "components/rpcd/src/iwinfo/sys.rs": "10a2a8f090505eff780f103b47d7e812747782d5424ef05727b3334dc6bbc5e0",
+    "components/rpcd/src/iwinfo/tables.rs": "09b7c22aeb92e55904ad4195f2309354eeb917b3a4aed6958fb3887133cc2e4c",
+    "components/rpcd/src/iwinfo/utils.rs": "a27a07687fb0e195f0f9d958bccde37f38e62f8f540ab76f4d2d168cd2a00928",
+    "components/rpcd/src/iwinfoobj.rs": "e1de4107a647cb6e69c19435b62fa0b16144b7a3cc90bab368cf0ca43c4c300b",
+    "components/rpcd/src/luci.rs": "cbbeda4f9367d20c30bd48a71cf2658ec890f42b6f44a3aa33baa2cbfa804adb",
+    "components/rpcd/src/lucirpc.rs": "3abf0e384b810be2d0a8f4c40ddc31919572d1284bd3c68c6adedbd125178dab",
+    "components/rpcd/src/main.rs": "fee7541682fb2a6ebdc406ad944fe401dd2bde9ba9f5ffd636d0bb1846dd6967",
+    "components/rpcd/src/procwait.rs": "fc277fd7c6a53a97c2e36ec82449982c0de08c2a67d22226987da04d010155f5",
+    "components/rpcd/src/rc.rs": "c74fa62b234ea881d1995da6d04aa47095327987140a35308bf397b7d432f8ed",
+    "components/rpcd/src/readiness.rs": "ca6ea68b9ba27023ef612ae9facf7ddd4d6458e726c11d04a41aa8d66cb711fa",
+    "components/rpcd/src/reply.rs": "62eddecb3813c81e7a42814a46f8cb74dd2203bf91a466a002aef5c89c9f1279",
+    "components/rpcd/src/rpcsys.rs": "a237b258bb65cc55a09b81d41a471527fa0c93e2ed9b92ad699b7b0cdf579b5b",
+    "components/rpcd/src/rrdns.rs": "1e49c15778b85364f379dd7fb12e2cd6f407f6f67a752a89227dd935ef7cb4fb",
+    "components/rpcd/src/rtnl.rs": "005f0bd43f1e0c7455b1743695db2e0db0ec9dc3e1ab6bb10209dbe46c835b08",
+    "components/rpcd/src/session.rs": "7cdbfcafb42b13f2fa41d2ff5c8567aca2894c7d3c2bfc7e6e4127b1b655f0ab",
+    "components/rpcd/src/uciobj.rs": "a44081c78e21b1164eaedc20ea5805ecf25e8bd79a2902793b1004521041c56f",
+    "components/rpcd/src/util.rs": "038abcab9b5fbe21f8012b151be974a6471e33a01144230ed93ea0dc4ff2376c",
+    "components/ubus/Cargo.lock": "7f619ebc3fd35d8f561e6d85086703919aaa35dfaa091593a12338e405573796",
+    "components/ubus/Cargo.toml": "67cd30392be982d0cc8dde2c1cb4d759c4c853153da0c4b3433ce30aa80d14c9",
+    "components/ubus/src/blob.rs": "caaac032a0c67cc18a288fdda21b2b05c6a2fed5584ac572027c8e2d354f6e61",
+    "components/ubus/src/conn.rs": "f259a0a00dd1387b5edc200b84f28d220158dc2dcfd4f2f280c5ba9dfb23e4a8",
+    "components/ubus/src/connect.rs": "11f84f840e2c1944d215796c87d1a70626838b033caf2ad39a9b9f6e3fab4d0b",
+    "components/ubus/src/convert.rs": "074488af98c4046a665a3a4acd7443fd7286e3e122a8a0b5131a0925d35248ff",
+    "components/ubus/src/digest.rs": "58130610b32fdeeb06101665984a976bd940a378158d52cee995f5e70cca849d",
+    "components/ubus/src/json.rs": "35f05157da1ae8849a2aa9f7ca662f1d5b0619bbcfb9d7003f5ed3b84169b177",
+    "components/ubus/src/lib.rs": "c9c7cab80f58eb4bb737f243223e7318f42dab699a59ca7895c2b666008b7c60",
+    "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+    "components/ubus/src/readiness.rs": "ae5e87940bf3d865da87b88bd8ff163e4925a3eddf607b4c4e20bdc518d5c569",
+    "components/ubus/src/sys.rs": "5c9ad140bd20802a928edcb53aaf0fc7cac6b35bd9cf8018cf060ab6977fea80",
+    "components/ubusd/Cargo.lock": "7b0d15a2b92eccda58827655d4c3e2775a26856aee726b90ebc014a98b6f1391",
+    "components/ubusd/Cargo.toml": "7ec9115bde37473043917a305f1d4cf4293143feb719f49f714eff87ed615322",
+    "components/ubusd/examples/bench.rs": "5a48b38dc300d13e12187f3a7e1a6a63fdda02bdbb99584a0f953c13ea0763a0",
+    "components/ubusd/examples/connection_memory.rs": "5142980b0ca99b45f0d8f3c14aaa79f4596b4bbcb50c3cf0152613ea3ecd7946",
+    "components/ubusd/examples/event_memory.rs": "b1e8e6c73650cbee1f22582c23f4cf09d91a801588f5b82ca19398ec0da7ccfe",
+    "components/ubusd/examples/fuzz.rs": "b9c495dd2105853a54aef624c3f4f4e6170cfdd207050d078047956317ab536b",
+    "components/ubusd/examples/heap_support/mod.rs": "274fa01f894976705b7a88c6bd2d28d39b7eb833f287ed4a1ab3e44379dd43e2",
+    "components/ubusd/examples/method_memory.rs": "04d7f7f91984e055f6a2cc34b4f26e8202e0bb5ac60277d0da80365192951ecb",
+    "components/ubusd/examples/profile.rs": "7337e373fdef41a40d6cf267c61ac04d2f573a2ba962a302cf707261f951f8fe",
+    "components/ubusd/examples/registration_memory.rs": "6c0f160ba5cf4b0ebaa1bc63194e9ba3db01936497ff386a369d05ea37e54e19",
+    "components/ubusd/examples/registry_memory.rs": "291ea436ca041f6717411e2c424209c9cad5388fd81c50cb71dbe58e0d55e4c3",
+    "components/ubusd/examples/wireprobe.rs": "9a90242062c3d0a390fead18e09643223f235bb3268031a0af01af67d7371010",
+    "components/ubusd/src/acl.rs": "db0f5fe786585718246a889c9db803aa735abe2f75b700cda4bd1522bcdb6db6",
+    "components/ubusd/src/client.rs": "c2f32ed7995c03eed327333865136a46adf7b23ffcef91bb754843a1a86e9991",
+    "components/ubusd/src/main.rs": "88006513c1fdc9ae44ca29bec5f30a8b73aa4e5dd4f8a49e17f0987d73e4393c",
+    "components/ubusd/src/obj.rs": "decf0baf0867fe377554720e6a67505d6907b8fd0918e3220049ce2c4b038351",
+    "components/ubusd/src/server.rs": "a4e47918ecc0dbda64f9b4ae9ca1b69305a27a7e3ffd6bb69f3cfe62dd61a658",
+    "components/ubusd/src/sys.rs": "8c04fc82d02f831c4e5693fe8b259bbb3e09aa2e73a972bcd6359bef9d16f2b4",
+    "components/uci/Cargo.lock": "ae0b44b8a7a50dae454e95ae13cdfdc1e80f27b03fe7eeeb3075f23b37b450d0",
+    "components/uci/Cargo.toml": "96e75a28c04d531f26db8a9474420cdf5d53bd36f0f5e3dfb7dff2c8758bb680",
+    "components/uci/build.rs": "a17deb59027f7738283bb647df9a330e473e082f7c0b393729523982d88e9d5b",
+    "components/uci/platform/entry.rs": "5e992fc80aa27d4d57219101fbde51bbc3dc269550be8412bff1796d098f238a",
+    "components/uci/src/cli.rs": "df80ce8e4a397c051f07f764bd2b7e69bfc66e28db813fc109db73ff4f565a0e",
+    "components/uci/src/context.rs": "754f149ad0ac13c3ddd99d5526d9ab9bdbdbc2de9ed3eef555ad3f7e6089a57f",
+    "components/uci/src/delta.rs": "f8bdba947488a34005da1bcaf97c4ae8d1d939b576845cffe891b08dd5269c6c",
+    "components/uci/src/error.rs": "6663d39e9316e5edb283fb1be8f2c47db96328730ea6ca993b74bc6d86a68cec",
+    "components/uci/src/export.rs": "d54089ee2b648564b184b1ff95b0d2e70848f107aa06f4675fa04df4355a6c5f",
+    "components/uci/src/file.rs": "6c85ab09855597cf6da44edf283d355fdcf292372624f2dd11773b19e1f21876",
+    "components/uci/src/lib.rs": "b993f0f78a2402682690e0d9fed839af8d4bffc590244de5064035bd7c1ab7f1",
+    "components/uci/src/model.rs": "4cddb9ae187052ce871715a14f802b0b1efdc5ccdaed4125617c8032eea57123",
+    "components/uci/src/ops.rs": "0d4ab316f7b9543546634fb831e7137a67b71952272b1d6b8f530a4689d91540",
+    "components/uci/src/parse.rs": "a6fd1785ae0134104f10426a5557d68a62436b4c615784f0670c25451881f443",
+    "components/uci/src/read_cache.rs": "36f062e3e69d52fd5b28e033d3f0e9cf63de060a19136165469b57aa7073d37d",
+    "components/uci/src/show.rs": "561ab180320aca87a00d3fc94e75644965695e6489ecdc2131997179fcdf3ae6",
+    "components/uci/src/sys.rs": "0f3f2420f37bc46385509f808f3224214963da22d04969058099b0778d01be13",
+    "components/uci/tests/commit_failure.rs": "73824c4ea045f4c99f8a2877698ecaf37139780a61b630d79d55707483d1e886",
+    "components/uci/tests/config_listing.rs": "65210080ba1f40101658c0313dfdaa5cba3640a881c349729a3fcec201774e9d",
+    "components/uci/tests/io_budget.rs": "9a5309608e3226040841c86353b9e6639f8490ffe4be382741aa69f389539739",
+    "components/uci/tests/libuci_fidelity.rs": "2802d3dd4ed7f8561862bd32369469d483e04fe53b02811ec377d028e9d7eaba",
+    "components/uci/tests/read_cache_files.rs": "e30971086066db62c78caa7b6b3d31797a2bad1ee92789b307a0a8edb3095837",
+    "packaging/openwrt/owrt-dnsmasq/Makefile": "74d1ac91f226b22d5d82f482003234f310676d08dcd1201c4f9d2d6935686160",
+    "rust-toolchain.toml": "a5dab70a04165f8f83dd2db42a57347c61bc4f5285efa92be2b90362d835e50a",
+    "tools/audit/r81_httpd_tests.rs": "9dd52c4c52c45698da03beea08518c43d71625f00134dd8bfeedc97711130a91",
+    "tools/audit/r81_process_termination.rs": "8690d7f9846debda78e1b9b4e4ce5c463383ad0a33bccb3d8993945b4f517863",
+    "tools/benchmark/Cargo.lock": "4310c6c30bc696748d4b5daa16a42a2e188d4eac241fcabbab61d5d3405cc33d",
+    "tools/benchmark/Cargo.toml": "759fd9939e5fcdb273735058a3908662c30d8b224bf83ac159c8cbd82d03e357",
+    "tools/benchmark/examples/monitor_memory.rs": "dbbd292e8250f83b9a4ee717e397cb748109bff65f9a5229ef18d6656973587b",
+    "tools/benchmark/examples/netifd_renewal_cpu.rs": "f7de8b26901a716926a2b5558471bda223a49ad9f9207db2381ea6cc2894805f",
+    "tools/benchmark/src/affinity.rs": "b00bb84aa4e82d4cde4869152dfc723cf57408ff13d5a31a05d2dbac27a1ee21",
+    "tools/benchmark/src/child_cpu.rs": "44971757d482e781ffc5bdc4f775d9047bd5c00a5ba4f34356c9851eeabad107",
+    "tools/benchmark/src/cpu_clock.rs": "27f4e87d20c4cf0ee6446f541e7bf3be9dd9e22a70a68cc32a7bf701c6bffd6a",
+    "tools/benchmark/src/event_evidence.rs": "815f1792752abe9608f8339e9acf765caaac02cb0ebaf2fe2a22c84a7ca8ba25",
+    "tools/benchmark/src/exec_journal.rs": "5ebd976f971d0b1854baa388e641efeeae2dddc661362628eb147c71bd84b356",
+    "tools/benchmark/src/fw4_output.rs": "e04460db604b221fa18c356ac41ab0deba0de490e88301ca4229a5470fc27b77",
+    "tools/benchmark/src/main.rs": "59d93c260d32b63f97aadcb495027006c52691851e42cf10ea2cae06ce79421f",
+    "tools/benchmark/src/registration_perf.rs": "24246f5e250f86cbf00f1938ed9186dc935f5a7f332b7c2719c9db1d37484c5b",
+    "tools/benchmark/src/registration_phase.rs": "8bb5b385bf8681dfe4707e2492a30d3ac788c519e6e6bd627de8ee98487b47fb",
+    "tools/benchmark/src/reload_exec.rs": "529ee6b3423cc630da84584e0d1d00f827bbd56108d3faa745b25aa592e93c16",
+    "tools/benchmark/src/reload_fault.rs": "1588c268093bdb4ea61e1ff4fc6872ea55ce939862d4f0e855fab4ff4479568d",
+    "tools/dnsmasq/build_package.py": "9608d0af617b5dd4d5b574a0e5bb66555a05335c299ff1e9361a96a8aa5eb6b9",
+    "tools/dnsmasq/cache_expiry_screen.rs": "a0fa9c10011ff6d3d097d940f050a33b5b1aa0b10e9ec1f9bfcf23e50af57f60",
+    "tools/dnsmasq/cache_metrics_probe.rs": "40c69f6e466e14cde9eb87f084c55e1de05d717767efcd511c157aec7020a4b2",
+    "tools/dnsmasq/cache_reverse_transfer_probe.rs": "e1a9dd7243f1b05e3e695c3e7c6fbc0bba8db2c622c754211740f5a066c13e57",
+    "tools/dnsmasq/dhcp_arp_probe.rs": "d33b9081d86d1b10436e2ac7f1234c732b248d107daa1df52fa9183d6f4dc5df",
+    "tools/dnsmasq/dhcp_destination_probe.rs": "4700ae3bb8867644f65b5986e40f313e3b9c70f975a3fc66e0648abedc675c19",
+    "tools/dnsmasq/dhcp_event_order_probe.rs": "bec1f055168c9c30c011af14b80587115b75ee543131c076e814834a77c0244c",
+    "tools/dnsmasq/dhcp_events_probe.rs": "a7e3e03663fe05d7b4e169d291a5b3eb06c0ef4a3f110dc7d6466ff8905cca8e",
+    "tools/dnsmasq/dhcp_icmp_probe.rs": "482be0041e84f8dec84c9be03fe687103ac5188b9ff07753785d8b4f90936020",
+    "tools/dnsmasq/dhcp_message_metrics_probe.rs": "b02f53ad84372296c7332c2c85648c5ba33db4f7bdd3b6579ea0c822eb954766",
+    "tools/dnsmasq/dhcp_persistence_probe.rs": "040b851a739285cb7e6b3a8be4da28331e8f72e4a9b09b5ffdd6435b3f8bafc8",
+    "tools/dnsmasq/dhcp_probe.rs": "e8789069da6aef3f06674206648cd91b447826a0d93c875cb1bfecd1e53d2bef",
+    "tools/dnsmasq/dhcp_state_probe.rs": "1a6bc3007363e3536f0baef1b8b5330bbfe338707fd4d41b6f04060766c3ec87",
+    "tools/dnsmasq/doctor_packet_probe.rs": "6a7c4ef3b1a56ad6f04ba1d7303d3c46bb2f4c30fb49af8879f745ca98dddfef",
+    "tools/dnsmasq/hosts_line_boundary_probe.rs": "8ed39194fc917c5e046406efd11626cf9e242761f4c25d3aeca5d2f01cce34d5",
+    "tools/dnsmasq/hosts_rotation_alloc.rs": "2d7aaaa9a758bcca7e931b19b452d99ad0395a66424ba4577a82b121fa67ef28",
+    "tools/dnsmasq/lease_cache_probe.rs": "ed74138bc69b92fe5bae5eae053da58b42406ae267d51c5d64d25e77adadc5d4",
+    "tools/dnsmasq/lease_metrics_probe.rs": "301461b39c1e8ba747f30c13f6448fec61ee4c626cb2658b9974bc9f86a58f3a",
+    "tools/dnsmasq/lease_names_probe.rs": "e2690cca4ebbe0a02b867db266cfedddb2d24ac193b75f94cba2dd9c81a05ba2",
+    "tools/dnsmasq/local_answer_probe.rs": "af3611192b412106cc7d1ae479de036d220bf68330caa147a0502a720f6e745e",
+    "tools/dnsmasq/m6b_resource_main.rs": "130103f3ffc68901207db5c027b7256540aee09371809b001a98b6d53a2878e7",
+    "tools/dnsmasq/m6b_resource_meter.rs": "7a645fe664d92d85fce2355b26821dcf8dd5480c69880fb51401274017761603",
+    "tools/dnsmasq/m6b_resource_roots.rs": "34be8bb63f8a2d4702b60f35e9a766e9c4da5b3701bf8a1c3d96c1f6ed953fcd",
+    "tools/dnsmasq/m6b_reverse_order_rust.rs": "a99d12d53603fb88909006a58143a8d1652e1a237744b7fb8d15ffc87e367a97",
+    "tools/dnsmasq/oracle_build.sh": "89bff1b6ac1af8d0214b78a27dec3e27cae95f7dfaa0d6491d8909e2e615a203",
+    "tools/dnsmasq/reverse_cache_probe.rs": "c07122be0d059e1e9c2d7a8f8344e4d14611192bff06f70527fc2c903efd32fd",
+    "tools/dnsmasq/reverse_cache_state_probe.rs": "5ef1378274af7d61fac45a88d4df4d22f77b7be9d563e73a19c667b54b2de711",
+    "tools/dnsmasq/tcp_connect_probe.rs": "628055f33290ea6fa7a4bfc9f7eada6262a29d0141c115f76c88404be63bbd62",
+    "tools/dnsmasq/tcp_snapshot_chunk_screen.rs": "7844d55e956d3a1d7b757574c47474a7ead6512e9fb0649b588fc10bad7a1af1",
+    "tools/dnsmasq/tcp_snapshot_chunk_screen.slots.rs": "3a8e5cacda6ab4c4570c9691a34f998a48f885d1d5697c441e3caa81ce4fd233",
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.payload.rs": "dbeb70156053ffba4963b28b5dc0502e38360f99a82d2bce6549eaac2741fe90",
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.rdata.rs": "62182ec2d9f55663593d954217d459ca3629e70e48953013b598fa3c13053ea3",
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.rs": "60c3da6edddfe534c34b5f005f887a1df4b2366d761fbced14376e591a797db2",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.checks.rs": "26eaa866a09ef99f3b1699925ade92813ba0cbd47ddf86c9fbb265fe5ce79392",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.index.rs": "0782108ea2cd3a6885522dfa707b7f9941100068a94b27ae2f64346d9210a93d",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.payload.rs": "1cf79332efa95b18cddb822ca19f755d558c3bca6bceb54739040ea8462c162d",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.rs": "d5bdea6173a906f39d59bb5f3efd84a00448f33d9fe2a2571dd07d5bdc3a7e3f",
+    "tools/dnsmasq/tcp_snapshot_screen.rs": "59909dd61eae492e8d95472e8ceea71f91e03977b3ff61657d2a743e74fc3dfc",
+    "tools/dnsmasq/tcp_upstream_probe.rs": "f61fef4b8ef4e600ef5b20adbc89d428051109955c162b757ae0b28c00c28c18",
+    "tools/dnsmasq/test_build_package.py": "6e732a599f822d3f488605e9bd3f38bb9ed11f59a59cb5773b0410036b4bbcd3",
+    "tools/dnsmasq/tftp_listener_probe.rs": "fbee06374351d79b26a93befd5da2d554518ad0032f613dacb0c314b70dcc66a",
+    "tools/dnsmasq/ubus_publish_probe.rs": "ac8c3ec3875445eb2ff9274e7c6453dc9fb322df402007a0ce46367db836f052",
+    "tools/dnsmasq/ubus_service_probe.rs": "0f7d718f804de8dfb1673014079ea962145cf61303ff4aecb45378dfb3c518c5",
+    "tools/dnsmasq/udp_query_probe.rs": "56c15b6198fa41540989f91abf238f354353cd8317733b23a9b7cf21135e13ea",
+    "tools/platform_gstrings_probe.rs": "f8a32a0a383852a0f709599c0ca15c05cacec9eb0b77f87bfbbecbd397ebb2c1",
+    "tools/r142/monitor_regression.rs": "38ebc87607b24135a470b2992ebbd6e12529a548009515550e51b93c4eac3546",
+    "tools/r144/reply_regression.rs": "62326e76f71a9839cc16bb6b79dd0a4e64fcfbe5bae6dc4ff39e53595e1c86e7",
+    "tools/rust_check.py": "2c42310307a61bf66e6836eb8db9cf353da8b14cc308136134247bb34a50f2fc",
+    "tools/test_rust_check.py": "8341fb4e4a508c416f8cfe15bcb4c84002c5899b3be2a00b3fd8a773dcedf53f",
+    "tools/ubus_depth_check.rs": "cda9c48628863d1803f90529ab0226745e13ed0ae4bc7b1abbe6ec97056498ff"
+  },
+  "full_input_manifest": "oracle:/home/ubuntu/owrt-platform-boundary-20261023/final-inputs-current.json",
+  "final_gate_exit_codes": {
+    "check": 0,
+    "fmt": 0,
+    "test": 0,
+    "benchmark": 0,
+    "tools": 0
+  },
+  "input_recheck_note": "Every local/remote final input matched. Only Makefile changed after Rust gates to add the independently passed package harness; the full tools retry used that final Makefile and actual Git history."
+}

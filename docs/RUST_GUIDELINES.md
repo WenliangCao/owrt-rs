@@ -33,6 +33,14 @@ baseline and state the retrieval limitation in the review.
   pointer validity, lengths, lifetimes, descriptor ownership, concurrency and
   target layout for each unsafe operation. A safe interface must uphold these
   requirements for every safe caller. Compatibility never justifies UB.
+  Business roots that use `forbid(unsafe_code)` must retain it; changing it to
+  `deny` plus local `expect`/`allow` is not an acceptable boundary fix. Process
+  startup adapters under `platform/` may register fixed audited operations or
+  transfer exec-inherited resources before business code runs. Business code
+  receives safe typed interfaces, never arbitrary post-fork or signal callbacks.
+  A startup thread-count snapshot is not a permanent single-thread guarantee:
+  platform operations must revalidate or otherwise enforce their prerequisites
+  at the point of use. Keep child signal masks and descriptor ownership explicit.
 - **Failure behavior:** `M-PANIC-IS-STOP`, `M-PANIC-ON-BUG`,
   `M-PANIC-MESSAGE`, `M-PANIC-CONTINUATION`. Malformed network packets, config,
   peer disconnects, entropy failure and filesystem errors are recoverable
@@ -132,7 +140,10 @@ its identity and reading ranges. Keep reading coverage distinct from test,
 differential, performance and deployment qualification.
 
 The [2026-10-22 inventory](reviews/RUST_REVIEW_INVENTORY_20261022.json) indexes
-the detailed ledgers and their source identities. On Linux, `make test`,
+the detailed ledgers and their source identities at that review snapshot. The
+2026-10-23 platform-boundary follow-up corrects its business-unsafe exception;
+the earlier full-read ledger is not evidence that weakening `forbid` was valid.
+On Linux, `make test`,
 `make check-rust`, `make fmt-check` and `make check-benchmark` use the shared
 `mbx` cache. Default/all-feature targets, doctests and normal examples are
 checked; process-owner tests run in private namespaces. Exact-C fixtures and

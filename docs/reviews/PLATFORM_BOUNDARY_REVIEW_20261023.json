@@ -1,0 +1,858 @@
+{
+  "baseline": "d6719f66",
+  "scope": "All 49 changed/new Rust files in the platform-boundary correction; historical full-project reading is not reasserted for unchanged files.",
+  "previous_inventory": "RUST_REVIEW_INVENTORY_20261022.json",
+  "guidelines_sha256": "e69533b0541a5d185ad9d8304f5eb5cf4b033135b7046f89c499b6126dced3b6",
+  "reviewers": [
+    "root",
+    "audit_dns_core",
+    "audit_dns_runtime",
+    "audit_frontend_tools",
+    "audit_network_services"
+  ],
+  "validation": "PLATFORM_BOUNDARY_VALIDATION_20261023.json",
+  "files": [
+    {
+      "path": "components/dnsmasq/platform/entry.rs",
+      "line_count": 19,
+      "sha256": "0999b52ec1b3044e957af996d128b17a2dcd007d34ff65f6df5e9addf8002394",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Fixed registration runs before the forbidden-unsafe daemon module; normal Rust runtime startup and CLI entry remain intact."
+    },
+    {
+      "path": "components/dnsmasq/platform/register.rs",
+      "line_count": 28,
+      "sha256": "57c70a80adcd40d8c8065e3aa283444a37d775dd83c479c6fb2641a2bd1fb701",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Only three fixed worker signatures are registered. Pure-data input and whole-lifetime atfork, allocator, NSS, mapping and signal responsibilities are documented at unsafe construction."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/process.rs",
+      "line_count": 225,
+      "sha256": "fe8312b165cfbf8a3c8699a5cc8cb8a147d7393896ad4f36669ca941db564507",
+      "baseline_sha256": "e98fe8b1e2a0e8bae06bbd5766de5d9b77ab3777c0b0c3c63c6e54b9e6613bca",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Background startup requires the registered callback capability and fresh kernel guard; original parent terminates, double-fork failures report through the existing pipe, successful daemon retains its panic hook."
+    },
+    {
+      "path": "components/dnsmasq/platform/src/process_fork.rs",
+      "line_count": 341,
+      "sha256": "385f21298562e528e608e865cf165cf20a4672c0ecde990273b9f43a4d63db4f",
+      "baseline_sha256": "4a2143f2cf10bb7a8a2a1f84844f4947864bcaa8105d0715f98edcaf6e5dcec2",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Private typed worker entries cannot be forged by safe callers. Every fork rechecks threads, rejects panic reentry, severs copied panic captures before closing FDs, restores masks, and never returns through abandoned parent frames."
+    },
+    {
+      "path": "components/dnsmasq/platform/tests/panic_hook.rs",
+      "line_count": 79,
+      "sha256": "c4a9df5e4da56021f7e7c29149a5692e90f390bbdb674de98df83ada1049525b",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Independent child panic verifies inherited hook is neither invoked nor dropped, parent hook remains usable, and safe fork reentry during panic is refused."
+    },
+    {
+      "path": "components/dnsmasq/platform/tests/process_forks.rs",
+      "line_count": 16,
+      "sha256": "218ece20468bf59150db7657983a344a91233dcecc2ed8dcabdd2ef392ba786f",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Trusted test adapter installs only fixed workers, runs unregistered/live-thread negative controls, and invokes the same safe business fixtures."
+    },
+    {
+      "path": "components/dnsmasq/platform/tests/process_owner.rs",
+      "line_count": 13,
+      "sha256": "97432416829f17216fd4208e9a91fb58c5b1c8cb0e60b6dc578a75ece4d98a76",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Sole-thread platform adapter registers fixed workers before the existing event-loop fixtures; no unsafe exemption is added to business test modules."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_lookup.rs",
+      "line_count": 265,
+      "sha256": "c53071240c420416b60dba891b3328e4ffd9238500d19c23c5697ac6e492fbe7",
+      "baseline_sha256": "8eef55f89619115788087294c52167b8f78ec80482edd0176174785c095b7df7",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Opaque owned lookup input plus nonreplaceable OnceLock capability replace the unsafe public start; response encoding, cancellation, pipe reads and reaping remain unchanged."
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_lookup_process_tests.rs",
+      "line_count": 70,
+      "sha256": "01204f9853f61841d498ff107ea2b909588aaaa9798e440ad49e39b5c436eada",
+      "baseline_sha256": "d9c5a06ed9d4ba74917e5a778a9b7998cbac6e7e5e544f8fcd14d5f49eafa858",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Existing real resolver completion and cancellation fixtures call the safe interface; expected records and lifecycle assertions remain unchanged."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/files_process_tests.rs",
+      "line_count": 64,
+      "sha256": "3ddc953c9d7fb0f65a154924d8ca23300b0a7f127651335b8cd8378227fc4266",
+      "baseline_sha256": "abb1866ffccaf739d6ef4faa23cc3514fc47e16baa134110699a4ea2b9e22ef3",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Real hostname file reload uses registered resolver through safe step; the bounded publication assertions remain in business tests."
+    },
+    {
+      "path": "components/dnsmasq/src/dns/files_runtime.rs",
+      "line_count": 1138,
+      "sha256": "39fee8253552c6b6143322e750861ae45ae080f108c48de12e4f2a750fcb0d79",
+      "baseline_sha256": "ff5dfda330e1d84741af4283d57c837d2a25d00f6fba9103c32ec2eed908973a",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Unsafe propagation is removed from file-work turns; only the existing hostname branch starts a registered resolver, preserving queue/publication ordering and error handling."
+    },
+    {
+      "path": "components/dnsmasq/src/helper.rs",
+      "line_count": 652,
+      "sha256": "2ecd4002129561ca0498940b902133b09c3d0a395eb7ccf989600724fb24d207",
+      "baseline_sha256": "f32f9ffa3a5a6f5cace74d767cf6ad6d7d72ae60b5fcbb9d1b02733d4b1cc4ff",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Expose only the fixed registration types and worker function needed by the platform executable; lease event policy and serialization remain in business modules."
+    },
+    {
+      "path": "components/dnsmasq/src/helper/process.rs",
+      "line_count": 824,
+      "sha256": "3194a909ab5df538e17ca7372c12a446c36c56cdc284424e704b88160b25a38d",
+      "baseline_sha256": "b66e0089dc5e2810502a9fd6ba8f83d06a4c18d66469ec4e4db86d06093ddc35",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Opaque pure-data startup and a once-installed worker permit safe helper starts. NSS preflight, helper IPC/backpressure, lease initialization and shutdown behavior remain unchanged."
+    },
+    {
+      "path": "components/dnsmasq/src/helper/process_tests.rs",
+      "line_count": 379,
+      "sha256": "9b92dc4da46b3483ba1e858a7479e26992cc922afaac47aad52d4c248f9816ca",
+      "baseline_sha256": "d434a60b2edc9362a35669b205b6fc5e91eec6d61d7a433ef27e8242ab8f49a0",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Existing helper lifecycle, descriptors, signals, producer failures and shutdown tests retain their assertions and now call safe starts under the platform runner."
+    },
+    {
+      "path": "components/dnsmasq/src/lib.rs",
+      "line_count": 45,
+      "sha256": "ce767c124c5a4ba4bc507ee4e99e6ea62f9aa77dd9465abd057cbb31ab85df88",
+      "baseline_sha256": "3941d3b3a7898f268fe1d13404bae6efb95841028b7a87cfad477a4ea9bc3d63",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Restore unconditional forbid(unsafe_code) at the actual library root, with no wrapper library weakening it."
+    },
+    {
+      "path": "components/dnsmasq/src/main.rs",
+      "line_count": 10438,
+      "sha256": "3dc11fe7ebe0cb8e2d887b6bc1b0efed3f3f9071693ce9ddde19248304776a80",
+      "baseline_sha256": "a1e9725d4204869f65041a901eb02583494ecc788e38982b1adc91e6154ee678",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Restore forbid at the complete daemon module and remove startup/resolver/helper unsafe exceptions; normal dispatch and test assertions are unchanged."
+    },
+    {
+      "path": "components/dnsmasq/src/startup/daemonize.rs",
+      "line_count": 305,
+      "sha256": "d4606d8d8a4b889f46a3745b1b01a436bce6195556e1cf8ece8036e64b34ea65",
+      "baseline_sha256": "a99f5cbb090352dbe8848f7e08c0b0c2d2ae932d34c7bb8278bc798d2b300d43",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "The one-time registered concrete startup callbacks replace arbitrary callback arguments; background errors and raw argument reporting keep the existing pipe contract."
+    },
+    {
+      "path": "components/dnsmasq/src/startup/lease_init.rs",
+      "line_count": 153,
+      "sha256": "8e9bfd5be5f5f72ccf17b4995ff1af6db5902e5a14183d47468e24afd019327b",
+      "baseline_sha256": "c8363afb2758ccffb08b77506df6f6f92b707cc63cbb2b837ef8b59cc96ff017",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Lease initializer uses the fixed helper safe interface; record parsing, time/order and failure status handling stay unchanged."
+    },
+    {
+      "path": "components/dnsmasq/tests/process_forks.rs",
+      "line_count": 134,
+      "sha256": "61be2a43f7c3193108482677c6de2b5dd2b37c00e798babd29c99f8baded3e54",
+      "baseline_sha256": "8b51ca1770ceb72f803a02a0b248efb82acf01fe034eb6a94d929b85e089bf17",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Business fixtures forbid unsafe; missing registration and post-registration live threads must fail without changing mask, FD set or children, then real lookup/helper succeed after join."
+    },
+    {
+      "path": "components/dnsmasq/tests/process_owner.rs",
+      "line_count": 15,
+      "sha256": "fcd2e8ad69c476f030d01756777b579ff421cf91259cba10b626c222ed09e044",
+      "baseline_sha256": "b77e820207c2784b926422a9d193c7780898bd2cd024003fac47877bbd26bb34",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Business process-owner fixture root forbids unsafe; only the platform runner performs registration before reused daemon tests."
+    },
+    {
+      "path": "components/fw4/platform/entry.rs",
+      "line_count": 23,
+      "sha256": "dcc55263937da3a790ec0967149f1e93eac63f96eeaf6b53730e4b8396fa8a30",
+      "baseline_sha256": "8dcc593992b4ea7322b22ef82fc4dc424c444590aedb04246e522cdf76a342a2",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Existing libc startup adapter acquires checked ProcessOwner and calls safe business run; inherited SIGPIPE/startup ABI preserved."
+    },
+    {
+      "path": "components/fw4/src/lib.rs",
+      "line_count": 588,
+      "sha256": "378db1c773865efd42c112413d98a2ea1ef3afb72b5d4af047efe51c7b13720b",
+      "baseline_sha256": "caa9d86df5a7846e993330a9d1cf2087059a94124af7614941690445cac38fb5",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Actual library root again forbids unsafe; QUIET/TTY exports use concrete checked platform environment operations and retain CLI error boundaries."
+    },
+    {
+      "path": "components/platform/src/lib.rs",
+      "line_count": 54,
+      "sha256": "0307388083edc099cfc8b926bbb725a30a6291c13b0a62af6e273f3b1dca54ef",
+      "baseline_sha256": "07e9722d690c29d1847ca4b1eabfc7e7a5907301adaa97f0b4fb9fe930f2fd52",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Exports the small process-owner and three fixed signal modules; no business policy or generic safe signal callback API is introduced."
+    },
+    {
+      "path": "components/platform/src/procd/process.rs",
+      "line_count": 334,
+      "sha256": "e3d17231e352aa1820f0e5659ef65d071c3c3f9218971f8da0bbc53a658d7f4b",
+      "baseline_sha256": "3a9609713a47df7de81b9001bfe61eff88327d7761340594ec11edc729d6310b",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Process capability keeps fixed callbacks private, consumes configured Command through guarded spawn, restores child mask before exec, and uses a terminating firmware child. TTY setup is fixed syscall-only code."
+    },
+    {
+      "path": "components/platform/src/procd/watchdog.rs",
+      "line_count": 61,
+      "sha256": "54886d4eb04d441fbd3523becd24007eec413b229bc4f26121addbeab70363f6",
+      "baseline_sha256": "91ff71afd5de548c62e4ec945563c17d46e8c36a4470e68a17cbd7c034341517",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Only trusted startup can transfer a live unowned descriptor. Reject 0..2 without closing standard streams; preserve >=3 identity and final-reference magic-close."
+    },
+    {
+      "path": "components/platform/src/process_owner.rs",
+      "line_count": 239,
+      "sha256": "ecd8041cc4d25fbc7524aace269f7c221c0d24d2d47c3e35290861ef58c03ccb",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Non-Send/Sync owner is not a permanent proof. Each operation blocks signals, checks PID/TID and kernel exclusive mm state, performs fixed work, and restores exact mask; environment validation precedes the guard."
+    },
+    {
+      "path": "components/platform/src/process_owner_test.rs",
+      "line_count": 174,
+      "sha256": "871dda657f2447af9b8136800ff9afd2b181956532e387a15e8db0e4711b28f7",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Real main-thread and exec-child tests cover live-thread rejection, successful post-join revalidation, non-UTF8 environment bytes, invalid names, and exact mask restoration."
+    },
+    {
+      "path": "components/platform/src/reload_signals.rs",
+      "line_count": 73,
+      "sha256": "7a201611762deea02c3a9bb77549ea269231d4ec2c28cbf525834622c09eb2b4",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Fixed INT/TERM atomic cancellation; actual raised signals in isolated child preserve errno and latch cancellation for existing engine waits."
+    },
+    {
+      "path": "components/platform/src/rpcd_signals.rs",
+      "line_count": 157,
+      "sha256": "9a4fe86d585e0cd8b5177a0bb3f7eb44a8692a7c171016ccc90136922108f046",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Platform owns permanent nonblocking CLOEXEC pipe and fixed HUP/USR1/CHLD handler. Real signal and saturation tests preserve action ordering, errno and worker wake behavior."
+    },
+    {
+      "path": "components/platform/src/ubusd_signals.rs",
+      "line_count": 148,
+      "sha256": "6f8aac7478b5f1db0681ea4001ff075d297b0a5ed7157f5834e01f4e1d83464c",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Platform owns wake pipe and fixed independent reload/stop flags; actual HUP/INT/TERM saturation tests preserve errno and reuse pipe ownership safely."
+    },
+    {
+      "path": "components/procd/platform/entry.rs",
+      "line_count": 49,
+      "sha256": "ba7421a4d4903dbd688e1940bc0ba0f73acb3a759b0a158396eff1fe9ef18994",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Trusted entry adopts WDTFD before business FD creation and registers only fixed callbacks; startup assumption is tied to audited Rust 1.98.1 runtime, and hotplug-only bypass is retained."
+    },
+    {
+      "path": "components/procd/platform/process_owner.rs",
+      "line_count": 110,
+      "sha256": "69f4bdca0279ed4732c4d7b435729bc090a4c117bb0a0269e0c017b9d1eb1349",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Trusted fixture adapter relinquishes and adopts exactly one watchdog FD, rejects low descriptors without changing them, and supplies registered operations to safe tests."
+    },
+    {
+      "path": "components/procd/src/hotplug.rs",
+      "line_count": 764,
+      "sha256": "06aa506473c6090ddfe3f8a0bf872ce98879980400dadb2355076267562f8354",
+      "baseline_sha256": "12bd88b60aedfcdbdc7b057d60b35fe69ab1b0c94ca7c7ff4c31e7995822b153",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Firmware queue passes only owned directory/map data to registered platform process operations; fixed transfer logic and command ordering remain in business code."
+    },
+    {
+      "path": "components/procd/src/main.rs",
+      "line_count": 3714,
+      "sha256": "72f0afb28e2fa66cfd06e9de8f3d0a701e0c27d0497039f960eeddd738e33f5b",
+      "baseline_sha256": "2a0574c11753940b8ca0ad43841dd9801d42eed5c0c05c19f9c91cabe185aec0",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Actual business library root forbids unsafe; production startup carries the platform Process and watchdog owner, while existing fixture constructors do not invent process authority."
+    },
+    {
+      "path": "components/procd/src/proc.rs",
+      "line_count": 467,
+      "sha256": "07eee2069666a7fd7b3783d370ab695ec304c41c2953dfbe4daec8f658b3537e",
+      "baseline_sha256": "9831c75233a8013d43b44484e2f81fd5d962fe120a803828084565798979dd9f",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Instance and tty interfaces become safe through platform-controlled setup. Parent preparation, subprocess environment, pipe ownership and reaping contracts remain."
+    },
+    {
+      "path": "components/procd/src/startup.rs",
+      "line_count": 30,
+      "sha256": "1f4439a8ea73f0600c6e380dc5ee7cfbaf4085b17a641df003a18d01fcdf6991",
+      "baseline_sha256": null,
+      "full_read_this_followup": true,
+      "reviewed_full_change": true,
+      "reading_basis": "New file fully read by owning reviewer and root/independent safety review.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Small owned startup input and fixed callback definitions connect the platform entry to existing logger, rlimit and firmware policy; no unsafe appears in this business module."
+    },
+    {
+      "path": "components/procd/src/sys.rs",
+      "line_count": 562,
+      "sha256": "9a27cd108223c847d4985a76baad0450d717d31364b7bdd9ef0c4a625ae98242",
+      "baseline_sha256": "bdc7a0f70c9b2df853e18cda9dc83ce1fa61bcb194fb23279616704522752f6d",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Remove the old allocating tty patch callback now replaced by fixed platform syscall setup; other syscall/policy utilities remain unchanged."
+    },
+    {
+      "path": "components/procd/src/sysupgrade.rs",
+      "line_count": 218,
+      "sha256": "c99219e398c9e624a29e6875ea7ddb0801d0ce644e11bc6187ed9e32f57558e5",
+      "baseline_sha256": "1206760208e2a761961f5fe4e714be63d0ded9d032bb5128ebd33c650439e399",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Environment exports use ProcessOwner; all new mutation errors converge on existing watchdog CLOEXEC and chroot cleanup rather than returning with partial handover state."
+    },
+    {
+      "path": "components/procd/src/watchdog.rs",
+      "line_count": 248,
+      "sha256": "a2d6b87706f26370fd5cc97d51e872b190d9428b0829257754f1cf1433bc6b9e",
+      "baseline_sha256": "35dcddbea5bfaf42beb0c7fb98588b77cf8b19b7730892caf4f11ee687de716f",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Expose a proper borrowed descriptor for flag checks instead of fabricating BorrowedFd in tests; runtime watchdog ownership, deferred opening and last-close behavior remain."
+    },
+    {
+      "path": "components/procd/tests/process/proc.rs",
+      "line_count": 141,
+      "sha256": "010afe8f4ad89ccc45a04768de22a2e69d13990573968265a56fb09a14ce9ca2",
+      "baseline_sha256": "f531bd8214444d917ee602f3e9f87c5c524130bb4681ef40ea88efef6812c86a",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Safe fixture module checks actual session identity, SIGPIPE, child SigBlk equality, preload and descriptor lifecycle through production start paths."
+    },
+    {
+      "path": "components/procd/tests/process/watchdog.rs",
+      "line_count": 98,
+      "sha256": "b682e9f8b9f2960bf8ce47f18f38ce70dc02c7dfc3110137e68982648d04207d",
+      "baseline_sha256": "3415972bf93a228873f0fa60fd85e81a36110c0296890e98c7162d5ee5fd6265",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Safe fixtures receive OwnedFd from platform, check exact inherited descriptor, real CLOEXEC across exec, magic-close EOF and no close of reused slots."
+    },
+    {
+      "path": "components/procd/tests/process_owner.rs",
+      "line_count": 69,
+      "sha256": "6ff25136494b17359d5ec14fc29d02fedc5f9436071a8406ca69c6d9431847be",
+      "baseline_sha256": "c606d541547e2c14610463f8a2d63db64e21f78561e01dd726eef007ea991f93",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-TAUTOLOGICAL-TESTS",
+        "M-MOCKABLE-SYSCALLS"
+      ],
+      "conclusion": "Safe standalone fixtures verify active threads created after registration block instance/firmware spawn, then successful post-join child creation and exit status."
+    },
+    {
+      "path": "components/reload-config/src/engine.rs",
+      "line_count": 908,
+      "sha256": "e331b09104f3fe275f072ddd8e598e9485b0ea6fc16fb196a69377874622b49a",
+      "baseline_sha256": "cc6a2162ee806ebfd34ce5fb72f5e4e234722d5f3f8448affe7cbde1c55db24d",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Uses platform cancellation predicate in the same ubus waits; delivery state, timeout budgets and injected cancellation flag are unchanged."
+    },
+    {
+      "path": "components/reload-config/src/main.rs",
+      "line_count": 114,
+      "sha256": "4abd49f5d4d67c7797cd4023bbb00a78eb04a30eca980903128f52364f180424",
+      "baseline_sha256": "c618b386c92f566bc11a3c1e967cb847135f2121b0c850892cfe968cb4fc4da4",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Restore forbid and use fixed platform registration/cancellation storage; startup registration errors and command exit codes stay explicit."
+    },
+    {
+      "path": "components/reload-config/src/unix.rs",
+      "line_count": 55,
+      "sha256": "e3c6f0ae1aacdd0b7e95bc1ca45e2f51674ffcaae03b22b6b0b726381cfb3c87",
+      "baseline_sha256": "2fb76269baa157eec7b440dbbcd00ec4eb2d0f7135dc5e8b3b8533f0669eeecf",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Remove obsolete signal callback reexport/constants; retain safe descriptor/signal inheritance adapters used by existing execution paths."
+    },
+    {
+      "path": "components/rpcd/src/delayed.rs",
+      "line_count": 70,
+      "sha256": "48f6dd258c9441cc1245961a075ba561ca9eaa1c6dcd90ad47883f785940047d",
+      "baseline_sha256": "cfcbac4b3ee454cf6d43fc88579c0ebfe803e63241d286b2a3da816abbfdde77",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Inherited delayed-PID marker is removed only through fresh checked environment mutation; failures are explicit startup errors, PID parsing/reexec ownership unchanged."
+    },
+    {
+      "path": "components/rpcd/src/main.rs",
+      "line_count": 618,
+      "sha256": "fee7541682fb2a6ebdc406ad944fe401dd2bde9ba9f5ffd636d0bb1846dd6967",
+      "baseline_sha256": "9f1c0f258f92914aa47843f3efb7789409584c9decc538850dfc1e1130cb1d4c",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Restore forbid; fixed platform signal action/drain/wake APIs replace local handler and raw writer ownership. Reconnect generations, worker replies and HUP state restoration remain tested."
+    },
+    {
+      "path": "components/ubusd/src/main.rs",
+      "line_count": 319,
+      "sha256": "88006513c1fdc9ae44ca29bec5f30a8b73aa4e5dd4f8a49e17f0987d73e4393c",
+      "baseline_sha256": "c4cac9e1235a14eac644d3d3851879b777d3a7af90ae827193053a18055a9a9d",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Restore forbid and use platform-owned fixed reload/stop self-pipe, preserving signal-first event-loop ordering and public bus protocol."
+    },
+    {
+      "path": "components/ubusd/src/sys.rs",
+      "line_count": 163,
+      "sha256": "8c04fc82d02f831c4e5693fe8b259bbb3e09aa2e73a972bcd6359bef9d16f2b4",
+      "baseline_sha256": "36e7adb0ec5872ce73afed89fc45894136ee742e6b1539115d2663b8b0b03187",
+      "full_read_this_followup": false,
+      "reviewed_full_change": true,
+      "reading_basis": "Previously fully read snapshot in 2026-10-22 ledger plus complete current patch/call-boundary review; this follow-up does not claim another full read of the unchanged body.",
+      "rule_ids": [
+        "M-UNSOUND",
+        "M-UNSAFE",
+        "M-FFI-TRANSLATES",
+        "M-STATIC-VERIFICATION",
+        "M-STRONG-TYPES-GUARD"
+      ],
+      "conclusion": "Remove the now-unused business SIGHUP constant after registration moved wholly to the platform module."
+    }
+  ]
+}
