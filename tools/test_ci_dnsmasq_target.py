@@ -1,5 +1,6 @@
 """Warning denial and failed-build evidence, without compiling a product."""
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -56,15 +57,22 @@ class TargetCheckTests(unittest.TestCase):
                 self.assertFalse(scan([log])["strict_compiler_warnings_zero"])
 
     def test_frozen_source_archive_matches_current_revision(self):
-        spec = target.source_spec()
-        frozen = target.freeze_source(self.root, spec)
-        files, digest = target.builder.source_identity(spec, frozen)
-        self.assertEqual(files, target.builder.audit.inputs(target.builder.REPO))
-        self.assertEqual(digest, spec["source_digest"])
-        self.assertIn("components/dnsmasq/platform/src/lib.rs", files)
-        (frozen / "components/dnsmasq/platform/src/lib.rs").write_text("changed")
-        with self.assertRaisesRegex(ValueError, "differs"):
-            target.builder.source_identity(spec, frozen)
+        for version in ("25.12.5", "25.12.6"):
+            with self.subTest(version=version), patch.dict(os.environ, {"OPENWRT_VERSION": version}):
+                output = self.root / version
+                output.mkdir()
+                spec = target.source_spec()
+                frozen = target.freeze_source(output, spec)
+                files, digest = target.builder.source_identity(spec, frozen)
+                self.assertEqual(spec["openwrt"], version)
+                self.assertEqual(files, target.builder.audit.inputs(target.builder.REPO, version=version))
+                self.assertEqual(digest, spec["source_digest"])
+                self.assertIn(f"manifests/release-{version}.json", files)
+                self.assertNotIn(f"manifests/release-{'25.12.6' if version == '25.12.5' else '25.12.5'}.json", files)
+                self.assertIn("components/dnsmasq/platform/src/lib.rs", files)
+                (frozen / "components/dnsmasq/platform/src/lib.rs").write_text("changed")
+                with self.assertRaisesRegex(ValueError, "differs"):
+                    target.builder.source_identity(spec, frozen)
 
     def test_new_sdk_uses_frozen_version_and_checksum_before_extraction(self):
         frozen = self.root / "frozen"

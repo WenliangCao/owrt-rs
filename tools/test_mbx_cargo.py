@@ -26,10 +26,13 @@ class MbxCargoTests(unittest.TestCase):
         self.pin = (ROOT / "rust-toolchain.toml").read_text().split('channel = "')[1].split('"')[0]
         for name in ("cargo", "rustc", "mbx"):
             tool = self.bin / name
-            tool.write_text(f"#!{sys.executable}\n" + '''import json,os,pathlib,sys
+            tool.write_text(f"#!{sys.executable}\n" + '''import json,os,pathlib,socket,sys,tempfile
 name=pathlib.Path(sys.argv[0]).name
 with open(os.environ['CALL_LOG'],'a') as log:
- log.write(json.dumps({'tool':name,'argv':sys.argv[1:],'flags':os.environ.get('RUSTFLAGS')})+'\\n')
+ log.write(json.dumps({'tool':name,'argv':sys.argv[1:],'flags':os.environ.get('RUSTFLAGS'),'tmpdir':os.environ.get('TMPDIR')})+'\\n')
+if name=='mbx' and os.environ.get('CHECK_SESSION_SOCKET'):
+ with tempfile.TemporaryDirectory(prefix='mbx-session-',dir=os.environ['TMPDIR']) as folder:
+  with socket.socket(socket.AF_UNIX) as peer:peer.bind(folder+'/cache-agent.sock')
 if name!='mbx':print(name+' '+os.environ[name.upper()+'_VERSION']+' (fixture)')
 ''')
             tool.chmod(0o755)
@@ -58,6 +61,19 @@ if name!='mbx':print(name+' '+os.environ[name.upper()+'_VERSION']+' (fixture)')
         (self.bin / "mbx").unlink()
         self.assertNotEqual(self.run_adapter("build", "--locked").returncode, 0)
         self.assertFalse(self.log.exists())
+
+    def test_sdk_long_tmpdir_cannot_overflow_the_mbx_session_socket_path(self):
+        sdk_tmp = self.root / ("sdk-" + "long" * 40) / "tmp"
+        sdk_tmp.mkdir(parents=True)
+        self.env.update(TMPDIR=str(sdk_tmp), CHECK_SESSION_SOCKET="1")
+        control = subprocess.run([str(self.bin / "mbx"), "build"], env=self.env,
+                                 text=True, capture_output=True)
+        self.assertNotEqual(control.returncode, 0, "long-path control unexpectedly bound")
+        self.assertIn("AF_UNIX path too long", control.stderr)
+        self.assertEqual(self.run_adapter("build", "--locked").returncode, 0)
+        rows = [json.loads(line) for line in self.log.read_text().splitlines()]
+        self.assertEqual(rows[-1]["tmpdir"], "/tmp")
+        self.assertEqual(rows[-1]["argv"], ["build", "--locked"])
 
     def test_adapter_does_not_bypass_cargo_rustc_or_wrapper_pin_rejections(self):
         identity = self.root / "tools/toolchain_identity.sh"
