@@ -1,13 +1,20 @@
 # owrt-rs
 
-逐步用 Rust 替换 OpenWrt 中能够替换的部分。当前在 Xiaomi Mi Router AX3000T 上运行，
-基于 OpenWrt 25.12.5；已发布版本为 [v0.3.2](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.2)（原厂 bootloader、AN8855 硬件专用），
+逐步用 Rust 替换 OpenWrt 中能够替换的部分。当前候选固件
+[v0.3.3](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.3) 已基于 **OpenWrt 25.12.6**，
+完成正式构建、复现和离线验收，尚未刷入真机。最近经过真机验收的正式 Latest 仍为
+[v0.3.2 / OpenWrt 25.12.5](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.2)。
+适用设备为原厂 bootloader、AN8855 硬件版本的 Xiaomi Mi Router AX3000T，
 包含 procd、ubusd、netifd、rpcd、logd、httpd、fw4、uci、reload_config、dnsmasq、odhcpd 共 11 个 Rust 组件。
 
 以下按时间倒序记录，日期统一使用 Europe/Berlin。链接指向当时的报告与发布记录。
 
 ## 2026-10-23
 
+- 发布 [v0.3.3 预发行候选](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.3)：
+  跟进 OpenWrt 25.12.6，并收录微软 Rust 规范审查的安全、可靠性及测试修复。
+  两轮固件、5 个 APK、11 个 ELF 逐字节一致，完整离线门禁通过；未执行刷写。
+  [发布说明](docs/releases/v0.3.3.md)、[构建与验收](docs/reviews/V033_RELEASE_20261023.md)。
 - 返工 Rust 审查中的业务 unsafe 边界：dnsmasq、fw4、procd、reload-config、rpcd、ubusd
   恢复 `forbid(unsafe_code)`；固定信号处理、进程凭证和受审 fork 操作由 platform 承担。
   门禁禁止再把业务根降为 `deny`。[修复与验证](docs/reviews/PLATFORM_BOUNDARY_REWORK_20261023.md)

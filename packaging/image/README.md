@@ -1,21 +1,28 @@
 # Native eleven-component image
 
-`native-25.12.5.json` fixes the standard executable paths, original file owners
+The current candidate is **v0.3.3 / OpenWrt 25.12.6**. Its
+`native-25.12.6.json` fixes the standard executable paths, original file owners
 and exact stock hashes for the AX3000T image. The original packages continue to
 supply configuration, libraries and execution-plane helpers. The accepted
 dnsmasq init script and ubus ACL are the only two integration-file replacements;
 their original and replacement hashes are pinned in the image specification.
-`owrt-control-plane 0.3.0-r1` owns eleven executable paths and these two files through APK v3 `replaces`
+`owrt-control-plane 0.3.3-r1` owns eleven executable paths and these two files through APK v3 `replaces`
 and `replaces-priority`; its stock package dependencies are pinned to the
 versions whose recovery copies were verified. The older `owrt-*` switch packages
-conflict with this package and are excluded from the final image.
+conflict with this package and are excluded from the final image. The historical
+`native-25.12.5.json` and its source/profile/ELF identities remain unchanged.
+The new candidate passed canonical rebuild and offline image qualification;
+physical deployment and Wi-Fi/client acceptance remain separate. See the
+[v0.3.3 record](../../docs/reviews/V033_RELEASE_20261023.md).
 
 The eleventh program is scoped `odhcpd-rs` at `/usr/sbin/odhcpd`. Its original
 `odhcpd-ipv6only` package still supplies init, defaults and `odhcpd-update`.
 The exact accepted SDK ELF is pinned like the other programs. Historical
 native-ten manifests and complete twelve-file recovery sets remain supported.
 
-The current release target is v0.3.0 because it adds a new component. The user
+## Historical v0.3.0 qualification
+
+The release target in the following historical record was v0.3.0 because it added a new component. The user
 authorized one idle/Renew fix and one limited device comparison; both metrics
 passed. The recipe now pins SDK ELF
 `589226a178668c0e53fa8db5ff726e2b4e69464f9521355fad229b1862c3043e`
@@ -35,6 +42,8 @@ Existing v0.2.4 candidate images, measurements
 and qualification reports keep their original versions and hashes; they are not
 renamed or treated as v0.3.0 build evidence.
 
+## Current build and recovery contract
+
 The canonical workflow builds the existing SDK artifacts and runs
 `tools/ci_build_dnsmasq.py` with the unchanged, accepted dnsmasq SDK recipe, then
 `tools/ci_integrate_image.sh`. It creates one native APK and rebuilds the image
@@ -42,8 +51,9 @@ from the pinned original stock image with the official services enabled and with
 trial collectors or per-component activation scripts. Final deliverables are
 under `work/native/out/`; `work/out/` contains intermediate build evidence. Final assembly uses an offline APK install and the exact ImageBuilder squashfs, sysupgrade-tar and fwtool tools. It never resolves rolling feeds for the final rootfs. Four Chinese catalogs are rebuilt from the pinned matching LuCI source, checked against production hashes, and delivered as four ordinary translation APKs.
 
-The dnsmasq build locks all 212 frozen source, shared-platform, toolchain and recipe inputs by
-their digest. `dnsmasq-build-manifest.json` records the fresh CI ELF, static PIE
+The dnsmasq build locks each version's frozen source, shared-platform, toolchain
+and recipe inputs by their digest (231 inputs for v0.3.3).
+`dnsmasq-build-manifest.json` records the fresh CI ELF, static PIE
 checks and its comparison with the previously accepted SDK ELF. A different
 canonical-host ELF does not inherit runtime qualification merely from matching
 source; final image acceptance is a separate gate. The intermediate standalone

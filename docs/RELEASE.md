@@ -1,5 +1,15 @@
 # 集成固件的发布与维护
 
+2026-10-23：已发布 **v0.3.3 / `0.3.3-r1` / OpenWrt 25.12.6**
+[预发行候选](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.3)。默认构建与
+[新配方](../packaging/image/native-25.12.6.json)已切换到25.12.6；历史25.12.5配方不变。
+实际构建提交为`1e25d61dc707833f97afa5a56148f4dbceb50ed3`，两轮完整固件、5个APK、
+11个ELF及最终manifest逐字节一致，完整离线门禁通过。发布沿用第一轮原始字节，
+不为发布重建。**未执行真机刷写、Wi-Fi或客户端验收，正式Latest仍是v0.3.2。**
+见[发布说明](releases/v0.3.3.md)、[构建与离线资格](reviews/V033_RELEASE_20261023.md)。
+
+以下保留各历史阶段的状态与身份，不将新候选资格倒填到旧记录。
+
 2026-10-22 源码更新：[25.12.6 适配报告](reviews/OPENWRT_25126_UPDATE_20261022.md)
 记录了新 stock/ImageBuilder 输入、AN8855 FIT 校验和协议回归。当前完整固件发行资格仍是
 25.12.5；切换前须完成新 SDK 构建、正式 ELF 身份、新 native 配方及完整镜像/恢复验证。
