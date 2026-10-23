@@ -27,7 +27,18 @@
     "sdk": {
       "url": "https://downloads.openwrt.org/releases/25.12.6/targets/mediatek/filogic/openwrt-sdk-25.12.6-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64.tar.zst",
       "sha256": "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
-      "download_verified": false
+      "download_verified": true,
+      "verification": {
+        "date": "2026-10-23",
+        "previous_record": {
+          "date": "2026-10-22",
+          "download_verified": false
+        },
+        "size": 252756332,
+        "method": "Downloaded from the official HTTPS URL; actual archive SHA-256 matches the newly retrieved official sha256sums and the previously recorded value.",
+        "receipt": "oracle:/home/ubuntu/owrt-v033-25126-release-20261023/private/upstream/25.12.6/inputs.json",
+        "signature_verified": false
+      }
     }
   },
   "checksum_source": "https://downloads.openwrt.org/releases/25.12.6/targets/mediatek/filogic/sha256sums",

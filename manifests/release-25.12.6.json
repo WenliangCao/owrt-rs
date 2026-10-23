@@ -1,0 +1,56 @@
+{
+  "id": "release-25.12.6",
+  "date": "2026-10-23",
+  "status": "Official SDK, ImageBuilder and stock image inputs downloaded and SHA-256 verified; v0.3.3 canonical candidate build and complete final-image qualification pending; no router deployment authorized.",
+  "inputs": {
+    "sdk": "openwrt-sdk-25.12.6-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64.tar.zst sha256 1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
+    "imagebuilder": "openwrt-imagebuilder-25.12.6-mediatek-filogic.Linux-x86_64.tar.zst sha256 8ce0da1e2fb3d0454ebeb1e3df5705f2145e09ffe6f00d5077c18369719daf83",
+    "stock_image": "openwrt-25.12.6-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin sha256 286dbbaf16588c22daeaf6dbc8ca02573a1c30fbeb8592e3ba58b865c8726043"
+  },
+  "input_verification": {
+    "sdk": {
+      "url": "https://downloads.openwrt.org/releases/25.12.6/targets/mediatek/filogic/openwrt-sdk-25.12.6-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64.tar.zst",
+      "sha256": "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
+      "download_verified": true,
+      "size": 252756332
+    },
+    "imagebuilder": {
+      "url": "https://downloads.openwrt.org/releases/25.12.6/targets/mediatek/filogic/openwrt-imagebuilder-25.12.6-mediatek-filogic.Linux-x86_64.tar.zst",
+      "sha256": "8ce0da1e2fb3d0454ebeb1e3df5705f2145e09ffe6f00d5077c18369719daf83",
+      "download_verified": true,
+      "size": 577457793
+    },
+    "stock_image": {
+      "url": "https://downloads.openwrt.org/releases/25.12.6/targets/mediatek/filogic/openwrt-25.12.6-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "sha256": "286dbbaf16588c22daeaf6dbc8ca02573a1c30fbeb8592e3ba58b865c8726043",
+      "download_verified": true,
+      "size": 9410848
+    }
+  },
+  "checksum_source": "https://downloads.openwrt.org/releases/25.12.6/targets/mediatek/filogic/sha256sums",
+  "signature_verified": false,
+  "source": {
+    "tag": "v25.12.6",
+    "tag_object": "22dd0e28678a6cd6fbadea2d5aaded3a805ab8a4",
+    "tag_commit": "64900e756efa667774214f9c6b17c113222e01f7",
+    "image_revision": "r33311-981c978eff",
+    "image_revision_commit": "981c978eff636fc7d81f0ed17b00e2a6317c949a",
+    "source_date_epoch": 1792273538
+  },
+  "target": {
+    "profile": "xiaomi_mi-router-ax3000t",
+    "target": "mediatek/filogic",
+    "hardware_scope": "stock bootloader, AN8855 only"
+  },
+  "evidence": {
+    "intake": "manifests/ax3000t-stock-openwrt-25.12.6/intake.json",
+    "fit_inputs": "packaging/image/ax3000t-fit-inputs.json",
+    "private_receipt": "oracle:/home/ubuntu/owrt-v033-25126-release-20261023/private/upstream/25.12.6/inputs.json"
+  },
+  "qualification": {
+    "canonical_build": "pending",
+    "final_image": "pending",
+    "physical_router_accessed": false,
+    "physical_deployment": "not authorized by this release preparation"
+  }
+}
