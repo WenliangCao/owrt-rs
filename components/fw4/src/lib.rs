@@ -2,7 +2,7 @@
 //! `/sbin/fw4`; `FW4_MOCK_DIRS=dir1:dir2` switches all inputs to the upstream
 //! test-suite fixture layout and `FW4_TRACE=stderr` emits the `[call]` trace.
 
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![cfg_attr(test, allow(dead_code))]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
@@ -463,17 +463,7 @@ fn flush() -> i32 {
 }
 
 /// Run the firewall CLI and terminate the process with its command exit status.
-///
-/// # Safety
-/// Call only from the sole process thread, before any other thread is started.
-/// The CLI updates the process environment and signal dispositions to preserve
-/// the shell wrapper contract. No other thread may access libc environment
-/// storage while this function runs.
-#[expect(
-    unsafe_code,
-    reason = "the process entry owner must uphold environment mutation prerequisites"
-)]
-pub unsafe fn run(mut args: Vec<String>) -> ! {
+pub fn run(mut args: Vec<String>, owner: &owrt_platform::process_owner::ProcessOwner) -> ! {
     let argv0 = if args.is_empty() {
         "fw4".into()
     } else {
@@ -497,10 +487,14 @@ pub unsafe fn run(mut args: Vec<String>) -> ! {
         }
     }
     if quiet {
-        std::env::set_var("QUIET", "1");
+        owner
+            .set_var(std::ffi::OsStr::new("QUIET"), std::ffi::OsStr::new("1"))
+            .unwrap_or_else(|error| die(quiet, &error.to_string()));
     }
     if !is_mock() && std::io::stderr().is_terminal() {
-        std::env::set_var("TTY", "1");
+        owner
+            .set_var(std::ffi::OsStr::new("TTY"), std::ffi::OsStr::new("1"))
+            .unwrap_or_else(|error| die(quiet, &error.to_string()));
     }
     let action = args.first().map(String::as_str).unwrap_or("");
     let code = match action {

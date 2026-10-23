@@ -17,7 +17,7 @@ pub unsafe extern "C" fn main(argc: i32, argv: *const *const std::ffi::c_char) -
                 .into_owned()
         })
         .collect();
-    // SAFETY: libc calls this entry on its sole startup thread; argument
-    // conversion starts no threads and no other code accesses the environment.
-    unsafe { owrt_fw4::run(args) }
+    let owner = owrt_platform::process_owner::ProcessOwner::acquire()
+        .unwrap_or_else(|_| std::process::exit(1));
+    owrt_fw4::run(args, &owner)
 }
