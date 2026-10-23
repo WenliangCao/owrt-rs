@@ -20,6 +20,9 @@ def prepare(plan, argv, env):
                      "--target-dir", str(build / "dnsmasq/target")]
     if argv != expected_argv:
         raise ValueError("unexpected SDK Cargo invocation")
+    adapter = plan.get("build_adapter")
+    if not adapter or sha(adapter["path"]) != adapter["sha256"]:
+        raise ValueError("mbx build adapter identity missing or changed")
     expected = plan["recipe_environment"]
     for name, value in expected.items():
         if env.get(name) != value:
@@ -62,6 +65,7 @@ def prepare(plan, argv, env):
     else:
         raise ValueError("unknown PGO mode")
     return {"mode": mode, "argv": argv, "cargo_verbosity": "normal", "recipe_environment": expected,
+            "build_adapter": adapter,
             "recipe_rustflags": recipe_flags, "added_rustflags": added,
             "effective_rustflags": recipe_flags + " " + added,
             **identity,
@@ -74,7 +78,9 @@ def main():
     plan = json.loads(plan_path.read_text())
     argv = sys.argv[1:]
     receipt = prepare(plan, argv, os.environ)
+    executable = plan["cargo"]
     if receipt is not None:
+        executable = receipt["build_adapter"]["path"]
         receipt["plan_sha256"] = sha(plan_path)
         with Path(plan["receipt"]).open("x") as stream:
             json.dump(receipt, stream, indent=2)
@@ -82,7 +88,7 @@ def main():
         os.environ["RUSTFLAGS"] = receipt["effective_rustflags"]
     # Preserve normal recipe verbosity. Diagnostic -vv also changes dependency
     # --cap-lints from allow to warn and emits Cargo's ignored-hint advisories.
-    os.execv(plan["cargo"], [plan["cargo"], *argv])
+    os.execv(executable, [executable, *argv])
 
 
 if __name__ == "__main__":

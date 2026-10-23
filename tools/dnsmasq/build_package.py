@@ -89,11 +89,20 @@ def files_below(path):
             yield value
 
 
-def inputs(root):
-    paths = ["rust-toolchain.toml", "manifests/release-25.12.5.json",
+def release_manifest(version):
+    require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version), "invalid OpenWrt release version")
+    return f"manifests/release-{version}.json"
+
+
+def inputs(root, version="25.12.5"):
+    paths = ["rust-toolchain.toml", release_manifest(version),
              "packaging/openwrt/owrt-dnsmasq", "tools/dnsmasq/build_package.sh",
              "tools/dnsmasq/build_package.py", "components/dnsmasq/Cargo.lock",
              "components/dnsmasq/platform/Cargo.toml", "components/dnsmasq/platform/src"]
+    # Historical frozen trees keep their original map; new snapshots bind the
+    # compilation adapter as well as the SDK recipe that invokes it.
+    if (root / "tools/mbx_cargo.sh").exists():
+        paths.append("tools/mbx_cargo.sh")
     manifest = tomllib.loads((root / "components/dnsmasq/Cargo.toml").read_text())
     if any(target.get("path") == "platform/entry.rs" for target in manifest.get("bin", [])):
         # Current executables register fixed platform workers outside src/.
@@ -115,13 +124,13 @@ def inputs(root):
             for name in paths for path in files_below(root / name)}
 
 
-def snapshot(root, destination, expected):
+def snapshot(root, destination, expected, version="25.12.5"):
     for name, digest in expected.items():
         target = destination / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(root / name, target)
         require(sha(target) == digest, f"input changed while copying: {name}")
-    require(inputs(root) == expected, "inputs changed during source snapshot")
+    require(inputs(root, version) == expected, "inputs changed during source snapshot")
 
 
 def sdk_inputs(sdk):
@@ -350,9 +359,10 @@ def audit_build(args, out, report):
     sdk = safe_path(args.sdk.resolve())
     require(platform.system() == "Linux", "matching Linux SDK build host required")
     require(sdk.is_dir(), f"SDK is missing: {sdk}")
-    source_hashes = inputs(ROOT)
+    version = getattr(args, "openwrt_version", "25.12.5")
+    source_hashes = inputs(ROOT, version=version)
     source = out / "source"
-    snapshot(ROOT, source, source_hashes)
+    snapshot(ROOT, source, source_hashes, version=version)
     report["source_files"] = source_hashes
     report["source_digest"] = hashlib.sha256(json.dumps(source_hashes, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     if args.expected_source_digest:
@@ -367,11 +377,11 @@ def audit_build(args, out, report):
         report["git_commit"] = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
         report["source_commit_provenance"] = "local git checkout; exact file hashes remain authoritative"
         report["source_git_status"] = subprocess.check_output(["git", "-C", str(ROOT), "status", "--porcelain", "--",
-            "rust-toolchain.toml", "manifests/release-25.12.5.json", "components/dnsmasq", "components/ubus", "components/platform",
+            "rust-toolchain.toml", release_manifest(version), "components/dnsmasq", "components/ubus", "components/platform",
             "packaging/openwrt/owrt-dnsmasq", "tools/dnsmasq/build_package.sh", "tools/dnsmasq/build_package.py"], text=True)
         require(not report["source_git_status"], "build inputs have uncommitted changes; source commit would be inaccurate")
         epoch = subprocess.check_output(["git", "-C", str(ROOT), "show", "-s", "--format=%ct", "HEAD"], text=True).strip()
-    archive_name, expected_hash = json.loads((source / "manifests/release-25.12.5.json").read_text())["inputs"]["sdk"].split(" sha256 ")
+    archive_name, expected_hash = json.loads((source / release_manifest(version)).read_text())["inputs"]["sdk"].split(" sha256 ")
     require(sdk.name == archive_name.removesuffix(".tar.zst"), "SDK name differs from pinned release manifest")
     archive = sdk.parent / archive_name
     require(sha(archive) == expected_hash, "SDK archive differs from pinned release manifest")
@@ -422,7 +432,17 @@ def audit_build(args, out, report):
         report["cargo_version"] = run([str(cargo), "--version"], out / "cargo-version.log", env=env).strip()
         report["rustc_version"] = run([str(cargo.with_name("rustc")), "-Vv"], out / "rustc-version.log", env=env).strip()
         report["target_cc_version"] = run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip()
-        make_vars += [f"V1_CARGO={cargo}",
+        adapter_root = source if (source / "tools/mbx_cargo.sh").is_file() else ROOT
+        adapter = safe_path(adapter_root / "tools/mbx_cargo.sh")
+        require(adapter.is_file() and os.access(adapter, os.X_OK), "mbx Cargo adapter missing")
+        report["build_adapter"] = {"path": str(adapter), "sha256": sha(adapter)}
+        if "tools/mbx_cargo.sh" in source_hashes:
+            require(sha(adapter) == source_hashes["tools/mbx_cargo.sh"],
+                    "build adapter differs from frozen source identity")
+            report["build_adapter_compatibility"] = "source-snapshot-bound"
+        else:
+            report["build_adapter_compatibility"] = "legacy freeze has no adapter; current adapter identified separately"
+        make_vars += [f"V1_CARGO={adapter}",
                       f"V1_CARGO_HOME={safe_path(Path(env.get('CARGO_HOME', str(Path.home() / '.cargo'))).resolve())}",
                       f"V1_RUSTUP_HOME={safe_path(Path(env.get('RUSTUP_HOME', str(Path.home() / '.rustup'))).resolve())}"]
     report["commands"] = []
@@ -458,7 +478,7 @@ def audit_build(args, out, report):
     report["elf_layout"] = audit_elf(elf.read_bytes(), elf_text)
     metadata = run([str(apk), "adbdump", str(artifact)], out / "apk-metadata.log")
     report["apk_metadata"] = audit_metadata(metadata, args.package_release)
-    require(inputs(ROOT) == source_hashes, "source changed while building; artifact is not current")
+    require(inputs(ROOT, version=version) == source_hashes, "source changed while building; artifact is not current")
     if args.frozen_elf:
         require(sha(out / "frozen-dnsmasq") == args.expected_elf_sha256,
                 "frozen ELF snapshot changed while packaging")
@@ -478,6 +498,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("sdk", type=Path)
     parser.add_argument("out", type=Path)
+    parser.add_argument("--openwrt-version", default="25.12.5",
+                        help="explicit SDK release; old frozen inputs default to 25.12.5")
     parser.add_argument("--package-release", choices=["2", "3", "4"], default=PACKAGE_RELEASE,
                         help="APK release; default 4, historical M5/M6b replays use 2/3")
     parser.add_argument("--budget", type=Path, required=True,

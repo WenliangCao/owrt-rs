@@ -44,10 +44,13 @@ class PgoReleaseTests(unittest.TestCase):
         self.profile.write_bytes(b"frozen synthetic profile")
         self.linker = self.root / "linker.py"
         self.linker.write_bytes(b"unchanged static PIE linker")
+        adapter = self.root / "mbx-cargo"
+        adapter.write_text("verified adapter")
+        self.adapter = {"path": str(adapter), "sha256": wrapper.sha(adapter)}
         self.env = {"RUSTUP_TOOLCHAIN": "1.98.1", "CARGO_BUILD_TARGET": "aarch64-unknown-linux-musl",
                     "CARGO_PROFILE_RELEASE_PANIC": "abort", "RUSTFLAGS": "-Cforce-unwind-tables=no",
                     "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER": str(self.linker)}
-        self.plan = {"build_dir": str(self.root), "profile": str(self.profile),
+        self.plan = {"build_dir": str(self.root), "profile": str(self.profile), "build_adapter": self.adapter,
                      "profile_sha256": wrapper.sha(self.profile), "profile_bytes": self.profile.stat().st_size,
                      "static_pie_linker_sha256": wrapper.sha(self.linker), "recipe_environment": dict(self.env)}
         self.argv = ["build", "--release", "--frozen", "--manifest-path", str(self.root / "dnsmasq/Cargo.toml"),
@@ -73,14 +76,34 @@ class PgoReleaseTests(unittest.TestCase):
         self.assertIsNone(wrapper.prepare(self.plan, ["--version"], self.env))
 
     def test_exec_preserves_normal_recipe_verbosity(self):
-        plan = {**self.plan, "cargo": "/pinned/cargo", "receipt": str(self.root / "receipt.json")}
+        adapter = self.root / "mbx-cargo"
+        adapter.write_text("verified adapter")
+        identity = {"path": str(adapter), "sha256": wrapper.sha(adapter)}
+        plan = {**self.plan, "cargo": "/pinned/cargo", "build_adapter": identity,
+                "receipt": str(self.root / "receipt.json")}
         path = self.root / "plan.json"
         path.write_text(json.dumps(plan))
         with patch.dict(wrapper.os.environ, {**self.env, "DNSMASQ_PGO_BUILD_PLAN": str(path)}, clear=True), \
              patch.object(wrapper.sys, "argv", ["pgo-cargo", *self.argv]), \
              patch.object(wrapper.os, "execv") as execute:
             wrapper.main()
-        execute.assert_called_once_with("/pinned/cargo", ["/pinned/cargo", *self.argv])
+        execute.assert_called_once_with(str(adapter), [str(adapter), *self.argv])
+        self.assertEqual(json.loads((self.root / "receipt.json").read_text())["build_adapter"], identity)
+
+    def test_exec_rejects_missing_or_changed_build_adapter(self):
+        adapter = self.root / "mbx-cargo"
+        adapter.write_text("changed adapter")
+        for identity in [None, {"path": str(adapter), "sha256": "0" * 64}]:
+            plan = {**self.plan, "cargo": "/pinned/cargo", "build_adapter": identity,
+                    "receipt": str(self.root / "receipt.json")}
+            path = self.root / "plan.json"
+            path.write_text(json.dumps(plan))
+            with patch.dict(wrapper.os.environ, {**self.env, "DNSMASQ_PGO_BUILD_PLAN": str(path)}, clear=True), \
+                 patch.object(wrapper.sys, "argv", ["pgo-cargo", *self.argv]), \
+                 patch.object(wrapper.os, "execv") as execute:
+                with self.assertRaisesRegex(ValueError, "mbx build adapter"):
+                    wrapper.main()
+                execute.assert_not_called()
 
     def test_fixed_slot_rejects_existing_outputs_and_symlink_ancestors(self):
         slot = self.root / "sdk-build-slot"
@@ -204,7 +227,7 @@ class PgoReleaseTests(unittest.TestCase):
         self.assertEqual(spec, frozen)
 
     def test_missing_or_mismatched_profile_diagnostics_fail_closed(self):
-        report = {"pgo": {key: self.plan[key] for key in ("profile_sha256", "profile_bytes")}}
+        report = {"build_adapter": self.adapter, "pgo": {key: self.plan[key] for key in ("profile_sha256", "profile_bytes")}}
         receipt = wrapper.prepare(self.plan, self.argv, self.env)
         (self.root / "pgo-invocation.json").write_text(json.dumps(receipt))
         (self.root / "compile.log").write_text("Finished release profile\n")
@@ -232,7 +255,7 @@ class PgoReleaseTests(unittest.TestCase):
             wrapper.prepare({**plan, "mode": "other"}, self.argv, self.env)
         (self.root / "pgo-invocation.json").write_text(json.dumps(result))
         (self.root / "compile.log").write_text("Finished release profile\n")
-        report = {"pgo": {"mode": "generate", "profile_output_dir": plan["profile_output_dir"]}}
+        report = {"build_adapter": self.adapter, "pgo": {"mode": "generate", "profile_output_dir": plan["profile_output_dir"]}}
         builder.verify_pgo_build(self.root, report)
         (self.root / "compile.log").write_text("warning: hash mismatch\n")
         with self.assertRaisesRegex(ValueError, "profile missing/mismatch"):

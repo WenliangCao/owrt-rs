@@ -53,7 +53,7 @@ for component in $components; do
     CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$linker" \
     STAGING_DIR="$staging" \
     RUSTFLAGS="-Dwarnings --remap-path-prefix=$build=/build --remap-path-prefix=$CARGO_HOME=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
-    cargo build --locked --release --bins --manifest-path "$build/$component/Cargo.toml" \
+    "$repo/tools/mbx_cargo.sh" build --locked --release --bins --manifest-path "$build/$component/Cargo.toml" \
         --target-dir "$target" > "$out/build-core-$component.log" 2>&1 \
         || { tail -40 "$out/build-core-$component.log"; exit 1; }
     install -m 755 "$target/aarch64-unknown-linux-musl/release/$component-rs" "$out/core-binaries/$component-rs"

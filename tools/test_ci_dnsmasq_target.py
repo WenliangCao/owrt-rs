@@ -66,6 +66,28 @@ class TargetCheckTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "differs"):
             target.builder.source_identity(spec, frozen)
 
+    def test_new_sdk_uses_frozen_version_and_checksum_before_extraction(self):
+        frozen = self.root / "frozen"
+        (frozen / "manifests").mkdir(parents=True)
+        name = "openwrt-sdk-25.12.6-test.tar.zst"
+        expected = "a" * 64
+        (frozen / "manifests/release-25.12.6.json").write_text(json.dumps({
+            "inputs": {"sdk": f"{name} sha256 {expected}"}}))
+        work, out = self.root / "work", self.root / "out"
+        out.mkdir()
+        with patch.object(target.builder.audit, "sha", return_value=expected), \
+                patch.object(target.builder.audit, "run") as execute:
+            target.prepare_sdk(work, out, frozen, {"openwrt": "25.12.6"})
+        commands = [call.args[0] for call in execute.call_args_list]
+        self.assertEqual(commands[0][-1],
+            "https://downloads.openwrt.org/releases/25.12.6/targets/mediatek/filogic/" + name)
+        self.assertEqual(commands[1][:2], ["tar", "-xf"])
+        with patch.object(target.builder.audit, "sha", return_value="b" * 64), \
+                patch.object(target.builder.audit, "run") as execute, \
+                self.assertRaisesRegex(ValueError, "SDK archive checksum mismatch"):
+            target.prepare_sdk(work, out, frozen, {"openwrt": "25.12.6"})
+        self.assertFalse(any(call.args[0][0] == "tar" for call in execute.call_args_list))
+
     def test_successful_build_with_linker_warning_fails_and_retains_outputs(self):
         def successful_build(work, spec, report, **kwargs):
             out = work / "out/dnsmasq"

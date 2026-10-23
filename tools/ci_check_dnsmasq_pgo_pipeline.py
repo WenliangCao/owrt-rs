@@ -12,6 +12,10 @@ import ci_check_dnsmasq_target as target
 BUILD_SLOT = "/home/ubuntu/owrt-unified-v022-20261017/private/dnsmasq-sdk-build-slot"
 PROFILE_OUTPUT = "/tmp/dnsmasq-unified-v022-ci-pgo"
 INSTRUMENTATION_BUDGET = {"elf_max_bytes": 6_000_000, "apk_max_bytes": 3_500_000}
+PROFILE_RELEASES = {
+    "25.12.5": ("WenliangCao/owrt-control-plane-rs", "dnsmasq-k-pgo-inputs-20261017"),
+    "25.12.6": ("WenliangCao/owrt-rs", "dnsmasq-v033-pgo-inputs-20261023"),
+}
 
 
 def frozen_hash(value, length=64):
@@ -21,6 +25,9 @@ def frozen_hash(value, length=64):
 def load_spec(path, expected_stage):
     spec = json.loads(path.read_text())
     require = target.builder.audit.require
+    version = spec.get("openwrt", "25.12.5")
+    require(isinstance(version, str) and version in PROFILE_RELEASES,
+            "PGO requires an explicitly supported OpenWrt baseline")
     require(frozen_hash(spec.get("source_commit"), 40), "full source commit required")
     require(type(spec.get("source_date_epoch")) is int and spec["source_date_epoch"] > 0,
             "source timestamp must be frozen")
@@ -30,6 +37,10 @@ def load_spec(path, expected_stage):
         and frozen_hash(digest) for name, digest in files.items()), "complete source input map required")
     require({"components/platform/Cargo.toml", "components/dnsmasq/platform/Cargo.toml"} <= files.keys(),
             "integrated shared platform source is required")
+    if version == "25.12.6":
+        require("manifests/release-25.12.6.json" in files
+                and "manifests/release-25.12.5.json" not in files,
+                "OpenWrt 25.12.6 requires its own frozen SDK manifest")
     digest = hashlib.sha256(json.dumps(files, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     require(spec.get("source_digest") == digest and spec.get("source_file_count") == len(files),
             "source input digest/count differs from frozen map")
@@ -52,7 +63,7 @@ def load_spec(path, expected_stage):
         require(frozen_hash(pgo.get("profile_sha256")) and type(pgo.get("profile_bytes")) is int
                 and pgo["profile_bytes"] > 0, "profile hash/size must be frozen")
         repo, tag, name = target.builder.profile_asset(pgo.get("profile_url", ""))
-        require(repo == "WenliangCao/owrt-control-plane-rs" and tag == "dnsmasq-k-pgo-inputs-20261017"
+        require((repo, tag) == PROFILE_RELEASES[version]
                 and name == f"dnsmasq-{spec['source_commit'][:8]}-{pgo['profile_sha256']}.profdata",
                 "profile must name its unique source/hash build-input asset")
         provenance = pgo.get("training", {})

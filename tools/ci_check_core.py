@@ -75,7 +75,7 @@ def host(work, env, report):
     for component in COMPONENTS:
         crate = REPO / "components" / component
         manifest = crate / "Cargo.toml"
-        common = ["cargo", "test", "--locked", "--manifest-path", manifest]
+        common = ["mbx", "test", "--locked", "--manifest-path", manifest]
         # --tests retains the normal lib/bin/integration test targets. Turning
         # examples which include src modules into extra libtest roots would
         # duplicate their tests in an unsupported crate-root environment.
@@ -89,7 +89,7 @@ def host(work, env, report):
             if (crate / "src/lib.rs").is_file() and not docs_disabled:
                 doc_code = run(common + ["--doc"], out / f"doc-{component}.log", env)
         if any((crate / "examples").glob("*.rs")):
-            example_code = run(["cargo", "check", "--locked", "--examples", "--manifest-path", manifest],
+            example_code = run(["mbx", "check", "--locked", "--examples", "--manifest-path", manifest],
                                out / f"examples-{component}.log", env)
         report["commands"].append({"component": component, "compile": compile_code,
                                    "test": test_code, "doc": doc_code, "examples": example_code})
@@ -134,7 +134,7 @@ def sdk_check(work, env, report):
     # Also compile business tests and normal examples for the router architecture; these
     # check-only products cannot be substituted for those release artifacts.
     for component in COMPONENTS:
-        code = run(["cargo", "check", "--locked", "--tests", "--manifest-path",
+        code = run(["mbx", "check", "--locked", "--tests", "--manifest-path",
                     REPO / "components" / component / "Cargo.toml", "--target-dir", work / "target-check"],
                    out / f"check-target-{component}.log", check_env)
         report["commands"].append({"target_check": component, "returncode": code})
@@ -142,7 +142,7 @@ def sdk_check(work, env, report):
             return out, False
         crate = REPO / "components" / component
         if any((crate / "examples").glob("*.rs")):
-            example_code = run(["cargo", "check", "--locked", "--examples", "--manifest-path",
+            example_code = run(["mbx", "check", "--locked", "--examples", "--manifest-path",
                                 crate / "Cargo.toml", "--target-dir", work / "target-check"],
                                out / f"check-examples-{component}.log", check_env)
             report["commands"].append({"target_examples": component, "returncode": example_code})
@@ -188,7 +188,7 @@ def main():
     env.setdefault("OPENWRT_VERSION", "25.12.5")
     report = {"status": "running", "phase": args.mode, "commands": [],
               "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip(),
-              "scope": "nine non-dnsmasq candidates; no publication or deployment"}
+              "scope": "ten non-dnsmasq candidates; no publication or deployment"}
     passed = False
     try:
         out, passed = (host if args.mode == "host" else sdk_check)(work, env, report)

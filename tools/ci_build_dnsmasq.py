@@ -146,6 +146,8 @@ def verify_pgo_build(out, report):
     mode = report["pgo"].get("mode", "use")
     audit.require(receipt["mode"] == mode, "PGO invocation mode differs from plan")
     audit.require(receipt["cargo_verbosity"] == "normal", "canonical PGO requires normal Cargo verbosity")
+    audit.require(receipt.get("build_adapter") == report["build_adapter"],
+                  "PGO build did not use the verified mbx adapter")
     if mode == "generate":
         audit.require(receipt["profile_output_dir"] == report["pgo"]["profile_output_dir"]
                       and "-Cprofile-use" not in receipt["effective_rustflags"],
@@ -165,7 +167,7 @@ def verify_pgo_build(out, report):
 
 def source_identity(spec, frozen_source=None):
     root = REPO if frozen_source is None else frozen_source
-    files = audit.inputs(root)
+    files = audit.inputs(root, version=spec.get("openwrt", "25.12.5"))
     digest = hashlib.sha256(json.dumps(files, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     audit.require(digest == spec["source_digest"], "dnsmasq source/SDK recipe differs from accepted main product")
     if "source_files" in spec:
@@ -237,7 +239,8 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
     files, digest = source_identity(spec, frozen_source)
     out = work / "out/dnsmasq"
     source = out / "source"
-    audit.snapshot(root, source, files)
+    version = spec.get("openwrt", "25.12.5")
+    audit.snapshot(root, source, files, version=version)
     commit = release_commit or (spec["source_commit"] if frozen_source is not None else
               subprocess.check_output(["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True).strip())
     report.update(source_files=files, source_digest=digest,
@@ -245,7 +248,7 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
                   accepted_product_git_commit=resolve_commit(REPO, spec["source_commit"]),
                   accepted_product_commit=spec["source_commit"], build_mode="compile-and-package")
     epoch = source_epoch(spec, commit)
-    archive_name, archive_hash = json.loads((source / "manifests/release-25.12.5.json").read_text())["inputs"]["sdk"].split(" sha256 ")
+    archive_name, archive_hash = json.loads((source / audit.release_manifest(version)).read_text())["inputs"]["sdk"].split(" sha256 ")
     archive = work / "dl" / archive_name
     audit.require(audit.sha(archive) == archive_hash, "SDK archive differs from accepted release")
     sdk = work / archive_name.removesuffix(".tar.zst")
@@ -278,7 +281,16 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
     audit.run([str(cargo), "fetch", "--locked", "--target", "aarch64-unknown-linux-musl",
                "--manifest-path", str(source / "components/dnsmasq/Cargo.toml")],
               out / "cargo-fetch.log", env=env)
-    build_cargo = cargo
+    adapter_root = source if (source / "tools/mbx_cargo.sh").is_file() else REPO
+    build_cargo = audit.safe_path(adapter_root / "tools/mbx_cargo.sh")
+    audit.require(build_cargo.is_file() and os.access(build_cargo, os.X_OK), "mbx Cargo adapter missing")
+    report["build_adapter"] = {"path": str(build_cargo), "sha256": audit.sha(build_cargo)}
+    if "tools/mbx_cargo.sh" in files:
+        audit.require(report["build_adapter"]["sha256"] == files["tools/mbx_cargo.sh"],
+                      "build adapter differs from frozen source identity")
+        report["build_adapter_compatibility"] = "source-snapshot-bound"
+    else:
+        report["build_adapter_compatibility"] = "legacy freeze has no adapter; current adapter identified separately"
     cc_override = []
     if "pgo" in spec:
         audit.require(env["RUSTUP_TOOLCHAIN"] == "1.98.1", "PGO requires pinned Rust 1.98.1")
@@ -312,7 +324,7 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
                  f"--remap-path-prefix={cargo_home}=/cargo -Clink-arg=-fuse-ld=bfd "
                  "-Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now "
                  "-Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static -Dwarnings")
-        plan = {"mode": mode, "cargo": str(cargo), "build_dir": str(build_dir), **profile_input,
+        plan = {"mode": mode, "cargo": str(cargo), "build_adapter": report["build_adapter"], "build_dir": str(build_dir), **profile_input,
                 "receipt": str(out / "pgo-invocation.json"),
                 "static_pie_linker_sha256": audit.sha(source / "packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"),
                 "recipe_environment": {"RUSTUP_TOOLCHAIN": "1.98.1", "CARGO_HOME": str(cargo_home),
@@ -372,7 +384,7 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
     report["elf_layout"] = audit.audit_elf(elf.read_bytes(), text)
     metadata = audit.run([str(apk), "adbdump", str(artifact)], out / "apk-metadata.log")
     report["apk_metadata"] = audit.audit_metadata(metadata, spec["package_release"])
-    audit.require(audit.inputs(root) == files, "dnsmasq source changed while building")
+    audit.require(audit.inputs(root, version=version) == files, "dnsmasq source changed while building")
     report["elf"] = {"sha256": audit.sha(elf), "size": elf.stat().st_size,
                      "reference_sha256": spec.get("reference_elf_sha256"),
                      "matches_accepted_reference": audit.sha(elf) == spec.get("reference_elf_sha256")}

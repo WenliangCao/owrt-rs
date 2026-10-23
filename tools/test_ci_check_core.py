@@ -60,6 +60,9 @@ class OdhcpdBuildBoundaryTests(unittest.TestCase):
                     "/tmp/owrt-core-release/", str(root / "source-slot") + "/"))
                 (root / "rust-toolchain.toml").write_text('channel = "1.98.1"\n')
                 (tools / "toolchain_identity.sh").write_text("printf '%s\\n' 'official=yes'\n")
+                adapter = tools / "mbx_cargo.sh"
+                adapter.write_bytes((core.REPO / "tools/mbx_cargo.sh").read_bytes())
+                adapter.chmod(0o755)
                 (tools / "check_abi.sh").write_text("exit 0\n")
                 (tools / "ci_check_core.py").write_text("import sys; assert sys.argv[1] == 'warnings'\n")
                 for name in ("procd", "ubusd", "netifd", "odhcpd", "ubus", "uci", "platform"):
@@ -80,7 +83,7 @@ class OdhcpdBuildBoundaryTests(unittest.TestCase):
                 stubs = {
                     "git": "import sys\nprint('1' if '--format=%ct' in sys.argv else 'a'*40)\n",
                     "rsync": "import sys,shutil\nshutil.copytree(sys.argv[-2],sys.argv[-1],dirs_exist_ok=True)\n",
-                    "cargo": """import os,sys
+                    "mbx": """import os,sys
 from pathlib import Path
 args=sys.argv[1:]
 manifest=Path(args[args.index('--manifest-path')+1])

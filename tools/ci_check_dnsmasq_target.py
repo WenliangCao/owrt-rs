@@ -8,6 +8,7 @@ publishes, installs or deploys.
 import argparse
 import hashlib
 import json
+import os
 import platform
 from pathlib import Path
 import shutil
@@ -18,10 +19,11 @@ from dnsmasq.compiler_warnings import scan
 
 
 def source_spec():
-    files = builder.audit.inputs(builder.REPO)
+    version = os.environ.get("OPENWRT_VERSION", "25.12.5")
+    files = builder.audit.inputs(builder.REPO, version=version)
     digest = hashlib.sha256(json.dumps(files, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     commit = subprocess.check_output(["git", "-C", str(builder.REPO), "rev-parse", "HEAD"], text=True).strip()
-    spec = {"source_commit": commit, "source_digest": digest,
+    spec = {"openwrt": version, "source_commit": commit, "source_digest": digest,
             "package_release": "4", "reference_elf_sha256": None,
             "elf_max_bytes": 2_500_000, "apk_max_bytes": 1_400_000}
     builder.source_identity(spec)  # Reject dirty product/recipe inputs before archiving.
@@ -30,7 +32,7 @@ def source_spec():
 
 def freeze_source(out, spec):
     # Git, not the current checkout, supplies every product/recipe input.
-    files = builder.audit.inputs(builder.REPO)
+    files = builder.audit.inputs(builder.REPO, version=spec.get("openwrt", "25.12.5"))
     archive = out / "source.tar"
     git_commit = builder.resolve_commit(builder.REPO, spec["source_commit"])
     subprocess.run(["git", "-C", str(builder.REPO), "archive", "--format=tar",
@@ -47,13 +49,14 @@ def freeze_source(out, spec):
     return frozen
 
 
-def prepare_sdk(work, out, frozen):
-    manifest = json.loads((frozen / "manifests/release-25.12.5.json").read_text())
+def prepare_sdk(work, out, frozen, spec):
+    version = spec.get("openwrt", "25.12.5")
+    manifest = json.loads((frozen / builder.audit.release_manifest(version)).read_text())
     name, expected = manifest["inputs"]["sdk"].split(" sha256 ")
     download = work / "dl" / name
     download.parent.mkdir(parents=True, exist_ok=True)
     if not download.exists():
-        url = "https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/" + name
+        url = f"https://downloads.openwrt.org/releases/{version}/targets/mediatek/filogic/" + name
         builder.audit.run(["curl", "--fail", "--show-error", "--location", "--output",
                            str(download), url], out / "sdk-download.log")
     builder.audit.require(builder.audit.sha(download) == expected, "SDK archive checksum mismatch")
@@ -99,7 +102,7 @@ def run(work, *, spec=None, pgo_stage="frozen-use"):
                                           "frozen-use": "frozen-reference-reproduction"}[pgo_stage]
         builder.write(out / "build-spec.json", spec)
         frozen = freeze_source(out, spec)
-        prepare_sdk(work, out, frozen)
+        prepare_sdk(work, out, frozen, spec)
         builder.build(work, spec, report, frozen_source=frozen, pgo_stage=pgo_stage)
         if "reference_elf_bytes" in spec:
             builder.audit.require(report["elf"]["size"] == spec["reference_elf_bytes"],

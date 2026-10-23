@@ -35,6 +35,16 @@ class PackageBuildTests(unittest.TestCase):
                 path.write_text(name)
             (root / "components/dnsmasq/Cargo.toml").write_text('[package]\nname = "dnsmasq-rs"\n')
             self.assertEqual(set(package.inputs(root)), set(required))
+            new_release = root / "manifests/release-25.12.6.json"
+            new_release.write_text("verified new SDK identity")
+            current = package.inputs(root, version="25.12.6")
+            self.assertIn("manifests/release-25.12.6.json", current)
+            self.assertNotIn("manifests/release-25.12.5.json", current)
+            self.assertEqual(set(package.inputs(root)), set(required))
+            with self.assertRaisesRegex(ValueError, "missing"):
+                package.inputs(root, version="25.12.7")
+            with self.assertRaisesRegex(ValueError, "invalid OpenWrt"):
+                package.inputs(root, version="../../other")
             source = root / "components/dnsmasq/platform/src/lib.rs"
             before = package.inputs(root)
             source.write_text("changed platform implementation")

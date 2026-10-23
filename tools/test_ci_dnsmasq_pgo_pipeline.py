@@ -90,6 +90,32 @@ class PipelineTests(unittest.TestCase):
             with self.subTest(stage=stage), self.assertRaisesRegex(ValueError, "dispatch stage"):
                 pipeline.load_spec(self.save(self.spec), stage)
 
+    def test_new_baseline_requires_its_manifest_and_profile_namespace(self):
+        spec = self.use_spec()
+        spec["openwrt"] = "25.12.6"
+        with self.assertRaisesRegex(ValueError, "own frozen SDK manifest"):
+            pipeline.load_spec(self.save(spec), "candidate-use")
+        spec["source_files"]["manifests/release-25.12.6.json"] = "d" * 64
+        spec["source_file_count"] = len(spec["source_files"])
+        spec["source_digest"] = hashlib.sha256(json.dumps(spec["source_files"], sort_keys=True,
+            separators=(",", ":")).encode()).hexdigest()
+        with self.assertRaisesRegex(ValueError, "unique source/hash"):
+            pipeline.load_spec(self.save(spec), "candidate-use")
+        spec["pgo"]["profile_url"] = spec["pgo"]["profile_url"].replace(
+            "owrt-control-plane-rs/releases/download/dnsmasq-k-pgo-inputs-20261017",
+            "owrt-rs/releases/download/dnsmasq-v033-pgo-inputs-20261023")
+        self.assertEqual(pipeline.load_spec(self.save(spec), "candidate-use"), spec)
+        spec["source_files"]["manifests/release-25.12.5.json"] = "e" * 64
+        with self.assertRaisesRegex(ValueError, "own frozen SDK manifest"):
+            pipeline.load_spec(self.save(spec), "candidate-use")
+
+    def test_unsupported_baseline_does_not_select_an_arbitrary_sdk(self):
+        for version in (None, "../../outside", "25.12.7"):
+            spec = copy.deepcopy(self.spec)
+            spec["openwrt"] = version
+            with self.subTest(version=version), self.assertRaisesRegex(ValueError, "supported OpenWrt"):
+                pipeline.load_spec(self.save(spec), "generate")
+
     def test_input_map_is_checked_against_actual_archived_files(self):
         builder = pipeline.target.builder
         with patch.object(builder.audit, "inputs", return_value=self.spec["source_files"]):

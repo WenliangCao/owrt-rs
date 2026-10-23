@@ -9,6 +9,8 @@ on:
       - "packaging/openwrt/owrt-dnsmasq/**"
       - "tools/ci_*dnsmasq*.py"
       - "tools/dnsmasq/**"
+      - "tools/mbx_cargo.sh"
+      - "tools/install_mbx.sh"
       - "rust-toolchain.toml"
       - ".github/workflows/dnsmasq-target-check.yml"
   pull_request:
@@ -19,6 +21,8 @@ on:
       - "packaging/openwrt/owrt-dnsmasq/**"
       - "tools/ci_*dnsmasq*.py"
       - "tools/dnsmasq/**"
+      - "tools/mbx_cargo.sh"
+      - "tools/install_mbx.sh"
       - "rust-toolchain.toml"
       - ".github/workflows/dnsmasq-target-check.yml"
   workflow_dispatch:
@@ -34,10 +38,14 @@ jobs:
   target-build:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      OPENWRT_VERSION: "25.12.6"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: install verified mr-boxington
+        run: sh tools/install_mbx.sh
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.98.1"
@@ -51,7 +59,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: work/dl
-          key: dnsmasq-target-sdk-ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25
+          key: dnsmasq-target-sdk-${{ hashFiles('manifests/release-*.json') }}
       - name: validate compiler-warning hard gate
         run: python3 -m unittest discover -s tools -p test_ci_dnsmasq_target.py
       - name: build current revision for OpenWrt and reject every compiler warning

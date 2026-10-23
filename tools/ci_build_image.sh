@@ -20,7 +20,8 @@ BASE="https://downloads.openwrt.org/releases/$ver/targets/$TARGET"
 PKGS="owrt-uci owrt-reload-config owrt-logd owrt-httpd owrt-fw4 owrt-rpcd owrt-switch"
 PKGLIST=$REPO/packaging/image/packages-$ver.txt
 RUST_TOOLCHAIN=${RUST_TOOLCHAIN:-$(sed -n 's/^channel = "\(.*\)"/\1/p' "$REPO/rust-toolchain.toml")}
-CARGO=${CARGO:-"env RUSTUP_TOOLCHAIN=$RUST_TOOLCHAIN cargo"}
+CARGO="$REPO/tools/mbx_cargo.sh"
+export RUSTUP_TOOLCHAIN="$RUST_TOOLCHAIN"
 NPROC=$(nproc 2>/dev/null || echo 2)
 
 log() { printf '\n== %s\n' "$*"; }

@@ -1,0 +1,42 @@
+{
+  "scope": "Release compilation routing through fixed mr-boxington adapter; no CI dispatch, publication, firmware flash or router action in this validation.",
+  "python_tests": {
+    "adapter_negative_routing": 3,
+    "pgo_and_core_boundaries": 20,
+    "package_snapshot_and_version_boundaries": 27
+  },
+  "real_build": {
+    "via": "tools/mbx_cargo.sh build --locked",
+    "subject": "temporary dependency-free Rust smoke executable",
+    "compiled_and_executed": true,
+    "cache_diagnosis": "mbx explain --last"
+  },
+  "toolchain": {
+    "cargo": "1.98.1",
+    "rustc": "1.98.1",
+    "official": true,
+    "identity_implementation_changed": false
+  },
+  "pgo": "Existing recipe arguments, environment restrictions, generate/use flags and missing-profile warnings remain enforced. Build exec selects only the SHA-verified mbx adapter; plain Cargo remains for version/fetch metadata.",
+  "source_binding": "New source snapshots execute their snapshotted adapter and compare its SHA against the frozen source map; legacy freezes lacking an adapter use the separately identified current adapter with explicit compatibility metadata.",
+  "legacy_freeze": {
+    "legacy_source_commit": "a170caa5d74f928186d63e6c4d879688deee3a4c",
+    "resolved_git_commit": "5fc38225217a2e742d6caa0f450089efa85727b2",
+    "legacy_files": 212,
+    "exact_input_map_preserved": true,
+    "source_digest": "c3daefd7b94be1e42120f6ae9cec7c56264ed2dc430639ceea5d63812d151725"
+  },
+  "log_sha256": {
+    "mbx-adapter-tests.log": "c56b80833aaf3da6e427e3eb2de2215a787d8b47af2c9d6eebe58ceabbf77ad5",
+    "mbx-release-python-tests.log": "dbac0714813ea3e69702853b9cf8606251f327e8fb2db30295d07a986bae1bfd",
+    "mbx-package-python-tests.log": "2de96d240fb7674b1a8342ef942387761607341f4f2854ca0a2e2b562276976d",
+    "mbx-toolchain-identity.log": "a4d8b14c2c34be2f3540e7aa49cd3f2df09c78d283f8e8631c480f30bbe144fa",
+    "mbx-adapter-real-build.log": "0c879f9d103adf69e868658ddd0cf3c1e90a137316dcbefb965aa3e964dd97bb",
+    "mbx-adapter-cache.log": "6e4b14094f99dd75d4f8338a8ffccf44260862c1fee51bc5b95e0a6f14a1e9e6"
+  },
+  "log_root": "oracle:/home/ubuntu/owrt-v033-25126-release-20261023/logs",
+  "limits": [
+    "Canonical x86_64 SDK/PGO ELFs and final firmware are not produced by this focused validation.",
+    "Shell/YAML syntax checks were local; Python and actual Rust smoke compilation ran on oracle via mbx."
+  ]
+}
