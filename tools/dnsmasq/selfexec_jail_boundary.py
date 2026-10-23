@@ -167,7 +167,9 @@ def write_image(root, name, text, mode=0o644):
 
 def prepare_root(image, binary, folder, helper, proc_visible=False):
     root = folder / 'rootfs'
-    shutil.copytree(image, root, symlinks=True)
+    # An extracted image can contain device nodes. Preserve its metadata and
+    # links before replacing only the fixture's /dev and /proc below.
+    subprocess.run(["cp", "-a", str(image), str(root)], check=True)
     remove(root / 'proc')
     remove(root / 'dev')
     (root / 'dev').mkdir(mode=0o755)

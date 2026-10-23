@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "scope": "v0.3.3 canonical instrumented ELF smoke only; these raw profiles are excluded from the 11-scene training profile",
+  "isolator": {
+    "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/workload-sources/run_isolated.sh",
+    "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+  },
+  "runtime": {
+    "config_lines": [
+      "no-hosts",
+      "no-resolv",
+      "no-poll",
+      "user=root",
+      "group=root",
+      "interface=lo",
+      "bind-interfaces",
+      "listen-address=127.0.0.1",
+      "port=15353",
+      "host-record=pgo-smoke.test,192.0.2.1,2001:db8::1",
+      "local-ttl=120",
+      "pid-file=/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/smoke-01/smoke-runtime/daemon.pid",
+      "log-facility=-"
+    ],
+    "queries": [
+      {
+        "name": "pgo-smoke.test",
+        "qtype": "A",
+        "expected_address": "192.0.2.1"
+      },
+      {
+        "name": "pgo-smoke.test",
+        "qtype": "AAAA",
+        "expected_address": "2001:db8::1"
+      }
+    ],
+    "readiness_timeout_seconds": 10,
+    "normal_exit_signal": "SIGTERM",
+    "normal_exit_timeout_seconds": 10,
+    "normal_exit_status": 0
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "case": "SDK long TMPDIR Unix socket boundary",
+  "long_tmpdir_length": 212,
+  "checks": [
+    {
+      "name": "negative-control",
+      "returncode": 1,
+      "log": "/home/ubuntu/owrt-v033-25126-release-20261023/logs/mbx-long-tmpdir-negative-control.log",
+      "log_sha256": "c3d72869938f39b145da6759d0802769316a2e9a53b7c5b85a4abf5e256c7f72"
+    },
+    {
+      "name": "adapter",
+      "returncode": 0,
+      "log": "/home/ubuntu/owrt-v033-25126-release-20261023/logs/mbx-long-tmpdir-adapter.log",
+      "log_sha256": "791feb204de029b909b7a585e94bd4f57f690d972843fb51c06dd7d639e0b64c"
+    }
+  ],
+  "adapter_sha256": "24331c29acf5fe6f8d69bb76e0c315ca3b9c7483d341341e4be017bda4a2f970",
+  "passed": true
+}
