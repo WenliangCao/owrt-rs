@@ -1,0 +1,550 @@
+{
+  "source_commit": "1e25d61dc707833f97afa5a56148f4dbceb50ed3",
+  "first_root": "/home/ubuntu/owrt-v033-25126-release-20261023/private/image-39947459422",
+  "second_root": "/home/ubuntu/owrt-v033-25126-release-20261023/private/image-39947461967",
+  "strict_payload_passed": true,
+  "payloads": [
+    {
+      "file": "openwrt-25.12.6-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "first_sha256": "5b4e7511b228f97b477b875ebfca4c93117e84e450d5c0f5178725e8bab3b151",
+      "second_sha256": "5b4e7511b228f97b477b875ebfca4c93117e84e450d5c0f5178725e8bab3b151",
+      "first_bytes": 14192928,
+      "second_bytes": 14192928,
+      "byte_identical": true
+    },
+    {
+      "file": "luci-i18n-attendedsysupgrade-zh-cn-26.288.56989~75a306d.apk",
+      "first_sha256": "e65040664ac49358d9db2c259b77eac75358e05ff2b555e47f93e0861695e7b0",
+      "second_sha256": "e65040664ac49358d9db2c259b77eac75358e05ff2b555e47f93e0861695e7b0",
+      "first_bytes": 3101,
+      "second_bytes": 3101,
+      "byte_identical": true
+    },
+    {
+      "file": "luci-i18n-base-zh-cn-26.288.56989~75a306d.apk",
+      "first_sha256": "c7dccf595224b4ba6555505b0809d4070002868a2421c15d124e85d3ee714692",
+      "second_sha256": "c7dccf595224b4ba6555505b0809d4070002868a2421c15d124e85d3ee714692",
+      "first_bytes": 65435,
+      "second_bytes": 65435,
+      "byte_identical": true
+    },
+    {
+      "file": "luci-i18n-firewall-zh-cn-26.288.56989~75a306d.apk",
+      "first_sha256": "d1636c204eea8a96ef8474d147d6abded483029dd6d1b37b1223f5c52258cc15",
+      "second_sha256": "d1636c204eea8a96ef8474d147d6abded483029dd6d1b37b1223f5c52258cc15",
+      "first_bytes": 8235,
+      "second_bytes": 8235,
+      "byte_identical": true
+    },
+    {
+      "file": "luci-i18n-package-manager-zh-cn-26.288.56989~75a306d.apk",
+      "first_sha256": "5f20ca8b85dc23c8fddb16f0c898a0eaaa718c6190d158d5ad6796256579ea03",
+      "second_sha256": "5f20ca8b85dc23c8fddb16f0c898a0eaaa718c6190d158d5ad6796256579ea03",
+      "first_bytes": 2721,
+      "second_bytes": 2721,
+      "byte_identical": true
+    },
+    {
+      "file": "owrt-control-plane-0.3.3-r1.apk",
+      "first_sha256": "84170c766d6bc0fdeb01df52ed69eb0b4a6fbe18801ecccd0a81802a5b834a49",
+      "second_sha256": "84170c766d6bc0fdeb01df52ed69eb0b4a6fbe18801ecccd0a81802a5b834a49",
+      "first_bytes": 6434358,
+      "second_bytes": 6434358,
+      "byte_identical": true
+    }
+  ],
+  "image_volumes": {
+    "CONTROL": {
+      "first_sha256": "eac9cd7ec16d41df0afeb935a037e44f57fb9dc83e8d9662bd74a543cb70b9e1",
+      "second_sha256": "eac9cd7ec16d41df0afeb935a037e44f57fb9dc83e8d9662bd74a543cb70b9e1",
+      "byte_identical": true
+    },
+    "kernel": {
+      "first_sha256": "abc43bdc4368f888277164ef39e6214cea9080998473bd8c6ed9bd507c39dafb",
+      "second_sha256": "abc43bdc4368f888277164ef39e6214cea9080998473bd8c6ed9bd507c39dafb",
+      "byte_identical": true
+    },
+    "root": {
+      "first_sha256": "465a962dde1f98bc028b079b59796f8cee2caab57dde00c3ab03200a66eb19a8",
+      "second_sha256": "465a962dde1f98bc028b079b59796f8cee2caab57dde00c3ab03200a66eb19a8",
+      "byte_identical": true
+    }
+  },
+  "elfs": [
+    {
+      "component": "dnsmasq",
+      "path": "/usr/sbin/dnsmasq",
+      "first_sha256": "b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41",
+      "second_sha256": "b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41",
+      "byte_identical": true
+    },
+    {
+      "component": "fw4",
+      "path": "/sbin/fw4",
+      "first_sha256": "76637e0b3ace492a5f0d170250e86f2ef79b063010c165cdedbabe35fa7e7771",
+      "second_sha256": "76637e0b3ace492a5f0d170250e86f2ef79b063010c165cdedbabe35fa7e7771",
+      "byte_identical": true
+    },
+    {
+      "component": "httpd",
+      "path": "/usr/sbin/uhttpd",
+      "first_sha256": "50f502f2c52ff2ddfa0bbd8d98e47727c18a6ca546964f6c7866e0a81dcc2870",
+      "second_sha256": "50f502f2c52ff2ddfa0bbd8d98e47727c18a6ca546964f6c7866e0a81dcc2870",
+      "byte_identical": true
+    },
+    {
+      "component": "logd",
+      "path": "/sbin/logd",
+      "first_sha256": "3a0311a3d965ea6473a2b4e9970a105aca69da4983bc4bf9d12a3b70c3c2fd35",
+      "second_sha256": "3a0311a3d965ea6473a2b4e9970a105aca69da4983bc4bf9d12a3b70c3c2fd35",
+      "byte_identical": true
+    },
+    {
+      "component": "netifd",
+      "path": "/sbin/netifd",
+      "first_sha256": "58bd1ea035c87afe0179ddcf97bdce2b0ebc63ccad9fede7d627cc792943071d",
+      "second_sha256": "58bd1ea035c87afe0179ddcf97bdce2b0ebc63ccad9fede7d627cc792943071d",
+      "byte_identical": true
+    },
+    {
+      "component": "odhcpd",
+      "path": "/usr/sbin/odhcpd",
+      "first_sha256": "3eb5dee79aacd920f772f7fd13af4ba48278f51ec3deb92ee2a27cb01f8255e1",
+      "second_sha256": "3eb5dee79aacd920f772f7fd13af4ba48278f51ec3deb92ee2a27cb01f8255e1",
+      "byte_identical": true
+    },
+    {
+      "component": "procd",
+      "path": "/sbin/procd",
+      "first_sha256": "f55a4287fffb36f617c16727c672593b93676ae6c87dfd41d9b10ba3f4ad08a7",
+      "second_sha256": "f55a4287fffb36f617c16727c672593b93676ae6c87dfd41d9b10ba3f4ad08a7",
+      "byte_identical": true
+    },
+    {
+      "component": "reload-config",
+      "path": "/sbin/reload_config",
+      "first_sha256": "a39bfc75dda3bc6245227e1a558416f5312681599bfe9905eed591eea2d2a33e",
+      "second_sha256": "a39bfc75dda3bc6245227e1a558416f5312681599bfe9905eed591eea2d2a33e",
+      "byte_identical": true
+    },
+    {
+      "component": "rpcd",
+      "path": "/sbin/rpcd",
+      "first_sha256": "6f99dd171fd2ef5aec8cfe676726c843820cc22443443fc6e82f9285e3f6e152",
+      "second_sha256": "6f99dd171fd2ef5aec8cfe676726c843820cc22443443fc6e82f9285e3f6e152",
+      "byte_identical": true
+    },
+    {
+      "component": "ubusd",
+      "path": "/sbin/ubusd",
+      "first_sha256": "de5e9e3ff9f97deeb23073c0a8a6beee6e1edf68221dba7dca1e43ee5151ab76",
+      "second_sha256": "de5e9e3ff9f97deeb23073c0a8a6beee6e1edf68221dba7dca1e43ee5151ab76",
+      "byte_identical": true
+    },
+    {
+      "component": "uci",
+      "path": "/sbin/uci",
+      "first_sha256": "04efbab9c439bcf6957a6170be4687fc95a112f45baf633c464732c6550846d1",
+      "second_sha256": "04efbab9c439bcf6957a6170be4687fc95a112f45baf633c464732c6550846d1",
+      "byte_identical": true
+    }
+  ],
+  "json": [
+    {
+      "file": "build-inputs.json",
+      "first_sha256": "e14cc1ca287ad01bd18c117b583263c766f3a24821fadd3f9e7d81d5b5276bcf",
+      "second_sha256": "5e346e709fe74ef053104979f3fbff0bfa9434a9a6be5efa4d70f80b6f6a5725",
+      "byte_identical": false,
+      "field_differences": [
+        {
+          "field": "$.core.image_manifest_sha256",
+          "left": "46d9fd70d1edcd7c93703c41e158e4e57b87b5ef86006596b1300111265d037c",
+          "right": "ed220a303eea167e5b364dcb1c2695e449c233ccaed1109f1f481b8820afe4f0"
+        },
+        {
+          "field": "$.dnsmasq.pgo.compilation_evidence.cargo-identities.json.sha256",
+          "left": "b7d0224a02fe6a4494306666d907cde1b658a77c2044df9c16448745c1710d6a",
+          "right": "2fc7758d194ef5f802f19abb3cba4f401c6b86c7db04b4c92403346439652d28"
+        },
+        {
+          "field": "$.image.image.sha256",
+          "left": "8c3c497724a0214b178d441245e5c77daee692dca2244a713213a7ddc501bcef",
+          "right": "7ba305ccc1baa2131a8056faa7177b7e705aeb24fc254260d2add9fb610b0315"
+        }
+      ]
+    },
+    {
+      "file": "dnsmasq-build-manifest.json",
+      "first_sha256": "fca2e641bdb52e4c01d448049e29f361b203af483df0c4bc5091eb2ac24ac6df",
+      "second_sha256": "8fc5477d2f63f17b53fce8a5f33adeec714342b2011aaa298e2f8e0fad9a85d0",
+      "byte_identical": false,
+      "field_differences": [
+        {
+          "field": "$.pgo.compilation_evidence.cargo-identities.json.sha256",
+          "left": "b7d0224a02fe6a4494306666d907cde1b658a77c2044df9c16448745c1710d6a",
+          "right": "2fc7758d194ef5f802f19abb3cba4f401c6b86c7db04b4c92403346439652d28"
+        }
+      ]
+    },
+    {
+      "file": "manifest.json",
+      "first_sha256": "bf9af6d93dc942dc115a00326b3f726997e6a563284800ad96098d31f69c9984",
+      "second_sha256": "bf9af6d93dc942dc115a00326b3f726997e6a563284800ad96098d31f69c9984",
+      "byte_identical": true,
+      "field_differences": []
+    }
+  ],
+  "all_input_hashes_unchanged": true,
+  "checksum_file_sha256": {
+    "first": "a8df1c8d2765623d051afee10b224983a037ee10bd99df8d184ff1aa7ef0c249",
+    "second": "59e9504023c27e43f946bef047b918608207371d4e61ba7fdf006cc0a1e74b0d"
+  },
+  "other_file_differences": [
+    {
+      "file": "build-core-netifd.log",
+      "first_sha256": "128d75d7c15ea4efec5067e32cf268005dbb3108285b07acbc1d3079b2763c44",
+      "second_sha256": "e379f39efca60ee2558360b995c73da869c3692d4a1b114c8cb37a1c451932d0"
+    },
+    {
+      "file": "build-core-odhcpd.log",
+      "first_sha256": "1b694bc519b2616cab6ceb7e84d79be3406b4599a642077ca51ce68b6a99787d",
+      "second_sha256": "b4eb604c2d96d889250a2f315f831512ad7bdcb4c56d6a4fc4972615f2d6a535"
+    },
+    {
+      "file": "build-core-procd.log",
+      "first_sha256": "10fb361e7cfeb4808e0eb58a14376fe7c21b09385511dda49166b005c97033f3",
+      "second_sha256": "dfe3c3d1fccca95de40856d93892fbab9c7dbdfb8aec81ded6a071d015fe48af"
+    },
+    {
+      "file": "build-core-ubusd.log",
+      "first_sha256": "11d018341e47db9633940dd725342397fa61707e972367fcb5a756812217cf13",
+      "second_sha256": "e8fd516028145e0334ed97b3cf80cd730fd25cb8796c204af7632ef1efb345c3"
+    },
+    {
+      "file": "build-owrt-fw4.log",
+      "first_sha256": "6b8a6d93ebf067fea2a5c8e6ddd46f8d94611e4f7e17ccba67c56bdf390b83e0",
+      "second_sha256": "24189841442b0dacdb2c988966d24c36dfe399b5b4ad7bd1e8bf88205f5a0989"
+    },
+    {
+      "file": "build-owrt-httpd.log",
+      "first_sha256": "e672e33894c27a223d87ff694f1b313d934fe54d01d5c123b23bd450d74c09e5",
+      "second_sha256": "5908950cd60f4f21f5c8489b4a465a8f10e81d50f9e7c447bbdb8588ab3ffd4b"
+    },
+    {
+      "file": "build-owrt-logd.log",
+      "first_sha256": "c6dc0ded1dbcf54c6090b50a68480a2ac65dbb6f52bae45e4f3f00e38418beaa",
+      "second_sha256": "cdb82b0ae0d2a2dba92845681095bc31ef381030a3a74991144c9aa5735fa398"
+    },
+    {
+      "file": "build-owrt-reload-config.log",
+      "first_sha256": "8da853ae1d11a4aa2a467bbd6440a97cb430ba698d929a1c00309e4548bf1061",
+      "second_sha256": "58106c8a1a06292f8316ab7bad0559343810ce1691317ecc70290ced561e12ad"
+    },
+    {
+      "file": "build-owrt-rpcd.log",
+      "first_sha256": "16b0ecfa43fcc548babf2ee0271e43138ee57285a5934ed3c37bcdb65864f7b8",
+      "second_sha256": "294acd287c8358ab2914d6ff8f132a2cbeb479b5330a16c1d9ff427b602e5936"
+    },
+    {
+      "file": "build-owrt-switch.log",
+      "first_sha256": "8d78893804baebd4dd6c82547b2c472e8d27698c0434ac3311ecfc2572ee0d85",
+      "second_sha256": "a6dbc6c75413c9760529f46b774101e7cd8c57e8b60e2fc5bc31239b90c3aad8"
+    },
+    {
+      "file": "build-owrt-uci.log",
+      "first_sha256": "3154ac852f97d52f2385112b7fbc48595426e73b086d5a9895b162c29d173324",
+      "second_sha256": "ae56e45e219922d03286f458bfec0d9418a23ad9ba80e84e7ea6ebcca86df020"
+    },
+    {
+      "file": "dnsmasq-compile.log",
+      "first_sha256": "a1a62b0e7fff193544e43fc8cc172adc2b12a38bf4dfa756570890abdd5a9fe8",
+      "second_sha256": "19f13ebfe3957eb0ed57ed6d8a89d4032571b879975d4c7091009f98c46ed277"
+    },
+    {
+      "file": "dnsmasq-prepare.log",
+      "first_sha256": "17340ec0132245af4b07ceae43cfe144f0877237f55882beca99af0cdd94d752",
+      "second_sha256": "d45d5440abe371c220f916af4e5de17a3873aa68c08f253d671e67b36ee77bd6"
+    },
+    {
+      "file": "image.log",
+      "first_sha256": "42233be1cdab4ba6c6c97334204290504cb0711be048f5351614005327e2eade",
+      "second_sha256": "fc29c155e95c796b6064960e468fa0f0f53f10e035623ed20ec150a1fffa34e6"
+    },
+    {
+      "file": "squashfs.log",
+      "first_sha256": "fd5cd29d3e68fe61a3202077846625569a4c792f6630179ba32b1b4edaae7c81",
+      "second_sha256": "29618a0299e5a0c294eef64396e037e7b762f636f1c21618e5480115970874ec"
+    }
+  ],
+  "scope": "Read-only payload comparison/extraction; no firmware executed, installed or flashed. Ancillary JSON differences are enumerated without silently accepting fields.",
+  "runner_sha256": "8758479d1144aba21fee965322c01c497ddae31614001b5574e681b1c4e5e803",
+  "schema_version": 1,
+  "review_date": "2026-10-23",
+  "first_run": {
+    "id": 39947459422,
+    "url": "https://github.com/WenliangCao/owrt-rs/actions/runs/39947459422",
+    "artifact_id": 12499690407,
+    "zip_sha256": "4701577c49684ad147cf049b5d791d6e1105c0ad07861a7550fd4e3d8ca493e5",
+    "status": "completed",
+    "conclusion": "success",
+    "github_artifact_digest_verified": true
+  },
+  "second_run": {
+    "id": 39947461967,
+    "url": "https://github.com/WenliangCao/owrt-rs/actions/runs/39947461967",
+    "artifact_id": 12499606604,
+    "zip_sha256": "0394216ac0208276c2a1d3e310fe2adec3f0889a41c28e4a3f35719978005891",
+    "status": "completed",
+    "conclusion": "success",
+    "github_artifact_digest_verified": true
+  },
+  "conclusion": "Final firmware, all five published APKs, all eleven actual embedded AArch64 ELFs, CONTROL, FIT kernel, squashfs rootfs and final manifest are byte-identical. The complete evidence bundles are not byte-identical; every differing JSON field is enumerated.",
+  "ancillary_assessment": {
+    "intermediate_manifest": {
+      "field": "build-inputs.json:$.core.image_manifest_sha256",
+      "source": "tools/ci_build_core.sh records the preliminary image manifest, not the final native-eleven manifest. Re-serialization of each build-inputs.json $.image using the actual indent=1/no-trailing-newline writer independently reproduces the recorded hashes.",
+      "reconstructed_sha256": [
+        "46d9fd70d1edcd7c93703c41e158e4e57b87b5ef86006596b1300111265d037c",
+        "ed220a303eea167e5b364dcb1c2695e449c233ccaed1109f1f481b8820afe4f0"
+      ],
+      "underlying_difference": "build-inputs.json:$.image.image.sha256 is the only differing value in the preliminary image object; preliminary APK and six ELF hashes match.",
+      "limitation": "The preliminary image itself was not uploaded in the success artifact. Its byte-level difference was not diagnosed and is not asserted to be a timestamp difference."
+    },
+    "cargo_identities": {
+      "fields": [
+        "build-inputs.json:$.dnsmasq.pgo.compilation_evidence.cargo-identities.json.sha256",
+        "dnsmasq-build-manifest.json:$.pgo.compilation_evidence.cargo-identities.json.sha256"
+      ],
+      "source": "tools/ci_build_dnsmasq.py retain_pgo_compilation hashes selected host/target .fingerprint and build-script files. The successful release-image artifact retains their summary hashes, but not cargo-identities.json itself.",
+      "unchanged_evidence": [
+        "cargo-fingerprints.json",
+        "cargo-build-scripts.json",
+        "dnsmasq-prestrip",
+        "link.map",
+        "map-cc",
+        "dnsmasq-2.93-r4.apk"
+      ],
+      "limitation": "No internal cargo-identities field-level comparison is possible from these uploaded success artifacts. The differing recorded hash is preserved without claiming an unobserved cause."
+    },
+    "logs": {
+      "different_files": 15,
+      "full_diff_private_path": "private/v033-frontend/final-image-repro/ancillary-logs.diff",
+      "full_diff_sha256": "5358812f669e1bb2c52084b46c891ff2cd837ed17bae3e02173bd5025f638f24",
+      "classification": [
+        {
+          "file": "build-core-netifd.log",
+          "first_volatile_line_counts": {
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-core-odhcpd.log",
+          "first_volatile_line_counts": {
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-core-procd.log",
+          "first_volatile_line_counts": {
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-core-ubusd.log",
+          "first_volatile_line_counts": {
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-owrt-fw4.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 2,
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 2,
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-owrt-httpd.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 2,
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 2,
+            "mbx_progress": 2,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-owrt-logd.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 2,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 2,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-owrt-reload-config.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 2,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 2,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-owrt-rpcd.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 2,
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 2,
+            "mbx_progress": 1,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-owrt-switch.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 2
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 2
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "build-owrt-uci.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 2,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 2,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "dnsmasq-compile.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 2,
+            "mbx_progress": 3,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 2,
+            "mbx_progress": 3,
+            "cargo_timing": 1,
+            "mbx_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "dnsmasq-prepare.log",
+          "first_volatile_line_counts": {
+            "sdk_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "sdk_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "image.log",
+          "first_volatile_line_counts": {
+            "dd_timing": 1
+          },
+          "second_volatile_line_counts": {
+            "dd_timing": 1
+          },
+          "remaining_line_multiset_equal": true
+        },
+        {
+          "file": "squashfs.log",
+          "first_volatile_line_counts": {
+            "squashfs_progress": 2
+          },
+          "second_volatile_line_counts": {
+            "squashfs_progress": 1
+          },
+          "remaining_line_multiset_equal": true
+        }
+      ],
+      "assessment": "All 15 log differences are timing/progress lines or ordering of unchanged remaining lines. The raw complete diff remains preserved; this classification does not claim the whole evidence bundle is byte-reproducible."
+    },
+    "checksum_files": "Each original SHA256SUMS was verified before and after comparison. They differ because ancillary evidence files differ; neither was regenerated or overwritten."
+  },
+  "validation": {
+    "checksummed_files_per_artifact": 40,
+    "final_firmware_and_apks": 6,
+    "actual_embedded_elfs": 11,
+    "image_volumes": 3,
+    "all_input_hashes_verified_before_and_after": true,
+    "reference_pins_modified": false,
+    "firmware_executed": false,
+    "firmware_flashed": false
+  },
+  "comparison_command": "python3 candidate/private/v033-frontend/final-image-repro/compare.py --first private/image-39947459422 --second private/image-39947461967 --commit 1e25d61dc707833f97afa5a56148f4dbceb50ed3 --output private/final-image-repro-comparison",
+  "validation_boundary": "This is artifact reproducibility evidence. Runtime qualification is recorded separately; hardware/performance qualification is not inferred from reproducible bytes."
+}

@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "status": "canonical-frozen-reproduction-passed",
+  "scope": "Fresh x86_64 GitHub .6 SDK frozen-use build reproduces the offline-qualified candidate ELF and APK byte-for-byte; no behavior tests repeated and no firmware/physical deployment claim",
+  "candidate_ci_run": 39940619433,
+  "frozen_ci_run": 39947457360,
+  "candidate_manifest_sha256": "faff2ae0ccded93af1db4ab0a271d580584cda4fce4c5cf6a75b630e6630b4d4",
+  "frozen_manifest_sha256": "31013b0a018d1994f4b01a3bbdc64e8fac73a4cc02b772f05d79e724893b8e92",
+  "freeze_spec_sha256": "5c43fc100f9c986e69b66e8c218d3dacd52e74b57951d1b7b8bcf5a7114c69b7",
+  "source_commit": "0e077f258811c6250edfe188de62a52e48d7a8df",
+  "source_digest": "9d3c45da3a3f7a12073610f34de0868187eaca6472c148f1f3626ff22c207657",
+  "source_file_count": 231,
+  "source_date_epoch": 1792748224,
+  "sdk_archive_sha256": "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
+  "pgo_profile_sha256": "72f89eb4c967a757e87fb27f934c646208b3b25cdc6ad5b156649d3d00c117b2",
+  "pgo_profile_bytes": 1247384,
+  "training_provenance": {
+    "generator_manifest_sha256": "f457107d80027dd5251d7ad7b6c489c913f938c0ad608a04092b7108c06989df",
+    "generator_elf_sha256": "bf3fc3e8f53631ef4f13a216063430c71056af525e4448c7802c895e28e6ca5a",
+    "training_receipt_sha256": "4a412d255feae22a756c6902af7d338c53a4da83e55dbde4f8c794ddd06391e2"
+  },
+  "files": [
+    {
+      "name": "dnsmasq-rs",
+      "bytes": 2321243,
+      "sha256": "b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41",
+      "full_byte_comparison": "cmp -s exit0",
+      "candidate": "private/v033-pgo/ci-candidate-39940619433/dnsmasq-pgo-candidate-use-8c4ebb7cd8fcc30d082780849a1dadcc0675ce99-39940619433/dnsmasq-rs",
+      "reproduced": "private/v033-pgo/ci-frozen-39947457360/dnsmasq-pgo-frozen-use-1e25d61dc707833f97afa5a56148f4dbceb50ed3-39947457360/dnsmasq-rs"
+    },
+    {
+      "name": "dnsmasq-2.93-r4.apk",
+      "bytes": 1312655,
+      "sha256": "b097876a214bc1164176a3a43a1443caabf697158e9fcfdce4a983d9b19db53a",
+      "full_byte_comparison": "cmp -s exit0",
+      "candidate": "private/v033-pgo/ci-candidate-39940619433/dnsmasq-pgo-candidate-use-8c4ebb7cd8fcc30d082780849a1dadcc0675ce99-39940619433/dnsmasq-2.93-r4.apk",
+      "reproduced": "private/v033-pgo/ci-frozen-39947457360/dnsmasq-pgo-frozen-use-1e25d61dc707833f97afa5a56148f4dbceb50ed3-39947457360/dnsmasq-2.93-r4.apk"
+    }
+  ],
+  "effective_rustflags_identical": true,
+  "source_maps_identical": true,
+  "profile_diagnostics": [],
+  "compiler_warnings_zero": true,
+  "same_build_link_maps_verified": {
+    "candidate_sha256": "c9852d1904c1cc7de8e3e50fecba2ede7da035cfd6f1b9a8c75970b14374c04b",
+    "reproduced_sha256": "c9852d1904c1cc7de8e3e50fecba2ede7da035cfd6f1b9a8c75970b14374c04b"
+  },
+  "physical_router_touched": false,
+  "qualification_report_sha256": "b25506a4a82a61e93074da63e6aed5226349fefc41ab199922e519a2d74b88b5",
+  "independent_warning_scan": {
+    "candidate": {
+      "log_count": 12,
+      "compiler_or_unclassified": [],
+      "retained_sdk_metadata_warning_count": 76,
+      "logs_sha256": {
+        "apk-metadata.log": "341fccc9384a0a94e1315220d28f76dc82b6b9ca5a5f534e0212781d467a4050",
+        "cargo-fetch.log": "cf2491b9f27bde1715a4ae07d701dc9cc23bdfe38c4b37404f134dc5900ce3e4",
+        "cargo-version.log": "9950bbb2d5c3417b1a068f0e81f6d3cac991a363193bdf2a22d447f5acf8b503",
+        "compile.log": "11f22c701b317a105008fe26e2163ae69781a328f977f7e59d2c4941686c3fce",
+        "elf-readelf.log": "d565a51569d3188de4392df3504416ad4f0c0338dc23cd79f24c96aa50639b2c",
+        "extract.log": "d956cdb508158b63eb97a2d7035350681e750932de5fe5f08c016b6c828be9f9",
+        "prepare.log": "b0a148f099998cede86f5ae9a2cbf5575114109f2372c787d0b3ac6a9c7e4b54",
+        "profile-download.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "rustc-version.log": "778fbc643a806f0dd123c056e66201d7e8a56a61928ec0a33171be8d6c2d5a37",
+        "sdk-defconfig.log": "afc88a5dab2ee400214cee79811e02e9c1c02e79e24714f2fdf009f0ad5356f0",
+        "sdk-extract.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "target-cc-version.log": "168d981bd5e9276efe73b62a21c3e5cd616f24dad4a0c7a273ab0d782b79cb3b"
+      }
+    },
+    "reproduced": {
+      "log_count": 12,
+      "compiler_or_unclassified": [],
+      "retained_sdk_metadata_warning_count": 76,
+      "logs_sha256": {
+        "apk-metadata.log": "341fccc9384a0a94e1315220d28f76dc82b6b9ca5a5f534e0212781d467a4050",
+        "cargo-fetch.log": "8577b581e42e915a695d8c01e58c08164ba9195e3032841ff1477021dd4e88e3",
+        "cargo-version.log": "9950bbb2d5c3417b1a068f0e81f6d3cac991a363193bdf2a22d447f5acf8b503",
+        "compile.log": "d4be796009db27b7200d87efcb09392a07a77e2765d0c322aa21ec85a9380a93",
+        "elf-readelf.log": "d565a51569d3188de4392df3504416ad4f0c0338dc23cd79f24c96aa50639b2c",
+        "extract.log": "d956cdb508158b63eb97a2d7035350681e750932de5fe5f08c016b6c828be9f9",
+        "prepare.log": "eee779226a2799f2a2c3b0ac12ee8d7689dfbab6d9f4c19b226bbf680ec54959",
+        "profile-download.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "rustc-version.log": "778fbc643a806f0dd123c056e66201d7e8a56a61928ec0a33171be8d6c2d5a37",
+        "sdk-defconfig.log": "afc88a5dab2ee400214cee79811e02e9c1c02e79e24714f2fdf009f0ad5356f0",
+        "sdk-extract.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "target-cc-version.log": "168d981bd5e9276efe73b62a21c3e5cd616f24dad4a0c7a273ab0d782b79cb3b"
+      }
+    }
+  }
+}
