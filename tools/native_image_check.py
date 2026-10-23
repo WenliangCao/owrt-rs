@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import platform
 import shutil
+import stat
 import subprocess
 import tarfile
 
@@ -26,6 +27,12 @@ set -eu
 root=$1
 mount --make-rprivate /
 mount -t proc proc "$root/proc"
+# A fresh proc mount does not isolate the consuming kernel-log interface.
+: > "$root/tmp/kmsg-empty"
+mount --bind "$root/tmp/kmsg-empty" "$root/proc/kmsg"
+test -f "$root/proc/kmsg" && test ! -s "$root/proc/kmsg"
+test "$root/tmp/kmsg-empty" -ef "$root/proc/kmsg"
+stat -c "%f %s" "$root/proc/kmsg" > "$root/tmp/kmsg-fixture-host.stat"
 mount -t tmpfs -o mode=0755 tmpfs "$root/dev"
 mknod -m 666 "$root/dev/null" c 1 3
 mknod -m 666 "$root/dev/zero" c 1 5
@@ -55,11 +62,22 @@ class Check:
         return root
 
     def shell(self, name, root, script, success=True):
+        for name_to_remove in ("kmsg-fixture-host.stat", "kmsg-fixture-runtime.check"):
+            (root / "tmp" / name_to_remove).unlink(missing_ok=True)
         command = ["unshare", "--mount", "--net", "--pid", "--uts", "--ipc", "--fork", "--kill-child",
                    "/bin/sh", "-c", NAMESPACE, "sh", str(root)]
-        script = "mkdir -p /var/lock /var/run /var/log /var/state\n" + script
+        script = ("test -f /proc/kmsg && test ! -s /proc/kmsg\n"
+                  "test /tmp/kmsg-empty -ef /proc/kmsg\n"
+                  "printf '%s\\n' regular-empty-same-file > /tmp/kmsg-fixture-runtime.check\n"
+                  "mkdir -p /var/lock /var/run /var/log /var/state\n" + script)
         result = subprocess.run(command, input=script, text=True, capture_output=True, timeout=90)
         (self.out / (name + ".log")).write_text(result.stdout + result.stderr)
+        mode, size = (root / "tmp/kmsg-fixture-host.stat").read_text().split()
+        assert stat.S_ISREG(int(mode, 16)) and int(size) == 0, (name, mode, size)
+        assert (root / "tmp/kmsg-fixture-runtime.check").read_text().strip() == "regular-empty-same-file"
+        isolation = {"mode_hex": mode, "bytes": int(size), "regular_file": True,
+                     "same_fixture_inode_and_device_checked_before_chroot_and_in_runtime": True}
+        (self.out / (name + "-isolation.json")).write_text(json.dumps(isolation, indent=2) + "\n")
         assert (result.returncode == 0) == success, (name, result.returncode, result.stdout, result.stderr)
 
     def identities(self, root, mode="rust"):

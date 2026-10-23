@@ -22,6 +22,7 @@ import os
 from pathlib import Path
 import platform
 import shutil
+import stat
 import subprocess
 import tarfile
 import time
@@ -94,6 +95,12 @@ set -eu
 root=$1
 mount --make-rprivate /
 mount -t proc proc "$root/proc"
+# procfs still exposes the host's consuming kernel-log interface.
+: > "$root/tmp/kmsg-empty"
+mount --bind "$root/tmp/kmsg-empty" "$root/proc/kmsg"
+test -f "$root/proc/kmsg" && test ! -s "$root/proc/kmsg"
+test "$root/tmp/kmsg-empty" -ef "$root/proc/kmsg"
+stat -c "%f %s" "$root/proc/kmsg" > "$root/tmp/handoff-out/kmsg-fixture-host.stat"
 mount -t sysfs -o ro sysfs "$root/sys"
 mount -t tmpfs -o mode=0755 tmpfs "$root/dev"
 mknod -m 666 "$root/dev/null" c 1 3
@@ -107,6 +114,9 @@ DRIVER = r'''#!/bin/sh
 set -eu
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 out=/tmp/handoff-out
+test -f /proc/kmsg && test ! -s /proc/kmsg
+test /tmp/kmsg-empty -ef /proc/kmsg
+printf '%s\n' regular-empty-same-file > "$out/kmsg-fixture-runtime.check"
 for attempt in $(seq 1 40); do
     if ubus -S -t 1 call system board > "$out/board.json" 2>/dev/null; then break; fi
     sleep 1
@@ -177,6 +187,9 @@ def check_case(source, image, bounded, recorder, output, manifest, delay):
         entry.unlink()
     write(root / "etc/inittab", "::sysinit:/etc/init.d/rcS S boot\n::respawn:/bin/sh /tmp/handoff-drive.sh\n", 0o644)
     write(root / "etc/config/system", "config system\n option compat_version '1.0'\n", 0o600)
+    # Untagged physical uevents can reach this netns. Hardware hotplug is
+    # outside this fixture; prevent its rules from creating real device nodes.
+    write(root / "etc/hotplug.json", "[]\n", 0o644)
     for directory in ("tmp/handoff-out", "tmp/sysinfo", "tmp/run", "tmp/lock", "proc", "sys", "dev", BASE):
         (root / directory).mkdir(parents=True, exist_ok=True)
     (root / BASE).chmod(0o700)
@@ -208,6 +221,11 @@ def check_case(source, image, bounded, recorder, output, manifest, delay):
     elapsed = time.monotonic() - started
     require(run.returncode == 0, f"namespace did not end successfully after handoff: {run.returncode}")
     evidence = root / "tmp/handoff-out"
+    mode, size = (evidence / "kmsg-fixture-host.stat").read_text().split()
+    require(stat.S_ISREG(int(mode, 16)) and int(size) == 0, "kernel log was not isolated")
+    require((evidence / "kmsg-fixture-runtime.check").read_text().strip() == "regular-empty-same-file",
+            "runtime kernel-log fixture identity was not verified")
+    require((root / "etc/hotplug.json").read_text() == "[]\n", "hardware hotplug fixture changed")
     require((evidence / "upgraded.txt").is_file(), "real PID1 did not reach the inert upgraded recorder")
     values = dict(line.split("=", 1) for line in (evidence / "upgraded.txt").read_text().splitlines())
     expected = {"pid": "1", "argc": "3", "argv0": "/sbin/upgraded",
@@ -247,6 +265,8 @@ def check_case(source, image, bounded, recorder, output, manifest, delay):
     result = {"passed": True, "term_timeout_s": delay, "elapsed_s": elapsed, "namespace_exit": run.returncode,
               "actual_PID1_and_ubusd_verified": True, "actual_sysupgrade_and_validation_unchanged": True,
               "actual_PID1_argv_backup_verified": True, "only_one_submission": True,
+              "kernel_log_isolated_by_empty_regular_file": True,
+              "hardware_hotplug_rules_disabled_in_fixture": True,
               "no_C_bridge_or_forced_reboot": True, "original_configuration_preserved": True,
               "uncertain_client_before_delayed_exec": delay > 60, "protected_inputs": protected_hashes}
     write(output / "result.json", json.dumps(result, indent=2) + "\n")
@@ -274,6 +294,7 @@ def main():
             == native_paths(manifest["layout"]) and len(manifest["integration_files"]) == 2,
             "expected complete final native image")
     verify_identity(root, manifest)
+    source_hotplug_sha256 = sha(root / "etc/hotplug.json")
     output.mkdir(parents=True, mode=0o700, exist_ok=False)
     write(output / "upgraded-recorder.c", RECORDER_SOURCE)
     recorder = output / "upgraded-recorder"
@@ -286,6 +307,7 @@ def main():
                 "image_source_commit": manifest["source_commit"], "rootfs_release_manifest_sha256": sha(manifest_path),
                 "guard_sha256": sha(TOOLS / "native_trial_guard.sh"), "bounded_sha256": sha(bounded),
                 "driver_sha256": sha(Path(__file__)), "recorder_sha256": sha(recorder),
+                "source_hotplug_sha256": source_hotplug_sha256,
                 "boundary": "real sysupgrade validation and PID1 handoff; upgraded recorder replaces all flash/reboot execution"}
     write(output / "identity.json", json.dumps(identity, indent=2) + "\n")
     cases = {}
@@ -293,7 +315,9 @@ def main():
         cases[name] = check_case(root, image, bounded, recorder, output / name, manifest, delay)
         print("PASS:", name, flush=True)
     verify_identity(root, manifest)
+    require(sha(root / "etc/hotplug.json") == source_hotplug_sha256, "source hotplug rules changed")
     write(output / "result.json", json.dumps({"passed": True, "cases": cases,
+          "source_hotplug_sha256": source_hotplug_sha256, "hardware_hotplug_tested": False,
           "physical_flash_tested": False, "physical_reboot_tested": False, "stage2_executed": False}, indent=2) + "\n")
 
 

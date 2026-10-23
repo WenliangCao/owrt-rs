@@ -11,6 +11,10 @@ out=$(cd "$2" && pwd)
 tools=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cp -a "$image" "$out/root"
 root=$out/root
+sha256sum "$image/etc/hotplug.json" > "$out/source-hotplug.sha256"
+# Physical uevents without a network namespace tag may reach this netns.
+# Hardware hotplug is outside this fixture; keep its private /dev minimal.
+printf '[]\n' > "$root/etc/hotplug.json"
 
 # Keep the exact image's rcS and real init services. Hardware services,
 # time-setting and persistent entropy updates are excluded from the fixture.
@@ -143,6 +147,7 @@ set -eu
 trap 'touch /tmp/out/FAILED; echo FAILED >> /tmp/out/verdict' EXIT
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 test -f /proc/kmsg && test ! -s /proc/kmsg
+test /tmp/kmsg-empty -ef /proc/kmsg
 printf '%s\n' regular-empty > /tmp/out/kmsg-fixture-runtime.check
 for wait in $(seq 1 45); do
     if ubus -S -t 1 call network.interface.lan status > /tmp/out/lan.json 2>/dev/null &&
@@ -288,6 +293,7 @@ container=1 timeout -s KILL 120 unshare --mount --net --pid --uts --ipc --fork -
     : > "$root/tmp/kmsg-empty"
     mount --bind "$root/tmp/kmsg-empty" "$root/proc/kmsg"
     test -f "$root/proc/kmsg" && test ! -s "$root/proc/kmsg"
+    test "$root/tmp/kmsg-empty" -ef "$root/proc/kmsg"
     stat -c "%f %s" "$root/proc/kmsg" > "$root/tmp/out/kmsg-fixture-host.stat"
     mount -t sysfs -o ro sysfs "$root/sys"
     mount -t tmpfs -o mode=0755 tmpfs "$root/dev"
@@ -349,6 +355,9 @@ assert client['passed'] and client['lease_file_matches_client']
 mode, size = (out/'kmsg-fixture-host.stat').read_text().split()
 assert stat.S_ISREG(int(mode, 16)) and int(size) == 0
 assert (out/'kmsg-fixture-runtime.check').read_text().strip() == 'regular-empty'
+assert (out/'root/etc/hotplug.json').read_text() == '[]\n'
+source_hotplug_sha=hashlib.sha256((root/'etc/hotplug.json').read_bytes()).hexdigest()
+assert source_hotplug_sha == (out/'source-hotplug.sha256').read_text().split()[0]
 metrics=json.loads((out/'dnsmasq-metrics.json').read_text())
 assert isinstance(metrics,dict) and metrics
 for item in manifest['integration_files'].values():
@@ -358,6 +367,9 @@ result={'pid1_and_six_daemon_identities':True,'standard_service_paths':True,
         'synthetic_LAN_and_WAN_up':True,'HTTP_and_HTTPS_content':True,
         'first_boot_certificate_generation':True,'log_roundtrip':True,
         'kernel_log_isolated_by_empty_regular_file':True,
+        'hardware_hotplug_rules_disabled_in_fixture':True,
+        'source_hotplug_sha256':source_hotplug_sha,
+        'hardware_hotplug_tested':False,
         'uci_and_reload_config':True,'fw4_matches_stock_and_checks':True,
         'no_executable_bind_mounts':True,'PID1_reboot_exits_namespace':True,
         'exact_dnsmasq_init_and_ACL':True,'veth_client_DHCP_OFFER_ACK_and_options':True,
