@@ -1,6 +1,6 @@
 # Native eleven-component image
 
-The current candidate is **v0.3.3 / OpenWrt 25.12.6**. Its
+The current stable Latest is **v0.3.3 / OpenWrt 25.12.6**. Its
 `native-25.12.6.json` fixes the standard executable paths, original file owners
 and exact stock hashes for the AX3000T image. The original packages continue to
 supply configuration, libraries and execution-plane helpers. The accepted
@@ -11,9 +11,14 @@ and `replaces-priority`; its stock package dependencies are pinned to the
 versions whose recovery copies were verified. The older `owrt-*` switch packages
 conflict with this package and are excluded from the final image. The historical
 `native-25.12.5.json` and its source/profile/ELF identities remain unchanged.
-The new candidate passed canonical rebuild and offline image qualification;
-physical deployment and Wi-Fi/client acceptance remain separate. See the
-[v0.3.3 record](../../docs/reviews/V033_RELEASE_20261023.md).
+The same published image passed canonical rebuild, offline qualification and
+configuration-preserving deployment. The first 20-minute observation passed
+60 of 61 health samples, with one DNS query timeout whose cause remains unknown.
+Continued observation then completed 61 consecutive passing samples spanning
+20 minutes; the temporary rollback guard was removed. No additional physical
+power-cycle or long-term stability test was performed. See the
+[build record](../../docs/reviews/V033_RELEASE_20261023.md) and
+[deployment record](../../docs/reviews/V033_DEPLOY_20261023.md).
 
 The eleventh program is scoped `odhcpd-rs` at `/usr/sbin/odhcpd`. Its original
 `odhcpd-ipv6only` package still supplies init, defaults and `odhcpd-update`.

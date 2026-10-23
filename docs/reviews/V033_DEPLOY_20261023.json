@@ -106,7 +106,12 @@
   },
   "physical_power_cycle_tested": false,
   "long_term_or_performance_validation": false,
-  "promotion": "pending; separate promotion receipt records actual GitHub state",
+  "promotion": {
+    "status": "stable Latest",
+    "release_id": 421798153,
+    "verified_at": "2026-10-23T16:19:06.075514+00:00",
+    "receipt": "V033_PROMOTION_20261023.json"
+  },
   "private_evidence_sha256": {
     "private/v033-deploy-20261023/deploy/recovery-gate.json": "29142d909c0151f301e6a0fe6e10913ba5b80575ad7fbf837c1b665d514764bf",
     "private/v033-deploy-20261023/deploy/observation-1200s/result.json": "a50583425e197daa51630ec414a2e7e017ac5274919fa4be750fbe8b4efa74f4",

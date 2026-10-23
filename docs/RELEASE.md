@@ -1,14 +1,18 @@
 # 集成固件的发布与维护
 
 2026-10-23：已发布 **v0.3.3 / `0.3.3-r1` / OpenWrt 25.12.6**
-[预发行候选](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.3)。默认构建与
+[正式 Latest](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.3)。默认构建与
 [新配方](../packaging/image/native-25.12.6.json)已切换到25.12.6；历史25.12.5配方不变。
 实际构建提交为`1e25d61dc707833f97afa5a56148f4dbceb50ed3`，两轮完整固件、5个APK、
 11个ELF及最终manifest逐字节一致，完整离线门禁通过。发布沿用第一轮原始字节，
-不为发布重建。**未执行真机刷写、Wi-Fi或客户端验收，正式Latest仍是v0.3.2。**
+不为发布重建。同一公开镜像已保配置刷入真机：首段20分钟观察60/61通过，
+保留一次原因未明的客户端DNS查询超时；延长观察后取得连续1200.256秒的61/61通过。
+全部82次采样为81次通过、1次失败，临时回退守卫已清理，未追加物理断电复验或长期稳定性测试。
+转正不移动标签、不替换附件；附件`RELEASE_NOTES.md`保留首次候选发布说明，
+当前状态以实时Release正文与[部署记录](reviews/V033_DEPLOY_20261023.md)为准。
 见[发布说明](releases/v0.3.3.md)、[构建与离线资格](reviews/V033_RELEASE_20261023.md)。
 
-以下保留各历史阶段的状态与身份，不将新候选资格倒填到旧记录。
+以下保留各历史阶段的状态与身份，不将新版本资格倒填到旧记录。
 
 2026-10-22 源码更新：[25.12.6 适配报告](reviews/OPENWRT_25126_UPDATE_20261022.md)
 记录了新 stock/ImageBuilder 输入、AN8855 FIT 校验和协议回归。当前完整固件发行资格仍是
@@ -118,15 +122,15 @@ v0.2.1 的另外九个 ELF、dnsmasq init/ACL 与 v0.2.0 逐字节相同。历�
 | 原位整合 | `tools/ci_integrate_image.sh`、`tools/native_image.py` 固定官方镜像与 LuCI 源码归档 SHA256，离线安装统一 APK 与四个中文包，以匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
 | 内容审计 | 十一个程序、init/ACL、APK 所有权、十三份 stock 恢复文件、配置及其余原包内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
 
-最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前 v0.3.2 的 canonical 参考为 `2a22f6327d81e25c8bf9e891d21842e5ef0d33ec074e5004506388f3b616e2a2`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/dnsmasq-k-pgo-inputs-20261017)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.3.2 使用全新11场景/50 profiles及冻结输入，不沿用 v0.3.0/v0.3.1 的 `0421a5d0…` ELF。历史 v0.2.1 的 CI 精确复现 K，v0.2.2 的统一 generator/use 完成且 0 PGO missing/mismatch；这些资格保留各自原身份。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格也分别记录，不能混用。
+最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前 v0.3.3 的 canonical 参考为 `b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-rs/releases/tag/dnsmasq-v033-pgo-inputs-20261023)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.3.3 完成新的11场景/50 profiles训练与231项输入冻结，不复用旧profile作为新资格。历史 v0.3.2 的 ELF 为 `2a22f6327d81e25c8bf9e891d21842e5ef0d33ec074e5004506388f3b616e2a2`；v0.3.0/v0.3.1 为 `0421a5d0…`。历史 v0.2.1 的 CI 精确复现 K，v0.2.2 的统一 generator/use 完成且 0 PGO missing/mismatch；这些资格保留各自原身份。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格也分别记录，不能混用。
 
 可先在 Actions 页面选择已审阅分支，或执行：
 
 ```sh
-gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.5
+gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.6
 ```
 
-普通 `workflow_dispatch` 只生成 Actions artifact。Linux 的 `make ci-image VERSION=25.12.5` 运行相同完整构建链；`tools/release.sh apk|image` / `make apk|image` 是旧六组件配方的研究入口，不是当前集成发布入口。
+普通 `workflow_dispatch` 只生成 Actions artifact。Linux 的 `make ci-image VERSION=25.12.6` 运行相同完整构建链；`tools/release.sh apk|image` / `make apk|image` 是旧六组件配方的研究入口，不是当前集成发布入口。
 
 最终产物在 `work/native/out/`：
 
@@ -238,11 +242,11 @@ sysupgrade 默认保留选定配置，安装新系统后由原 preinit 恢复；
 
 旧分层部署曾禁用原 `log`、`rpcd`、`uhttpd`。首次采用集成布局时，`05-owrt-native` 在 sysupgrade 生成的 `10_disable_services` 之前移除这三个禁用命令并启用服务；其他服务状态保留。
 
-`/etc/owrt-control-plane-layout` 的历史值 **`native-nine-v1` 有意保留**，由包内 keep.d 规则迁移。它表示“已经完成首次布局迁移”，不是当前组件数量；当前布局由 release manifest 的 `native-ten` 描述。改 marker 会误触发首次迁移，覆盖从 v0.1.1 升级用户的服务启停选择，故不随组件数量改名。正式固件没有后台试验守卫；本次临时恢复包与普通配置备份分别保存，验收结束再生成不含守卫的配置备份。恢复出厂丢弃 overlay 与个人配置，回到镜像内置 Rust 栈。
+`/etc/owrt-control-plane-layout` 的历史值 **`native-nine-v1` 有意保留**，由包内 keep.d 规则迁移。它表示“已经完成首次布局迁移”，不是当前组件数量；当前布局由 release manifest 的 `native-eleven` 描述。改 marker 会误触发首次迁移，覆盖从 v0.1.1 升级用户的服务启停选择，故不随组件数量改名。正式固件没有后台试验守卫；部署时的临时恢复包与普通配置备份分别保存，验收结束再生成不含守卫的配置备份。恢复出厂丢弃 overlay 与个人配置，回到镜像内置 Rust 栈。
 
 ## 恢复路径
 
-v0.2.0 起的 `/usr/libexec/owrt-stock/` 保留 **十二份**精确 stock 文件：十个 C 程序，加 C dnsmasq 原 init 与 ACL，保持相对路径。**`/rom` 中对应路径已是集成 Rust 版本，不能当 C 原件。**
+当前 `native-eleven` 镜像的 `/usr/libexec/owrt-stock/` 保留 **十三份**精确 stock 文件：十一个 C 程序，加 C dnsmasq 原 init 与 ACL，保持相对路径。历史 v0.2.0 起的 `native-ten` 镜像为十二份；v0.3.0 加入 odhcpd 后为十三份。**`/rom` 中对应路径已是集成 Rust 版本，不能当 C 原件。**
 
 SSH 可用，或进入 failsafe 并 `mount_root` 后，可运行：
 
@@ -252,13 +256,13 @@ owrt-recover-c
 reboot
 ```
 
-工具先校验全部恢复文件、拒绝被绑定挂载的目标，准备并核验完整临时集合，再替换十二个路径；dnsmasq 必须与原 init/ACL 一同恢复。它不主动重启，不依赖 ubus/netifd，不修改用户配置。多次运行结果一致；十二次 rename 不是跨文件原子事务，中断可在 failsafe 重跑。
+工具先校验全部恢复文件、拒绝被绑定挂载的目标，准备并核验完整临时集合，再替换十三个路径；dnsmasq 必须与原 init/ACL 一同恢复。它不主动重启，不依赖 ubus/netifd，不修改用户配置。多次运行结果一致；十三次 rename 不是跨文件原子事务，中断可在 failsafe 重跑。
 
-这条路径恢复精确官方 C 栈，**不等同于刷回某个历史固件版本**。v0.2.2 的版本回滚使用已核验 v0.2.1 镜像与当次配置备份；本次验收期临时守卫也以它为回刷目标。管理不可达时使用 failsafe/TFTP 救援路径。原版内核、早期 init、preinit/failsafe 和救援材料保留；Wi-Fi 管理获授权，网线不是普通刷写的前提，实际 failsafe/TFTP 见[救援手册](RUNBOOK_AX3000T_RECOVERY.md)。
+这条路径恢复精确官方 C 栈，**不等同于刷回某个历史固件版本**。v0.3.3 本次部署的版本回滚输入为已核验 v0.3.2 镜像与当次配置备份；临时守卫在验收后撤除。历史 v0.2.2 部署的回滚输入仍为 v0.2.1，不与本次混用。管理不可达时使用 failsafe/TFTP 救援路径。原版内核、早期 init、preinit/failsafe 和救援材料保留；Wi-Fi 管理获授权，网线不是普通刷写的前提，实际 failsafe/TFTP 见[救援手册](RUNBOOK_AX3000T_RECOVERY.md)。
 
 ## 验收边界
 
-`tools/native_image_check.py` 在 aarch64 Linux 独立 namespace 与镜像副本中运行精确 sysupgrade 备份、preinit 配置恢复、首次迁移、后续原生升级、错误身份拒绝、完整 C 恢复及 APK 重装。原九组件历史通过记录不能自动升级为十二恢复项通过；本次须保存 `native-ten` 实际执行结果。`tools/native_apk_fixtures.py` 从精确原镜像文件清单重建原包载荷，供 `--no-scripts` 所有权重装；它们不是原始签名 APK。测试须确认已删除文件恢复，拒绝 APK 成功却跳过载荷。
+`tools/native_image_check.py` 在 aarch64 Linux 独立 namespace 与镜像副本中运行精确 sysupgrade 备份、preinit 配置恢复、首次迁移、后续原生升级、错误身份拒绝、完整 C 恢复及 APK 重装。九组件或 `native-ten` 的历史通过记录不能自动成为十三恢复项的资格；当前须保存 `native-eleven` 实际执行结果。`tools/native_apk_fixtures.py` 从精确原镜像文件清单重建原包载荷，供 `--no-scripts` 所有权重装；它们不是原始签名 APK。测试须确认已删除文件恢复，拒绝 APK 成功却跳过载荷。
 
 `tools/native_boot_check.sh` 使用镜像内 PID1、总线及启动脚本验证模拟 LAN/WAN、RPCD、日志、HTTP/HTTPS、首次证书、UCI、reload_config、fw4。dnsmasq 还须验证实际最终 ELF 与 init/ACL 的 DNS/DHCP、helper/ubus、恢复与权限链路。物理无线、闪存写入、正常重启及断电行为由真机验收负责，隔离测试不能替代。
 

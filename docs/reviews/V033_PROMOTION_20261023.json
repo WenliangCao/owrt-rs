@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "verified_at": "2026-10-23T16:19:06.075514+00:00",
+  "release_url": "https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.3",
+  "release_id": 421798153,
+  "tag_name": "v0.3.3",
+  "prerelease": false,
+  "draft": false,
+  "latest_tag": "v0.3.3",
+  "published_at_original": "2026-10-23T12:11:12Z",
+  "updated_at": "2026-10-23T16:18:04Z",
+  "tag_object": "97476a2aa7c3eac3171cff525665039eea794f8a",
+  "tag_target": "1e25d61dc707833f97afa5a56148f4dbceb50ed3",
+  "tag_unchanged": true,
+  "all13asset_ids_sizes_digests_and_timestamps_unchanged": true,
+  "release_notes_asset_is_original_candidate_archive": true,
+  "live_body_sha256": "123e14123508fea9a0370628aa6f6b094055319fd21feea4eaa926b56f3732af",
+  "anonymous_firmware_redownload": {
+    "passed": true,
+    "bytes": 14192928,
+    "sha256": "5b4e7511b228f97b477b875ebfca4c93117e84e450d5c0f5178725e8bab3b151"
+  },
+  "acceptance": {
+    "original_window": "60/61; one unknown-cause DNS timeout retained",
+    "subsequent_continuous_window": "61/61; 1200.256011 seconds",
+    "overall": "81/82; one failure",
+    "guard_cleaned": true,
+    "config_preserved": true
+  },
+  "assets": [
+    {
+      "id": 669012012,
+      "name": "binary-sha256.txt",
+      "size": 831,
+      "digest": "sha256:5fddc3e393811a7e10ea7985eeeb0daf0f2fecc8e3377b64da1706c2789f9f7d",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/binary-sha256.txt"
+    },
+    {
+      "id": 669012010,
+      "name": "build-inputs.json",
+      "size": 79780,
+      "digest": "sha256:e14cc1ca287ad01bd18c117b583263c766f3a24821fadd3f9e7d81d5b5276bcf",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/build-inputs.json"
+    },
+    {
+      "id": 669012009,
+      "name": "CI-SHA256SUMS",
+      "size": 3653,
+      "digest": "sha256:a8df1c8d2765623d051afee10b224983a037ee10bd99df8d184ff1aa7ef0c249",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/CI-SHA256SUMS"
+    },
+    {
+      "id": 669012028,
+      "name": "dnsmasq-build-manifest.json",
+      "size": 72250,
+      "digest": "sha256:fca2e641bdb52e4c01d448049e29f361b203af483df0c4bc5091eb2ac24ac6df",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/dnsmasq-build-manifest.json"
+    },
+    {
+      "id": 669012031,
+      "name": "luci-i18n-attendedsysupgrade-zh-cn-26.288.56989.75a306d.apk",
+      "size": 3101,
+      "digest": "sha256:e65040664ac49358d9db2c259b77eac75358e05ff2b555e47f93e0861695e7b0",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/luci-i18n-attendedsysupgrade-zh-cn-26.288.56989.75a306d.apk"
+    },
+    {
+      "id": 669012033,
+      "name": "luci-i18n-base-zh-cn-26.288.56989.75a306d.apk",
+      "size": 65435,
+      "digest": "sha256:c7dccf595224b4ba6555505b0809d4070002868a2421c15d124e85d3ee714692",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/luci-i18n-base-zh-cn-26.288.56989.75a306d.apk"
+    },
+    {
+      "id": 669012032,
+      "name": "luci-i18n-firewall-zh-cn-26.288.56989.75a306d.apk",
+      "size": 8235,
+      "digest": "sha256:d1636c204eea8a96ef8474d147d6abded483029dd6d1b37b1223f5c52258cc15",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/luci-i18n-firewall-zh-cn-26.288.56989.75a306d.apk"
+    },
+    {
+      "id": 669012037,
+      "name": "luci-i18n-package-manager-zh-cn-26.288.56989.75a306d.apk",
+      "size": 2721,
+      "digest": "sha256:5f20ca8b85dc23c8fddb16f0c898a0eaaa718c6190d158d5ad6796256579ea03",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/luci-i18n-package-manager-zh-cn-26.288.56989.75a306d.apk"
+    },
+    {
+      "id": 669012069,
+      "name": "manifest.json",
+      "size": 13792,
+      "digest": "sha256:bf9af6d93dc942dc115a00326b3f726997e6a563284800ad96098d31f69c9984",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/manifest.json"
+    },
+    {
+      "id": 669012070,
+      "name": "openwrt-25.12.6-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "size": 14192928,
+      "digest": "sha256:5b4e7511b228f97b477b875ebfca4c93117e84e450d5c0f5178725e8bab3b151",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/openwrt-25.12.6-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin"
+    },
+    {
+      "id": 669012066,
+      "name": "owrt-control-plane-0.3.3-r1.apk",
+      "size": 6434358,
+      "digest": "sha256:84170c766d6bc0fdeb01df52ed69eb0b4a6fbe18801ecccd0a81802a5b834a49",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/owrt-control-plane-0.3.3-r1.apk"
+    },
+    {
+      "id": 669012015,
+      "name": "RELEASE_NOTES.md",
+      "size": 3286,
+      "digest": "sha256:3e7f4bff96d9acc387cbb133b38030ec49d4a026b54c45c37908c62cdd025c91",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/RELEASE_NOTES.md"
+    },
+    {
+      "id": 669012011,
+      "name": "SHA256SUMS",
+      "size": 1228,
+      "digest": "sha256:968c1ecd54a23831f873fc92052758ed2f1683f13192b8f2c4a6cbb755918b4a",
+      "browser_download_url": "https://github.com/WenliangCao/owrt-rs/releases/download/v0.3.3/SHA256SUMS"
+    }
+  ]
+}
