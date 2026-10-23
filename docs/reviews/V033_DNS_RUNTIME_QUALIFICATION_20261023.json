@@ -1,0 +1,248 @@
+{
+  "status": "passed-independent-runtime-and-f23-f25",
+  "canonical_manifest_sha256": "faff2ae0ccded93af1db4ab0a271d580584cda4fce4c5cf6a75b630e6630b4d4",
+  "elf": {
+    "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/ci-candidate-39940619433/dnsmasq-pgo-candidate-use-8c4ebb7cd8fcc30d082780849a1dadcc0675ce99-39940619433/dnsmasq-rs",
+    "sha256": "b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41",
+    "size": 2321243
+  },
+  "apk": {
+    "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/ci-candidate-39940619433/dnsmasq-pgo-candidate-use-8c4ebb7cd8fcc30d082780849a1dadcc0675ce99-39940619433/dnsmasq-2.93-r4.apk",
+    "sha256": "b097876a214bc1164176a3a43a1443caabf697158e9fcfdce4a983d9b19db53a",
+    "size": 1312655
+  },
+  "source_commit": "0e077f258811c6250edfe188de62a52e48d7a8df",
+  "source_digest": "9d3c45da3a3f7a12073610f34de0868187eaca6472c148f1f3626ff22c207657",
+  "pgo_profile_sha256": "72f89eb4c967a757e87fb27f934c646208b3b25cdc6ad5b156649d3d00c117b2",
+  "sdk_archive_sha256": "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
+  "runtime": {
+    "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification-runtime-01/result.json",
+    "sha256": "05be5c4d37bd6abf30a6d085edc6f17a098598c70fe74556bcf6eb45da37b884",
+    "no_proc_both_modes": true,
+    "startup_count": 40,
+    "helper_callback_counts": [
+      [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    ],
+    "static_pie": {
+      "elf_type": 3,
+      "distinct_bases": 3,
+      "relro_readonly": true,
+      "stack_not_executable": true
+    },
+    "fd_cohorts": [
+      {
+        "mode": "helper",
+        "headroom": 2,
+        "baseline-v032": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": false,
+          "recovery_health_ok": true,
+          "limit_restored": false
+        },
+        "candidate": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": false,
+          "recovery_health_ok": true,
+          "limit_restored": false
+        },
+        "regression": false
+      },
+      {
+        "mode": "resolver",
+        "headroom": 2,
+        "baseline-v032": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "helper",
+        "headroom": 3,
+        "baseline-v032": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "resolver",
+        "headroom": 3,
+        "baseline-v032": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "helper",
+        "headroom": 4,
+        "baseline-v032": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "resolver",
+        "headroom": 4,
+        "baseline-v032": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "helper",
+        "headroom": 8,
+        "baseline-v032": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "resolver",
+        "headroom": 8,
+        "baseline-v032": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      }
+    ],
+    "fd_regressions": []
+  },
+  "f23_f25": {
+    "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification-f23-f25-01/result.json",
+    "sha256": "4a060b8bd71a66887abed7b654f7336dd7f9c28e062d8b577a156c7783cdf0e1",
+    "rounds_each": 4,
+    "listener_protocol_cases_passed": 8,
+    "helper_admitted_churn_each": [
+      365,
+      365,
+      365,
+      365
+    ],
+    "helper_exact_deletes_each": [
+      366,
+      366,
+      366,
+      366
+    ]
+  },
+  "inputs_unchanged": true,
+  "physical_router_accessed": false,
+  "performance_conclusion": "None; CPU/latency retained under parallel44-family load, not used for acceptance."
+}

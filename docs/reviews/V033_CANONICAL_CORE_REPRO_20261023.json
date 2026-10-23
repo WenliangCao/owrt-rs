@@ -1,0 +1,112 @@
+{
+  "baseline_run": 39933294568,
+  "candidate_run": 39940539743,
+  "baseline_source_commit": "6af33a614fc59802bb45402111c56492ae62c0fb",
+  "candidate_source_commit": "8c4ebb7cd8fcc30d082780849a1dadcc0675ce99",
+  "artifact_id": 12495444307,
+  "artifact_name": "core-target-8c4ebb7cd8fcc30d082780849a1dadcc0675ce99",
+  "artifact_digest": "sha256:5e48197401e135e67ed9740deef2eb8c198b6e0aea5920c0b6871963b7d0a400",
+  "downloaded_zip_sha256": "5e48197401e135e67ed9740deef2eb8c198b6e0aea5920c0b6871963b7d0a400",
+  "artifact_root": "oracle:/home/ubuntu/owrt-v033-25126-release-20261023/private/canonical-core-39940539743",
+  "raw_zip": "oracle:/home/ubuntu/owrt-v033-25126-release-20261023/candidate/private/v033-frontend/core-39940539743/core-target-original.zip",
+  "candidate_metadata_sha256": "95f1dea8fa4c4185a4dd953116f2e7a6f7d1ac3766b673924c522fa8b3fa4d8b",
+  "baseline_metadata_sha256": "09b2781f08ddc3cf2fcaef27ebc6c91a526ab859dc854ba2b883b707d919a58d",
+  "rows": [
+    {
+      "binary": "fw4-rs",
+      "old_sha256": "76637e0b3ace492a5f0d170250e86f2ef79b063010c165cdedbabe35fa7e7771",
+      "new_sha256": "76637e0b3ace492a5f0d170250e86f2ef79b063010c165cdedbabe35fa7e7771",
+      "old_bytes": 1051347,
+      "new_bytes": 1051347,
+      "byte_identical": true
+    },
+    {
+      "binary": "httpd-rs",
+      "old_sha256": "50f502f2c52ff2ddfa0bbd8d98e47727c18a6ca546964f6c7866e0a81dcc2870",
+      "new_sha256": "50f502f2c52ff2ddfa0bbd8d98e47727c18a6ca546964f6c7866e0a81dcc2870",
+      "old_bytes": 1620727,
+      "new_bytes": 1620727,
+      "byte_identical": true
+    },
+    {
+      "binary": "logd-rs",
+      "old_sha256": "3a0311a3d965ea6473a2b4e9970a105aca69da4983bc4bf9d12a3b70c3c2fd35",
+      "new_sha256": "3a0311a3d965ea6473a2b4e9970a105aca69da4983bc4bf9d12a3b70c3c2fd35",
+      "old_bytes": 432819,
+      "new_bytes": 432819,
+      "byte_identical": true
+    },
+    {
+      "binary": "netifd-rs",
+      "old_sha256": "58bd1ea035c87afe0179ddcf97bdce2b0ebc63ccad9fede7d627cc792943071d",
+      "new_sha256": "58bd1ea035c87afe0179ddcf97bdce2b0ebc63ccad9fede7d627cc792943071d",
+      "old_bytes": 1105976,
+      "new_bytes": 1105976,
+      "byte_identical": true
+    },
+    {
+      "binary": "odhcpd-rs",
+      "old_sha256": "3eb5dee79aacd920f772f7fd13af4ba48278f51ec3deb92ee2a27cb01f8255e1",
+      "new_sha256": "3eb5dee79aacd920f772f7fd13af4ba48278f51ec3deb92ee2a27cb01f8255e1",
+      "old_bytes": 807032,
+      "new_bytes": 807032,
+      "byte_identical": true
+    },
+    {
+      "binary": "procd-rs",
+      "old_sha256": "f55a4287fffb36f617c16727c672593b93676ae6c87dfd41d9b10ba3f4ad08a7",
+      "new_sha256": "f55a4287fffb36f617c16727c672593b93676ae6c87dfd41d9b10ba3f4ad08a7",
+      "old_bytes": 897016,
+      "new_bytes": 897016,
+      "byte_identical": true
+    },
+    {
+      "binary": "reload_config_rs",
+      "old_sha256": "a39bfc75dda3bc6245227e1a558416f5312681599bfe9905eed591eea2d2a33e",
+      "new_sha256": "a39bfc75dda3bc6245227e1a558416f5312681599bfe9905eed591eea2d2a33e",
+      "old_bytes": 465643,
+      "new_bytes": 465643,
+      "byte_identical": true
+    },
+    {
+      "binary": "rpcd-rs",
+      "old_sha256": "6f99dd171fd2ef5aec8cfe676726c843820cc22443443fc6e82f9285e3f6e152",
+      "new_sha256": "6f99dd171fd2ef5aec8cfe676726c843820cc22443443fc6e82f9285e3f6e152",
+      "old_bytes": 1280803,
+      "new_bytes": 1280803,
+      "byte_identical": true
+    },
+    {
+      "binary": "ubusd-rs",
+      "old_sha256": "de5e9e3ff9f97deeb23073c0a8a6beee6e1edf68221dba7dca1e43ee5151ab76",
+      "new_sha256": "de5e9e3ff9f97deeb23073c0a8a6beee6e1edf68221dba7dca1e43ee5151ab76",
+      "old_bytes": 524280,
+      "new_bytes": 524280,
+      "byte_identical": true
+    },
+    {
+      "binary": "uci-rs",
+      "old_sha256": "04efbab9c439bcf6957a6170be4687fc95a112f45baf633c464732c6550846d1",
+      "new_sha256": "04efbab9c439bcf6957a6170be4687fc95a112f45baf633c464732c6550846d1",
+      "old_bytes": 490251,
+      "new_bytes": 490251,
+      "byte_identical": true
+    }
+  ],
+  "all_ten_byte_identical": true,
+  "runtime_repeated": false,
+  "reference_pins_modified": false,
+  "source_crosscheck": {
+    "paths": [
+      "components",
+      "packaging/openwrt",
+      "tools/ci_build_core.sh",
+      "tools/ci_build_image.sh",
+      "tools/mbx_cargo.sh",
+      "rust-toolchain.toml",
+      ".github/workflows/core-safe-check.yml"
+    ],
+    "changed_files": [],
+    "note": "Actual ELF equality was independently checked byte for byte on oracle; this source-path comparison is additional context."
+  }
+}
