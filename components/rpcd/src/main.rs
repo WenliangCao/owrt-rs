@@ -2,7 +2,7 @@
 //! plugin-layer objects (`file`, `luci`; contract C5) as one ubus object server.
 //! Runtime state lives under /var/run/rpcd-rs (decision 0013).
 
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
@@ -25,14 +25,14 @@ mod session;
 mod uciobj;
 mod util;
 
+use owrt_platform::rpcd_signals;
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::Json;
 use owrt_ubus::sys;
 use owrt_ubus::{status, Connection, Incoming, MsgType, Request};
 use std::cell::RefCell;
-use std::os::fd::{AsRawFd, RawFd};
+use std::os::fd::RawFd;
 use std::os::unix::fs::DirBuilderExt;
-use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::{Duration, Instant};
 
@@ -81,18 +81,17 @@ pub struct Done {
 #[derive(Clone)]
 pub struct Deferrer {
     tx: Sender<Done>,
-    wake: RawFd,
 }
 
 impl Deferrer {
-    fn channel(wake: RawFd) -> (Self, Receiver<Done>) {
+    fn channel() -> (Self, Receiver<Done>) {
         let (tx, rx) = mpsc::channel();
-        (Self { tx, wake }, rx)
+        (Self { tx }, rx)
     }
 
     pub fn finish(&self, req: Request, reply: session::Reply) {
         if self.tx.send(Done { req, reply }).is_ok() {
-            wake(self.wake);
+            rpcd_signals::wake();
         }
     }
 
@@ -133,39 +132,6 @@ impl Deferrer {
             }
         }
     }
-}
-
-static SIGNAL: AtomicI32 = AtomicI32::new(0);
-static WAKE_FD: AtomicI32 = AtomicI32::new(-1);
-const SIGHUP: i32 = 1;
-const SIGUSR1: i32 = 10;
-const SIGCHLD: i32 = 17;
-
-fn wake(fd: RawFd) {
-    owrt_platform::rpcd::wake(fd);
-}
-
-extern "C" fn handle_signal(sig: i32) {
-    if sig != SIGCHLD {
-        SIGNAL.store(sig, Ordering::SeqCst);
-    }
-    let fd = WAKE_FD.load(Ordering::SeqCst);
-    if fd >= 0 {
-        wake(fd);
-    }
-}
-
-fn drain(fd: RawFd) {
-    owrt_platform::rpcd::drain_pipe(fd);
-}
-
-fn wake_pipe() -> std::io::Result<(std::os::fd::OwnedFd, std::os::fd::OwnedFd)> {
-    let (read, write) = sys::pipe()?;
-    sys::set_nonblocking(read.as_raw_fd())?;
-    // Signals and completed workers must never wait for the main loop. EAGAIN
-    // leaves an existing readable wakeup; the actual state lives outside it.
-    sys::set_nonblocking(write.as_raw_fd())?;
-    Ok((read, write))
 }
 
 struct Ids {
@@ -329,19 +295,10 @@ fn main() {
     }
     rustix::process::umask(rustix::fs::Mode::from_raw_mode(0o077));
     sys::ignore_signal(sys::SIGPIPE);
-    let (pipe_r, pipe_w) = wake_pipe().unwrap_or_else(|e| {
+    let wake_reader = rpcd_signals::install().unwrap_or_else(|e| {
         eprintln!("pipe: {e}");
         std::process::exit(1);
     });
-    WAKE_FD.store(pipe_w.as_raw_fd(), Ordering::SeqCst);
-    // SAFETY: handle_signal only updates atomics and performs the platform's
-    // errno-preserving nonblocking wake write; it never allocates or unwinds.
-    #[expect(unsafe_code, reason = "register the fixed async-signal-safe handler")]
-    unsafe {
-        let _ = sys::set_signal_handler(SIGHUP, handle_signal);
-        let _ = sys::set_signal_handler(SIGUSR1, handle_signal);
-        let _ = sys::set_signal_handler(SIGCHLD, handle_signal);
-    }
 
     let mut conn = match Connection::connect(socket.as_deref()) {
         Ok(c) => c,
@@ -356,7 +313,10 @@ fn main() {
         exec_timeout_ms: exec_timeout as i32,
         sessions: RefCell::new(session::Store::new()),
         apply: RefCell::new(uciobj::Apply::default()),
-        delayed: RefCell::new(delayed::Children::inherit()),
+        delayed: RefCell::new(delayed::Children::inherit().unwrap_or_else(|error| {
+            eprintln!("Failed to restore delayed child state: {error}");
+            std::process::exit(1);
+        })),
         uci_read_cache: RefCell::new(owrt_uci::ReadCache::default()),
     };
     let mut ids = register_objects(&ctx, &mut conn).unwrap_or_else(|error| {
@@ -370,20 +330,14 @@ fn main() {
     }
 
     loop {
-        if let Err(error) = serve(
-            &ctx,
-            &mut conn,
-            &ids,
-            pipe_r.as_raw_fd(),
-            pipe_w.as_raw_fd(),
-        ) {
+        if let Err(error) = serve(&ctx, &mut conn, &ids, wake_reader) {
             eprintln!("ubus connection lost: {error}");
         }
         // A deferred worker may still be running, but serve() has dropped its
         // completion receiver. It cannot send an old peer/sequence on a new bus.
         let _ = conn.shutdown();
         drop(conn);
-        (conn, ids) = reconnect(&ctx, pipe_r.as_raw_fd());
+        (conn, ids) = reconnect(&ctx, wake_reader);
     }
 }
 
@@ -401,15 +355,14 @@ fn maintain(ctx: &Ctx) {
 }
 
 fn check_signal(ctx: &Ctx, conn: Option<&Connection>) {
-    let sig = SIGNAL.swap(0, Ordering::SeqCst);
-    if sig == 0 {
+    let Some(action) = rpcd_signals::take_action() else {
         return;
-    }
+    };
     ctx.sessions.borrow().freeze();
     if let Some(conn) = conn {
         let _ = conn.shutdown();
     }
-    if sig == SIGHUP {
+    if action == rpcd_signals::Action::Hangup {
         exec_self(&ctx.delayed.borrow());
     }
     std::process::exit(0);
@@ -454,7 +407,7 @@ fn reconnect(ctx: &Ctx, read_fd: RawFd) -> (Connection, Ids) {
             revents: 0,
         }];
         if sys::poll_fds(&mut fds, timeout).is_ok() && fds[0].revents != 0 {
-            drain(read_fd);
+            rpcd_signals::drain();
         }
     }
 }
@@ -488,14 +441,8 @@ fn register_objects(ctx: &Ctx, conn: &mut Connection) -> std::io::Result<Ids> {
     })
 }
 
-fn serve(
-    ctx: &Ctx,
-    conn: &mut Connection,
-    ids: &Ids,
-    read_fd: RawFd,
-    wake_fd: RawFd,
-) -> std::io::Result<()> {
-    let (deferrer, rx) = Deferrer::channel(wake_fd);
+fn serve(ctx: &Ctx, conn: &mut Connection, ids: &Ids, read_fd: RawFd) -> std::io::Result<()> {
+    let (deferrer, rx) = Deferrer::channel();
     let ubus_fd = conn.as_raw_fd();
     let mut readiness = readiness::Readiness::new([ubus_fd, read_fd]);
     let mut immediate_left = 0;
@@ -546,7 +493,7 @@ fn serve(
             continue;
         };
         if wake_ready {
-            drain(read_fd);
+            rpcd_signals::drain();
         }
         if bus_ready || conn.has_pending() {
             immediate_left = 31;
@@ -643,9 +590,9 @@ mod reconnect_tests {
 
     #[test]
     fn old_worker_completion_cannot_enter_a_reconnected_generation() {
-        let (old, receiver) = Deferrer::channel(-1);
+        let (old, receiver) = Deferrer::channel();
         drop(receiver);
-        let (_current, receiver) = Deferrer::channel(-1);
+        let (_current, receiver) = Deferrer::channel();
         let done = Done {
             req: Request {
                 peer: 42,
@@ -667,65 +614,5 @@ mod reconnect_tests {
             receiver.try_recv(),
             Err(mpsc::TryRecvError::Empty)
         ));
-    }
-}
-
-#[cfg(all(test, target_os = "linux"))]
-mod wake_tests {
-    use super::*;
-    use std::time::Duration;
-
-    #[test]
-    fn saturated_wake_pipe_keeps_signal_handling_live() {
-        const CHILD: &str = "OWRT_RPCD_WAKE_TEST_CHILD";
-        if std::env::var_os(CHILD).is_some() {
-            let (read_end, write_end) = wake_pipe().unwrap();
-            let fd = write_end.as_raw_fd();
-            let original_flags = rustix::fs::fcntl_getfl(&write_end).unwrap();
-            sys::set_nonblocking(fd).unwrap();
-            let bytes = [0u8; 4096];
-            loop {
-                match rustix::io::write(&write_end, &bytes) {
-                    Ok(n) => assert!(n > 0),
-                    Err(error) => {
-                        assert_eq!(error, rustix::io::Errno::AGAIN);
-                        break;
-                    }
-                }
-            }
-            rustix::fs::fcntl_setfl(&write_end, original_flags).unwrap();
-            WAKE_FD.store(fd, Ordering::SeqCst);
-            let (_, after) = owrt_platform::rpcd::with_errno(22, || handle_signal(SIGCHLD));
-            assert_eq!(after, 22, "signal handler changed interrupted errno");
-            drain(read_end.as_raw_fd());
-            handle_signal(SIGCHLD);
-            assert!(sys::wait_readable(read_end.as_raw_fd(), 100).unwrap());
-            WAKE_FD.store(-1, Ordering::SeqCst);
-            return;
-        }
-        // A blocking signal handler must fail a bounded regression test rather
-        // than hanging the entire test suite.
-        let mut child = std::process::Command::new(std::env::current_exe().unwrap())
-            .args([
-                "--exact",
-                "wake_tests::saturated_wake_pipe_keeps_signal_handling_live",
-                "--nocapture",
-            ])
-            .env(CHILD, "1")
-            .spawn()
-            .unwrap();
-        let deadline = Instant::now() + Duration::from_secs(3);
-        loop {
-            if let Some(status) = child.try_wait().unwrap() {
-                assert!(status.success(), "wake-pipe child failed: {status}");
-                break;
-            }
-            if Instant::now() >= deadline {
-                child.kill().unwrap();
-                child.wait().unwrap();
-                panic!("signal handler blocked on its saturated wake pipe");
-            }
-            std::thread::sleep(Duration::from_millis(10));
-        }
     }
 }

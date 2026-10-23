@@ -289,7 +289,7 @@ fn dispatch(
             *bus = Some(Connection::connect_interruptible(
                 None,
                 deadline,
-                crate::is_cancelled,
+                owrt_platform::reload_signals::is_cancelled,
             )?);
         }
         stage = 1;
@@ -311,7 +311,7 @@ fn dispatch(
                 *bus = Some(Connection::connect_interruptible(
                     None,
                     deadline,
-                    crate::is_cancelled,
+                    owrt_platform::reload_signals::is_cancelled,
                 )?);
                 stage = 1;
                 bus.as_mut().unwrap().lookup_id_until("service", deadline)?

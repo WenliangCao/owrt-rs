@@ -4,10 +4,9 @@
 //! the pinned ubus 24864e78 source. Single-threaded readiness loop (epoll on
 //! Linux, as uloop gives the C daemon), with no async runtime.
 //!
-//! Unsafe is denied except for installing the audited signal handlers;
-//! libc ABI operations live in owrt-platform.
+//! Fixed signal handlers and libc ABI operations live in owrt-platform.
 
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
@@ -17,11 +16,11 @@ mod obj;
 mod server;
 mod sys;
 
+use owrt_platform::ubusd_signals;
 use owrt_ubus::sys as bus_sys;
 use server::Server;
 use std::io::Write;
-use std::os::fd::{AsRawFd, OwnedFd};
-use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::time::{Duration, Instant};
 
 /// Identifies this binary in a running process, which matters when it is
@@ -30,44 +29,6 @@ pub const BUILD_ID: &str = "ubusd-rs (owrt-control-plane-rs)";
 
 const DEFAULT_SOCKET: &str = "/var/run/ubus/ubus.sock";
 const DEFAULT_ACL_DIR: &str = "/usr/share/acl.d";
-
-static RELOAD: AtomicBool = AtomicBool::new(false);
-static STOP: AtomicBool = AtomicBool::new(false);
-static WAKE_FD: AtomicI32 = AtomicI32::new(-1);
-
-extern "C" fn on_sighup(_: i32) {
-    RELOAD.store(true, Ordering::SeqCst);
-    wake();
-}
-
-extern "C" fn on_term(_: i32) {
-    STOP.store(true, Ordering::SeqCst);
-    wake();
-}
-
-/// Async-signal-safe wake-up: one byte down the self-pipe.
-fn wake() {
-    let fd = WAKE_FD.load(Ordering::SeqCst);
-    if fd >= 0 {
-        owrt_platform::ubusd::wake(fd);
-    }
-}
-
-#[cfg(all(test, target_os = "linux"))]
-#[test]
-fn saturated_signal_pipe_preserves_errno() {
-    let (_read, write) = bus_sys::nonblocking_pipe().unwrap();
-    let fd = write.as_raw_fd();
-    while owrt_platform::unix::write_fd(fd, &[0u8; 4096]) > 0 {}
-    assert_eq!(
-        std::io::Error::last_os_error().kind(),
-        std::io::ErrorKind::WouldBlock
-    );
-    let previous = WAKE_FD.swap(fd, Ordering::SeqCst);
-    let (_, after) = owrt_platform::ubusd::with_errno(22, wake);
-    WAKE_FD.store(previous, Ordering::SeqCst);
-    assert_eq!(after, 22);
-}
 
 fn usage(program: &str) -> ! {
     let _ = writeln!(std::io::stderr(), "{BUILD_ID}");
@@ -119,25 +80,13 @@ fn run(socket: &str, acl_dir: &str) -> std::io::Result<()> {
     // A dead peer must not kill the daemon; every write reports EPIPE instead.
     bus_sys::ignore_signal(bus_sys::SIGPIPE);
 
-    let (wake_r, wake_w) = bus_sys::nonblocking_pipe()?;
-    WAKE_FD.store(wake_w.as_raw_fd(), Ordering::SeqCst);
-    #[expect(
-        unsafe_code,
-        reason = "install the audited atomic/self-pipe signal handlers"
-    )]
-    // SAFETY: both fixed handlers only store atomics and write to the live,
-    // nonblocking wake pipe while preserving errno; neither allocates or locks.
-    unsafe {
-        let _ = bus_sys::set_signal_handler(sys::SIGHUP, on_sighup);
-        let _ = bus_sys::set_signal_handler(bus_sys::SIGTERM, on_term);
-        let _ = bus_sys::set_signal_handler(bus_sys::SIGINT, on_term);
-    }
+    let wake_reader = ubusd_signals::install()?;
 
     let listener = sys::listen_unix(socket)?;
     let mut server = Server::new(acl_dir.to_owned())?;
     server.load_acl();
 
-    let result = event_loop(&mut server, &listener, &wake_r);
+    let result = event_loop(&mut server, &listener, wake_reader);
     sys::remove_file(socket);
     result
 }
@@ -149,10 +98,10 @@ const TOKEN_WAKE: u64 = u64::MAX - 1;
 const ACCEPT_RETRY_DELAY: Duration = Duration::from_millis(100);
 const ACCEPT_TRANSIENT_BUDGET: usize = 16;
 
-fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std::io::Result<()> {
+fn event_loop(server: &mut Server, listener: &OwnedFd, wake_reader: RawFd) -> std::io::Result<()> {
     let mut poller = owrt_ubus::readiness::Poller::new()?;
     poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false)?;
-    poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false)?;
+    poller.add(wake_reader, TOKEN_WAKE, false)?;
     let mut ready: Vec<owrt_ubus::readiness::Ready> = Vec::new();
     // Initialized once, outside both the readiness and per-message loops.
     let mut rx = [0u8; client::RX_SIZE];
@@ -161,7 +110,7 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
     // system-wide ENFILE, socket memory), so always arm a timed retry.
     let mut listener_retry_at: Option<Instant> = None;
 
-    while !STOP.load(Ordering::SeqCst) {
+    while !ubusd_signals::stop_requested() {
         let timeout_ms = if let Some(at) = listener_retry_at {
             let now = Instant::now();
             if now >= at {
@@ -184,13 +133,12 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
         // Signals first, as before: a reload or stop decided in this round
         // takes effect before any client is served.
         if ready.iter().any(|r| r.token == TOKEN_WAKE) {
-            let mut buf = [0u8; 64];
-            while owrt_platform::unix::read_fd(wake_r.as_raw_fd(), &mut buf).unwrap_or(0) > 0 {}
+            ubusd_signals::drain();
         }
-        if RELOAD.swap(false, Ordering::SeqCst) {
+        if ubusd_signals::take_reload() {
             server.load_acl();
         }
-        if STOP.load(Ordering::SeqCst) {
+        if ubusd_signals::stop_requested() {
             break;
         }
 

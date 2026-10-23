@@ -1,4 +1,4 @@
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 // The ubus transport targets Linux; other hosts only provide smoke builds.
@@ -12,9 +12,9 @@ mod trace;
 mod unix;
 
 use engine::{Error, Settings};
+use owrt_platform::reload_signals;
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use trace::Trace;
 
@@ -24,28 +24,6 @@ const EX_USAGE: i32 = 64;
 const EX_SOFTWARE: i32 = 70;
 const EX_TEMPFAIL: i32 = 75;
 const DEFAULT_TIMEOUT_MS: u64 = 10_000;
-
-static CANCELLED: AtomicBool = AtomicBool::new(false);
-
-fn is_cancelled() -> bool {
-    CANCELLED.load(Ordering::Relaxed)
-}
-
-extern "C" fn handle_signal(_: i32) {
-    CANCELLED.store(true, Ordering::Relaxed);
-}
-
-fn install_signal_handlers() -> Result<(), std::io::Error> {
-    for signal in [unix::SIGINT, unix::SIGTERM] {
-        // SAFETY: the fixed handler performs only an atomic store and cannot
-        // allocate, lock, access TLS, or unwind through the signal trampoline.
-        #[expect(unsafe_code, reason = "register the fixed async-signal-safe handler")]
-        unsafe {
-            unix::set_signal_handler(signal, handle_signal)?;
-        }
-    }
-    Ok(())
-}
 
 fn usage() -> &'static str {
     "usage: reload-config-rs [--root PATH] [--timeout-ms 1..60000] [--trace-stderr]\n\
@@ -104,7 +82,7 @@ fn main() {
             std::process::exit(EX_USAGE);
         }
     };
-    if let Err(error) = install_signal_handlers() {
+    if let Err(error) = reload_signals::install() {
         let _ = writeln!(std::io::stderr(), "cannot install signal handlers: {error}");
         std::process::exit(EX_SOFTWARE);
     }
@@ -115,7 +93,7 @@ fn main() {
         Box::new(syslog::SyslogWriter::open())
     };
     let mut trace = Trace::new(writer);
-    let exit = match engine::run(&settings, &CANCELLED, &mut trace) {
+    let exit = match engine::run(&settings, reload_signals::cancellation_flag(), &mut trace) {
         Ok(outcome) if outcome.delivery_failures == 0 => EX_OK,
         Ok(_) => EX_DELIVERY,
         Err(error) => {

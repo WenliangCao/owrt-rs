@@ -13,9 +13,10 @@ pub struct Children {
 impl Children {
     /// Re-exec preserves parenthood, but not Rust memory. Carry only the PIDs
     /// through that exec, and remove the variable before spawning any work.
-    pub fn inherit() -> Self {
+    pub fn inherit() -> std::io::Result<Self> {
         let saved = std::env::var(REEXEC_ENV).unwrap_or_default();
-        std::env::remove_var(REEXEC_ENV);
+        let owner = owrt_platform::process_owner::ProcessOwner::acquire()?;
+        owner.remove_var(std::ffi::OsStr::new(REEXEC_ENV))?;
         let mut pids: Vec<i32> = saved
             .split(',')
             .filter_map(|p| p.parse().ok())
@@ -23,7 +24,7 @@ impl Children {
             .collect();
         pids.sort_unstable();
         pids.dedup();
-        Self { pids }
+        Ok(Self { pids })
     }
 
     pub fn reexec_pids(&self) -> String {

@@ -1,10 +1,7 @@
-//! Cancellable advisory locking and Linux signal registration.
+//! Cancellable advisory locking over owned descriptors.
 
 use std::io;
 use std::os::fd::AsFd;
-
-pub const SIGINT: i32 = 2;
-pub const SIGTERM: i32 = 15;
 
 /// flock(fd, LOCK_EX) that waits for the holder to finish while honouring the
 /// cancel flag the same way every other blocking wait in this program does:
@@ -28,8 +25,6 @@ pub fn lock(fd: impl AsFd, cancelled: &std::sync::atomic::AtomicBool) -> io::Res
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
 }
-
-pub use owrt_platform::unix::set_signal_handler;
 
 #[cfg(test)]
 mod lock_tests {

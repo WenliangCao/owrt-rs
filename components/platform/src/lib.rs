@@ -43,3 +43,12 @@ pub mod text;
 
 #[cfg(target_os = "linux")]
 pub mod identity;
+
+#[cfg(target_os = "linux")]
+pub mod process_owner;
+#[cfg(target_os = "linux")]
+pub mod reload_signals;
+#[cfg(target_os = "linux")]
+pub mod rpcd_signals;
+#[cfg(target_os = "linux")]
+pub mod ubusd_signals;

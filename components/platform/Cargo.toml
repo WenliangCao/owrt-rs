@@ -8,3 +8,8 @@ publish = false
 
 [dependencies]
 rustix = { version = "=1.1.5", features = ["event", "fs", "mm", "mount", "net", "param", "pipe", "process", "pty", "stdio", "termios", "system", "thread", "time", "try_close"] }
+
+[[test]]
+name = "process_owner"
+path = "src/process_owner_test.rs"
+harness = false

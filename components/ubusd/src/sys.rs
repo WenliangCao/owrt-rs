@@ -17,7 +17,6 @@ pub const S_IWGRP: u32 = 0o020;
 pub const S_IWOTH: u32 = 0o002;
 pub const S_IXOTH: u32 = 0o001;
 
-pub const SIGHUP: i32 = 1;
 /// Generate ID candidates with a thread-local keyed counter hash
 /// (RandomState uses SipHash-1-3 in pinned Rust 1.98.1). On Linux, std seeds
 /// its thread-local cache without waiting for CRNG initialization; subsequent
