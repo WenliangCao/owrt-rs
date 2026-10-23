@@ -1,0 +1,615 @@
+{
+  "status": "offline-qualified-canonical-dnsmasq-reference",
+  "scope": "Actual canonical candidate ELF functional/runtime/resource qualification, ready for frozen reproduction; firmware/image acceptance and physical deployment are separate",
+  "source_commit": "0e077f258811c6250edfe188de62a52e48d7a8df",
+  "source_digest": "9d3c45da3a3f7a12073610f34de0868187eaca6472c148f1f3626ff22c207657",
+  "source_file_count": 231,
+  "sdk_archive_sha256": "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
+  "pgo_profile_sha256": "72f89eb4c967a757e87fb27f934c646208b3b25cdc6ad5b156649d3d00c117b2",
+  "candidate_ci_run": 39940619433,
+  "candidate_manifest_sha256": "faff2ae0ccded93af1db4ab0a271d580584cda4fce4c5cf6a75b630e6630b4d4",
+  "elf": {
+    "sha256": "b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41",
+    "size": 2321243,
+    "reference_sha256": null,
+    "matches_accepted_reference": false
+  },
+  "apk": {
+    "name": "dnsmasq-2.93-r4.apk",
+    "sha256": "b097876a214bc1164176a3a43a1443caabf697158e9fcfdce4a983d9b19db53a",
+    "size": 1312655
+  },
+  "family_receipt_sha256": "89bf0d01a753eea47db8709bec264199bba5da2a09ada01c99681a962f38fcf7",
+  "family_registry_sha256": "b6f6ceff4925ba701e9cd934984e86b16f5c29c34d88466bc2fd48cdd7baee62",
+  "families": [
+    {
+      "family": "m5_option_matrix",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_option_matrix/result.json",
+      "sha256": "7ba67ce1303cc88e079960076c3f0f4be673df268086ff3dcbe2f8c8be18ca08",
+      "passed": true
+    },
+    {
+      "family": "m5_option_matrix_next",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_option_matrix_next/result.json",
+      "sha256": "8afce5e099f734bce786314deccd09d8df50b0e1bf5ec3e342136bfc28804d4d",
+      "passed": true
+    },
+    {
+      "family": "m5_option_matrix_third",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_option_matrix_third/result.json",
+      "sha256": "583caee48006dfca36557ebc65ad1fab9f655a7417aa3c8f8ba72f42a84c7634",
+      "passed": true
+    },
+    {
+      "family": "m5_option_matrix_tag_if",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_option_matrix_tag_if/result.json",
+      "sha256": "b299f9862beb43963d6c266ff190cb3fb023416a9a6601274dfdf19e0c501b8c",
+      "passed": true
+    },
+    {
+      "family": "m5_option_matrix_dhcp",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_option_matrix_dhcp/result.json",
+      "sha256": "2e20e210dbe6273d0e1d896a25ed97d55d7148b3ebbbfc92b91b84a809dabeae",
+      "passed": true
+    },
+    {
+      "family": "m5_option_matrix_dhcp_v4",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_option_matrix_dhcp_v4/result.json",
+      "sha256": "92844a2db80fe0fbd2ea2a9b45b99af0b0c36acee96007753454b150a0c4b0e2",
+      "passed": true
+    },
+    {
+      "family": "m5_option_matrix_lease_names",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_option_matrix_lease_names/result.json",
+      "sha256": "e70115fd0959dcbc2999c62399949f11686081ffe297bdf456f34360cd82f5f7",
+      "passed": true
+    },
+    {
+      "family": "m5_local_records",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_local_records/result.json",
+      "sha256": "e9a6d506a1b6336173998f6fb0ed4a9c9778b672f62f4efdc7d5b59611f897d5",
+      "passed": true
+    },
+    {
+      "family": "m5_boot",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_boot/result.json",
+      "sha256": "c06f35fd94a72a99a7a9f0d0680658925ba249f8291a467d2c7f7d8c2fcbc2d8",
+      "passed": true
+    },
+    {
+      "family": "m5_helper",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_helper/result.json",
+      "sha256": "6bbb17f04798f8e2b310d173807cf8bab0e1dc2e4da8a62fc349918f3e48c7d1",
+      "passed": true
+    },
+    {
+      "family": "m5_rr_filter",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_rr_filter/result.json",
+      "sha256": "8f6c9f90e9efab6c2f0190ab14ba9fc5f6fa87d40a1af0629130b8c34a901178",
+      "passed": true
+    },
+    {
+      "family": "m5_config_inputs",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_config_inputs/result.json",
+      "sha256": "b6366ffe29a961003244c58bda52fb0b92f9181706d842ba98c51d5940e2ebf6",
+      "passed": true
+    },
+    {
+      "family": "m5_lease_recovery",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_lease_recovery/result.json",
+      "sha256": "dad77058147d9259a485cb4086ed94d58149e2ae733b81a9562049b51925b8e8",
+      "passed": true
+    },
+    {
+      "family": "m5_tftp",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_tftp/result.json",
+      "sha256": "15f6b2fb4cb9897039f9a6c006a8a038a1f9466ae8dc952a4636b928f69acdc2",
+      "passed": true
+    },
+    {
+      "family": "m5_dump",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_dump/result.json",
+      "sha256": "3745343dc112c4f86f6178fc61a5f932dcc1b15c77ef05379f33b1fb5023b448",
+      "passed": true
+    },
+    {
+      "family": "m5_listeners",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_listeners/result.json",
+      "sha256": "db2df32c5486977ae09f2bb6eaa602ca3bddaa2aaf0f9e580a052bd364868703",
+      "passed": true
+    },
+    {
+      "family": "dhcp-proxy",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/dhcp-proxy/result.json",
+      "sha256": "f1f1e5c1b8c1c0e74b980707ea84375c4d2fdb36c30e0885a7af5d14880ea95b",
+      "passed": true
+    },
+    {
+      "family": "bridge-interface",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/bridge-interface/result.json",
+      "sha256": "3f10852f1cbc59ff87e2d13e3d92d1f734a589a92728d925de0bd41fd1a9b7dd",
+      "passed": true
+    },
+    {
+      "family": "shared-network",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/shared-network/result.json",
+      "sha256": "256b3c51094c75c899975ebef6e23dea0a7f8b4bdb757f1fa841e299f5901627",
+      "passed": true
+    },
+    {
+      "family": "dhcp-reply-delay",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/dhcp-reply-delay/result.json",
+      "sha256": "73e21c9ee000991ed0a19bc6adbf0274d1762227f89c2e5a9370d8d0a82be75e",
+      "passed": true
+    },
+    {
+      "family": "m5_relay",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_relay/result.json",
+      "sha256": "3eb68ec2af2182b80d24611514b9bc65a6fb8a789480fd8f74febc0984dabe1f",
+      "passed": true
+    },
+    {
+      "family": "m5_dns_cache",
+      "commands": 12,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_dns_cache/result.json",
+      "sha256": "60329b001c4fc6f08a49a52a4690b5b356b12d475952044d67752df1ba99fab6",
+      "passed": true
+    },
+    {
+      "family": "m5_script_arp",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_script_arp/result.json",
+      "sha256": "6f2b9842edac94af9525f45401094f2b99818b1fda188f8e441959b4deae593f",
+      "passed": true
+    },
+    {
+      "family": "dhcp-tags-options",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/dhcp-tags-options/result.json",
+      "sha256": "728eba70434d26256fe4fd016baf7ff6d0ba745a8b8d4d822727a46ebb36354d",
+      "passed": true
+    },
+    {
+      "family": "m5_leasequery",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_leasequery/result.json",
+      "sha256": "d2258f2bc33c9d56e8a2534d846411e40c5d10c6db3a0cd2db4e19fdc9e6c3cb",
+      "passed": true
+    },
+    {
+      "family": "dhcp-range",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/dhcp-range/result.json",
+      "sha256": "38ad158fc4bd0416be2c43195825bb89319e8b36e15d9167b05275d63f8e9c56",
+      "passed": true
+    },
+    {
+      "family": "dhcp-identities",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/dhcp-identities/result.json",
+      "sha256": "efb8658ed505d2ac1f5f103d09b10d81f56331efd7c808e51ccf7c6f63696f83",
+      "passed": true
+    },
+    {
+      "family": "dhcp-files",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/dhcp-files/result.json",
+      "sha256": "d275fe695e6368e53e81fd74611180781ec80cc04ae17dc7d7ccd73988cdd0af",
+      "passed": true
+    },
+    {
+      "family": "m5_pxe",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_pxe/result.json",
+      "sha256": "478f1677ef812f7cb001d95dc5f192e6aecf39f9b83e449b80279f23ef5b3e87",
+      "passed": true
+    },
+    {
+      "family": "cli-log-malloc",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/cli-log-malloc/result.json",
+      "sha256": "66057be237f023073f14a6980c84e96298063d58ee1ecee116677394e85430ef",
+      "passed": true
+    },
+    {
+      "family": "cli-test",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/cli-test/result.json",
+      "sha256": "c38a8d4106ca552c08fb841c065a7dbb46fc6577f4a6d1e3b73dacea90819faf",
+      "passed": true
+    },
+    {
+      "family": "loop-detect",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/loop-detect/result.json",
+      "sha256": "46546ebf31d801be9d9e20220712432d95e90ff4f6736656a2bb1fe4a033e53a",
+      "passed": true
+    },
+    {
+      "family": "m5_dns_endpoints",
+      "commands": 3,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_dns_endpoints/result.json",
+      "sha256": "0257fd129698ff9a0be47662478e395c3acbf3ac89b2fc6a77fa1ff548527cfa",
+      "passed": true
+    },
+    {
+      "family": "m5_interface_records",
+      "commands": 6,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_interface_records/result.json",
+      "sha256": "da13e01c0b175ce3d1bc54113873dd433362be80bebcacdfa154fe342f33b376",
+      "passed": true
+    },
+    {
+      "family": "m5_edns",
+      "commands": 3,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/m5_edns/result.json",
+      "sha256": "0cb6b68ffa6d5c93b4b94952943f732036ae67e455b3dcd2622b707fef8d730f",
+      "passed": true
+    },
+    {
+      "family": "filterwin2k",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/filterwin2k/result.json",
+      "sha256": "6fc6865a42128fa67a70ea35a32126c3521af417cb9453a84363158aa1a460d8",
+      "passed": true
+    },
+    {
+      "family": "tftp-errors",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/tftp-errors/result.json",
+      "sha256": "57e1da163d2bc36c096418dbe7cf19ba3a13ecb3b33072b4f84f420903102ae5",
+      "passed": true
+    },
+    {
+      "family": "dns-files",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/dns-files/result.json",
+      "sha256": "d7e40278842cbe6ddbcf1c3f8fb5e4793369cc464d89fa5ca2ba3be6f5440690",
+      "passed": true
+    },
+    {
+      "family": "ubus-ordinary",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/ubus-ordinary/result.json",
+      "sha256": "1e20bc7103124c6b103f4fd63fa71d699b9848341611e7d70915623084c54364",
+      "passed": true
+    },
+    {
+      "family": "helper-shutdown",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/helper-shutdown/result.json",
+      "sha256": "fcd9e1933ab912c694717fecffb53d493f36ba39d360458a22e29bd78549ef6c",
+      "passed": true
+    },
+    {
+      "family": "dhcp-device-binding",
+      "commands": 3,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/dhcp-device-binding/result.json",
+      "sha256": "505207d5a21a8dab39e7c0faff65c437d328f103c2fec8eb57cf537d4b63abeb",
+      "passed": true
+    },
+    {
+      "family": "query-id-wrap-source-controls",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/query-id-wrap-source-controls/result.json",
+      "sha256": "f888f782bc4dd6235f8ebba40240d88237b0efc514a9e61639cfeb61812ee997",
+      "passed": true
+    },
+    {
+      "family": "logging-dhcp-companion",
+      "commands": 2,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/logging-dhcp-companion/result.json",
+      "sha256": "81ab05f7dfaeb236c27675023be817f5b0f5d12853bad2fd224a7ae7ff8e9570",
+      "passed": true
+    },
+    {
+      "family": "logging-all-scopes",
+      "commands": 1,
+      "receipt": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification/private/families/logging-all-scopes/result.json",
+      "sha256": "f9bdf3f8f1dd074fa076c86061915c05762527e2f0b5e342112aa34321e653f3",
+      "passed": true
+    }
+  ],
+  "families_count": 44,
+  "jobs_count": 67,
+  "independent_summary_sha256": "08b5a9816110885448bf2aeef18a51cdbf30c5d5c1f8cc0b2de4927912c07df6",
+  "runtime": {
+    "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification-runtime-01/result.json",
+    "sha256": "05be5c4d37bd6abf30a6d085edc6f17a098598c70fe74556bcf6eb45da37b884",
+    "no_proc_both_modes": true,
+    "startup_count": 40,
+    "helper_callback_counts": [
+      [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    ],
+    "static_pie": {
+      "elf_type": 3,
+      "distinct_bases": 3,
+      "relro_readonly": true,
+      "stack_not_executable": true
+    },
+    "fd_cohorts": [
+      {
+        "mode": "helper",
+        "headroom": 2,
+        "baseline-v032": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": false,
+          "recovery_health_ok": true,
+          "limit_restored": false
+        },
+        "candidate": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": false,
+          "recovery_health_ok": true,
+          "limit_restored": false
+        },
+        "regression": false
+      },
+      {
+        "mode": "resolver",
+        "headroom": 2,
+        "baseline-v032": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "helper",
+        "headroom": 3,
+        "baseline-v032": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "resolver",
+        "headroom": 3,
+        "baseline-v032": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "helper",
+        "headroom": 4,
+        "baseline-v032": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "resolver",
+        "headroom": 4,
+        "baseline-v032": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "helper",
+        "headroom": 8,
+        "baseline-v032": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": false,
+          "pressure_operation_ok": false,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      },
+      {
+        "mode": "resolver",
+        "headroom": 8,
+        "baseline-v032": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "candidate": {
+          "passed": true,
+          "pressure_operation_ok": true,
+          "pressure_health_ok": true,
+          "recovery_operation_ok": true,
+          "recovery_health_ok": true,
+          "limit_restored": true
+        },
+        "regression": false
+      }
+    ],
+    "fd_regressions": []
+  },
+  "f23_f25": {
+    "path": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo/qualification-f23-f25-01/result.json",
+    "sha256": "4a060b8bd71a66887abed7b654f7336dd7f9c28e062d8b577a156c7783cdf0e1",
+    "rounds_each": 4,
+    "listener_protocol_cases_passed": 8,
+    "helper_admitted_churn_each": [
+      365,
+      365,
+      365,
+      365
+    ],
+    "helper_exact_deletes_each": [
+      366,
+      366,
+      366,
+      366
+    ]
+  },
+  "source_and_artifacts_unchanged": true,
+  "physical_router_touched": false,
+  "performance_verdict": false,
+  "raw_root": "/home/ubuntu/owrt-v033-25126-release-20261023/private/dnsmasq-pgo",
+  "qualification_receipt_sha256": "0ab77f9e0db9fc99d3c1c31f51ba6c07476b4bf78db1af0f6763c14105906456",
+  "source_tests": {
+    "source_commit": "0e077f258811c6250edfe188de62a52e48d7a8df",
+    "source_digest": "9d3c45da3a3f7a12073610f34de0868187eaca6472c148f1f3626ff22c207657",
+    "matched_rust_cargo_input_count": 211,
+    "matched_subset_sha256": "36efe8b408ad7e733660e10551dd547cc6da968f6ffa09255d498c89667acf9e",
+    "test_receipt": "docs/reviews/PLATFORM_BOUNDARY_VALIDATION_20261023.json",
+    "test_receipt_sha256": "e515800ae5de054f73daac9dc3576deb69bd29356b5cff120aa6119664327a77",
+    "gate_exit_codes": {
+      "check": 0,
+      "fmt": 0,
+      "test": 0,
+      "benchmark": 0,
+      "tools": 0
+    },
+    "scope": "Existing current-session AArch64 source tests/checks on byte-identical Rust/Cargo inputs; not execution of the new canonical PGO ELF"
+  },
+  "training": {
+    "generator_ci_run": 39938291179,
+    "generator_manifest_sha256": "f457107d80027dd5251d7ad7b6c489c913f938c0ad608a04092b7108c06989df",
+    "generator_elf_sha256": "bf3fc3e8f53631ef4f13a216063430c71056af525e4448c7802c895e28e6ca5a",
+    "receipt_sha256": "4a412d255feae22a756c6902af7d338c53a4da83e55dbde4f8c794ddd06391e2",
+    "scene_count": 11,
+    "profile_count": 50,
+    "profile_sha256": "72f89eb4c967a757e87fb27f934c646208b3b25cdc6ad5b156649d3d00c117b2",
+    "profile_bytes": 1247384,
+    "smoke_excluded": true,
+    "single_complete_pass": true
+  },
+  "previous_generation_attempts": [
+    {
+      "run": 39932183857,
+      "status": "failed-before-Rust-compilation",
+      "reason": "mbx Unix socket path exceeded SUN_LEN under SDK TMPDIR; adapter fixed and product freeze regenerated"
+    },
+    {
+      "run": 39933309882,
+      "status": "cancelled",
+      "reason": "cancel requested during apt investigation; apt completed before cancellation arrived during compilation; not classified as a product failure"
+    },
+    {
+      "run": 39935218415,
+      "status": "cancelled",
+      "reason": "Retained original GitHub status and logs; no artifact from this attempt was accepted or trained"
+    }
+  ],
+  "reproduction_status": "pending frozen-use and final-image builds; no reproduction claim in this receipt"
+}

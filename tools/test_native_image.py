@@ -414,5 +414,32 @@ class NativeDnsmasqTests(unittest.TestCase):
         self.assertEqual(digest, "bac71f5c50f91dce84dcf7652cb353f1c5d92852118a13c7b5df24eb1e07d496")
 
 
+class V033ReleaseInputs(unittest.TestCase):
+    def test_new_recipe_preserves_qualified_pgo_and_exact_stock_recovery(self):
+        spec = json.loads((REPO / "packaging/image/native-25.12.6.json").read_text())
+        frozen = json.loads((REPO / "manifests/dnsmasq-pgo-frozen-v033.json").read_text())
+        intake = json.loads((REPO / "manifests/ax3000t-stock-openwrt-25.12.6/intake.json").read_text())
+        self.assertEqual((spec["openwrt"], spec["version"]), ("25.12.6", "0.3.3-r1"))
+        self.assertEqual(spec["dnsmasq_build"], frozen)
+        self.assertEqual(frozen["reference_elf_sha256"],
+                         "b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41")
+        self.assertEqual(spec["stock_image"]["sha256"], intake["artifacts"]["stock_image"]["sha256"])
+        self.assertEqual(len(spec["components"]), 11)
+        for name, component in spec["components"].items():
+            self.assertEqual(component["stock_sha256"], intake["stock_replacement_paths"][name]["sha256"])
+
+    def test_new_recipe_archives_the_actual_qualified_25126_source(self):
+        spec = json.loads((REPO / "packaging/image/native-25.12.6.json").read_text())["dnsmasq_build"]
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary)
+            (work / "out").mkdir()
+            frozen = ci_build_dnsmasq.release_source(work, spec)
+            files, digest = ci_build_dnsmasq.source_identity(spec, frozen)
+            self.assertEqual(len(files), 231)
+            self.assertEqual(digest, "9d3c45da3a3f7a12073610f34de0868187eaca6472c148f1f3626ff22c207657")
+            self.assertIn("manifests/release-25.12.6.json", files)
+            self.assertNotIn("manifests/release-25.12.5.json", files)
+
+
 if __name__ == "__main__":
     unittest.main()
