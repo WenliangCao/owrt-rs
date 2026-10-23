@@ -87,3 +87,32 @@ It is distinct from the 25.12.6 stock FIT used to verify the candidate kernel.
 | `fit-check-25126-01/result.json` | `9c3b21176cb22c1ec4ba6674a7116b454e7afcb2ed61ea00734801d013c0ce2a` |
 | `upgrade-script-gate-final/result.json` | `2800ff927bea87514825178d9e8460df19571c9da36ef886e821c6a0e7572d3b` |
 | `stock-apk-fixtures/fixture-provenance.json` | `b96aa2cadc01978b7891920c5b24422ea9d47b4876c818ea6f367f17ae7d90b7` |
+
+## DNS family reference preparation
+
+`private/dnsmasq-family-base/family-base.json` is ready for a new canonical
+candidate. Its rootfs was freshly extracted from the verified 25.12.6 stock
+image. The exact dnsmasq ELF, musl loader and three libraries match all five
+existing `TARGET_FILES` hashes. The reference verifier now explicitly accepts
+the reviewed 25.12.6 container hash while preserving the historical image
+identity and all file/runner checks. Three tests cover both reviewed images,
+unknown container rejection, modified loader rejection and runner redirection.
+
+The native C helper build starts from freshly extracted dnsmasq 2.93, libubox
+and ubus archives. The two dnsmasq patches and dependency recipes were fetched
+from the exact image revision `981c978eff636fc7d81f0ed17b00e2a6317c949a` and
+matched against the retained original inputs. All 108 source identity rows in
+15 family specifications match; the 148-file patched source tree is unchanged
+after compilation. The native build is only a ubus/helper dependency; the exact
+image ELF remains the behavioral authority. Compiler, host json-c headers,
+resolved runtime libraries and generated helper assets are recorded.
+
+The unchanged registry expands to 44 families and 67 jobs, retaining the existing
+190-row raw endpoint semantic audit. No Rust candidate or family job has been
+executed during this preparation, and no prior Rust qualification is inherited.
+The new runner must supply its actual canonical ELF, link map and source adapter.
+
+- Family base SHA-256: `678067af8fd53e544a741f7d656aa118f39917e637d69947db26fe75c7b946b8`.
+- Reference preparation receipt (`dnsmasq-family-base/receipt.json`) SHA-256:
+  `373b0224654946907d5a3c4ddd157fbc1e475b4d8fa6ac37a6887d6351023829`.
+- Native C helper ELF SHA-256: `69533f5b419f63681c179392cd40c23834c2b89dce6f71ce94035efd6a158300`.

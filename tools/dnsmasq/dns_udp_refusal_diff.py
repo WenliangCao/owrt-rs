@@ -23,6 +23,13 @@ TARGET_FILES = {
     "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
     "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
 }
+# These two official images were independently extracted and all five files
+# above were rehashed. Keep the historical image identity; the new container
+# hash does not permit any change to its actual daemon, loader or dependencies.
+IMAGE_FILES = {
+    "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720": TARGET_FILES,
+    "286dbbaf16588c22daeaf6dbc8ca02573a1c30fbeb8592e3ba58b865c8726043": TARGET_FILES,
+}
 
 
 def digest(path):
@@ -35,8 +42,9 @@ def verify_reference(binary, identity_path):
         return {"kind": "native-glibc", "elf_sha256": C_HASH}
     identity = json.loads(identity_path.read_text())
     root = identity_path.resolve().parent
-    assert identity["canonical_image_sha256"] == "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720"
-    for name, expected in TARGET_FILES.items():
+    expected_files = IMAGE_FILES.get(identity["canonical_image_sha256"])
+    assert expected_files is not None, "unreviewed exact reference image"
+    for name, expected in expected_files.items():
         assert identity["files"][name]["sha256"] == expected and digest(root / name) == expected, name
     # Verify the runner too: it must execute the audited private musl loader
     # and libraries, rather than resolving target SONAMEs through host paths.
