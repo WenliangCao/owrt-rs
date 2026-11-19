@@ -210,28 +210,21 @@ fn info(raw: &[u8]) -> Reply {
     call_int(&mut b, "center_chan1", nl80211::center_chan1(&dev), None);
     call_int(&mut b, "center_chan2", nl80211::center_chan2(&dev), None);
     call_int(&mut b, "frequency", nl80211::frequency(&dev), None);
-    call_int(
-        &mut b,
-        "frequency_offset",
-        nl80211::frequency_offset(&dev),
-        None,
-    );
+    let hw = nl80211::hardware_info(&dev);
+    call_int(&mut b, "frequency_offset", hw.frequency_offset(), None);
     call_int(&mut b, "txpower", nl80211::txpower(&dev), None);
-    call_int(
-        &mut b,
-        "txpower_offset",
-        nl80211::txpower_offset(&dev),
-        None,
-    );
-    call_int(&mut b, "quality", nl80211::quality(&dev), None);
+    call_int(&mut b, "txpower_offset", hw.txpower_offset(), None);
+    let sig = nl80211::signal_snapshot(&dev);
+    call_int(&mut b, "quality", sig.quality, None);
     call_int(&mut b, "quality_max", nl80211::quality_max(&dev), None);
-    call_int(&mut b, "signal", nl80211::signal(&dev), None);
+    call_int(&mut b, "signal", sig.signal, None);
     call_int(&mut b, "noise", nl80211::noise(&dev), None);
-    call_int(&mut b, "bitrate", nl80211::bitrate(&dev), None);
+    call_int(&mut b, "bitrate", sig.bitrate, None);
     if let Ok(crypto) = nl80211::encryption(&dev) {
         add_encryption(&mut b, "encryption", &crypto);
     }
-    if let Ok(modes) = nl80211::htmodelist(&dev) {
+    let (htmodes, hwmodes_res) = nl80211::modelists(&dev);
+    if let Ok(modes) = htmodes {
         add_bit_array(
             &mut b,
             "htmodes",
@@ -241,7 +234,7 @@ fn info(raw: &[u8]) -> Reply {
             0,
         );
     }
-    let hwmodes = match nl80211::hwmodelist(&dev) {
+    let hwmodes = match hwmodes_res {
         Ok(modes) => {
             add_bit_array(
                 &mut b,
@@ -259,7 +252,7 @@ fn info(raw: &[u8]) -> Reply {
         hw_ht_mode(&mut b, &dev, hwmodes);
     }
     let c = b.msg_open_table("hardware");
-    if let Ok(ids) = nl80211::hardware_id(&dev) {
+    if let Ok(ids) = &hw.id {
         let a = b.msg_open_array("id");
         b.msg_u32("", ids.vendor_id as u32);
         b.msg_u32("", ids.device_id as u32);
@@ -267,7 +260,7 @@ fn info(raw: &[u8]) -> Reply {
         b.msg_u32("", ids.subsystem_device_id as u32);
         b.msg_close(a);
     }
-    call_str(&mut b, "name", nl80211::hardware_name(&dev));
+    call_str(&mut b, "name", hw.name());
     b.msg_close(c);
     close();
     Reply::one(status::OK, b.into_payload())
@@ -651,23 +644,26 @@ pub fn luci_iwinfo(b: &mut BlobBuf, dev: &str, phy_only: bool) -> bool {
         return false;
     }
     let o = b.msg_open_table("iwinfo");
-    call_int(b, "signal", nl80211::signal(dev), None);
+    let sig = nl80211::signal_snapshot(dev);
+    call_int(b, "signal", sig.signal, None);
     call_int(b, "noise", nl80211::noise(dev), None);
     call_int(b, "channel", nl80211::channel(dev), None);
     call_str(b, "country", nl80211::country(dev));
     call_str(b, "phy", nl80211::phyname(dev));
     call_int(b, "txpower", nl80211::txpower(dev), None);
-    call_int(b, "txpower_offset", nl80211::txpower_offset(dev), None);
+    let hw = nl80211::hardware_info(dev);
+    call_int(b, "txpower_offset", hw.txpower_offset(), None);
     call_int(b, "frequency", nl80211::frequency(dev), None);
-    call_int(b, "frequency_offset", nl80211::frequency_offset(dev), None);
-    if let Ok(modes) = nl80211::hwmodelist(dev) {
+    call_int(b, "frequency_offset", hw.frequency_offset(), None);
+    let (htmodes, hwmodes) = nl80211::modelists(dev);
+    if let Ok(modes) = hwmodes {
         add_bit_array(b, "hwmodes", modes as u32, &iw::IWINFO_80211_NAMES, true, 0);
         let text = utils::iwinfo_format_hwmodes(modes);
         if !text.is_empty() {
             b.msg_string("hwmodes_text", &text);
         }
     }
-    if let Ok(modes) = nl80211::htmodelist(dev) {
+    if let Ok(modes) = htmodes {
         add_bit_array(
             b,
             "htmodes",
@@ -677,7 +673,7 @@ pub fn luci_iwinfo(b: &mut BlobBuf, dev: &str, phy_only: bool) -> bool {
             0,
         );
     }
-    if let Ok(ids) = nl80211::hardware_id(dev) {
+    if let Ok(ids) = &hw.id {
         let o2 = b.msg_open_table("hardware");
         let a = b.msg_open_array("id");
         b.msg_u32("", ids.vendor_id as u32);
@@ -685,13 +681,13 @@ pub fn luci_iwinfo(b: &mut BlobBuf, dev: &str, phy_only: bool) -> bool {
         b.msg_u32("", ids.subsystem_vendor_id as u32);
         b.msg_u32("", ids.subsystem_device_id as u32);
         b.msg_close(a);
-        call_str(b, "name", nl80211::hardware_name(dev));
+        call_str(b, "name", hw.name());
         b.msg_close(o2);
     }
     if !phy_only {
-        call_int(b, "quality", nl80211::quality(dev), None);
+        call_int(b, "quality", sig.quality, None);
         call_int(b, "quality_max", nl80211::quality_max(dev), None);
-        call_int(b, "bitrate", nl80211::bitrate(dev), None);
+        call_int(b, "bitrate", sig.bitrate, None);
         if let Ok(m) = nl80211::mode(dev) {
             b.msg_string(
                 "mode",

@@ -1332,6 +1332,56 @@ struct RssiRate {
     rssi_samples: i32,
 }
 
+impl RssiRate {
+    fn bitrate(&self) -> Result<i32, ()> {
+        if self.rate_samples != 0 {
+            Ok(self.rate as i32 * 100)
+        } else {
+            Err(())
+        }
+    }
+
+    fn signal(&self) -> Result<i32, ()> {
+        if self.rssi_samples != 0 {
+            Ok(self.rssi as i32)
+        } else {
+            Err(())
+        }
+    }
+
+    fn quality(&self) -> Result<i32, ()> {
+        let sig = self.signal()?;
+        if sig >= 0 {
+            Ok(sig)
+        } else {
+            Ok(sig.clamp(-110, -40) + 110)
+        }
+    }
+}
+
+/// Combined signal, quality, and bitrate snapshot from one `NL80211_CMD_GET_STATION`
+/// sweep.
+pub struct SignalSnapshot {
+    pub bitrate: Result<i32, ()>,
+    pub signal: Result<i32, ()>,
+    pub quality: Result<i32, ()>,
+}
+
+impl SignalSnapshot {
+    fn from_rate(rr: RssiRate) -> Self {
+        Self {
+            bitrate: rr.bitrate(),
+            signal: rr.signal(),
+            quality: rr.quality(),
+        }
+    }
+}
+
+/// Query signal, quality, and bitrate in one station-dump pass.
+pub fn signal_snapshot(ifname: &str) -> SignalSnapshot {
+    SignalSnapshot::from_rate(nl80211_fill_signal(ifname))
+}
+
 const FILL_SIGNAL_STATS_POLICY: &Policy = &[
     (NL80211_STA_INFO_INACTIVE_TIME, 4),
     (NL80211_STA_INFO_RX_BYTES, 4),
@@ -1404,22 +1454,12 @@ fn nl80211_fill_signal(ifname: &str) -> RssiRate {
 
 /// nl80211_get_bitrate: averaged tx bitrate in kbit/s
 pub fn bitrate(ifname: &str) -> Result<i32, ()> {
-    let rr = nl80211_fill_signal(ifname);
-    if rr.rate_samples != 0 {
-        Ok(rr.rate as i32 * 100)
-    } else {
-        Err(())
-    }
+    nl80211_fill_signal(ifname).bitrate()
 }
 
 /// nl80211_get_signal: averaged station signal in dBm
 pub fn signal(ifname: &str) -> Result<i32, ()> {
-    let rr = nl80211_fill_signal(ifname);
-    if rr.rssi_samples != 0 {
-        Ok(rr.rssi as i32)
-    } else {
-        Err(())
-    }
+    nl80211_fill_signal(ifname).signal()
 }
 
 const NOISE_SURVEY_POLICY: &Policy = &[
@@ -1474,13 +1514,7 @@ pub fn noise(ifname: &str) -> Result<i32, ()> {
 /// nl80211_get_quality: signal + 110 clamped to the -110..-40 dBm range
 /// (positive values pass through as a quality).
 pub fn quality(ifname: &str) -> Result<i32, ()> {
-    let mut sig = signal(ifname)?;
-    if sig >= 0 {
-        Ok(sig)
-    } else {
-        sig = sig.clamp(-110, -40);
-        Ok(sig + 110)
-    }
+    nl80211_fill_signal(ifname).quality()
 }
 
 /// nl80211_get_quality_max
@@ -2925,24 +2959,31 @@ fn nl80211_get_modelist_cb(msg: &Nlmsg, m: &mut Modes) {
     m.ok = true;
 }
 
-/// nl80211_get_hwmodelist
-pub fn hwmodelist(ifname: &str) -> Result<i32, ()> {
+fn eval_wiphy_modes(ifname: &str) -> Result<Modes, ()> {
     let mut m = Modes::default();
     nl80211_split_wiphy(ifname, &mut |msg: &Nlmsg| {
         nl80211_get_modelist_cb(msg, &mut m)
     })?;
     nl80211_eval_modelist(&mut m);
-    Ok(m.hw as i32)
+    Ok(m)
+}
+
+/// Combined `(htmodelist, hwmodelist)` from a single `nl80211_split_wiphy` dump.
+pub fn modelists(ifname: &str) -> (Result<i32, ()>, Result<i32, ()>) {
+    match eval_wiphy_modes(ifname) {
+        Ok(m) => (Ok(m.ht as i32), Ok(m.hw as i32)),
+        Err(()) => (Err(()), Err(())),
+    }
+}
+
+/// nl80211_get_hwmodelist
+pub fn hwmodelist(ifname: &str) -> Result<i32, ()> {
+    eval_wiphy_modes(ifname).map(|m| m.hw as i32)
 }
 
 /// nl80211_get_htmodelist
 pub fn htmodelist(ifname: &str) -> Result<i32, ()> {
-    let mut m = Modes::default();
-    nl80211_split_wiphy(ifname, &mut |msg: &Nlmsg| {
-        nl80211_get_modelist_cb(msg, &mut m)
-    })?;
-    nl80211_eval_modelist(&mut m);
-    Ok(m.ht as i32)
+    eval_wiphy_modes(ifname).map(|m| m.ht as i32)
 }
 
 /// nl80211_get_htmode: channel width from the interface, generation from
@@ -3157,38 +3198,60 @@ pub fn hardware_id(ifname: &str) -> Result<HardwareId, ()> {
     Ok(id)
 }
 
-/// nl80211_get_hardware_entry
-fn nl80211_get_hardware_entry(ifname: &str) -> Option<HardwareEntry> {
-    let id = hardware_id(ifname).ok()?;
-    utils::iwinfo_hardware(&id)
+/// Cached hardware ID + matched `HardwareEntry` for one interface, shared by
+/// `hardware_id`, `hardware_name`, `txpower_offset`, and `frequency_offset`.
+pub struct HardwareInfo {
+    pub id: Result<HardwareId, ()>,
+    entry: Option<HardwareEntry>,
+}
+
+impl HardwareInfo {
+    pub fn name(&self) -> Result<String, ()> {
+        match self.entry.as_ref() {
+            None => Ok("Generic MAC80211".to_owned()),
+            Some(hw) => Ok(format!(
+                "{} {}",
+                String::from_utf8_lossy(cstr(&hw.vendor_name)),
+                String::from_utf8_lossy(cstr(&hw.device_name))
+            )),
+        }
+    }
+
+    pub fn txpower_offset(&self) -> Result<i32, ()> {
+        match self.entry.as_ref() {
+            Some(hw) => Ok(hw.txpower_offset as i32),
+            None => Err(()),
+        }
+    }
+
+    pub fn frequency_offset(&self) -> Result<i32, ()> {
+        match self.entry.as_ref() {
+            Some(hw) => Ok(hw.frequency_offset as i32),
+            None => Err(()),
+        }
+    }
+}
+
+/// Single-pass lookup of hardware ID and `devices.txt` entry for `ifname`.
+pub fn hardware_info(ifname: &str) -> HardwareInfo {
+    let id = hardware_id(ifname);
+    let entry = id.as_ref().ok().and_then(utils::iwinfo_hardware);
+    HardwareInfo { id, entry }
 }
 
 /// nl80211_get_hardware_name: "<vendor> <device>" or "Generic MAC80211".
 pub fn hardware_name(ifname: &str) -> Result<String, ()> {
-    match nl80211_get_hardware_entry(ifname) {
-        None => Ok("Generic MAC80211".to_owned()),
-        Some(hw) => Ok(format!(
-            "{} {}",
-            String::from_utf8_lossy(cstr(&hw.vendor_name)),
-            String::from_utf8_lossy(cstr(&hw.device_name))
-        )),
-    }
+    hardware_info(ifname).name()
 }
 
 /// nl80211_get_txpower_offset
 pub fn txpower_offset(ifname: &str) -> Result<i32, ()> {
-    match nl80211_get_hardware_entry(ifname) {
-        Some(hw) => Ok(hw.txpower_offset as i32),
-        None => Err(()),
-    }
+    hardware_info(ifname).txpower_offset()
 }
 
 /// nl80211_get_frequency_offset
 pub fn frequency_offset(ifname: &str) -> Result<i32, ()> {
-    match nl80211_get_hardware_entry(ifname) {
-        Some(hw) => Ok(hw.frequency_offset as i32),
-        None => Err(()),
-    }
+    hardware_info(ifname).frequency_offset()
 }
 
 /// nl80211_lookup_phyname: "path=...", "macaddr=..." or a wireless config
@@ -3546,5 +3609,100 @@ wpa=0\n";
         assert!(ht & IWINFO_HTMODE_VHT80 != 0);
         assert!(ht & IWINFO_HTMODE_VHT160 == 0); // (nl_vht >> 2) & 3 == 0
         assert_eq!(utils::iwinfo_format_hwmodes(m.hw as i32), "ac/ax/b/g/n");
+    }
+
+    #[test]
+    fn signal_snapshot_preserves_independent_station_fields() {
+        let cases = [
+            RssiRate {
+                rate: 0,
+                rate_samples: 0,
+                rssi: 0,
+                rssi_samples: 0,
+            },
+            RssiRate {
+                rate: 8667,
+                rate_samples: 1,
+                rssi: 0,
+                rssi_samples: 0,
+            },
+            RssiRate {
+                rate: 0,
+                rate_samples: 0,
+                rssi: -120,
+                rssi_samples: 1,
+            },
+            RssiRate {
+                rate: 1444,
+                rate_samples: 2,
+                rssi: -67,
+                rssi_samples: 3,
+            },
+            RssiRate {
+                rate: 600,
+                rate_samples: 1,
+                rssi: -20,
+                rssi_samples: 1,
+            },
+            RssiRate {
+                rate: 0,
+                rate_samples: 1,
+                rssi: 55,
+                rssi_samples: 1,
+            },
+        ];
+        let expected = [
+            (Err(()), Err(()), Err(())),
+            (Ok(866_700), Err(()), Err(())),
+            (Err(()), Ok(-120), Ok(0)),
+            (Ok(144_400), Ok(-67), Ok(43)),
+            (Ok(60_000), Ok(-20), Ok(70)),
+            (Ok(0), Ok(55), Ok(55)),
+        ];
+        for (rr, (exp_rate, exp_sig, exp_qual)) in cases.into_iter().zip(expected) {
+            let snapshot = SignalSnapshot::from_rate(rr);
+            assert_eq!(snapshot.bitrate, exp_rate);
+            assert_eq!(snapshot.signal, exp_sig);
+            assert_eq!(snapshot.quality, exp_qual);
+        }
+    }
+
+    #[test]
+    fn hardware_info_preserves_name_and_offset_fallbacks() {
+        let missing = HardwareInfo {
+            id: Err(()),
+            entry: None,
+        };
+        assert!(missing.id.is_err());
+        assert_eq!(missing.name(), Ok("Generic MAC80211".to_owned()));
+        assert_eq!(missing.txpower_offset(), Err(()));
+        assert_eq!(missing.frequency_offset(), Err(()));
+
+        let id_only = HardwareInfo {
+            id: Ok(HardwareId {
+                vendor_id: 0x168c,
+                ..HardwareId::default()
+            }),
+            entry: None,
+        };
+        assert!(id_only.id.is_ok());
+        assert_eq!(id_only.name(), Ok("Generic MAC80211".to_owned()));
+        assert_eq!(id_only.txpower_offset(), Err(()));
+        assert_eq!(id_only.frequency_offset(), Err(()));
+
+        let mut entry = HardwareEntry {
+            txpower_offset: 3,
+            frequency_offset: -50,
+            ..HardwareEntry::default()
+        };
+        entry.vendor_name[..7].copy_from_slice(b"Qualcom");
+        entry.device_name[..6].copy_from_slice(b"QCA998");
+        let full = HardwareInfo {
+            id: Ok(HardwareId::default()),
+            entry: Some(entry),
+        };
+        assert_eq!(full.name(), Ok("Qualcom QCA998".to_owned()));
+        assert_eq!(full.txpower_offset(), Ok(3));
+        assert_eq!(full.frequency_offset(), Ok(-50));
     }
 }
