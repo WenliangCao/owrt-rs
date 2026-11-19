@@ -159,7 +159,12 @@ impl Wdt {
         }
     }
 
-    /// `watchdog_set_stopped()`.
+    /// `watchdog_set_stopped()` in `watchdog.c`.
+    ///
+    /// Passing `false` calls `watchdog_open(true)` and unconditionally arms the
+    /// ping timer (`wdt_timeout`), so `stopped()` becomes `false` even when
+    /// `/dev/watchdog` cannot be opened; `system watchdog` checks `is_open()`
+    /// first (`watchdog_fd() == NULL` in C) and still reports `"offline"`.
     pub fn set_stopped(&mut self, stop: bool, now: i64) {
         if stop {
             self.next_ping = None;
@@ -244,5 +249,30 @@ mod tests {
         assert_eq!(w.timeout(60), 60);
         assert!(w.stopped(), "no init, no timer");
         assert!(!w.is_open());
+    }
+
+    #[test]
+    fn set_stopped_arms_and_clears_timer_even_without_watchdog_device() {
+        let mut w = Wdt::with_inherited(Some(Err(std::io::Error::from(
+            std::io::ErrorKind::NotFound,
+        ))));
+        assert!(!w.is_open());
+        assert!(w.stopped());
+        assert_eq!(w.next_ping_in(1_000), None);
+
+        w.set_stopped(false, 1_000);
+        assert!(!w.is_open());
+        assert!(!w.stopped());
+        assert_eq!(w.next_ping_in(1_000), Some(5_000));
+        assert_eq!(w.next_ping_in(3_500), Some(2_500));
+
+        w.pump(6_000);
+        assert!(!w.stopped());
+        assert_eq!(w.next_ping_in(6_000), Some(5_000));
+
+        w.set_stopped(true, 6_000);
+        assert!(!w.is_open());
+        assert!(w.stopped());
+        assert_eq!(w.next_ping_in(6_000), None);
     }
 }
