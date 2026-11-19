@@ -197,7 +197,7 @@ def inside(args):
             if time.monotonic() >= deadline:
                 raise AssertionError('C did not retire the expired address from its vlist')
             time.sleep(0.05)
-    step('v6-expired-reinstall', infinite, 1, 1 if args.side == 'c' else 0)
+    step('v6-expired-reinstall', infinite, 1, 1)
     step('v6-expired-reinstall-repeat', infinite, 0, 0)
 
     # A failed first install must not be remembered as successfully applied.

@@ -150,8 +150,19 @@ const IFACE_DEVICE_OPTS: &[&str] = &[
     "enabled",
 ];
 
-fn raw_get<'a>(c: &'a config::InterfaceConfig, name: &str) -> Option<&'a Vec<String>> {
-    c.raw.iter().find(|r| r.name == name).map(|r| &r.values)
+fn raw_get<'a>(c: &'a config::InterfaceConfig, name: &str) -> Option<Vec<&'a str>> {
+    let option = c.raw.iter().find(|option| option.name == name)?;
+    // The daemon's own option handling used tokenized scalars before
+    // proto-shell began preserving the original UCI string.
+    Some(if option.is_list {
+        option.values.iter().map(String::as_str).collect()
+    } else {
+        option
+            .values
+            .iter()
+            .flat_map(|value| value.split_whitespace())
+            .collect()
+    })
 }
 
 fn raw_differs(a: &config::InterfaceConfig, b: &config::InterfaceConfig, names: &[&str]) -> bool {
@@ -168,12 +179,12 @@ fn classify_change(
         c.reload = true;
     }
     // `uci_blob_check_equal(old, new, proto_handler->config_params)`
-    let params: Vec<&str> = match handler {
-        Some(h) => h.config.iter().map(|(name, _)| name.as_str()).collect(),
-        None if n.proto == "static" => STATIC_PARAMS.to_vec(),
-        None => Vec::new(),
+    let proto_changed = match handler {
+        Some(h) => h.config_changed(&o.raw, &n.raw),
+        None if n.proto == "static" => raw_differs(o, n, STATIC_PARAMS),
+        None => false,
     };
-    if raw_differs(o, n, &params) || raw_differs(o, n, IFACE_DEVICE_OPTS) {
+    if proto_changed || raw_differs(o, n, IFACE_DEVICE_OPTS) {
         c.reload = true;
     }
     let (oa, na) = (o.auto.unwrap_or(true), n.auto.unwrap_or(true));
@@ -198,11 +209,30 @@ fn classify_change(
     }
     if o.ip6assign != n.ip6assign
         || o.ip6hint != n.ip6hint
-        || raw_differs(o, n, &["ip6class", "ip6ifaceid", "ip6weight"])
+        || o.ip6weight != n.ip6weight
+        || o.ip6class != n.ip6class
+        || o.ip6ifaceid != n.ip6ifaceid
     {
         c.assignment = true;
     }
     c
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum AddrRouteAction {
+    SubnetRoute,
+    OfflinkNull(sys::Route),
+    None,
+}
+
+fn addr_route_action(sa: &sys::Address) -> AddrRouteAction {
+    if !sa.offlink {
+        AddrRouteAction::SubnetRoute
+    } else if let Some(route) = sys::offlink_route(sa) {
+        AddrRouteAction::OfflinkNull(route)
+    } else {
+        AddrRouteAction::None
+    }
 }
 
 /// `interface_set_route_info`: a route without its own metric or table takes
@@ -567,6 +597,7 @@ impl Netifd {
             // `network.reload` re-reads the wireless config too; it used to be
             // read once at startup and never again
             self.wireless_reload();
+            self.free_unused_devices();
         }
         Ok(())
     }
@@ -602,6 +633,7 @@ impl Netifd {
         }
 
         // new, then changed -- both in name order, as the vlist walk is
+        let mut refresh_assignments = false;
         let mut names: Vec<String> = new.iter().map(|c| c.name.clone()).collect();
         names.sort();
         for name in names {
@@ -622,6 +654,7 @@ impl Netifd {
                 Some(oc) => {
                     let handler = self.handler_for(&nc.proto).cloned();
                     let ch = classify_change(oc, &nc, handler.as_ref());
+                    refresh_assignments |= ch.assignment;
                     // everything `interface_change_config` copies over in
                     // place, reload or not
                     let new_routes: Vec<interface::Route> = self.config_routes_for(&nc.name);
@@ -630,6 +663,7 @@ impl Netifd {
                         let iface = &mut self.interfaces[i];
                         iface.metric = nc.metric;
                         iface.dns_metric = nc.dns_metric;
+                        iface.assignment_weight = nc.ip6weight;
                         iface.ip4table = nc.ip4table.unwrap_or(0);
                         iface.ip6table = nc.ip6table.unwrap_or(0);
                         iface.proto_ip.no_dns = nc.peerdns == Some(false);
@@ -667,14 +701,33 @@ impl Netifd {
                     }
                     if ch.delegation {
                         self.update_prefix_delegation();
-                    } else if ch.assignment {
-                        // `interface_merge_assignment_data` ->
-                        // `interface_refresh_assignments(true)`
-                        self.refresh_prefix_assignments();
                     }
                     self.check_state(&name);
                 }
             }
+        }
+        if refresh_assignments {
+            // C coalesces interface_refresh_assignments(true) until the config
+            // walk completes, then withdraws and rebuilds every assignment.
+            self.rebuild_prefix_assignments();
+        }
+        // `interface_start_pending`: start interfaces whose `autostart` is now
+        // enabled (e.g. `auto` flipped `0 -> 1` in UCI), while leaving
+        // manually `ifdown`-ed interfaces (`autostart == false`) untouched.
+        let mut pending_start: Vec<String> = self
+            .interfaces
+            .iter()
+            .filter(|i| {
+                i.autostart
+                    && i.state == State::Down
+                    && i.config_state == interface::ConfigState::Normal
+                    && !self.remove_pending.iter().any(|n| n == &i.name)
+            })
+            .map(|i| i.name.clone())
+            .collect();
+        pending_start.sort();
+        for name in pending_start {
+            self.iface_up(&name);
         }
         // `interface_change_config` ends with interface_write_resolv_conf
         self.write_resolv_conf();
@@ -721,8 +774,10 @@ impl Netifd {
             }
             let di = if r.flags & interface::devroute::NODEV != 0 {
                 0
-            } else {
+            } else if devidx != 0 {
                 devidx
+            } else {
+                continue;
             };
             if let Err(e) = self.sys.add_route(di, &sys_route(r)) {
                 logging::log!(
@@ -747,8 +802,10 @@ impl Netifd {
             }
             let di = if r.flags & interface::devroute::NODEV != 0 {
                 0
-            } else {
+            } else if devidx != 0 {
                 devidx
+            } else {
+                continue;
             };
             let _ = self.sys.del_route(di, &sys_route(r));
         }
@@ -808,7 +865,12 @@ impl Netifd {
         // disable
         for set in [&config_ip, &proto_ip] {
             for a in &set.addresses {
-                let _ = self.sys.del_address(di, &sys::Address::new(a.addr, a.mask));
+                let mut sa = sys::Address::new(a.addr, a.mask);
+                sa.offlink = a.offlink;
+                let _ = self.sys.del_address(di, &sa);
+                if let AddrRouteAction::OfflinkNull(route) = addr_route_action(&sa) {
+                    let _ = self.sys.del_route(0, &route);
+                }
             }
             self.del_routes(di, &set.routes);
         }
@@ -830,8 +892,16 @@ impl Netifd {
                 sa.preferred = a.preferred_until.map(|u| u.saturating_sub(base));
                 sa.valid = a.valid_until.map(|u| u.saturating_sub(base));
                 a.failed = self.sys.add_address(di, &sa).is_err();
-                if !a.failed {
-                    self.replace_subnet_route(di, &sa, &ic);
+                // The offlink route is independent of address installation:
+                // interface_ip_set_enabled attempts both even on an address error.
+                match addr_route_action(&sa) {
+                    AddrRouteAction::SubnetRoute if !a.failed => {
+                        self.replace_subnet_route(di, &sa, &ic);
+                    }
+                    AddrRouteAction::OfflinkNull(route) => {
+                        let _ = self.sys.add_route(0, &route);
+                    }
+                    _ => {}
                 }
             }
             for r in &mut set.routes {
@@ -1003,6 +1073,19 @@ impl Netifd {
             .cloned()
             .collect();
         for name in doomed {
+            if self.devices.get(&name).is_some_and(|d| d.bridge.is_some()) {
+                let members = self
+                    .devices
+                    .get(&name)
+                    .and_then(|d| d.bridge.as_ref())
+                    .map(|b| b.members.clone())
+                    .unwrap_or_default();
+                for port in members {
+                    self.bridge_port_detach(&name, &port);
+                }
+                let _ = self.sys.bridge_delbr(&name);
+                self.prepared_bridges.retain(|b| *b != name);
+            }
             self.device_objects.retain(|n| *n != name);
             self.devices.remove(&name);
             self.present.retain(|n| *n != name);
@@ -1213,6 +1296,7 @@ impl Netifd {
                 return false;
             }
         };
+        let mut seen: Vec<String> = Vec::new();
         let mut pending: Vec<Device> = Vec::new();
         for m in &msgs {
             let attrs = m.attrs(16);
@@ -1222,6 +1306,7 @@ impl Netifd {
             if !known.iter().any(|k| k == name) {
                 continue;
             }
+            seen.push(name.to_string());
             let flags =
                 u32::from_le_bytes([m.payload[8], m.payload[9], m.payload[10], m.payload[11]]);
             let kind = self.link_kind(&attrs);
@@ -1252,6 +1337,20 @@ impl Netifd {
                 d.orig_settings.flags |= device::opt::MASTER;
             }
             self.devices.insert(d);
+        }
+        let missing: Vec<String> = self
+            .devices
+            .iter()
+            .filter(|d| !seen.iter().any(|s| s == &d.ifname))
+            .map(|d| d.ifname.clone())
+            .collect();
+        for name in missing {
+            if let Some(d) = self.devices.get_mut(&name) {
+                d.sys_present = false;
+                d.present = false;
+                d.link_active = false;
+                d.auth_status = false;
+            }
         }
         true
     }
@@ -1542,6 +1641,7 @@ impl Netifd {
             .map(|d| self.device_present_now(d))
             .unwrap_or(false);
         i.autostart = ic.auto.unwrap_or(true);
+        i.assignment_weight = ic.ip6weight;
         i.metric = ic.metric;
         i.dns_metric = ic.dns_metric;
         i.ip4table = ic.ip4table.unwrap_or(0);
@@ -1714,6 +1814,52 @@ impl Netifd {
             return;
         }
 
+        if ic.proto == "none" {
+            let mut devidx = 0;
+            if let Some(devname) = ic.device.clone() {
+                devidx = self.sys.if_index(&devname).unwrap_or(0);
+                if devidx == 0 {
+                    self.interfaces[idx].errors.push(interface::IfaceError {
+                        subsystem: "interface".into(),
+                        code: "NO_DEVICE".into(),
+                        data: vec![],
+                    });
+                    self.interfaces[idx].available = false;
+                    return;
+                }
+                self.iface_claim(name, &devname, false);
+                self.iface_claim(name, &devname, true);
+            }
+            let mut ipset = interface::IpSettings {
+                no_dns: ic.peerdns == Some(false),
+                no_defaultroute: ic.defaultroute == Some(false),
+                no_delegation: ic.delegate == Some(false),
+                device_index: (devidx != 0).then_some(devidx),
+                ..Default::default()
+            };
+            self.apply_config_routes(name, devidx);
+            let i = &mut self.interfaces[idx];
+            i.state = State::Up;
+            i.available = true;
+            i.l3_device = ic.device.clone();
+            i.device = ic.device;
+            ipset.routes.sort_by(interface::route_order);
+            i.proto_ip = ipset;
+            i.updated = if i.config_ip.routes.iter().any(|r| r.enabled) {
+                interface::updated::ROUTE
+            } else {
+                0
+            };
+            i.errors.clear();
+            i.started_at = Some(now());
+
+            self.apply_prefix_assignments();
+            self.emit_event(name, Event::Up);
+            logging::log!(Notice, "Interface '{name}' is now up");
+            self.write_resolv_conf();
+            return;
+        }
+
         let Some(devname) = ic.device.clone() else {
             self.interfaces[idx].errors.push(interface::IfaceError {
                 subsystem: "interface".into(),
@@ -1754,7 +1900,13 @@ impl Netifd {
 
         // proto static: addresses, then the gateway route
         let mut applied_any = false;
-        let mut ipset = interface::IpSettings::default();
+        let mut ipset = interface::IpSettings {
+            no_dns: ic.peerdns == Some(false),
+            no_defaultroute: ic.defaultroute == Some(false),
+            no_delegation: ic.delegate == Some(false),
+            device_index: Some(devidx),
+            ..Default::default()
+        };
         for (a, m) in &ic.ipv4 {
             let sa = sys::Address::new(IpAddr::V4(*a), *m).with_default_broadcast();
             match self.sys.add_address(devidx, &sa) {
@@ -1778,40 +1930,46 @@ impl Netifd {
             }
         }
         if let Some(gw) = ic.gateway {
-            let mut r = sys::Route::v4_default(gw);
-            r.metric = ic.metric;
-            r.table = ic.ip4table.unwrap_or(sys::RT_TABLE_MAIN);
-            match self.sys.add_route(devidx, &r) {
-                Ok(()) => {
-                    let mut ir =
-                        interface::Route::new("0.0.0.0".parse().unwrap(), 0, IpAddr::V4(gw));
-                    ir.metric = ic.metric;
-                    ir.table = ic.ip4table.unwrap_or(0);
-                    ipset.routes.push(ir);
+            let mut ir = interface::Route::new("0.0.0.0".parse().unwrap(), 0, IpAddr::V4(gw));
+            ir.metric = ic.metric;
+            ir.table = ic.ip4table.unwrap_or(0);
+            if ir.table != 0 {
+                ir.flags |= interface::devroute::SRCTABLE;
+            }
+            if ipset.no_defaultroute {
+                ir.enabled = false;
+                ipset.routes.push(ir);
+            } else {
+                let mut r = sys::Route::v4_default(gw);
+                r.metric = ic.metric;
+                r.table = ic.ip4table.unwrap_or(sys::RT_TABLE_MAIN);
+                match self.sys.add_route(devidx, &r) {
+                    Ok(()) => ipset.routes.push(ir),
+                    Err(e) => logging::log!(Warning, "{name}: cannot add default via {gw}: {e}"),
                 }
-                Err(e) => logging::log!(Warning, "{name}: cannot add default via {gw}: {e}"),
             }
         }
         if let Some(gw) = ic.ip6gw {
-            let mut r = sys::Route::v6(Ipv6Addr::UNSPECIFIED, 0);
-            r.nexthop = IpAddr::V6(gw);
-            r.metric = ic.metric;
-            r.table = ic.ip6table.unwrap_or(sys::RT_TABLE_MAIN);
-            match self.sys.add_route(devidx, &r) {
-                Ok(()) => {
-                    let mut ir = interface::Route::new("::".parse().unwrap(), 0, IpAddr::V6(gw));
-                    ir.metric = ic.metric;
-                    ir.table = ic.ip6table.unwrap_or(0);
-                    ipset.routes.push(ir);
+            let mut ir = interface::Route::new("::".parse().unwrap(), 0, IpAddr::V6(gw));
+            ir.metric = ic.metric;
+            ir.table = ic.ip6table.unwrap_or(0);
+            if ir.table != 0 {
+                ir.flags |= interface::devroute::SRCTABLE;
+            }
+            if ipset.no_defaultroute {
+                ir.enabled = false;
+                ipset.routes.push(ir);
+            } else {
+                let mut r = sys::Route::v6(Ipv6Addr::UNSPECIFIED, 0);
+                r.nexthop = IpAddr::V6(gw);
+                r.metric = ic.metric;
+                r.table = ic.ip6table.unwrap_or(sys::RT_TABLE_MAIN);
+                match self.sys.add_route(devidx, &r) {
+                    Ok(()) => ipset.routes.push(ir),
+                    Err(e) => logging::log!(Warning, "{name}: cannot add ip6gw {gw}: {e}"),
                 }
-                Err(e) => logging::log!(Warning, "{name}: cannot add ip6gw {gw}: {e}"),
             }
         }
-        // `list dns` lives in config_ip (set in new_interface) for every
-        // protocol, not in the static proto's own settings (R81 F06)
-        ipset.no_dns = ic.peerdns == Some(false);
-        ipset.no_defaultroute = ic.defaultroute == Some(false);
-        ipset.no_delegation = ic.delegate == Some(false);
         self.apply_config_routes(name, devidx);
 
         let _ = applied_any;
@@ -1882,12 +2040,7 @@ impl Netifd {
                 if action == "setup" {
                     self.host_deps.retain(|d| d.owner != name);
                 }
-                let opts: Vec<(String, Vec<String>)> = ic
-                    .raw
-                    .iter()
-                    .map(|r| (r.name.clone(), r.values.clone()))
-                    .collect();
-                let config = proto::config_json(&handler, &opts);
+                let config = proto::config_json(&handler, &ic.raw);
                 let argv = proto::argv(&handler, action, name, &config, ic.device.as_deref());
                 let dir = self.protodir.clone();
                 let st = self.proto_state(name);
@@ -2143,6 +2296,9 @@ impl Netifd {
             let _ = self.sys.del_route(devidx, &sys_route(r));
         }
         for n in &old.neighbors {
+            if !n.enabled {
+                continue;
+            }
             if new
                 .neighbors
                 .iter()
@@ -2383,7 +2539,12 @@ impl Netifd {
                         Some(x) => Some((base + x as u64).min(u32::MAX as u64) as u32),
                     }
                 };
-                let mut dp = ip::DevicePrefix::new(p.addr, p.length, name, Some(name));
+                let mut dp = ip::DevicePrefix::new(
+                    p.addr,
+                    p.length,
+                    p.class.as_deref().unwrap_or(name),
+                    Some(name),
+                );
                 dp.preferred_until = deadline(p.preferred);
                 dp.valid_until = deadline(p.valid);
                 dp.excl = p.excl;
@@ -2470,18 +2631,25 @@ impl Netifd {
         for (key, v6) in [("neighbor", false), ("neighbor6", true)] {
             let Some(list) = find(key) else { continue };
             for item in list.children() {
-                let Some(n) = proto::parse_neighbor_item(&item, v6) else {
+                let Some(mut n) = proto::parse_neighbor_item(&item, v6) else {
                     continue;
                 };
-                let sn = sys::Neighbor {
-                    addr: n.addr,
-                    mac: n.mac,
-                    proxy: n.proxy != 0,
-                    router: n.router != 0,
-                };
-                if let Err(e) = self.sys.neighbor(devidx, &sn, true) {
-                    logging::log!(Warning, "{name}: cannot add the neighbour {}: {e}", n.addr);
-                    continue;
+                let ip_enabled = self.iface_index(name).is_some_and(|idx| {
+                    matches!(self.interfaces[idx].state, State::Setup | State::Up)
+                });
+                if ip_enabled {
+                    let sn = sys::Neighbor {
+                        addr: n.addr,
+                        mac: n.mac,
+                        proxy: n.proxy != 0,
+                        router: n.router != 0,
+                    };
+                    if let Err(e) = self.sys.neighbor(devidx, &sn, true) {
+                        logging::log!(Warning, "{name}: cannot add the neighbour {}: {e}", n.addr);
+                        continue;
+                    }
+                } else {
+                    n.enabled = false;
                 }
                 ipset.neighbors.push(n);
             }
@@ -2654,10 +2822,13 @@ impl Netifd {
         ipset: &mut interface::IpSettings,
         old: Option<&interface::Route>,
     ) {
-        // `enable_route`: with `no_defaultroute` a default route stays in the
-        // list -- dumped under `inactive` -- but out of the kernel
+        // `enable_route` also gates protocol routes on active IP settings.
+        // Inactive entries stay tracked without touching the kernel.
+        let ip_enabled = self
+            .iface_index(name)
+            .is_some_and(|idx| matches!(self.interfaces[idx].state, State::Setup | State::Up));
         let mut applied = r.clone();
-        if ipset.no_defaultroute && r.mask == 0 {
+        if !ip_enabled || (ipset.no_defaultroute && r.mask == 0) {
             applied.enabled = false;
         } else if !old.is_some_and(|old| keep_proto_route(old, r, now())) {
             let k = sys_route(r);
@@ -2797,7 +2968,7 @@ impl Netifd {
         let declared = proto::IFACE_ATTRS
             .iter()
             .any(|(n, _)| *n == "checkup_interval")
-            || handler.config.iter().any(|(n, _)| n == "checkup_interval");
+            || handler.declares_option("checkup_interval");
         let checkup = if declared {
             ic.checkup_interval.unwrap_or(0)
         } else {
@@ -2892,14 +3063,21 @@ impl Netifd {
     /// afterwards -- so a replacement installs the new address before
     /// deprecating the old.
     fn refresh_prefix_assignments(&mut self) {
-        type Owner = Option<(Option<String>, Ipv6Addr, u8)>;
-        let before: Vec<(String, Ipv6Addr, u8, Option<u32>, Owner)> = self
+        let before: Vec<_> = self
             .interfaces
             .iter()
             .flat_map(|i| {
                 i.prefix_assignments.iter().filter_map(move |a| {
-                    a.local
-                        .map(|(l, len)| (i.name.clone(), l, len, a.valid_until, a.owner.clone()))
+                    a.local.map(|(l, len)| {
+                        (
+                            i.name.clone(),
+                            l,
+                            len,
+                            a.valid_until,
+                            a.owner.clone(),
+                            a.route.clone(),
+                        )
+                    })
                 })
             })
             .collect();
@@ -2916,7 +3094,7 @@ impl Netifd {
 
         self.apply_prefix_assignments();
 
-        for (name, local, len, valid, owner) in before {
+        for (name, local, len, valid, owner, route) in before {
             if let Some(o) = &owner {
                 if live.contains(o)
                     && self.iface_index(&name).is_some_and(|i| {
@@ -2965,7 +3143,108 @@ impl Netifd {
                 })
                 .map(|p| p.valid_until)
                 .unwrap_or(valid);
-            self.withdraw_assignment(di, local, len, valid, delegated.then_some(dev.as_str()));
+            self.withdraw_assignment(
+                di,
+                local,
+                len,
+                valid,
+                delegated.then_some(dev.as_str()),
+                route.as_ref(),
+            );
+        }
+    }
+
+    /// Rebuild after assignment policy changes, including unchanged owners.
+    /// Withdrawing first transfers old addresses and prefix routes to the kernel.
+    fn rebuild_prefix_assignments(&mut self) {
+        let mut previous = Vec::new();
+        for iface in &mut self.interfaces {
+            for assignment in std::mem::take(&mut iface.prefix_assignments) {
+                if let (Some(dev), Some((local, length))) = (&iface.l3_device, assignment.local) {
+                    previous.push((
+                        dev.clone(),
+                        local,
+                        length,
+                        assignment.valid_until,
+                        assignment.owner,
+                        assignment.route,
+                    ));
+                }
+            }
+        }
+        for (dev, local, length, valid, owner, route) in previous {
+            if let Ok(index) = self.sys.if_index(&dev) {
+                if index != 0 {
+                    let delegated = owner.is_some_and(|(uplink, _, _)| uplink.is_some());
+                    self.withdraw_assignment(
+                        index,
+                        local,
+                        length,
+                        valid,
+                        delegated.then_some(dev.as_str()),
+                        route.as_ref(),
+                    );
+                }
+            }
+        }
+        self.apply_prefix_assignments();
+    }
+
+    fn resolve_device_mac(&self, dev: &str) -> Option<[u8; 6]> {
+        if let Some(mac) = self
+            .cfg
+            .devices
+            .iter()
+            .find(|d| d.name == dev)
+            .and_then(|d| d.macaddr)
+        {
+            return Some(mac);
+        }
+        if let Some(d) = self.devices.get(dev) {
+            if d.settings.has(device::opt::MACADDR) {
+                return Some(d.settings.macaddr);
+            }
+            if d.orig_settings.has(device::opt::MACADDR) {
+                return Some(d.orig_settings.macaddr);
+            }
+        }
+        std::fs::read_to_string(format!("/sys/class/net/{dev}/address"))
+            .ok()
+            .and_then(|s| config::parse_macaddr(s.trim()))
+    }
+
+    fn resolve_assignment_local(
+        &self,
+        ic: Option<&config::InterfaceConfig>,
+        l3: Option<&str>,
+        p: &ip::DevicePrefix,
+        addr: Ipv6Addr,
+        length: u8,
+        previous: &[interface::PrefixAssignment],
+    ) -> Option<Ipv6Addr> {
+        let iface_id = ic.map(|c| c.ip6ifaceid).unwrap_or_default();
+        match iface_id {
+            config::IfaceId::Default => Some(ip::local_address(addr, Ipv6Addr::LOCALHOST)),
+            config::IfaceId::Fixed(fixed) => Some(ip::local_address(addr, fixed)),
+            config::IfaceId::Random => {
+                let owner = (p.iface.clone(), p.addr, p.length);
+                if let Some(prev_local) = previous.iter().find_map(|old| {
+                    (old.owner.as_ref() == Some(&owner))
+                        .then_some(old.local)
+                        .flatten()
+                        .filter(|&(_, len)| len == length)
+                        .map(|(ip, _)| ip)
+                }) {
+                    let mut o = addr.octets();
+                    o[8..16].copy_from_slice(&prev_local.octets()[8..16]);
+                    Some(Ipv6Addr::from(o))
+                } else {
+                    Some(ip::random_address(addr))
+                }
+            }
+            config::IfaceId::Eui64 => l3
+                .and_then(|dev| self.resolve_device_mac(dev))
+                .map(|mac| ip::eui64_address(addr, mac)),
         }
     }
 
@@ -2979,8 +3258,8 @@ impl Netifd {
                     name: i.name.clone(),
                     length: l,
                     hint: i.ip6hint,
-                    weight: 0,
-                    classes: vec![],
+                    weight: i.ip6weight as i32,
+                    classes: i.ip6class.clone(),
                 })
             })
             .collect();
@@ -3011,82 +3290,102 @@ impl Netifd {
         for p in &prefixes {
             for a in ip::assign(p, &reqs) {
                 let addr = ip::assignment_address(p, a.assigned);
-                let local = ip::local_address(addr, "::1".parse().unwrap());
                 let Some(idx) = self.iface_index(&a.name) else {
                     continue;
                 };
                 let up = self.interfaces[idx].state == State::Up;
                 let l3 = self.interfaces[idx].l3_device.clone();
-                let was_enabled = previous[idx].iter().any(|old| {
-                    old.local == Some((local, a.length))
-                        && old.owner.as_ref() == Some(&(p.iface.clone(), p.addr, p.length))
-                });
+                let ic = self
+                    .cfg
+                    .interfaces
+                    .iter()
+                    .find(|i| i.name == a.name)
+                    .cloned();
+                let local = self.resolve_assignment_local(
+                    ic.as_ref(),
+                    l3.as_deref(),
+                    p,
+                    addr,
+                    a.length,
+                    &previous[idx],
+                );
                 let valid = !p
                     .valid_until
                     .is_some_and(|v| (v as u64).saturating_sub(1) <= now());
-                let mut enabled = was_enabled && valid;
-                if up && valid {
-                    if let Some(dev) = &l3 {
-                        if let Ok(di) = self.sys.if_index(dev) {
-                            if di != 0 {
-                                let mut sa = sys::Address::new(IpAddr::V6(local), a.length);
-                                // `interface_set_prefix_address`, add path:
-                                // DEVADDR_OFFLINK plus netifd's own route. I
-                                // briefly removed both after r62 showed the C
-                                // with `proto kernel metric 256` -- but that
-                                // was the C's WITHDRAWN state, not its live
-                                // one. Withdrawal drops the explicit route and
-                                // re-adds the address without OFFLINK, so the
-                                // kernel makes that route. Matching it while
-                                // the assignment is live means matching the
-                                // wrong half.
-                                sa.offlink = true;
-                                // deadlines back to lifetimes, as `system_addr`
-                                // does; a deadline already past means zero
-                                let base = now();
-                                let left = |d: Option<u32>| -> Option<u32> {
-                                    d.map(|x| {
-                                        (x as u64).saturating_sub(base).min(u32::MAX as u64) as u32
-                                    })
-                                };
-                                sa.preferred = left(p.preferred_until);
-                                sa.valid = left(p.valid_until);
-                                if let Err(e) = self.sys.add_address(di, &sa) {
-                                    logging::log!(
-                                        Warning,
-                                        "{}: cannot add {local}/{}: {e}",
-                                        a.name,
-                                        a.length
-                                    );
-                                } else {
-                                    enabled = true;
-                                    if p.iface.is_some() && !was_enabled {
-                                        if let Err(e) =
-                                            self.sys.prefix_reject(dev, local, a.length, true)
-                                        {
-                                            logging::log!(
-                                                Warning,
-                                                "{}: cannot add prefix source rule: {e}",
-                                                a.name
-                                            );
-                                        }
-                                    }
-                                    // the on-link route for the assignment, never
-                                    // narrower than a /64
-                                    let rmask = a.length.max(64);
-                                    let mut pr =
-                                        sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
-                                    let ic = self.cfg.interfaces.iter().find(|i| i.name == a.name);
-                                    pr.metric = ic.map(|i| i.metric).unwrap_or(0);
-                                    let t = ic.and_then(|i| i.ip6table).unwrap_or(0);
-                                    pr.table = if t != 0 { t } else { sys::RT_TABLE_MAIN };
-                                    if let Err(e) = self.sys.add_route(di, &pr) {
+                let mut enabled = false;
+                let mut route = None;
+                if let Some(local) = local {
+                    let old = previous[idx].iter().find(|old| {
+                        old.local == Some((local, a.length))
+                            && old.owner.as_ref() == Some(&(p.iface.clone(), p.addr, p.length))
+                    });
+                    let was_enabled = old.is_some();
+                    route = old.and_then(|old| old.route.clone());
+                    enabled = was_enabled && valid;
+                    if up && valid {
+                        if let Some(dev) = &l3 {
+                            if let Ok(di) = self.sys.if_index(dev) {
+                                if di != 0 {
+                                    let mut sa = sys::Address::new(IpAddr::V6(local), a.length);
+                                    // `interface_set_prefix_address`, add path:
+                                    // DEVADDR_OFFLINK plus netifd's own route. I
+                                    // briefly removed both after r62 showed the C
+                                    // with `proto kernel metric 256` -- but that
+                                    // was the C's WITHDRAWN state, not its live
+                                    // one. Withdrawal drops the explicit route and
+                                    // re-adds the address without OFFLINK, so the
+                                    // kernel makes that route. Matching it while
+                                    // the assignment is live means matching the
+                                    // wrong half.
+                                    sa.offlink = true;
+                                    // deadlines back to lifetimes, as `system_addr`
+                                    // does; a deadline already past means zero
+                                    let base = now();
+                                    let left = |d: Option<u32>| -> Option<u32> {
+                                        d.map(|x| {
+                                            (x as u64).saturating_sub(base).min(u32::MAX as u64)
+                                                as u32
+                                        })
+                                    };
+                                    sa.preferred = left(p.preferred_until);
+                                    sa.valid = left(p.valid_until);
+                                    if let Err(e) = self.sys.add_address(di, &sa) {
                                         logging::log!(
                                             Warning,
-                                            "{}: cannot add the {}/{rmask} route: {e}",
+                                            "{}: cannot add {local}/{}: {e}",
                                             a.name,
-                                            pr.target
+                                            a.length
                                         );
+                                    } else {
+                                        enabled = true;
+                                        if p.iface.is_some() && !was_enabled {
+                                            if let Err(e) =
+                                                self.sys.prefix_reject(dev, local, a.length, true)
+                                            {
+                                                logging::log!(
+                                                    Warning,
+                                                    "{}: cannot add prefix source rule: {e}",
+                                                    a.name
+                                                );
+                                            }
+                                        }
+                                        // the on-link route for the assignment, never
+                                        // narrower than a /64
+                                        let rmask = a.length.max(64);
+                                        let mut pr =
+                                            sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
+                                        pr.metric = ic.as_ref().map(|i| i.metric).unwrap_or(0);
+                                        let t = ic.as_ref().and_then(|i| i.ip6table).unwrap_or(0);
+                                        pr.table = if t != 0 { t } else { sys::RT_TABLE_MAIN };
+                                        if let Err(e) = self.sys.add_route(di, &pr) {
+                                            logging::log!(
+                                                Warning,
+                                                "{}: cannot add the {}/{rmask} route: {e}",
+                                                a.name,
+                                                pr.target
+                                            );
+                                        }
+                                        route = Some(pr);
                                     }
                                 }
                             }
@@ -3100,11 +3399,8 @@ impl Netifd {
                         length: a.length,
                         preferred_until: p.preferred_until,
                         valid_until: p.valid_until,
-                        local: if up && enabled {
-                            Some((local, a.length))
-                        } else {
-                            None
-                        },
+                        local: local.filter(|_| up && enabled).map(|l| (l, a.length)),
+                        route,
                         owner: Some((p.iface.clone(), p.addr, p.length)),
                     });
             }
@@ -3405,6 +3701,13 @@ impl Netifd {
 
     /// `DEV_EVENT_REMOVE`, followed by `device_release_cb` over every user.
     fn device_removed(&mut self, dev: &str) {
+        if let Some(d) = self.devices.get_mut(dev) {
+            d.sys_present = false;
+            d.present = false;
+            d.active = false;
+            d.link_active = false;
+            d.auth_status = false;
+        }
         for name in self.ifaces_using(dev) {
             self.set_available(&name, false);
         }
@@ -3413,7 +3716,8 @@ impl Netifd {
         self.claims.retain(|(n, _)| n != dev);
         self.claimed_main.retain(|(_, d)| d != dev);
         self.claimed_l3.retain(|(_, d)| d != dev);
-        if let Some(pos) = self.parents.iter().position(|(c, _)| c == dev) {
+        self.set_enabled(dev, false);
+        while let Some(pos) = self.parents.iter().position(|(c, _)| c == dev) {
             let (_, p) = self.parents.remove(pos);
             self.device_release(&p);
         }
@@ -4151,6 +4455,9 @@ impl Netifd {
                         }
                     }
                     for n in &neighs {
+                        if !n.enabled {
+                            continue;
+                        }
                         let sn = sys::Neighbor {
                             addr: n.addr,
                             mac: n.mac,
@@ -4186,6 +4493,7 @@ impl Netifd {
                                 len,
                                 a.valid_until,
                                 delegated.then_some(dev.as_str()),
+                                a.route.as_ref(),
                             );
                         }
                     }
@@ -5144,6 +5452,9 @@ struct WRadio {
     ifnames: Vec<(String, String)>,
     /// The configuration actually passed to this generation's handler.
     handler_config: owrt_ubus::json::Json,
+    /// A destroyed radio stays observable until its pending handler completes
+    /// teardown. ucode's queued wdev retains this configuration generation.
+    removed_config: Option<wireless::Radio>,
     /// Dynamic bridge members owned by this radio, for teardown.
     links: Vec<(String, String)>,
     /// `wdev.procs`: processes the handler registered. A registered process
@@ -5155,7 +5466,7 @@ struct WRadio {
     /// `handler_data[wdev.name]`: the device-level record, handed back to the
     /// handler on its next setup and on teardown. Cleared when a teardown
     /// completes, the way `wdev_teardown_cb` empties the whole map.
-    device_data: Vec<(String, String)>,
+    device_data: Vec<(String, owrt_ubus::json::Json)>,
 }
 
 impl Netifd {
@@ -5178,6 +5489,7 @@ impl Netifd {
                 autostart: true,
                 ifnames: Vec::new(),
                 handler_config: owrt_ubus::json::Json::Null,
+                removed_config: None,
                 links: Vec::new(),
                 device_data: Vec::new(),
                 procs: Vec::new(),
@@ -5213,8 +5525,15 @@ impl Netifd {
             .map(|c| c.name.clone())
             .collect();
         for name in &gone {
+            let old = self.wconfig.iter().find(|c| c.name == *name).cloned();
             if let Some(r) = self.wradio(name) {
                 r.autostart = false;
+                r.removed_config = old;
+                // destroy() calls stop(): an already queued setup runs its
+                // original generation and can still report NOTIFY_UP.
+                if r.state != wireless::WState::Up {
+                    continue;
+                }
             }
             self.wireless_teardown(name);
         }
@@ -5270,6 +5589,7 @@ impl Netifd {
                 autostart: true,
                 ifnames: Vec::new(),
                 handler_config: owrt_ubus::json::Json::Null,
+                removed_config: None,
                 links: Vec::new(),
                 device_data: Vec::new(),
                 procs: Vec::new(),
@@ -5323,13 +5643,14 @@ impl Netifd {
         len: u8,
         valid: Option<u32>,
         reject_dev: Option<&str>,
+        route: Option<&sys::Route>,
     ) {
         if let Some(dev) = reject_dev {
             let _ = self.sys.prefix_reject(dev, local, len, false);
         }
-        let rmask = len.max(64);
-        let pr = sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
-        let _ = self.sys.del_route(di, &pr);
+        if let Some(route) = route {
+            let _ = self.sys.del_route(di, route);
+        }
 
         let base = now();
         let mut sa = sys::Address::new(IpAddr::V6(local), len);
@@ -5365,6 +5686,7 @@ impl Netifd {
                 !old.iter().any(|p| {
                     p.addr == n.addr
                         && p.length == n.length
+                        && p.class == n.class
                         && p.preferred_until == n.preferred_until
                         && p.valid_until == n.valid_until
                 })
@@ -5399,10 +5721,9 @@ impl Netifd {
         changed
     }
 
-    /// The delegated-prefix part of C's interface_ip_valid_until_handler.
-    /// A source reject rule has no kernel expiry, so the daemon must withdraw
-    /// it even when odhcp6c sends no further notification. Keep C's strict
-    /// deadline comparison and only expire protocol state on UP interfaces.
+    /// `interface_ip_valid_until_handler`: expire delegated prefixes,
+    /// `proto_ip.addresses`, and `proto_ip.routes` on `State::Up` interfaces
+    /// whose finite `valid_until` deadline has passed (`deadline < now`).
     fn pump_prefix_expiry(&mut self) {
         let t = now();
         if t <= self.prefix_expiry_checked {
@@ -5425,22 +5746,102 @@ impl Netifd {
                 Some((owner.clone(), p.addr, p.length))
             })
             .collect();
-        if expired.is_empty() {
-            return;
+        if !expired.is_empty() {
+            for (owner, addr, length) in &expired {
+                self.prefixes.retain(|p| {
+                    !(p.iface.as_ref() == Some(owner) && p.addr == *addr && p.length == *length)
+                });
+                let mut null = sys::Route::v6(*addr, *length);
+                null.metric = i32::MAX as u32;
+                null.nodev = true;
+                let _ = self.sys.del_route(0, &null);
+                if let Some(i) = self.iface_index(owner) {
+                    self.interfaces[i].updated |= interface::updated::PREFIX;
+                }
+            }
+            self.refresh_prefix_assignments();
         }
-        for (owner, addr, length) in &expired {
-            self.prefixes.retain(|p| {
-                !(p.iface.as_ref() == Some(owner) && p.addr == *addr && p.length == *length)
+
+        let mut del_routes: Vec<(u32, sys::Route)> = Vec::new();
+        let mut del_addrs: Vec<(u32, sys::Address)> = Vec::new();
+        for iface in &mut self.interfaces {
+            if iface.state != State::Up {
+                continue;
+            }
+            let devidx = iface
+                .proto_ip
+                .device_index
+                .or_else(|| {
+                    iface
+                        .l3_device
+                        .as_deref()
+                        .and_then(|d| self.sys.if_index(d).ok())
+                        .filter(|&idx| idx != 0)
+                })
+                .unwrap_or(0);
+
+            let mut route_expired = false;
+            iface.proto_ip.routes.retain(|r| {
+                if r.valid_until.is_some_and(|d| (d as u64) < t) {
+                    route_expired = true;
+                    if r.enabled {
+                        let di = if r.flags & interface::devroute::NODEV != 0 {
+                            0
+                        } else {
+                            devidx
+                        };
+                        if di != 0 || (r.flags & interface::devroute::NODEV != 0) {
+                            del_routes.push((di, sys_route(r)));
+                        }
+                    }
+                    false
+                } else {
+                    true
+                }
             });
-            let mut null = sys::Route::v6(*addr, *length);
-            null.metric = i32::MAX as u32;
-            null.nodev = true;
-            let _ = self.sys.del_route(0, &null);
-            if let Some(i) = self.iface_index(owner) {
-                self.interfaces[i].updated |= interface::updated::PREFIX;
+            if route_expired {
+                iface.updated |= interface::updated::ROUTE;
+            }
+
+            let mut addr_expired = false;
+            let (metric, ip4table, ip6table) = (iface.metric, iface.ip4table, iface.ip6table);
+            iface.proto_ip.addresses.retain(|a| {
+                if a.valid_until.is_some_and(|d| (d as u64) < t) {
+                    addr_expired = true;
+                    if a.enabled {
+                        let mut sa = sys::Address::new(a.addr, a.mask);
+                        sa.offlink = a.offlink;
+                        if a.offlink {
+                            if a.addr.is_ipv4() {
+                                if let Some(route) = sys::offlink_route(&sa) {
+                                    del_routes.push((0, route));
+                                }
+                            }
+                        } else if devidx != 0 {
+                            let table = if a.addr.is_ipv6() { ip6table } else { ip4table };
+                            if metric != 0 || table != 0 {
+                                del_routes.push((devidx, sys::subnet_route(&sa, metric, table)));
+                            }
+                        }
+                        if devidx != 0 {
+                            del_addrs.push((devidx, sa));
+                        }
+                    }
+                    false
+                } else {
+                    true
+                }
+            });
+            if addr_expired {
+                iface.updated |= interface::updated::ADDRESS;
             }
         }
-        self.refresh_prefix_assignments();
+        for (di, route) in del_routes {
+            let _ = self.sys.del_route(di, &route);
+        }
+        for (di, addr) in del_addrs {
+            let _ = self.sys.del_address(di, &addr);
+        }
     }
 
     /// `wdev_proc_check`, on the one-second interval `wdev_proc_add` starts.
@@ -5474,6 +5875,7 @@ impl Netifd {
     /// that is not down is left where it is.
     fn wireless_start(&mut self, name: &str) {
         let down = match self.wradio(name) {
+            Some(r) if r.removed_config.is_some() => return,
             Some(r) => {
                 r.autostart = true;
                 r.retry = wireless::DEFAULT_RETRY;
@@ -5717,7 +6119,17 @@ impl Netifd {
         let Some((name, op)) = self.wqueue.pop_front() else {
             return;
         };
-        let cfg = self.wconfig.iter().find(|r| r.name == name).cloned();
+        let cfg = self
+            .wconfig
+            .iter()
+            .find(|r| r.name == name)
+            .cloned()
+            .or_else(|| {
+                self.wradios
+                    .iter()
+                    .find(|r| r.name == name)
+                    .and_then(|r| r.removed_config.clone())
+            });
         let kind = if op == "setup" {
             cfg.as_ref().and_then(|c| c.kind()).map(str::to_string)
         } else {
@@ -5748,11 +6160,11 @@ impl Netifd {
             .find(|r| r.name == name)
             .filter(|r| !r.device_data.is_empty())
             .map(|r| wireless::device_data_record(&r.name, &r.device_data))
-            .unwrap_or_else(|| "{}".to_string());
+            .unwrap_or_else(|| owrt_ubus::json::Json::Object(Vec::new()));
         let mut config = if op == "setup" {
             let Some(cfg) = cfg else { return };
             let mut config =
-                owrt_ubus::json::parse(&wireless::handler_json(&cfg, &self.whandlers, &data))
+                owrt_ubus::json::parse(&wireless::handler_json(&cfg, &self.whandlers, "{}"))
                     .expect("wireless projection is valid JSON");
             if let owrt_ubus::json::Json::Object(obj) = &mut config {
                 if let Some((_, owrt_ubus::json::Json::Object(vifs))) =
@@ -5775,7 +6187,7 @@ impl Netifd {
         };
         if let owrt_ubus::json::Json::Object(obj) = &mut config {
             if let Some((_, value)) = obj.iter_mut().find(|(k, _)| k == "data") {
-                *value = owrt_ubus::json::parse(&data).expect("wireless data is valid JSON");
+                *value = data;
             }
         }
         let argv = vec![
@@ -5783,7 +6195,7 @@ impl Netifd {
             hname,
             op.to_string(),
             name.clone(),
-            config.to_compact(),
+            wireless::handler_value_json(&config),
         ];
         self.wcur = Some((name.clone(), op));
         if let Err(e) = self.wslot.start_in(&argv, &[], &dir) {
@@ -5880,6 +6292,11 @@ impl Netifd {
         let device = device.split(|byte| *byte == 0).next().unwrap();
         self.wconfig
             .iter()
+            .chain(
+                self.wradios
+                    .iter()
+                    .filter_map(|r| r.removed_config.as_ref()),
+            )
             .position(|radio| radio.name.as_bytes() == device)
             .ok_or(status::NOT_FOUND)
             .map(Some)
@@ -5888,7 +6305,16 @@ impl Netifd {
     /// `status` follows the live state machine; only the configuration is
     /// shared with the no-hardware projection. ifnames come from notify.
     fn wireless_status_into_blob(&self, b: &mut BlobBuf, selected: Option<usize>) {
-        for (index, cfg) in self.wconfig.iter().enumerate() {
+        for (index, cfg) in self
+            .wconfig
+            .iter()
+            .chain(
+                self.wradios
+                    .iter()
+                    .filter_map(|r| r.removed_config.as_ref()),
+            )
+            .enumerate()
+        {
             if selected.is_some_and(|wanted| wanted != index) {
                 continue;
             }
@@ -5953,7 +6379,7 @@ impl Netifd {
                         .flat_map(|f| f.children())
                         .map(|field| {
                             owrt_ubus::convert::field_to_json(&field)
-                                .map(|value| (field.name.to_string(), value.to_compact()))
+                                .map(|value| (field.name.to_string(), value))
                         })
                         .collect::<Result<Vec<_>, _>>();
                     let Ok(fields) = fields else {

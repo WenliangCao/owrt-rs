@@ -80,6 +80,16 @@ pub struct DeviceConfig {
     pub ageing_time: Option<u32>,
 }
 
+/// `ip6ifaceid` selection for prefix assignments (`interface-ip.c`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum IfaceId {
+    #[default]
+    Default,
+    Fixed(Ipv6Addr),
+    Random,
+    Eui64,
+}
+
 /// A `config interface` section.
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct InterfaceConfig {
@@ -93,6 +103,9 @@ pub struct InterfaceConfig {
     pub ip6gw: Option<Ipv6Addr>,
     pub ip6assign: Option<u8>,
     pub ip6hint: Option<u32>,
+    pub ip6weight: u32,
+    pub ip6class: Vec<String>,
+    pub ip6ifaceid: IfaceId,
     pub metric: u32,
     pub dns_metric: u32,
     /// `checkup_interval`: seconds after the setup script exits before an
@@ -124,6 +137,7 @@ pub struct InterfaceConfig {
 #[derive(Clone, PartialEq, Eq)]
 pub struct RawOpt {
     pub name: String,
+    /// An `option` carries one value with its original whitespace.
     pub values: Vec<String>,
     /// `list foo 'x'` rather than `option foo 'x'`.
     pub is_list: bool,
@@ -220,6 +234,45 @@ fn n_opt<T: std::str::FromStr>(s: &Section, name: &str) -> Option<T> {
     s_opt(s, name)?.parse().ok()
 }
 
+/// `strtol` / `strtoll` with base 0 and an end-pointer check on aarch64.
+pub(crate) fn config_integer(value: &str) -> Option<i64> {
+    if value.is_empty() {
+        return Some(0);
+    }
+    let number = value.trim_start_matches(|c: char| c.is_ascii_whitespace() || c == '\x0b');
+    let (negative, digits) = match number.strip_prefix('-') {
+        Some(digits) => (true, digits),
+        None => (false, number.strip_prefix('+').unwrap_or(number)),
+    };
+    let (radix, digits) = if let Some(hex) = digits
+        .strip_prefix("0x")
+        .or_else(|| digits.strip_prefix("0X"))
+    {
+        (16, hex)
+    } else if digits.starts_with('0') {
+        (8, digits)
+    } else {
+        (10, digits)
+    };
+    if digits.is_empty() {
+        return None;
+    }
+    let magnitude = digits.chars().try_fold(0u64, |acc, digit| {
+        let digit = digit.to_digit(radix)?;
+        Some(
+            acc.saturating_mul(u64::from(radix))
+                .saturating_add(u64::from(digit)),
+        )
+    })?;
+    let limit = i64::MAX as u64 + u64::from(negative);
+    let magnitude = magnitude.min(limit) as i64;
+    Some(if negative {
+        magnitude.wrapping_neg()
+    } else {
+        magnitude
+    })
+}
+
 /// `aa:bb:cc:dd:ee:ff`, the only form netifd accepts.
 pub fn parse_macaddr(s: &str) -> Option<[u8; 6]> {
     let parts: Vec<&str> = s.split(':').collect();
@@ -289,6 +342,9 @@ const KNOWN_IFACE_OPTS: &[&str] = &[
     "ip6gw",
     "ip6assign",
     "ip6hint",
+    "ip6weight",
+    "ip6class",
+    "ip6ifaceid",
     "metric",
     "dns_metric",
     "checkup_interval",
@@ -595,51 +651,53 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
         return;
     }
 
-    let netmask = s_opt(s, "netmask");
-    for a in l_opt(s, "ipaddr") {
-        match parse_v4(&a, netmask.as_deref()) {
-            Some(v) => i.ipv4.push(v),
-            None => {
-                c.warnings.push(ConfigError {
-                    section: where_.to_string(),
-                    message: format!("ipaddr '{a}' is not an IPv4 address"),
-                });
-                i.static_error
-                    .get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
+    if i.proto == "static" {
+        let netmask = s_opt(s, "netmask");
+        for a in l_opt(s, "ipaddr") {
+            match parse_v4(&a, netmask.as_deref()) {
+                Some(v) => i.ipv4.push(v),
+                None => {
+                    c.warnings.push(ConfigError {
+                        section: where_.to_string(),
+                        message: format!("ipaddr '{a}' is not an IPv4 address"),
+                    });
+                    i.static_error
+                        .get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
+                }
             }
         }
-    }
-    for a in l_opt(s, "ip6addr") {
-        match parse_v6(&a) {
-            Some(v) => i.ipv6.push(v),
-            None => {
-                c.warnings.push(ConfigError {
-                    section: where_.to_string(),
-                    message: format!("ip6addr '{a}' is not an IPv6 address"),
-                });
-                i.static_error
-                    .get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
+        for a in l_opt(s, "ip6addr") {
+            match parse_v6(&a) {
+                Some(v) => i.ipv6.push(v),
+                None => {
+                    c.warnings.push(ConfigError {
+                        section: where_.to_string(),
+                        message: format!("ip6addr '{a}' is not an IPv6 address"),
+                    });
+                    i.static_error
+                        .get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
+                }
             }
         }
-    }
-    for (name, code) in [("gateway", "INVALID_GATEWAY"), ("ip6gw", "INVALID_GATEWAY")] {
-        if let Some(v) = s_opt(s, name) {
-            let ok = if name == "gateway" {
-                v.parse::<Ipv4Addr>().is_ok()
-            } else {
-                v.parse::<Ipv6Addr>().is_ok()
-            };
-            if !ok {
-                c.warnings.push(ConfigError {
-                    section: where_.to_string(),
-                    message: format!("{name} '{v}' is not an address"),
-                });
-                i.static_error.get_or_insert((code.into(), v));
+        for (name, code) in [("gateway", "INVALID_GATEWAY"), ("ip6gw", "INVALID_GATEWAY")] {
+            if let Some(v) = s_opt(s, name) {
+                let ok = if name == "gateway" {
+                    v.parse::<Ipv4Addr>().is_ok()
+                } else {
+                    v.parse::<Ipv6Addr>().is_ok()
+                };
+                if !ok {
+                    c.warnings.push(ConfigError {
+                        section: where_.to_string(),
+                        message: format!("{name} '{v}' is not an address"),
+                    });
+                    i.static_error.get_or_insert((code.into(), v));
+                }
             }
         }
+        i.gateway = s_opt(s, "gateway").and_then(|v| v.parse().ok());
+        i.ip6gw = s_opt(s, "ip6gw").and_then(|v| v.parse().ok());
     }
-    i.gateway = s_opt(s, "gateway").and_then(|v| v.parse().ok());
-    i.ip6gw = s_opt(s, "ip6gw").and_then(|v| v.parse().ok());
     if let Some(v) = n_opt::<u8>(s, "ip6assign") {
         if v > 64 {
             c.warnings.push(ConfigError {
@@ -651,6 +709,41 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
         }
     }
     i.ip6hint = s_opt(s, "ip6hint").and_then(|v| u32::from_str_radix(v.trim(), 16).ok());
+    // uci_to_blob uses strtol(base 0), then stores the low 32 bits. Lists
+    // cannot supply an INT32 policy value, even when they have one entry.
+    i.ip6weight = match opt(s, "ip6weight") {
+        Some(OptionValue::Str(value)) => {
+            config_integer(&String::from_utf8_lossy(value)).map(|n| n as u32)
+        }
+        _ => None,
+    }
+    .unwrap_or(0);
+    i.ip6class = match opt(s, "ip6class") {
+        Some(OptionValue::Str(value)) => String::from_utf8_lossy(value)
+            .split([' ', '\t'])
+            .filter(|word| !word.is_empty())
+            .map(str::to_string)
+            .collect(),
+        _ => l_opt(s, "ip6class"),
+    };
+    if let Some(OptionValue::Str(raw)) = opt(s, "ip6ifaceid") {
+        let raw = String::from_utf8_lossy(raw);
+        i.ip6ifaceid = match raw.as_ref() {
+            "random" => IfaceId::Random,
+            "eui64" => IfaceId::Eui64,
+            _ => match raw.parse::<Ipv6Addr>() {
+                Ok(Ipv6Addr::LOCALHOST) => IfaceId::Default,
+                Ok(addr) if addr.octets()[..8] == [0; 8] => IfaceId::Fixed(addr),
+                _ => {
+                    c.warnings.push(ConfigError {
+                        section: where_.to_string(),
+                        message: format!("invalid ip6ifaceid '{raw}'"),
+                    });
+                    IfaceId::Default
+                }
+            },
+        };
+    }
     i.metric = n_opt(s, "metric").unwrap_or(0);
     i.dns_metric = n_opt(s, "dns_metric").unwrap_or(0);
     i.checkup_interval = n_opt(s, "checkup_interval");
@@ -672,10 +765,19 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
     i.peerdns = b_opt(s, "peerdns");
 
     for o in &s.options {
-        let is_list = matches!(o.value, OptionValue::List(_));
+        let (values, is_list) = match &o.value {
+            OptionValue::Str(value) => (vec![String::from_utf8_lossy(value).into_owned()], false),
+            OptionValue::List(values) => (
+                values
+                    .iter()
+                    .map(|value| String::from_utf8_lossy(value).into_owned())
+                    .collect(),
+                true,
+            ),
+        };
         i.raw.push(RawOpt {
             name: o.name.clone(),
-            values: l_opt(s, &o.name),
+            values,
             is_list,
         });
         if KNOWN_IFACE_OPTS.contains(&o.name.as_str()) {
@@ -945,5 +1047,76 @@ mod tests {
         assert_eq!(c.interfaces[1].ip6assign, Some(60));
         assert_eq!(c.devices[0].ports.len(), 3);
         assert!(c.devices[1].kind.is_none());
+    }
+
+    #[test]
+    fn proto_none_ignores_leftover_static_ip_options() {
+        let c = parse(&pkg("config interface 'empty'\n\
+             \toption proto 'none'\n\
+             \toption ipaddr 'not-an-ip'\n\
+             \toption gateway 'bad-gw'\n"));
+        assert!(c.warnings.is_empty(), "{:?}", c.warnings);
+        assert_eq!(c.interfaces.len(), 1);
+        assert_eq!(c.interfaces[0].static_error, None);
+        assert!(c.interfaces[0].ipv4.is_empty());
+        assert!(c.interfaces[0].gateway.is_none());
+    }
+
+    #[test]
+    fn parses_ip6_assignment_options_and_validates_ip6ifaceid() {
+        let c = parse(&pkg("config interface 'lan'\n\
+             \toption proto 'static'\n\
+             \toption ip6assign '64'\n\
+             \toption ip6weight '12'\n\
+             \toption ip6class 'local wan6'\n\
+             \toption ip6ifaceid '::beef'\n\n\
+             config interface 'guest'\n\
+             \toption proto 'static'\n\
+             \toption ip6assign '64'\n\
+             \tlist ip6class 'local'\n\
+             \toption ip6ifaceid 'eui64'\n\n\
+             config interface 'iot'\n\
+             \toption proto 'static'\n\
+             \toption ip6assign '64'\n\
+             \toption ip6ifaceid 'random'\n\n\
+             config interface 'bad'\n\
+             \toption proto 'static'\n\
+             \toption ip6assign '64'\n\
+             \toption ip6ifaceid '2001:db8::1'\n"));
+        assert_eq!(c.warnings.len(), 1);
+        assert_eq!(c.interfaces[0].ip6weight, 12);
+        assert_eq!(c.interfaces[0].ip6class, vec!["local", "wan6"]);
+        assert_eq!(
+            c.interfaces[0].ip6ifaceid,
+            IfaceId::Fixed("::beef".parse().unwrap())
+        );
+        assert_eq!(c.interfaces[1].ip6class, vec!["local"]);
+        assert_eq!(c.interfaces[1].ip6ifaceid, IfaceId::Eui64);
+        assert_eq!(c.interfaces[2].ip6ifaceid, IfaceId::Random);
+        assert_eq!(c.interfaces[3].ip6ifaceid, IfaceId::Default);
+    }
+
+    #[test]
+    fn ip6weight_uses_uci_base_zero_signed_conversion_and_int32_narrowing() {
+        for (raw, expected) in [
+            ("0x64", 100),
+            ("0144", 100),
+            (" +0X64", 100),
+            ("-1", u32::MAX),
+            ("4294967396", 100),
+            ("9223372036854775808", u32::MAX),
+            ("-9223372036854775809", 0),
+            ("100 ", 0),
+            ("08", 0),
+        ] {
+            let c = parse(&pkg(&format!(
+                "config interface 'lan'\n option proto 'static'\n option ip6weight '{raw}'\n"
+            )));
+            assert_eq!(c.interfaces[0].ip6weight, expected, "{raw}");
+        }
+        let c = parse(&pkg(
+            "config interface 'lan'\n option proto 'static'\n list ip6weight '0x64'\n",
+        ));
+        assert_eq!(c.interfaces[0].ip6weight, 0);
     }
 }

@@ -248,6 +248,49 @@ pub fn local_address(prefix_addr: Ipv6Addr, fixed_iface_id: Ipv6Addr) -> Ipv6Add
     Ipv6Addr::from(o)
 }
 
+/// `eui64_ifaceid`: derive the low 64 bits from an Ethernet MAC address
+/// (`mac[0] ^ 0x02, mac[1], mac[2], 0xff, 0xfe, mac[3], mac[4], mac[5]`).
+pub fn eui64_address(prefix_addr: Ipv6Addr, mac: [u8; 6]) -> Ipv6Addr {
+    let mut o = prefix_addr.octets();
+    o[8..16].copy_from_slice(&[
+        mac[0] ^ 0x02,
+        mac[1],
+        mac[2],
+        0xff,
+        0xfe,
+        mac[3],
+        mac[4],
+        mac[5],
+    ]);
+    Ipv6Addr::from(o)
+}
+
+/// `random_ifaceid`: fill the low 64 bits from `/dev/urandom`, falling back
+/// to a non-zero monotonic-clock + PID mix if `/dev/urandom` cannot be read.
+pub fn random_address(prefix_addr: Ipv6Addr) -> Ipv6Addr {
+    use std::io::Read;
+    let mut host = [0u8; 8];
+    let ok = std::fs::File::open("/dev/urandom")
+        .and_then(|mut f| f.read_exact(&mut host))
+        .is_ok();
+    if !ok {
+        let mut x = crate::clock::now_ms().wrapping_mul(0x9e37_79b9_7f4a_7c15)
+            ^ (std::process::id() as u64).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+        x ^= x >> 30;
+        x = x.wrapping_mul(0xbf58_476d_1ce4_e5b9);
+        x ^= x >> 27;
+        x = x.wrapping_mul(0x94d0_49bb_1331_11eb);
+        x ^= x >> 31;
+        host = x.to_be_bytes();
+    }
+    if host == [0; 8] {
+        host[7] = 1;
+    }
+    let mut o = prefix_addr.octets();
+    o[8..16].copy_from_slice(&host);
+    Ipv6Addr::from(o)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -288,6 +331,7 @@ mod tests {
                             assignment.length,
                         )),
                         owner: Some((p.iface.clone(), p.addr, p.length)),
+                        route: None,
                     });
             }
         }
@@ -529,5 +573,30 @@ mod tests {
             assignment_address(&p, 0x10),
             "fd00:0:0:10::".parse::<Ipv6Addr>().unwrap()
         );
+    }
+
+    #[test]
+    fn eui64_and_random_address_preserve_prefix_and_format_host_bits() {
+        let p = "2001:db8:0:1::".parse::<Ipv6Addr>().unwrap();
+        let eui = eui64_address(p, [0x02, 0x11, 0x22, 0x33, 0x44, 0x55]);
+        assert_eq!(
+            eui,
+            "2001:db8:0:1:0011:22ff:fe33:4455"
+                .parse::<Ipv6Addr>()
+                .unwrap()
+        );
+        let eui_u = eui64_address(p, [0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0xee]);
+        assert_eq!(
+            eui_u,
+            "2001:db8:0:1:02aa:bbff:fecc:ddee"
+                .parse::<Ipv6Addr>()
+                .unwrap()
+        );
+
+        let r1 = random_address(p);
+        let r2 = random_address(p);
+        assert_eq!(&r1.octets()[..8], &p.octets()[..8]);
+        assert_eq!(&r2.octets()[..8], &p.octets()[..8]);
+        assert_ne!(r1.octets()[8..16], [0; 8]);
     }
 }

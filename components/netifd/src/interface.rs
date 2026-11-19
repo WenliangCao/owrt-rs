@@ -201,6 +201,8 @@ pub struct PrefixAssignment {
     pub valid_until: Option<u32>,
     /// `local-address` is an empty table when the assignment is not enabled.
     pub local: Option<(Ipv6Addr, u8)>,
+    /// The route key installed for this generation, including its metric/table.
+    pub route: Option<crate::sys::Route>,
     /// Which parent prefix produced this assignment: the uplink it came from
     /// (`None` for the ULA) and the parent's address and length.
     ///
@@ -951,6 +953,7 @@ mod tests {
             preferred_until: Some(rtime() + 1800),
             valid_until: Some(rtime() + 3600),
             local: None,
+            route: None,
             owner: None,
         });
         let j = json(&i);

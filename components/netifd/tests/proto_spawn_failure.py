@@ -17,7 +17,8 @@ import sys
 import tempfile
 import time
 
-CASES = ("healthy_spawn", "fail_spawn", "dependency", "bridge_remove", "bridge_last_port", "bridge_options", "prefix_lengths")
+CASES = ("healthy_spawn", "fail_spawn", "dependency", "bridge_remove", "bridge_last_port", "bridge_options", "bridge_unused", "external_bridge", "prefix_lengths",
+         "offlink_reload", "offlink_failure", "assignment_route", "ifaceid_list", "prefix_class", "expiry", "inactive_ip", "vanish", "typed_config")
 ORIGINAL_CHECKS = {}
 CHECKS = {case: {"recovered", "same_daemon"} for case in CASES}
 CHECKS["bridge_remove"] = {"removed_from_kernel", "removed_from_status", "dynamic_preserved"}
@@ -25,6 +26,17 @@ CHECKS["bridge_last_port"] = {"removed_from_kernel", "unavailable", "address_rem
 CHECKS["dependency"] = {"initially_unavailable", "recovered", "loss_detected", "recovered_again", "same_daemon"}
 CHECKS["bridge_options"] = {"snooping_on_applied", "snooping_off_applied", "configured_port_preserved", "same_daemon"}
 CHECKS["prefix_lengths"] = {"invalid_lengths_rejected", "valid_lengths_kept", "same_daemon"}
+CHECKS["bridge_unused"] = {"managed_bridge_removed", "member_detached", "same_daemon"}
+CHECKS["external_bridge"] = {"unclaimed_external_object", "external_bridge_preserved", "same_daemon"}
+CHECKS["offlink_reload"] = {"null_route_preserved", "no_connected_route", "no_host_prefix_route", "same_daemon"}
+CHECKS["offlink_failure"] = {"null_route_after_failure", "address_renewed", "null_route_after_renewal", "same_daemon"}
+CHECKS["assignment_route"] = {"assignment_withdrawn", "old_route_removed", "address_deprecated", "same_daemon"}
+CHECKS["ifaceid_list"] = {"scalar_policy_ignores_list", "same_daemon"}
+CHECKS["prefix_class"] = {"explicit_class_assigned", "fallback_class_rejected", "same_daemon"}
+CHECKS["expiry"] = {"address_retired", "finite_route_retired", "infinite_route_preserved", "same_daemon"}
+CHECKS["inactive_ip"] = {"still_down", "no_inactive_route", "no_inactive_neighbor", "unowned_neighbor_preserved", "same_daemon"}
+CHECKS["vanish"] = {"absent_from_named_status", "absent_from_bulk_status", "both_recovered", "same_daemon"}
+CHECKS["typed_config"] = {"typed_arguments", "equivalent_reload_kept", "string_reload_restarted", "same_daemon"}
 
 PROTO = r'''#!/bin/sh
 . /lib/functions.sh
@@ -70,6 +82,17 @@ wait "$sleeper"
 
 HOTPLUG = r'''#!/bin/sh
 printf '%s:%s:%s\n' "$INTERFACE" "$ACTION" "$IFUPDATE_DATA" >> /tmp/out/hotplug
+'''
+
+TYPED_PROTO = r'''#!/bin/sh
+if [ "$2" = dump ]; then
+ echo '{"name":"probe","config":[["label",3],["count",5]]}'
+ exit 0
+fi
+printf '%s\t%s\n' "$2" "$4" >> /tmp/out/arguments
+if [ "$2" = setup ]; then
+ ubus call network.interface.$3 notify_proto '{"action":0,"link-up":true}'
+fi
 '''
 
 
@@ -148,7 +171,158 @@ def inner(root, side, case):
     assert daemon.poll() is None
     assert Path(f"/proc/{daemon.pid}/exe").resolve() == root / binary.lstrip("/")
     result = {}
-    if case == "bridge_options":
+    if case in ("offlink_reload", "offlink_failure", "expiry", "inactive_ip"):
+        wait_for(lambda: snapshot("ready").get("up"))
+
+        def notify(data):
+            return call("network.interface.wan", "notify_proto", {"action": 0, "link-up": True, **data})
+
+        def routes(family):
+            return json.loads(run("ip", "-j", family, "route", "show", "table", "all", capture_output=True).stdout)
+
+        def null_route():
+            return any(r.get("type") == "unreachable" and r.get("dst") == "2001:db8:44::/64"
+                       and r.get("metric") == 2147483647 and "table" not in r for r in routes("-6"))
+
+        if case.startswith("offlink_"):
+            data = {"ip6addr": [{"ipaddr": "2001:db8:44::8", "mask": "64", "offlink": True}]}
+            notify(data)
+            assert null_route(), "initial offlink route missing"
+            if case == "offlink_failure":
+                Path("/proc/sys/net/ipv6/conf/veth1/disable_ipv6").write_text("1")
+            path = root / "etc/config/network"
+            path.write_text(path.read_text().replace("metric '10'", "metric '11'"))
+            call("network", "reload")
+            write(output / "reload-routes.json", json.dumps(routes("-6"), indent=2))
+            if case == "offlink_failure":
+                actual = json.loads(run("ip", "-j", "addr", "show", "dev", "veth1", capture_output=True).stdout)[0]["addr_info"]
+                assert not any(a["local"] == "2001:db8:44::8" for a in actual), "address re-add did not fail"
+                result["null_route_after_failure"] = null_route()
+                Path("/proc/sys/net/ipv6/conf/veth1/disable_ipv6").write_text("0")
+                notify(data)
+                result["address_renewed"] = any(a["address"] == "2001:db8:44::8" for a in snapshot("renewed")["ipv6-address"])
+                result["null_route_after_renewal"] = null_route()
+            else:
+                result["null_route_preserved"] = null_route()
+                result["no_connected_route"] = not any(r.get("dst") == "2001:db8:44::/64" and r.get("dev") == "veth1" for r in routes("-6"))
+                notify({"ip6addr": [{"ipaddr": "2001:db8:44::8", "mask": "128", "offlink": True}]})
+                path.write_text(path.read_text().replace("metric '11'", "metric '12'"))
+                call("network", "reload")
+                result["no_host_prefix_route"] = not any(r.get("dst") in ("2001:db8:44::8", "2001:db8:44::8/128") and r.get("protocol") == "static" for r in routes("-6"))
+        elif case == "expiry":
+            notify({"ipaddr": [{"ipaddr": "192.0.2.8", "mask": "24"}],
+                    "ip6addr": [{"ipaddr": "2001:db8:44::8", "mask": "64", "offlink": True, "preferred": 1, "valid": 2}],
+                    "routes": [{"target": "198.51.100.0", "netmask": "24", "valid": 2}, {"target": "203.0.113.0", "netmask": "24"}]})
+            write(output / "before-routes.json", json.dumps(routes("-4"), indent=2))
+            assert any(r.get("dst") == "198.51.100.0/24" for r in routes("-4"))
+            time.sleep(4)  # Cross both the lifetime and the daemon's one-second expiry tick.
+            result["address_retired"] = not snapshot("expired").get("ipv6-address")
+            result["finite_route_retired"] = not any(r.get("dst") == "198.51.100.0/24" for r in routes("-4"))
+            result["infinite_route_preserved"] = any(r.get("dst") == "203.0.113.0/24" for r in routes("-4"))
+        else:
+            call("network.interface.wan", "down")
+            wait_for(lambda: not snapshot("down").get("up") and not snapshot("down").get("pending"))
+            run("ip", "link", "set", "veth1", "up")
+            run("ip", "addr", "add", "192.0.2.200/24", "dev", "veth1")
+            notify({"ipaddr": [{"ipaddr": "192.0.2.8", "mask": "24"}],
+                    "routes": [{"target": "198.51.100.0", "netmask": "24", "gateway": "192.0.2.1"}],
+                    "neighbor": [{"ipaddr": "192.0.2.9", "mac": "02:00:00:00:00:09"}]})
+            result["still_down"] = not snapshot("notified").get("up")
+            result["no_inactive_route"] = not any(r.get("dst") == "198.51.100.0/24" for r in routes("-4"))
+            result["no_inactive_neighbor"] = not json.loads(run("ip", "-j", "neigh", "show", "to", "192.0.2.9", "dev", "veth1", capture_output=True).stdout)
+            run("ip", "neigh", "replace", "192.0.2.9", "lladdr", "02:00:00:00:00:19", "nud", "permanent", "dev", "veth1")
+            notify({})
+            result["unowned_neighbor_preserved"] = any(n.get("lladdr") == "02:00:00:00:00:19" for n in json.loads(run("ip", "-j", "neigh", "show", "dev", "veth1", capture_output=True).stdout))
+        result["same_daemon"] = daemon.poll() is None
+    elif case in ("assignment_route", "ifaceid_list", "prefix_class"):
+        wait_for(lambda: snapshot("ready").get("up"))
+        if case == "prefix_class":
+            call("network.interface.wan", "notify_proto", {"action": 0, "link-up": True,
+                 "ip6prefix": ["2001:db8:30::/48,4294967295,4294967295,class=gold"]})
+            state = call("network.interface.lan", "status")
+            write(output / "assignment.json", json.dumps(state, indent=2))
+            result["explicit_class_assigned"] = any(a["address"] == "2001:db8:30::" for a in state.get("ipv6-prefix-assignment", []))
+            path = root / "etc/config/network"
+            path.write_text(path.read_text().replace("ip6class 'gold'", "ip6class 'wan'"))
+            call("network", "reload")
+            result["fallback_class_rejected"] = not call("network.interface.lan", "status").get("ipv6-prefix-assignment")
+        elif case == "ifaceid_list":
+            result["scalar_policy_ignores_list"] = snapshot("assigned")["ipv6-prefix-assignment"][0]["local-address"].get("address") == "fd00:30::1"
+        else:
+            before = snapshot("assigned")
+            local = before["ipv6-prefix-assignment"][0]["local-address"]["address"]
+            path = root / "etc/config/network"
+            path.write_text(path.read_text().replace("ip6class 'local'", "ip6class 'gone'"))
+            call("network", "reload")
+            result["assignment_withdrawn"] = not snapshot("withdrawn").get("ipv6-prefix-assignment")
+            routes = json.loads(run("ip", "-j", "-6", "route", "show", "table", "100", capture_output=True).stdout)
+            write(output / "table100.json", json.dumps(routes, indent=2))
+            result["old_route_removed"] = not any(r.get("dst") == "fd00:30::/64" and r.get("protocol") == "static" for r in routes)
+            addresses = json.loads(run("ip", "-j", "addr", "show", "dev", "veth1", capture_output=True).stdout)[0]["addr_info"]
+            result["address_deprecated"] = any(a["local"] == local and a.get("preferred_life_time") == 0 and 7180 <= a["valid_life_time"] <= 7200 for a in addresses)
+        result["same_daemon"] = daemon.poll() is None
+    elif case == "vanish":
+        wait_for(lambda: snapshot("ready").get("up") and call("network.interface.other", "status").get("up"))
+        run("ip", "link", "del", "veth1")
+        time.sleep(1)
+        named = call("network.device", "status", {"name": "veth1"})
+        write(output / "removed-device.json", json.dumps(named, indent=2))
+        result["absent_from_named_status"] = named.get("present") is False
+        result["absent_from_bulk_status"] = "veth1" not in call("network.device", "status")
+        run("ip", "link", "add", "veth0", "type", "veth", "peer", "name", "veth1")
+        run("ip", "link", "set", "veth0", "up")
+        wait_for(lambda: snapshot("recovered").get("up") and call("network.interface.other", "status").get("up"))
+        result["both_recovered"] = True
+        result["same_daemon"] = daemon.poll() is None
+    elif case == "typed_config":
+        wait_for(lambda: snapshot("ready").get("up"))
+        path = root / "etc/config/network"
+        def arguments():
+            return [(op, json.loads(data)) for op, data in (line.split("\t", 1) for line in (output / "arguments").read_text().splitlines())]
+        initial = arguments()
+        result["typed_arguments"] = initial[0][1].get("label") == " two  spaces " and initial[0][1].get("count") == 16
+        path.write_text(path.read_text().replace("count '0x10'", "count '16'"))
+        call("network", "reload")
+        time.sleep(0.2)
+        result["equivalent_reload_kept"] = arguments() == initial
+        path.write_text(path.read_text().replace("label ' two  spaces '", "label 'two spaces'"))
+        call("network", "reload")
+        wait_for(lambda: len(arguments()) > len(initial))
+        wait_for(lambda: snapshot("reloaded").get("up"))
+        final = arguments()
+        result["string_reload_restarted"] = any(op == "teardown" and data.get("label") == " two  spaces " for op, data in final) and final[-1][1].get("label") == "two spaces"
+        result["same_daemon"] = daemon.poll() is None
+    elif case == "external_bridge":
+        wait_for(lambda: snapshot("ready").get("up"))
+        run("ip", "link", "add", "br-external", "type", "bridge")
+        before = json.loads(run("ip", "-j", "link", "show", "dev", "br-external",
+                                capture_output=True).stdout)[0]
+        request = subprocess.run(["chroot", str(root), "ubus", "-S", "call", "network.interface.wan",
+                                  "add_device", '{"name":"br-external","link-ext":true}'],
+                                 capture_output=True, timeout=5)
+        assert request.returncode != 0, "plain interface unexpectedly accepted a bridge member"
+        observed = call("network.device", "status", {"name": "br-external"})
+        write(output / "external-device.json", json.dumps(observed, indent=2))
+        result["unclaimed_external_object"] = observed.get("external") is True and not observed.get("up")
+        call("network", "reload")
+        call("network", "get_proto_handlers")
+        after = json.loads(run("ip", "-j", "link", "show", capture_output=True).stdout)
+        write(output / "after-links.json", json.dumps(after, indent=2))
+        result["external_bridge_preserved"] = any(
+            link["ifname"] == "br-external" and link["ifindex"] == before["ifindex"] for link in after)
+        result["same_daemon"] = daemon.poll() is None
+    elif case == "bridge_unused":
+        wait_for(lambda: snapshot("ready").get("up"))
+        write(root / "etc/config/network", "config interface 'wan'\n option device 'veth1'\n"
+              " option proto 'static'\n option ipaddr '10.90.0.1/24'\n")
+        call("network", "reload")
+        wait_for(lambda: snapshot("reloaded").get("l3_device") == "veth1")
+        after = json.loads(run("ip", "-j", "link", "show", capture_output=True).stdout)
+        write(output / "after-links.json", json.dumps(after, indent=2))
+        result["managed_bridge_removed"] = all(link["ifname"] != "br-test" for link in after)
+        result["member_detached"] = next(link for link in after if link["ifname"] == "veth1").get("master") is None
+        result["same_daemon"] = daemon.poll() is None
+    elif case == "bridge_options":
         wait_for(lambda: snapshot("ready").get("up"))
         bridge = root / "sys/class/net/br-test/bridge"
         assert (bridge / "multicast_snooping").read_text().strip() == "0"
@@ -255,6 +429,7 @@ def main():
     components = ["netifd"]
     identities = {name: hashlib.sha256((args.bins / (name + "-rs")).read_bytes()).hexdigest()
                   for name in components}
+    identities["original_netifd"] = hashlib.sha256((args.rootfs / "sbin/netifd").read_bytes()).hexdigest()
     write(args.output / "binaries.json", json.dumps(identities, indent=2) + "\n")
     rows = []
     for side in args.sides:
@@ -269,6 +444,22 @@ def main():
                 for component in components:
                     shutil.copy2(args.bins / (component + "-rs"), root / "tmp" / (component + "-rs"))
                 write(root / "etc/config/network", config() + " option auto '0'\n")
+                if case in ("offlink_reload", "offlink_failure", "expiry", "inactive_ip", "prefix_class", "typed_config"):
+                    write(root / "etc/config/network", config() + " option metric '10'\n")
+                if case in ("assignment_route", "ifaceid_list"):
+                    extra = " option ip6class 'local'\n option metric '17'\n option ip6table '100'\n" if case == "assignment_route" else " list ip6ifaceid '::beef'\n"
+                    write(root / "etc/config/network", "config globals 'globals'\n option ula_prefix 'fd00:30::/48'\nconfig interface 'wan'\n option device 'veth1'\n option proto 'static'\n option ip6assign '64'\n" + extra)
+                if case == "vanish":
+                    write(root / "etc/config/network", "config interface 'wan'\n option device 'veth1'\n option proto 'static'\n option ipaddr '10.90.0.1/24'\nconfig interface 'other'\n option device 'veth1'\n option proto 'static'\n option ipaddr '10.91.0.1/24'\n")
+                if case == "prefix_class":
+                    path = root / "etc/config/network"
+                    path.write_text(path.read_text() + "config interface 'lan'\n option device 'veth0'\n option proto 'static'\n option ip6assign '64'\n option ip6class 'gold'\n")
+                if case == "typed_config":
+                    path = root / "etc/config/network"
+                    path.write_text(path.read_text() + " option label ' two  spaces '\n option count '0x10'\n")
+                if case == "external_bridge":
+                    write(root / "etc/config/network", "config interface 'wan'\n option device 'veth1'\n"
+                          " option proto 'static'\n option ipaddr '10.90.0.1/24'\n")
                 if case == "dependency":
                     write(root / "etc/config/network", config() + "config interface 'under'\n option device 'under0'\n option proto 'static'\n option auto '0'\n option ipaddr '10.91.0.1/24'\n")
                     write(root / "tmp/dependency", "")
@@ -276,7 +467,7 @@ def main():
                     empty = 1 if case == "bridge_remove" else 0
                     write(root / "etc/config/network", "config device\n option name 'br-test'\n option type 'bridge'\n" + f" option bridge_empty '{empty}'\n" + " option igmp_snooping '0'\n list ports 'veth1'\nconfig interface 'wan'\n option device 'br-test'\n option proto 'static'\n option ipaddr '10.90.0.1/24'\n")
                 write(root / "etc/config/wireless", "")
-                write(root / "lib/netifd/proto/probe.sh", PROTO, True)
+                write(root / "lib/netifd/proto/probe.sh", TYPED_PROTO if case == "typed_config" else PROTO, True)
                 write(root / "tmp/helper.sh", HELPER, True)
                 write(root / "sbin/hotplug-call", HOTPLUG, True)
                 with (destination / "driver.log").open("wb") as log:

@@ -17,6 +17,7 @@ use std::path::{Path, PathBuf};
 use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::json::Json;
 
+use crate::config::{config_integer, RawOpt};
 use crate::process::Slot;
 use crate::{interface, logging, sys};
 
@@ -36,8 +37,8 @@ pub struct Handler {
     pub name: String,
     /// The script, as an absolute path.
     pub script: PathBuf,
-    /// `(option name, validation expression)`, in `dump` order.
-    pub config: Vec<(String, String)>,
+    /// Declared option policies in `dump` order.
+    config: Vec<ConfigParam>,
     pub no_device: bool,
     pub no_device_config: bool,
     pub no_task: bool,
@@ -45,6 +46,13 @@ pub struct Handler {
     pub renew_available: bool,
     pub last_error: bool,
     pub teardown_on_l3_link_down: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct ConfigParam {
+    name: String,
+    validation: String,
+    ty: u32,
 }
 
 /// A `config` entry with no `:` takes its validation name from the blobmsg
@@ -147,10 +155,14 @@ impl Handler {
                     Some(Json::Int(n)) => *n as u32,
                     _ => MsgType::String as u32,
                 };
-                match spec.split_once(':') {
-                    Some((n, v)) => config.push((n.to_string(), v.to_string())),
-                    None => config.push((spec.clone(), default_validation(ty).to_string())),
-                }
+                let (name, validation) = spec
+                    .split_once(':')
+                    .unwrap_or((spec, default_validation(ty)));
+                config.push(ConfigParam {
+                    name: name.to_string(),
+                    validation: validation.to_string(),
+                    ty,
+                });
             }
         }
         Ok(Self {
@@ -173,8 +185,8 @@ impl Handler {
     pub fn dump_info(&self, b: &mut BlobBuf) {
         let t = b.msg_open_table(&self.name);
         let v = b.msg_open_table("validate");
-        for (name, validation) in &self.config {
-            b.msg_string(name, validation);
+        for param in &self.config {
+            b.msg_string(&param.name, &param.validation);
         }
         b.msg_close(v);
         b.msg_bool("immediate", false);
@@ -186,6 +198,22 @@ impl Handler {
         b.msg_bool("teardown_on_l3_link_down", self.teardown_on_l3_link_down);
         b.msg_bool("no_task", self.no_task);
         b.msg_close(t);
+    }
+
+    pub fn declares_option(&self, name: &str) -> bool {
+        self.config.iter().any(|param| param.name == name)
+    }
+
+    /// Compare the typed parameters read by `uci_blob_check_equal`.
+    pub fn config_changed(&self, old: &[RawOpt], new: &[RawOpt]) -> bool {
+        self.config.iter().any(|param| {
+            let value = |opts: &[RawOpt]| {
+                opts.iter()
+                    .find(|opt| opt.name == param.name)
+                    .and_then(|opt| config_value(opt, param.ty))
+            };
+            value(old) != value(new)
+        })
     }
 }
 
@@ -475,60 +503,60 @@ pub const IFACE_ATTRS: &[(&str, MsgType)] = &[
     ("tags", MsgType::Array),
 ];
 
-/// The blobmsg type an option is carried as: the handler's declaration wins,
-/// then netifd's own interface attributes, otherwise it is not passed.
-fn option_type(handler: &Handler, name: &str) -> Option<MsgType> {
-    if let Some((_, spec)) = handler.config.iter().find(|(n, _)| n == name) {
-        return Some(if spec.starts_with("list(") {
-            MsgType::Array
-        } else if spec == "bool" {
-            MsgType::Int8
-        } else if spec == "uinteger" || spec.starts_with("range(") {
-            MsgType::Int32
-        } else {
-            MsgType::String
-        });
-    }
-    IFACE_ATTRS
-        .iter()
-        .find(|(n, _)| *n == name)
-        .map(|(_, t)| *t)
-}
-
 /// The config document a script receives as its fourth argument, built the way
 /// `blobmsg_format_json(state->config, true)` renders the blob: a JSON object
 /// whose values carry the declared types, not the raw strings.
-pub fn config_json(handler: &Handler, opts: &[(String, Vec<String>)]) -> String {
-    let mut b = BlobBuf::new();
-    for (name, values) in opts {
-        let Some(ty) = option_type(handler, name) else {
-            continue;
-        };
-        match ty {
-            MsgType::Array => {
-                let a = b.msg_open_array(name);
-                for v in values {
-                    b.msg_string("", v);
-                }
-                b.msg_close(a);
-            }
-            MsgType::Int8 => {
-                let v = values.first().map(|s| s.as_str()).unwrap_or("");
-                b.msg_bool(name, matches!(v, "1" | "on" | "true" | "enabled" | "yes"));
-            }
-            MsgType::Int32 => {
-                let v: i64 = values.first().and_then(|s| s.parse().ok()).unwrap_or(0);
-                b.msg_u32(name, v as u32);
-            }
-            _ => {
-                // a scalar written as a list is joined, as uci_to_blob does
-                b.msg_string(name, &values.join(" "));
-            }
+pub fn config_json(handler: &Handler, opts: &[RawOpt]) -> String {
+    let mut fields = Vec::new();
+    for opt in opts {
+        let value = handler
+            .config
+            .iter()
+            .find(|param| param.name == opt.name)
+            .and_then(|param| config_value(opt, param.ty))
+            .or_else(|| {
+                IFACE_ATTRS
+                    .iter()
+                    .find(|(name, _)| *name == opt.name)
+                    .and_then(|(_, ty)| config_value(opt, *ty as u32))
+            });
+        if let Some(value) = value {
+            fields.push((opt.name.clone(), value));
         }
     }
-    owrt_ubus::convert::fields_to_json(b.payload())
-        .expect("protocol config contains only scalars and string lists")
-        .to_compact()
+    Json::Object(fields).to_compact()
+}
+
+/// libuci's `uci_element_to_blob` conversion for shell protocol policies.
+fn config_value(opt: &RawOpt, ty: u32) -> Option<Json> {
+    if ty == MsgType::Array as u32 {
+        let values = if opt.is_list {
+            opt.values.iter().cloned().map(Json::Str).collect()
+        } else {
+            opt.values
+                .first()?
+                .split([' ', '\t'])
+                .filter(|word| !word.is_empty())
+                .map(|word| Json::Str(word.to_string()))
+                .collect()
+        };
+        return Some(Json::Array(values));
+    }
+    if opt.is_list {
+        return None;
+    }
+    let value = opt.values.first()?;
+    match ty {
+        t if t == MsgType::String as u32 => Some(Json::Str(value.clone())),
+        t if t == MsgType::Int8 as u32 => match value.as_str() {
+            "1" | "true" => Some(Json::Bool(true)),
+            "0" | "false" => Some(Json::Bool(false)),
+            _ => None,
+        },
+        t if t == MsgType::Int32 as u32 => Some(Json::Int(config_integer(value)? as i32 as i64)),
+        t if t == MsgType::Int64 as u32 => Some(Json::Int(config_integer(value)?)),
+        _ => None,
+    }
 }
 
 /// The argv `proto_shell_handler` builds:
@@ -571,11 +599,11 @@ mod tests {
     #[test]
     fn a_dump_without_a_colon_takes_its_type_default() {
         let h = dhcp();
-        let get = |n: &str| {
+        let get = |name: &str| {
             h.config
                 .iter()
-                .find(|(k, _)| k == n)
-                .map(|(_, v)| v.as_str())
+                .find(|param| param.name == name)
+                .map(|param| param.validation.as_str())
         };
         assert_eq!(get("ipaddr"), Some("ipaddr"));
         assert_eq!(get("clientid"), Some("string"));
@@ -589,7 +617,10 @@ mod tests {
     fn the_config_order_is_the_dump_order() {
         let h = dhcp();
         assert_eq!(
-            h.config.iter().map(|(k, _)| k.as_str()).collect::<Vec<_>>(),
+            h.config
+                .iter()
+                .map(|param| param.name.as_str())
+                .collect::<Vec<_>>(),
             vec![
                 "ipaddr",
                 "clientid",
@@ -690,16 +721,11 @@ mod tests {
                 let config = crate::config::parse(&ctx.root[idx]);
                 assert!(config.warnings.is_empty(), "{:?}", config.warnings);
                 let iface = &config.interfaces[0];
-                let opts: Vec<_> = iface
-                    .raw
-                    .iter()
-                    .map(|r| (r.name.clone(), r.values.clone()))
-                    .collect();
                 let args = argv(
                     &handler,
                     "setup",
                     &iface.name,
-                    &config_json(&handler, &opts),
+                    &config_json(&handler, &iface.raw),
                     iface.device.as_deref(),
                 );
                 let request = owrt_ubus::json::parse(&args[4]).unwrap();
@@ -960,33 +986,87 @@ mod tests {
         assert_eq!(s.sm, Sm::Idle);
     }
 
+    fn protocol_options(config_body: &str) -> Vec<RawOpt> {
+        let mut ctx = owrt_uci::context::Context::new();
+        let idx = owrt_uci::parse::import(
+            &mut ctx,
+            &mut io::Cursor::new(format!(
+                "config interface wan\noption proto 'fixture'\n{config_body}\n"
+            )),
+            Some("network"),
+            None,
+            true,
+        )
+        .unwrap()
+        .unwrap();
+        crate::config::parse(&ctx.root[idx])
+            .interfaces
+            .remove(0)
+            .raw
+    }
+
     #[test]
     fn the_config_document_carries_the_declared_types() {
-        let h = dhcp();
-        let opts = vec![
-            ("proto".to_string(), vec!["dhcp".to_string()]),
-            ("clientid".to_string(), vec!["abc".to_string()]),
-            ("broadcast".to_string(), vec!["1".to_string()]),
-            ("mtu6rd".to_string(), vec!["1400".to_string()]),
-            (
-                "sendopts".to_string(),
-                vec!["a".to_string(), "b".to_string()],
-            ),
-            ("metric".to_string(), vec!["13".to_string()]),
-        ];
-        let j = config_json(&h, &opts);
-        assert!(j.contains("\"proto\":\"dhcp\""), "{j}");
-        assert!(j.contains("\"broadcast\":true"), "{j}");
-        assert!(j.contains("\"mtu6rd\":1400"), "{j}");
-        assert!(j.contains("\"sendopts\":[\"a\",\"b\"]"), "{j}");
-        assert!(j.contains("\"metric\":13"), "{j}");
+        let handler = Handler::parse(
+            Path::new("/lib/netifd/proto/fixture.sh"),
+            r#"{"name":"fixture","config":[["label:bool",3],["scalar_only",3],["items",1],["broadcast",7],["invalid_bool",7],["count:string",5],["limit",4],["invalid_int",5]]}"#,
+        )
+        .unwrap();
+        let opts = protocol_options(
+            "option label '  link  name  '\n\
+             list scalar_only 'not sent'\n\
+             option items '  alpha\tbeta '\n\
+             option broadcast '1'\n\
+             option invalid_bool 'yes'\n\
+             option count '0x10'\n\
+             option limit '2147483648'\n\
+             option invalid_int '12oops'\n\
+             option metric '013'",
+        );
+        let json = owrt_ubus::json::parse(&config_json(&handler, &opts)).unwrap();
+        assert_eq!(json.get("proto"), Some(&Json::Str("fixture".into())));
+        assert_eq!(json.get("label"), Some(&Json::Str("  link  name  ".into())));
+        assert_eq!(json.get("scalar_only"), None);
+        assert_eq!(json.get("broadcast"), Some(&Json::Bool(true)));
+        assert_eq!(json.get("invalid_bool"), None);
+        assert_eq!(json.get("count"), Some(&Json::Int(16)));
+        assert_eq!(json.get("limit"), Some(&Json::Int(2_147_483_648)));
+        assert_eq!(json.get("invalid_int"), None);
+        assert_eq!(json.get("metric"), Some(&Json::Int(11)));
+        assert_eq!(
+            json.get("items"),
+            Some(&Json::Array(vec![
+                Json::Str("alpha".into()),
+                Json::Str("beta".into())
+            ]))
+        );
     }
 
     #[test]
     fn an_option_neither_side_declares_is_not_passed() {
         let h = dhcp();
-        let opts = vec![("wombat".to_string(), vec!["x".to_string()])];
-        assert_eq!(config_json(&h, &opts), "{}");
+        let opts = protocol_options("option wombat 'x'");
+        assert_eq!(config_json(&h, &opts), r#"{"proto":"fixture"}"#);
+    }
+
+    #[test]
+    fn protocol_reload_compares_the_effective_values() {
+        let handler = Handler::parse(
+            Path::new("/lib/netifd/proto/fixture.sh"),
+            r#"{"name":"fixture","config":[["label",3],["items",1],["flag",7],["count",5]]}"#,
+        )
+        .unwrap();
+        let old = protocol_options(
+            "option items '  alpha beta '\noption flag '1'\noption count '0x10'\noption label ' two  spaces '",
+        );
+        let equivalent = protocol_options(
+            "list items 'alpha'\nlist items 'beta'\noption flag 'true'\noption count '16'\noption label ' two  spaces '",
+        );
+        assert!(!handler.config_changed(&old, &equivalent));
+        let changed = protocol_options(
+            "list items 'alpha'\nlist items 'beta'\noption flag 'true'\noption count '16'\noption label 'two spaces'",
+        );
+        assert!(handler.config_changed(&old, &changed));
     }
 
     #[test]
@@ -1008,7 +1088,7 @@ mod tests {
         let text = r#"{ "name": "x", "config": [ [ "a:or(\"{\",\"}\")", 3 ] ] }"#;
         let hs = parse_dump(Path::new("/x.sh"), text).unwrap();
         assert_eq!(hs.len(), 1);
-        assert_eq!(hs[0].config[0].1, "or(\"{\",\"}\")");
+        assert_eq!(hs[0].config[0].validation, "or(\"{\",\"}\")");
     }
 
     #[test]
@@ -1528,6 +1608,7 @@ pub struct Prefix6 {
     pub preferred: Option<u32>,
     pub valid: Option<u32>,
     pub excl: Option<(std::net::Ipv6Addr, u8)>,
+    pub class: Option<String>,
 }
 
 /// Parse one such string. An entry this build cannot read is dropped rather
@@ -1554,11 +1635,17 @@ pub fn parse_prefix6(text: &str) -> Option<Prefix6> {
         preferred: None,
         valid: None,
         excl: None,
+        class: None,
     };
     let mut rest: Vec<&str> = parts.collect();
-    // `excluded=` can be anywhere after the network, and `class=` is stripped
-    // by the script before it gets here, so an unknown key is ignored rather
-    // than eaten as a lifetime.
+    // Named attributes follow the preferred and valid lifetime fields.
+    out.class = rest
+        .iter()
+        .filter(|part| !part.is_empty())
+        .skip(2)
+        .filter_map(|part| part.strip_prefix("class="))
+        .last()
+        .map(str::to_string);
     rest.retain(|p| {
         if let Some(v) = p.trim().strip_prefix("excluded=") {
             if let Some((ea, el)) = v.split_once('/') {

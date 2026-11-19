@@ -6,12 +6,14 @@ import json
 import os
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
 import time
 
 CHECKS = ("indices", "data", "ifname")
+CASES = ("boundary", "nonfinite", "queue_remove")
 WIRELESS = """config wifi-device 'radio0'
  option type 'mac80211'
 config wifi-iface 'ap0'
@@ -38,8 +40,13 @@ if [ "${1:-}" = dump ] || [ "${2:-}" = dump ]; then
  exit 0
 fi
 printf '%s\n' "$4" > "/tmp/out/$2.json"
+printf '%s\t%s\t%s\n' "$3" "$2" "$4" >> /tmp/out/events
 if [ "$2" = setup ]; then
+ echo $$ > /tmp/out/pid-$3
  while [ ! -f /tmp/out/setup-release ]; do sleep 0.05; done
+ if [ -f /tmp/out/queue-mode ]; then
+  ubus call network.wireless notify "{\"device\":\"$3\",\"command\":0}"
+ fi
 fi
 '''
 
@@ -56,7 +63,7 @@ def wait_for(fn):
         time.sleep(0.05)
 
 
-def inner(root, side):
+def inner(root, side, case):
     run("mount", "--make-rprivate", "/")
     run("mount", "-t", "proc", "proc", "/proc")
     run("mount", "-t", "proc", "proc", root / "proc")
@@ -89,6 +96,77 @@ def inner(root, side):
     wait_for(lambda: (out / "setup.json").exists())
     wait_for(lambda: call("status").get("radio0", {}).get("pending"))
     assert Path(f"/proc/{daemon.pid}/exe").resolve() == root / binary.lstrip("/")
+    if case == "queue_remove":
+        held = call("status")
+        assert all(held[name]["pending"] for name in ("radio0", "radio1", "radio2"))
+        assert not (out / "pid-radio1").exists()
+        path = root / "etc/config/wireless"
+        path.write_text(path.read_text().replace("config wifi-device 'radio1'\n option type 'mac80211'\n", ""))
+        run("chroot", root, "ubus", "-S", "call", "network", "reload", "{}", capture_output=True)
+        save("held.json", call("status"))
+        (out / "setup-release").touch()
+        until = time.monotonic() + 5
+        while time.monotonic() < until:
+            final = call("status")
+            if final.get("radio2", {}).get("up"):
+                break
+            time.sleep(0.05)
+        save("status.json", final)
+        events = [line.split("\t", 2) for line in (out / "events").read_text().splitlines()]
+        results = {
+            "old_setup_then_successor": [(e[0], e[1]) for e in events] ==
+                [(name, "setup") for name in ("radio0", "radio1", "radio2")],
+            "removed_generation_visible": final.get("radio1", {}).get("up") is True
+                and final["radio1"]["autostart"] is False,
+            "successor_up": final.get("radio2", {}).get("up") is True,
+            "same_daemon": daemon.poll() is None,
+        }
+        if final.get("radio1", {}).get("up"):
+            call("up", {"device": "radio1"})
+            results["destroyed_radio_not_restarted"] = call("status")["radio1"]["autostart"] is False
+            call("down", {"device": "radio1"})
+            wait_for(lambda: "radio1" not in call("status"))
+            results["destroyed_radio_released"] = True
+        save("result.json", results)
+        return
+    if case == "nonfinite":
+        sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
+        from r92_recovery_probe import Bus, message
+        bus = Bus(root / "tmp/run/ubus/ubus.sock")
+        obj = bus.lookup("network.wireless")
+        doubles = b"".join(message(key, 8, struct.pack(">d", value)) for key, value in
+                           (("nan", float("nan")), ("pos_inf", float("inf")),
+                            ("neg_inf", float("-inf"))))
+        data = message("token", 3, b"fixture\0") + doubles + message("nested", 2, message("values", 1, doubles))
+        request = message("device", 3, b"radio0\0") + message("command", 5, struct.pack(">I", 1)) + message("data", 2, data)
+        code, _ = bus.invoke(obj, "notify", request)
+        bus.sock.close()
+        call("notify", {"device": "radio0", "command": 0})
+        (out / "setup-release").touch()
+        pid = int((out / "pid-radio0").read_text())
+        wait_for(lambda: not Path(f"/proc/{pid}").exists())
+        try:
+            call("down", {"device": "radio0"})
+        except subprocess.CalledProcessError:
+            pass  # Preserve the base daemon's abort as a failed observation.
+        until = time.monotonic() + 3
+        while not (out / "teardown.json").exists() and daemon.poll() is None and time.monotonic() < until:
+            time.sleep(0.05)
+        text = (out / "teardown.json").read_text() if (out / "teardown.json").exists() else '{"data":{}}'
+        received = json.loads(text)["data"]
+        tokens = json.loads(text, parse_float=str)["data"]
+        save("result.json", {
+            "notify_accepted": code == 0,
+            "same_daemon": daemon.poll() is None,
+            "ucode_values": received.get("nan") == "NaN" and received.get("pos_inf") == float("inf")
+                and received.get("neg_inf") == float("-inf")
+                and received.get("nested", {}).get("values") == ["NaN", float("inf"), float("-inf")],
+            "finite_value_preserved": received.get("token") == "fixture",
+            "ucode_number_tokens": tokens.get("pos_inf") == "1e309" and tokens.get("neg_inf") == "-1e309"
+                and tokens.get("nested", {}).get("values") == ["NaN", "1e309", "-1e309"],
+        })
+        (out / "daemon-exit.txt").write_text(str(daemon.poll()))
+        return
     setup = json.loads((out / "setup.json").read_text())
     interfaces = setup["interfaces"]
     assert len(interfaces) == 2
@@ -130,20 +208,25 @@ def inner(root, side):
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--inner":
-        inner(Path(sys.argv[2]), sys.argv[3])
+        inner(Path(sys.argv[2]), sys.argv[3], sys.argv[4])
         return
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("rootfs", type=Path)
     parser.add_argument("candidate", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--checks", nargs="+", choices=CHECKS, default=CHECKS)
+    parser.add_argument("--cases", nargs="+", choices=CASES, default=["boundary"])
+    parser.add_argument("--sides", nargs="+", choices=("original", "candidate"), default=["original", "candidate"])
     args = parser.parse_args()
     assert sys.platform == "linux" and os.geteuid() == 0
     args.output.mkdir(parents=True, exist_ok=False)
     rows = []
-    for side in ("original", "candidate"):
-        out = args.output / side
-        out.mkdir()
+    identities = {str(path.relative_to(args.rootfs)): hashlib.sha256(path.read_bytes()).hexdigest()
+                  for path in [args.rootfs / "sbin/netifd", *(args.rootfs / "lib/netifd" / name
+                               for name in ("wireless.uc", "wireless-device.uc", "utils.uc"))]}
+    for case, side in ((case, side) for case in args.cases for side in args.sides):
+        out = args.output / case / side
+        out.mkdir(parents=True)
         with tempfile.TemporaryDirectory(prefix="netifd-wireless-review-") as directory:
             root = Path(directory) / "root"
             shutil.copytree(args.rootfs, root, symlinks=True)
@@ -151,21 +234,31 @@ def main():
                 (root / "tmp" / part).mkdir(parents=True, exist_ok=True)
             shutil.copy2(args.candidate, root / "tmp/netifd-rs")
             (root / "etc/config/network").write_text("config interface 'loopback'\n option device 'lo'\n option proto 'static'\n option ipaddr '127.0.0.1/8'\nconfig device\n option name 'br-test'\n option type 'bridge'\n option bridge_empty '1'\nconfig interface 'lan'\n option device 'br-test'\n option proto 'static'\n option ipaddr '192.168.99.1/24'\n")
-            (root / "etc/config/wireless").write_text(WIRELESS)
+            radios = "".join(f"config wifi-device 'radio{index}'\n option type 'mac80211'\n" for index in range(3))
+            (root / "etc/config/wireless").write_text(radios if case == "queue_remove" else WIRELESS)
+            if case == "queue_remove":
+                (root / "tmp/out/queue-mode").touch()
+            # Oracle has no nl80211. Only replace unused physical-radio lookup;
+            # the image's wireless state machine and ucode JSON stay intact.
+            adapter = root / "usr/share/ucode/wifi/utils.uc"
+            adapter.parent.mkdir(parents=True, exist_ok=True)
+            adapter.write_text("export function find_phy(name, mlo) { return null; };\n")
             handler = root / "lib/netifd/wireless/mac80211.sh"
             handler.write_text(HANDLER)
             handler.chmod(0o755)
             with (out / "driver.log").open("wb") as log:
                 proc = subprocess.run(["timeout", "-k", "3", "45", "unshare", "--mount", "--net", "--pid", "--fork", "--kill-child",
-                                       sys.executable, str(Path(__file__).resolve()), "--inner", str(root), side], stdout=log, stderr=log)
+                                       sys.executable, str(Path(__file__).resolve()), "--inner", str(root), side, case], stdout=log, stderr=log)
             shutil.copytree(root / "tmp/out", out / "raw")
         result = out / "raw/result.json"
         checks = json.loads(result.read_text()) if result.exists() else {}
-        row = {"side": side, "exit": proc.returncode, "checks": checks,
-               "passed": proc.returncode == 0 and all(checks.get(key) is True for key in args.checks)}
+        required = {"boundary": set(args.checks), "nonfinite": {"notify_accepted", "same_daemon", "ucode_values", "finite_value_preserved", "ucode_number_tokens"},
+                    "queue_remove": {"old_setup_then_successor", "removed_generation_visible", "successor_up", "same_daemon", "destroyed_radio_not_restarted", "destroyed_radio_released"}}[case]
+        row = {"case": case, "side": side, "exit": proc.returncode, "checks": checks,
+               "passed": proc.returncode == 0 and required <= checks.keys() and all(checks[key] is True for key in required)}
         rows.append(row)
         print(json.dumps(row), flush=True)
-    report = {"candidate_sha256": hashlib.sha256(args.candidate.read_bytes()).hexdigest(), "rows": rows}
+    report = {"candidate_sha256": hashlib.sha256(args.candidate.read_bytes()).hexdigest(), "image_files": identities, "rows": rows}
     (args.output / "results.json").write_text(json.dumps(report, indent=2) + "\n")
     raise SystemExit(0 if all(row["passed"] for row in rows) else 1)
 

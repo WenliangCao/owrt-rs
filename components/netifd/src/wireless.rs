@@ -1390,17 +1390,61 @@ pub fn handler_json(radio: &Radio, handlers: &[Handler], device_data: &str) -> S
 /// The device-level `handler_data` record, in `wdev_set_data`'s shape:
 /// `{...cur, ...data, type, config}` where `cur` is `{name: wdev.name}` for a
 /// device-level notify, so `config` comes out null.
-pub fn device_data_record(radio: &str, fields: &[(String, String)]) -> String {
-    let mut out: Vec<(String, String)> = vec![("name".into(), format!("\"{}\"", esc(radio)))];
+pub fn device_data_record(radio: &str, fields: &[(String, json::Json)]) -> json::Json {
+    let mut out = vec![("name".into(), json::Json::Str(radio.into()))];
     for (k, v) in fields {
         if k == "name" {
             continue;
         }
         out.push((k.clone(), v.clone()));
     }
-    out.push(("type".into(), "\"device\"".into()));
-    out.push(("config".into(), "null".into()));
-    obj(&out)
+    out.retain(|(key, _)| key != "type" && key != "config");
+    out.push(("type".into(), json::Json::Str("device".into())));
+    out.push(("config".into(), json::Json::Null));
+    json::Json::Object(out)
+}
+
+/// Encode the handler argument as ucode does, including non-finite ubus doubles.
+/// NaN becomes a string; infinities use JSON numbers that overflow to infinity.
+pub fn handler_value_json(value: &json::Json) -> String {
+    fn append(value: &json::Json, out: &mut String) {
+        use json::Json;
+        match value {
+            Json::Float(number) if !number.is_finite() => out.push_str(if number.is_nan() {
+                "\"NaN\""
+            } else if number.is_sign_negative() {
+                "-1e309"
+            } else {
+                "1e309"
+            }),
+            Json::Array(items) => {
+                out.push('[');
+                for (index, item) in items.iter().enumerate() {
+                    if index != 0 {
+                        out.push(',');
+                    }
+                    append(item, out);
+                }
+                out.push(']');
+            }
+            Json::Object(fields) => {
+                out.push('{');
+                for (index, (key, value)) in fields.iter().enumerate() {
+                    if index != 0 {
+                        out.push(',');
+                    }
+                    out.push_str(&Json::Str(key.clone()).to_compact());
+                    out.push(':');
+                    append(value, out);
+                }
+                out.push('}');
+            }
+            _ => out.push_str(&value.to_compact()),
+        }
+    }
+    let mut out = String::new();
+    append(value, &mut out);
+    out
 }
 
 #[cfg(test)]

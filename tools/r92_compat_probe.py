@@ -391,6 +391,116 @@ def logd_limits(f):
             os.close(fd)
 
 
+def netifd_wireless_stop_setup(f, notify_up):
+    # No radio hardware is used. Keep exact wireless.uc and wireless-device.uc;
+    # the unused MLO lookup is the only hardware adapter replaced here.
+    write(f.root / "usr/share/ucode/wifi/utils.uc",
+          "export function find_phy(name, mlo) { return null; };\n")
+    drivers = f.root / "lib/netifd/wireless"
+    shutil.rmtree(drivers)
+    drivers.mkdir()
+    script = drivers / "fixture.sh"
+    write(script, r'''#!/bin/sh
+if [ "$2" = dump ]; then echo '{"name":"fixture"}'; exit 0; fi
+echo "$2" >> /tmp/out/wireless-actions
+[ "$2" = setup ] || exit 0
+echo $$ > /tmp/out/setup-pid
+while [ ! -e /tmp/out/setup-release ]; do sleep 0.05; done
+if [ -e /tmp/out/setup-notify ]; then
+ ubus call network.wireless notify '{"device":"radio0","command":0,"data":{}}'
+fi
+''')
+    script.chmod(0o755)
+    write(f.root / "etc/config/network",
+          "config interface 'loopback'\n option device 'lo'\n option proto 'static'\n option ipaddr '127.0.0.1/8'\n")
+    write(f.root / "etc/config/wireless",
+          "config wifi-device 'radio0'\n option type 'fixture'\n")
+    f.start_bus()
+    f.start_subject("-S", "-c", "/etc/config", obj="network.wireless")
+    assert f.wait(lambda: (f.output / "setup-pid").exists()), "setup never started"
+    before = f.call("network.wireless", "status")["radio0"]
+    f.check("setup_held", before["pending"])
+    f.call("network.wireless", "down", {"device": "radio0"})
+    stopped = f.call("network.wireless", "status")["radio0"]
+    f.check("autostart_cleared", [stopped["autostart"], stopped["pending"]], [False, True])
+    if notify_up:
+        write(f.output / "setup-notify", "1")
+    write(f.output / "setup-release", "1")
+    pid = int((f.output / "setup-pid").read_text())
+    assert f.wait(lambda: not Path("/proc", str(pid)).exists()), "setup not reaped"
+    def settled():
+        status = f.call("network.wireless", "status")["radio0"]
+        return not status["pending"] and status["up"] == notify_up
+    assert f.wait(settled), "wireless stop branch did not settle"
+    final = f.call("network.wireless", "status")["radio0"]
+    f.check("final_state", [final["up"], final["pending"], final["autostart"]],
+            [notify_up, False, False])
+    actions = (f.output / "wireless-actions").read_text().splitlines()
+    f.check("handler_calls", actions, ["setup"] if notify_up else ["setup", "teardown"])
+
+
+def netifd_static_gateways(f):
+    for dev in ("test-static", "test-none"):
+        run("ip", "link", "add", dev, "type", "veth", "peer", "name", dev + "-p")
+        for link in (dev, dev + "-p"):
+            Path("/proc/sys/net/ipv6/conf", link, "accept_dad").write_text("0")
+            run("ip", "link", "set", link, "up")
+    network = """config interface 'sample'
+ option proto 'static'
+ option device 'test-static'
+ option ipaddr '192.0.2.8/24'
+ option ip6addr '2001:db8:42::8/64'
+ option gateway '192.0.2.1'
+ option ip6gw '2001:db8:42::1'
+ option defaultroute '0'
+config interface 'empty'
+ option proto 'none'
+ option device 'test-none'
+ option ipaddr '198.51.100.8/24'
+ option ip6addr '2001:db8:43::8/64'
+"""
+    config = f.root / "etc/config/network"
+    write(config, network)
+    write(f.root / "etc/config/wireless", "")
+    f.start_bus()
+    f.start_subject("-c", "/etc/config", "-h", "/bin/true", obj="network.interface.sample")
+    f.check("both_up", f.wait(lambda: all(f.call("network.interface." + name, "status")["up"]
+                                          for name in ("sample", "empty"))))
+    def default_routes():
+        return [bool(run("ip", family, "route", "show", "default", "dev", "test-static",
+                         capture_output=True).stdout.strip()) for family in ("-4", "-6")]
+
+    f.check("disabled_gateways", default_routes(), [False, False])
+    status = f.call("network.interface.empty", "status")
+    f.check("none_has_no_static_addresses", [status["ipv4-address"], status["ipv6-address"]], [[], []])
+    write(config, network.replace("option defaultroute '0'", "option defaultroute '1'"))
+    f.call("network", "reload")
+    f.check("enabled_gateways", f.wait(lambda: default_routes() == [True, True]))
+
+
+def netifd_autostart_reload(f):
+    device = "test-auto"
+    interface = "network.interface.autotest"
+    run("ip", "link", "add", device, "type", "veth", "peer", "name", "test-peer")
+    for link in (device, "test-peer"):
+        run("ip", "link", "set", link, "up")
+    path = f.root / "etc/config/network"
+    network = f"config interface 'autotest'\n option proto 'static'\n option device '{device}'\n option ipaddr '192.0.2.8/24'\n"
+    write(path, network + " option auto '0'\n")
+    write(f.root / "etc/config/wireless", "")
+    f.start_bus()
+    f.start_subject("-c", "/etc/config", "-h", "/bin/true", obj=interface)
+    f.check("initially_down", f.call(interface, "status")["up"], False)
+    write(path, network + " option auto '1'\n")
+    f.call("network", "reload")
+    f.check("start_after_reload", f.wait(lambda: f.call(interface, "status")["up"]))
+    f.call(interface, "down")
+    f.check("manual_down", f.wait(lambda: not f.call(interface, "status")["up"]))
+    f.call("network", "reload")
+    status = f.call(interface, "status")
+    f.check("manual_down_persists", [status["autostart"], status["up"]], [False, False])
+
+
 def netifd_restart(f):
     write(f.root / "etc/config/network", "config interface 'r92'\n option proto 'none'\n option auto '0'\n")
     write(f.root / "etc/config/wireless", "")
@@ -655,6 +765,10 @@ CASES = {
     "ubusd_wire": ("ubusd", ubusd_wire, {"identity", "reused_type_reply", "padded_prefix", "event_first_fields", "event_send", "event_bytes_and_first_data", "event_wrong_object_type", "target_first_four", "target_unsubscribe", "target_short", "serving"} | {f"short_{what}_{n}" for what in ("top", "signature") for n in (1, 2, 3)}),
     "logd_bytes": ("logd", logd_bytes, {"identity", "datagram_bytes", "serving"} | {f"write_bytes_{i}" for i in range(5)}),
     "logd_limits": ("logd", logd_limits, {"identity", "first_64", "client_65", "capacity_recovers", "aggregate_bound", "aggregate_keeps_readers", "full_ring_allowed", "initial_backlog_bound", "existing_history_after_refusal", "bounded_oneshot", "oneshot_complete", "serving"}),
+    "netifd_wireless_stop_up": ("netifd", lambda f: netifd_wireless_stop_setup(f, True), {"identity", "setup_held", "autostart_cleared", "final_state", "handler_calls"}),
+    "netifd_wireless_stop_no_up": ("netifd", lambda f: netifd_wireless_stop_setup(f, False), {"identity", "setup_held", "autostart_cleared", "final_state", "handler_calls"}),
+    "netifd_static_gateways": ("netifd", netifd_static_gateways, {"identity", "both_up", "disabled_gateways", "none_has_no_static_addresses", "enabled_gateways"}),
+    "netifd_autostart_reload": ("netifd", netifd_autostart_reload, {"identity", "initially_down", "start_after_reload", "manual_down", "manual_down_persists"}),
     "netifd_restart": ("netifd", netifd_restart, {"identity", "delayed_reexec", "same_pid_and_argv", "fresh_objects", "serving"}),
     "procd_bundle": ("procd", procd_bundle, {"identity", "serving"} | {f"bundle_{label}_{what}" for label in ("only", "ignored") for what in ("spawn", "argv", "running")}),
     "rpcd_compat": ("rpcd", rpcd_compat, {"identity", "serving", "acl_file_invalid_bytes", "acl_file_no_replacement", "acl_file_whole_rejection", "invalid_revoke_no_promotion", "valid_revoke", "invalid_function_no_promotion", "invalid_function_disposition", "invalid_sid_disposition", "uci_get_bytes", "uci_state_bytes"} | {f"glob_{i}" for i in range(len(GLOB_CASES))} | {user + "_" + obj for user in ("r92", "r92negative") for obj in ("r92.allowed", "r92.denied")}),
