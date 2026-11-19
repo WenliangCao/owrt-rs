@@ -3,9 +3,7 @@
 use std::io::{self, Read, Write};
 use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::net::UnixStream;
-#[cfg(test)]
-use std::sync::atomic::AtomicUsize;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{self, Receiver, SyncSender, TryRecvError, TrySendError};
 use std::sync::{Arc, RwLock};
 use std::thread::{self, JoinHandle};
@@ -44,10 +42,30 @@ pub const METHODS: &[(&str, &[(&str, MsgType)])] = &[
 ];
 
 #[derive(Debug)]
+struct CallPermit(Arc<AtomicUsize>);
+
+impl Drop for CallPermit {
+    fn drop(&mut self) {
+        self.0.fetch_sub(1, Ordering::Release);
+    }
+}
+
+fn acquire_permit(in_flight: &Arc<AtomicUsize>) -> Option<CallPermit> {
+    // Only the worker acquires permits; the owner and reply queue may release
+    // them concurrently. Keep each accepted call counted until its reply dies.
+    if in_flight.load(Ordering::Acquire) >= CAPACITY {
+        return None;
+    }
+    in_flight.fetch_add(1, Ordering::AcqRel);
+    Some(CallPermit(in_flight.clone()))
+}
+
+#[derive(Debug)]
 pub struct Call {
     /// Requests belong to one connection; never reply using a newer session.
     pub generation: u64,
     pub request: Request,
+    _permit: Option<CallPermit>,
 }
 
 #[derive(Debug)]
@@ -65,23 +83,34 @@ pub enum Event {
     },
 }
 
-enum Command {
-    Reply {
-        call: Call,
-        fields: Vec<u8>,
-        code: i32,
-    },
-    Refresh,
+struct Reply {
+    call: Call,
+    fields: Vec<u8>,
+    code: i32,
+}
+
+#[derive(Clone)]
+struct WorkerShared {
+    stop: Arc<AtomicBool>,
+    waiting_for_event_space: Arc<AtomicBool>,
+    refresh_requested: Arc<AtomicBool>,
+    in_flight_calls: Arc<AtomicUsize>,
+    ignored_interfaces: Arc<RwLock<Vec<String>>>,
+    #[cfg(test)]
+    poll_returns: Arc<AtomicUsize>,
 }
 
 pub struct Bus {
-    commands: SyncSender<Command>,
+    commands: SyncSender<Reply>,
     events: Receiver<Event>,
     wake: UnixStream,
     stop: Arc<AtomicBool>,
     waiting_for_event_space: Arc<AtomicBool>,
+    refresh_requested: Arc<AtomicBool>,
     ignored_interfaces: Arc<RwLock<Vec<String>>>,
     worker: Option<JoinHandle<()>>,
+    #[cfg(test)]
+    in_flight_calls: Arc<AtomicUsize>,
     #[cfg(test)]
     before_wake_read: Option<Box<dyn FnOnce() + Send>>,
     #[cfg(test)]
@@ -96,39 +125,36 @@ impl Bus {
         let (commands, command_rx) = mpsc::sync_channel(CAPACITY);
         let (event_tx, events) = mpsc::sync_channel(CAPACITY);
         let stop = Arc::new(AtomicBool::new(false));
-        let worker_stop = stop.clone();
         let waiting_for_event_space = Arc::new(AtomicBool::new(false));
-        let worker_waiting = waiting_for_event_space.clone();
+        let refresh_requested = Arc::new(AtomicBool::new(false));
+        let in_flight_calls = Arc::new(AtomicUsize::new(0));
         #[cfg(test)]
         let poll_returns = Arc::new(AtomicUsize::new(0));
-        #[cfg(test)]
-        let worker_poll_returns = poll_returns.clone();
         let ignored_interfaces = Arc::new(RwLock::new(Vec::new()));
-        let worker_ignored = ignored_interfaces.clone();
+        let shared = WorkerShared {
+            stop: stop.clone(),
+            waiting_for_event_space: waiting_for_event_space.clone(),
+            refresh_requested: refresh_requested.clone(),
+            in_flight_calls: in_flight_calls.clone(),
+            ignored_interfaces: ignored_interfaces.clone(),
+            #[cfg(test)]
+            poll_returns: poll_returns.clone(),
+        };
         let worker = thread::Builder::new()
             .name("odhcpd-ubus".into())
             .stack_size(128 * 1024)
-            .spawn(move || {
-                run(
-                    socket,
-                    worker_wake,
-                    command_rx,
-                    event_tx,
-                    worker_stop,
-                    worker_waiting,
-                    worker_ignored,
-                    #[cfg(test)]
-                    worker_poll_returns,
-                )
-            })?;
+            .spawn(move || run(socket, worker_wake, command_rx, event_tx, shared))?;
         Ok(Self {
             commands,
             events,
             wake,
             stop,
             waiting_for_event_space,
+            refresh_requested,
             ignored_interfaces,
             worker: Some(worker),
+            #[cfg(test)]
+            in_flight_calls,
             #[cfg(test)]
             before_wake_read: None,
             #[cfg(test)]
@@ -182,11 +208,24 @@ impl Bus {
     }
 
     pub fn reply(&self, call: Call, fields: Vec<u8>, code: i32) -> io::Result<()> {
-        self.command(Command::Reply { call, fields, code })
+        self.commands
+            .try_send(Reply { call, fields, code })
+            .map_err(|error| match error {
+                TrySendError::Full(_) => {
+                    io::Error::new(io::ErrorKind::WouldBlock, "ubus reply queue full")
+                }
+                TrySendError::Disconnected(_) => {
+                    io::Error::new(io::ErrorKind::BrokenPipe, "ubus worker stopped")
+                }
+            })?;
+        notify(&self.wake);
+        Ok(())
     }
 
     pub fn refresh(&self) -> io::Result<()> {
-        self.command(Command::Refresh)
+        self.refresh_requested.store(true, Ordering::Release);
+        notify(&self.wake);
+        Ok(())
     }
 
     /// Replace the notification policy even when the bounded command queue is
@@ -198,21 +237,6 @@ impl Bus {
             .write()
             .expect("ignored interface policy lock poisoned");
         *ignored = names;
-    }
-
-    fn command(&self, command: Command) -> io::Result<()> {
-        self.commands
-            .try_send(command)
-            .map_err(|error| match error {
-                TrySendError::Full(_) => {
-                    io::Error::new(io::ErrorKind::WouldBlock, "ubus command queue full")
-                }
-                TrySendError::Disconnected(_) => {
-                    io::Error::new(io::ErrorKind::BrokenPipe, "ubus worker stopped")
-                }
-            })?;
-        notify(&self.wake);
-        Ok(())
     }
 
     /// Worker operations check this stop flag between steps. A pending dump
@@ -399,6 +423,7 @@ impl Session {
             return Ok(Some(Call {
                 generation,
                 request,
+                _permit: None,
             }));
         }
         if request.objid == self.subscriber {
@@ -469,18 +494,12 @@ pub fn parse_network_dump(data: &Json) -> io::Result<Vec<NetworkInterface>> {
     Ok(result)
 }
 
-// The eighth argument exists only in tests to observe wake returns without
-// adding counters or atomic operations to the shipped idle path.
-#[cfg_attr(test, allow(clippy::too_many_arguments))]
 fn run(
     socket: Option<String>,
     wake: UnixStream,
-    commands: Receiver<Command>,
+    commands: Receiver<Reply>,
     events: SyncSender<Event>,
-    stop: Arc<AtomicBool>,
-    waiting_for_event_space: Arc<AtomicBool>,
-    ignored_interfaces: Arc<RwLock<Vec<String>>>,
-    #[cfg(test)] poll_returns: Arc<AtomicUsize>,
+    shared: WorkerShared,
 ) {
     let Ok(mut poller) = Poller::new() else {
         return;
@@ -493,10 +512,10 @@ fn run(
     let mut retry_at = Instant::now();
     let mut ready = Vec::new();
     let mut pending_network: Option<Event> = None;
-    while !stop.load(Ordering::Acquire) {
+    while !shared.stop.load(Ordering::Acquire) {
         if session.is_none() && Instant::now() >= retry_at {
             retry_at = Instant::now() + RETRY;
-            if let Ok(opened) = Session::connect(socket.as_deref(), &stop) {
+            if let Ok(opened) = Session::connect(socket.as_deref(), &shared.stop) {
                 if poller
                     .add(opened.connection.as_raw_fd(), CONNECTION, false)
                     .is_err()
@@ -509,34 +528,35 @@ fn run(
             }
         }
         let mut failed = false;
-        for _ in 0..CAPACITY {
+        loop {
             match commands.try_recv() {
-                Ok(Command::Refresh) => {
-                    if let Some(session) = session.as_mut() {
-                        session.dump_needed = true;
-                    }
-                }
-                Ok(Command::Reply { call, fields, code }) => {
+                Ok(Reply { call, fields, code }) => {
+                    let Call {
+                        generation: call_generation,
+                        request,
+                        _permit,
+                    } = call;
                     if let Some(session) =
-                        session.as_mut().filter(|_| call.generation == generation)
+                        session.as_mut().filter(|_| call_generation == generation)
                     {
                         let result = if fields.is_empty() {
-                            session.connection.reply_status(&call.request, code, None)
+                            session.connection.reply_status(&request, code, None)
                         } else {
                             session
                                 .connection
-                                .reply_data_status(&call.request, &fields, code)
+                                .reply_data_status(&request, &fields, code)
                         };
                         if result.is_err() {
                             failed = true;
                         }
-                        session.connection.recycle_request(call.request);
+                        session.connection.recycle_request(request);
                     }
+                    drop(_permit);
                 }
                 Err(TryRecvError::Empty) => break,
                 Err(TryRecvError::Disconnected) => return,
             }
-            if stop.load(Ordering::Acquire) {
+            if shared.stop.load(Ordering::Acquire) {
                 return;
             }
         }
@@ -552,11 +572,24 @@ fn run(
                             break;
                         }
                     };
-                    match session.incoming(incoming, generation, &stop, &ignored_interfaces) {
-                        Ok(Some(call)) => {
-                            if let Some(Event::Request(call)) =
-                                emit(&events, &wake, Event::Request(call))
-                            {
+                    match session.incoming(
+                        incoming,
+                        generation,
+                        &shared.stop,
+                        &shared.ignored_interfaces,
+                    ) {
+                        Ok(Some(mut call)) => {
+                            let rejected = match acquire_permit(&shared.in_flight_calls) {
+                                Some(permit) => {
+                                    call._permit = Some(permit);
+                                    match emit(&events, &wake, Event::Request(call)) {
+                                        Some(Event::Request(call)) => Some(call),
+                                        _ => None,
+                                    }
+                                }
+                                None => Some(call),
+                            };
+                            if let Some(call) = rejected {
                                 if session
                                     .connection
                                     .reply_status(&call.request, status::NO_MEMORY, None)
@@ -573,11 +606,14 @@ fn run(
                             break;
                         }
                     }
-                    if stop.load(Ordering::Acquire) {
+                    if shared.stop.load(Ordering::Acquire) {
                         return;
                     }
                 }
-                if !failed && session.dump_needed && !stop.load(Ordering::Acquire) {
+                if shared.refresh_requested.swap(false, Ordering::AcqRel) {
+                    session.dump_needed = true;
+                }
+                if !failed && session.dump_needed && !shared.stop.load(Ordering::Acquire) {
                     match session.dump() {
                         Ok(Some(interfaces)) => {
                             pending_network = Some(Event::Network {
@@ -596,15 +632,18 @@ fn run(
                 let _ = poller.remove(session.connection.as_raw_fd());
                 // Connection/type IDs and undelivered old snapshots die here.
                 pending_network = None;
-                waiting_for_event_space.store(false, Ordering::SeqCst);
+                shared
+                    .waiting_for_event_space
+                    .store(false, Ordering::SeqCst);
                 let _ = emit(&events, &wake, Event::Disconnected { generation });
             }
             retry_at = Instant::now() + RETRY;
         }
         if let Some(event) = pending_network.take() {
-            pending_network = emit_latest_network(&events, &wake, &waiting_for_event_space, event);
+            pending_network =
+                emit_latest_network(&events, &wake, &shared.waiting_for_event_space, event);
         }
-        if stop.load(Ordering::Acquire) {
+        if shared.stop.load(Ordering::Acquire) {
             break;
         }
         let timeout = poll_timeout(
@@ -617,7 +656,7 @@ fn run(
             return;
         }
         #[cfg(test)]
-        poll_returns.fetch_add(1, Ordering::SeqCst);
+        shared.poll_returns.fetch_add(1, Ordering::SeqCst);
         if ready.iter().any(|event| event.token == WAKE) {
             drain_wake(&wake);
         }
@@ -628,11 +667,25 @@ fn run(
 mod tests {
     use super::*;
 
-    fn test_bus() -> (Bus, SyncSender<Event>, UnixStream) {
+    fn dummy_request(method: &str) -> Request {
+        Request {
+            peer: 0,
+            seq: 0,
+            objid: 1,
+            method: method.into(),
+            user: None,
+            group: None,
+            data: Vec::new(),
+            fd: None,
+            no_reply: false,
+        }
+    }
+
+    fn test_bus_with_commands() -> (Bus, Receiver<Reply>, SyncSender<Event>, UnixStream) {
         let (wake, worker_wake) = UnixStream::pair().unwrap();
         wake.set_nonblocking(true).unwrap();
         worker_wake.set_nonblocking(true).unwrap();
-        let (commands, _command_rx) = mpsc::sync_channel(CAPACITY);
+        let (commands, command_rx) = mpsc::sync_channel(CAPACITY);
         let (event_tx, events) = mpsc::sync_channel(CAPACITY);
         (
             Bus {
@@ -641,14 +694,22 @@ mod tests {
                 wake,
                 stop: Arc::new(AtomicBool::new(false)),
                 waiting_for_event_space: Arc::new(AtomicBool::new(false)),
+                refresh_requested: Arc::new(AtomicBool::new(false)),
+                in_flight_calls: Arc::new(AtomicUsize::new(0)),
                 ignored_interfaces: Arc::new(RwLock::new(Vec::new())),
                 worker: None,
                 before_wake_read: None,
                 poll_returns: Arc::new(AtomicUsize::new(0)),
             },
+            command_rx,
             event_tx,
             worker_wake,
         )
+    }
+
+    fn test_bus() -> (Bus, SyncSender<Event>, UnixStream) {
+        let (bus, _command_rx, event_tx, worker_wake) = test_bus_with_commands();
+        (bus, event_tx, worker_wake)
     }
 
     #[test]
@@ -787,9 +848,20 @@ mod tests {
     fn ignored_notification_policy_updates_even_when_commands_are_full() {
         let (mut bus, _events, _wake) = test_bus();
         let (commands, _command_rx) = mpsc::sync_channel(1);
-        assert!(commands.try_send(Command::Refresh).is_ok());
+        assert!(commands
+            .try_send(Reply {
+                call: Call {
+                    generation: 1,
+                    request: dummy_request("ipv6leases"),
+                    _permit: None,
+                },
+                fields: Vec::new(),
+                code: status::OK,
+            })
+            .is_ok());
         bus.commands = commands;
-        assert_eq!(bus.refresh().unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        assert!(bus.refresh().is_ok());
+        assert!(bus.refresh_requested.load(Ordering::Acquire));
         let mut fields = owrt_ubus::BlobBuf::new();
         fields.msg_string("interface", "wan");
         bus.set_ignored_interfaces(vec!["wan".into()]);
@@ -809,6 +881,68 @@ mod tests {
             fields.payload(),
             &bus.ignored_interfaces
         ));
+    }
+
+    #[test]
+    fn refresh_and_full_request_burst_never_drop_replies_or_refresh() {
+        let (mut bus, command_rx, events, wake) = test_bus_with_commands();
+        for seq in 0..CAPACITY {
+            let permit = acquire_permit(&bus.in_flight_calls).expect("permit within capacity");
+            let call = Call {
+                generation: 1,
+                request: Request {
+                    seq: seq as u16,
+                    ..dummy_request("ipv6leases")
+                },
+                _permit: Some(permit),
+            };
+            assert!(emit(&events, &wake, Event::Request(call)).is_none());
+        }
+        assert!(acquire_permit(&bus.in_flight_calls).is_none());
+
+        assert!(bus.refresh().is_ok());
+        for _ in 0..CAPACITY {
+            let Some(Event::Request(call)) = bus.try_event().unwrap() else {
+                panic!("expected queued Event::Request");
+            };
+            assert!(bus.reply(call, Vec::new(), status::OK).is_ok());
+        }
+        assert!(bus.try_event().unwrap().is_none());
+        assert!(bus.refresh().is_ok());
+        assert!(bus.refresh_requested.load(Ordering::Acquire));
+
+        // Permits stay held while all 8 replies sit in the command queue.
+        assert!(acquire_permit(&bus.in_flight_calls).is_none());
+        let first_reply = command_rx.try_recv().unwrap();
+        drop(first_reply);
+        assert!(acquire_permit(&bus.in_flight_calls).is_some());
+    }
+
+    #[test]
+    fn refresh_does_not_consume_reply_queue_capacity() {
+        let (bus, replies, _events, _wake) = test_bus_with_commands();
+        bus.refresh().unwrap();
+        for seq in 0..CAPACITY {
+            let call = Call {
+                generation: 1,
+                request: Request {
+                    seq: seq as u16,
+                    ..dummy_request("ipv6leases")
+                },
+                _permit: None,
+            };
+            bus.reply(call, Vec::new(), status::OK)
+                .expect("refresh must leave capacity for every accepted reply");
+        }
+        bus.refresh()
+            .expect("refresh must survive a full reply queue");
+        assert!(bus.refresh_requested.load(Ordering::Acquire));
+        for seq in 0..CAPACITY {
+            let reply = replies.try_recv().unwrap();
+            assert_eq!(reply.call.request.seq, seq as u16);
+            assert_eq!(reply.code, status::OK);
+        }
+        assert!(matches!(replies.try_recv(), Err(TryRecvError::Empty)));
     }
 
     #[test]

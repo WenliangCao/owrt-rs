@@ -275,21 +275,11 @@ fn allocated_address(source: &Address, lease: &Lease) -> Option<Ipv6Addr> {
             (u128::from(source.address) & !mask) | (lease.assigned as u128 & mask),
         ))
     } else {
-        if source.length >= 64
-            || lease.assigned == 0
-            || !lease
-                .assigned
-                .is_multiple_of(1u64 << (64 - lease.prefix_length))
-            || lease
-                .assigned
-                .checked_add(1u64 << (64 - lease.prefix_length))?
-                > (1u64 << (64 - source.length))
-        {
-            return None;
-        }
+        // C projects an allocated subnet ID onto every shorter source address.
+        // Allocation already checked the available PD pool; a /0 or /32 source
+        // must not be revalidated by a shift or have its upper address bits lost.
         Some(Ipv6Addr::from(
-            (u128::from(source.prefix().address) | ((lease.assigned as u128) << 64))
-                & (u128::MAX << 64),
+            (u128::from(source.address) | ((lease.assigned as u128) << 64)) & (u128::MAX << 64),
         ))
     }
 }
@@ -1318,6 +1308,76 @@ mod tests {
         );
         assert_eq!(operations[0].0.protocol, 4);
         assert_eq!(engine.leases()[0].addresses.len(), 1);
+    }
+
+    #[test]
+    fn pd_reply_projects_every_shorter_source_like_c() {
+        let (config, mut link) = fixture();
+        link.addresses = [("2001:db8::1", 0), ("2001:db8:1::1", 32), ("fd00:1::1", 60)]
+            .into_iter()
+            .map(|(address, length)| Address {
+                address: address.parse().unwrap(),
+                length,
+                preferred_until: INFINITE,
+                valid_until: INFINITE,
+                flags: 0,
+                scope: 0,
+            })
+            .collect();
+        let mut engine = Dhcpv6::default();
+        let mut routes = Vec::new();
+        let reply = engine
+            .handle(
+                &packet(1, IA_PD, 1, None),
+                context(&config, &link),
+                &mut |route, add| {
+                    routes.push((route.destination, add));
+                    Ok(())
+                },
+            )
+            .reply
+            .unwrap();
+        assert_eq!(ia_status(&reply, IA_PD), 0);
+        let reply_options = options(&reply[4..]).unwrap();
+        let ia = reply_options
+            .iter()
+            .find(|option| option.code == IA_PD)
+            .unwrap();
+        let actual: Vec<_> = options(&ia.value[12..])
+            .unwrap()
+            .iter()
+            .filter(|option| option.code == IA_PREFIX)
+            .map(|option| {
+                assert_eq!(option.value.len(), 25);
+                (
+                    Ipv6Addr::from(<[u8; 16]>::try_from(&option.value[9..]).unwrap()),
+                    option.value[8],
+                )
+            })
+            .collect();
+        // Exact 25.12.6 C wire reply for these same three source addresses.
+        let expected: Vec<_> = ["2001:db8:0:4::", "2001:db8:1:4::", "fd00:1:0:4::"]
+            .into_iter()
+            .map(|address| (address.parse::<Ipv6Addr>().unwrap(), 62))
+            .collect();
+        assert_eq!(actual, expected);
+        assert_eq!(engine.leases()[0].addresses.len(), 3);
+        assert!(routes.is_empty(), "SOLICIT must not install unbound routes");
+        engine.handle(
+            &packet(3, IA_PD, 1, None),
+            context(&config, &link),
+            &mut |route, add| {
+                routes.push((route.destination, add));
+                Ok(())
+            },
+        );
+        assert_eq!(
+            routes,
+            expected
+                .into_iter()
+                .map(|(address, length)| (Prefix::new(address, length).unwrap(), true))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
