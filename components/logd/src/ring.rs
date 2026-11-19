@@ -143,12 +143,14 @@ impl Ring {
             // h = log`, syslog.c:304-325), so those records are unreachable.
             // Popping only from the front instead keeps overwritten records
             // listed as soon as a lap wraps earlier than the one before it.
-            let next0 = self.log_next(0, size);
+            // Eviction uses the occupied extent, even when the next write
+            // position wraps to zero because this record fills the arena.
+            let end0 = HEAD + pad4(size);
             let sentinel = self.newest;
             self.offsets
-                .retain(|&offset| (offset as usize) > next0 && (offset as usize) < sentinel);
+                .retain(|&offset| (offset as usize) > end0 && (offset as usize) < sentinel);
             write_at = 0;
-            self.newest = next0;
+            self.newest = self.log_next(0, size);
         }
         let id = self.next_id;
         self.next_id = self.next_id.wrapping_add(1);
@@ -538,6 +540,29 @@ mod tests {
         add(&mut r, "next");
         assert_eq!(ids(&r, 0), vec![1]);
         assert!(retained_bytes(&r) <= 1024);
+    }
+
+    #[test]
+    fn full_arena_record_drops_overwritten_headers() {
+        let mut r = Ring::new(1024);
+        for msg in ["first", "second", "third"] {
+            add(&mut r, msg);
+        }
+        // The 991-byte message and its header fill the arena, overwriting
+        // every old header, including those at nonzero offsets.
+        r.add(&[b'A'; 991], 3, SOURCE_SYSLOG, 10);
+        let records: Vec<_> = r.list(0).collect();
+        assert_eq!(records.len(), 1);
+        let record = records[0];
+        assert_eq!((record.id, record.priority, record.time_ms), (3, 3, 10));
+        assert_eq!(record.msg(), &[b'A'; 991]);
+
+        r.add(&[b'B'; 991], 4, SOURCE_SYSLOG, 20);
+        assert_eq!(ids(&r, 0), [4]);
+        add(&mut r, "after");
+        let records: Vec<_> = r.list(0).collect();
+        assert_eq!(records.len(), 1);
+        assert_eq!((records[0].id, records[0].msg()), (5, b"after".as_slice()));
     }
 
     #[test]

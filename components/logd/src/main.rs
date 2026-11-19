@@ -182,6 +182,8 @@ impl Client {
     }
 
     /// Write what we can; Ok(false) when the client must be dropped.
+    /// Upstream logd keeps sending new records to a oneshot stream until its
+    /// write queue drains (ubox 6f78fa49, log/logd.c).
     fn flush(&mut self) -> bool {
         match self.write_direct(&self.pending[self.sent..]) {
             Ok(n) => {
@@ -1009,5 +1011,39 @@ mod stream_tests {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).unwrap();
         assert_eq!(bytes, b"only this");
+    }
+
+    #[test]
+    fn oneshot_stream_closes_after_immediate_history_write() {
+        let (mut reader, mut client) = pair(b"history".to_vec(), true);
+        assert!(!client.flush());
+        drop(client);
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).unwrap();
+        assert_eq!(bytes, b"history");
+    }
+
+    #[test]
+    fn queued_oneshot_stream_includes_live_records_before_closing() {
+        let (mut reader, mut client) = pair(b"history|".to_vec(), true);
+        fill_pipe(&client);
+        assert!(client.flush());
+        assert_eq!(client.queued(), b"history|".len());
+        let mut clients = vec![client];
+        send_to_clients(&mut clients, b"live-1|live-2|", MAX_STREAM_PENDING);
+        assert_eq!(clients.len(), 1);
+        assert_eq!(clients[0].queued(), b"history|live-1|live-2|".len());
+
+        let filler = read_available(&mut reader);
+        assert!(!filler.is_empty());
+        assert!(filler.iter().all(|&byte| byte == b'x'));
+        let mut fds = [clients[0].poll_fd()];
+        sys::poll_fds(&mut fds, 1000).unwrap();
+        flush_ready_clients(&mut clients, &fds);
+        assert!(clients.is_empty());
+
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).unwrap();
+        assert_eq!(bytes, b"history|live-1|live-2|");
     }
 }
