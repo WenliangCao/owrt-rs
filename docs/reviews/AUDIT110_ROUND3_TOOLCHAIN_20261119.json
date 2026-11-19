@@ -1,0 +1,663 @@
+{
+  "status": "oracle-host-gates-passed",
+  "baseline": "0cbc328d",
+  "rust": {
+    "old": "1.98.1",
+    "new": "1.100.0",
+    "llvm": "23.1.5",
+    "edition_policy": "Keep all16 existing2021 crates. Rust1.100 makes unit never-type fallback a compilation error; the old dependency_on_unit_never_type_fallback lint was removed. Explicitly deny never_type_fallback_flowing_into_unsafe in Linux gates."
+  },
+  "cargo": "huacnlee/cargo0.103.0-1",
+  "locks": [
+    {
+      "path": "components/dnsmasq/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/dnsmasq/fuzz/Cargo.lock",
+      "changes": [
+        {
+          "name": "cc",
+          "from": "1.9.0",
+          "to": "1.11.2"
+        },
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/dnsmasq/platform/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/fw4/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/httpd/Cargo.lock",
+      "changes": [
+        {
+          "name": "cc",
+          "from": "1.4.4",
+          "to": "1.11.2"
+        },
+        {
+          "name": "cfg-if",
+          "from": "1.0.4",
+          "to": "1.0.5"
+        },
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "find-msvc-tools",
+          "from": "0.1.11",
+          "to": "0.1.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.189",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        },
+        {
+          "name": "rustls-pki-types",
+          "from": "1.15.1",
+          "to": "1.16.0"
+        },
+        {
+          "name": "rustls-webpki",
+          "from": "0.103.16",
+          "to": "0.103.17"
+        },
+        {
+          "name": "windows-link",
+          "from": null,
+          "to": "0.2.1"
+        },
+        {
+          "name": "windows-sys",
+          "from": "0.52.0",
+          "to": "0.61.2"
+        },
+        {
+          "name": "zeroize",
+          "from": "1.9.0",
+          "to": "1.9.2"
+        }
+      ]
+    },
+    {
+      "path": "components/logd/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/netifd/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/odhcpd/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/platform/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/procd/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/reload-config/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/rpcd/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/ubus/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/ubusd/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "components/uci/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    },
+    {
+      "path": "tools/benchmark/Cargo.lock",
+      "changes": [
+        {
+          "name": "errno",
+          "from": "0.3.14",
+          "to": "0.3.15"
+        },
+        {
+          "name": "libc",
+          "from": "0.2.190",
+          "to": "0.2.191"
+        },
+        {
+          "name": "rustix",
+          "from": "1.1.5",
+          "to": "1.1.6"
+        }
+      ]
+    }
+  ],
+  "audit": [
+    {
+      "lockfile": "components/dnsmasq/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/dnsmasq/fuzz/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/dnsmasq/platform/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/fw4/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/httpd/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/logd/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/netifd/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/odhcpd/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/platform/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/procd/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/reload-config/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/rpcd/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/ubus/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/ubusd/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "components/uci/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    },
+    {
+      "lockfile": "tools/benchmark/Cargo.lock",
+      "exit": 0,
+      "vulnerabilities": {
+        "found": false,
+        "count": 0,
+        "list": []
+      },
+      "warnings": {}
+    }
+  ],
+  "skipped_major_upgrades": [
+    {
+      "name": "windows-link",
+      "selected": [
+        "0.2.1"
+      ],
+      "latest_stable": "0.100.0",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "r-efi",
+      "selected": [
+        "6.0.0"
+      ],
+      "latest_stable": "7.2.0",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "wasi",
+      "selected": [
+        "0.11.1+wasi-snapshot-preview1"
+      ],
+      "latest_stable": "0.14.7+wasi-0.2.4",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows-targets",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.5",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows_aarch64_gnullvm",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.1",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows_aarch64_msvc",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.1",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows_i686_gnu",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.1",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows_i686_gnullvm",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.1",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows_i686_msvc",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.1",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows_x86_64_gnu",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.1",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows_x86_64_gnullvm",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.1",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    },
+    {
+      "name": "windows_x86_64_msvc",
+      "selected": [
+        "0.52.6"
+      ],
+      "latest_stable": "0.53.1",
+      "newer_available": true,
+      "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+    }
+  ],
+  "historical_pins": "Historical release manifests, archived experiments and the frozen DYN1 diagnostic retain1.98.1. PGO training supports old freezes for the required A/A and uses a separately frozen Rust/LLVM pair for new candidates.",
+  "verification": {
+    "host": "oracle (aarch64 Linux)",
+    "compiler": "Rust1.100.0 / LLVM23.1.5; absolute RUSTC from rustup which rustc",
+    "rust_gates": "make test check-rust fmt-check check-benchmark check-toolchain all passed in all-gates-2.log",
+    "remaining_gates": "make check-toolchain-negative check-tools check-harnesses; python3 tools/test_ci_check_core.py all passed in remaining-gates.log",
+    "corrected_failures": [
+      "Rust1.100 runtime FFI symbol signature lints, Atomic::fetch_update rename and needless_bool",
+      "Removed dependency_on_unit_never_type_fallback lint: behavior is now a compiler error",
+      "Shared Cargo cached a Rust1.98.1 compiler identity through the rustup proxy; explicit absolute RUSTC resolves this",
+      "Negative CARGO_BUILD_RUSTC test must unset higher-priority RUSTC"
+    ],
+    "logs": {
+      "all-gates-2.log": "41f8566a6ad3d7ba153adbee5dfc6aab8ba8c7578574a4f41534a5a28300ece4",
+      "remaining-gates.log": "8d93111a249429f86a9d6bda043271719360be71463650f9407f8fef27d0ac18"
+    },
+    "target_ci": "Pending official workflow and PGO steps; host results are not firmware qualification"
+  }
+}
