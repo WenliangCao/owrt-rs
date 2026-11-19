@@ -177,7 +177,9 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         }
     }
     if found.is_none() {
-        // try progressively shorter prefixes ending at '/' boundaries
+        // Matches uhttpd file.c:85-86, 191-210 (uh_path_lookup): walk back across
+        // '/' boundaries of the uncanonicalized decoded path, canonicalizing
+        // each prefix and preserving the raw uncollapsed tail as PATH_INFO.
         let bytes = full.as_bytes();
         let mut i = bytes.len();
         loop {
@@ -537,6 +539,84 @@ mod tests {
             };
             assert_eq!(super::file_mime_type(&pi.phys), expected, "{name}");
         }
+    }
+
+    #[test]
+    fn path_lookup_prefix_scan_and_path_info_match_uhttpd() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        struct Fixture(std::path::PathBuf);
+        impl Drop for Fixture {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        static NEXT: AtomicUsize = AtomicUsize::new(0);
+        let id = NEXT.fetch_add(1, Ordering::Relaxed);
+        let base = std::env::temp_dir().join(format!("httpd-pathinfo-{}-{id}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(base.join("www/cgi-bin")).unwrap();
+        let fixture = Fixture(base);
+        let base = std::fs::canonicalize(&fixture.0).unwrap();
+        let docroot = base.join("www");
+        let luci = docroot.join("cgi-bin/luci");
+        std::fs::write(&luci, b"#!/bin/sh\n").unwrap();
+        // Outside file to verify traversal cannot escape docroot even if present.
+        std::fs::write(base.join("outside"), b"nope").unwrap();
+        let docroot_str = docroot.to_str().unwrap();
+
+        // 1) !no_symlinks: full-path canonpath resolves /cgi-bin/luci/a/.. directly.
+        let super::Lookup::Found(pi) = super::lookup(docroot_str, "/cgi-bin/luci/a/..", false, &[])
+        else {
+            panic!("expected /cgi-bin/luci/a/.. to resolve");
+        };
+        assert_eq!(pi.phys, luci.to_str().unwrap());
+        assert_eq!(pi.info, None);
+
+        // 2) !no_symlinks with missing `a`: prefix scan falls back to /cgi-bin/luci.
+        let super::Lookup::Found(pi) =
+            super::lookup(docroot_str, "/cgi-bin/luci/a/b/..", false, &[])
+        else {
+            panic!("expected /cgi-bin/luci/a/b/.. to fall back");
+        };
+        assert_eq!(pi.phys, luci.to_str().unwrap());
+        assert_eq!(pi.info.as_deref(), Some("/a/b/.."));
+
+        // 3) Prefix folds to directory /cgi-bin with non-empty PATH_INFO "/admin" -> NotFound.
+        assert!(matches!(
+            super::lookup(docroot_str, "/cgi-bin/luci/%2e%2e/admin", false, &[]),
+            super::Lookup::NotFound
+        ));
+
+        // 4) Traversal escaping docroot (both existing and missing target) -> NotFound.
+        assert!(matches!(
+            super::lookup(docroot_str, "/cgi-bin/luci/../../outside", false, &[]),
+            super::Lookup::NotFound
+        ));
+        assert!(matches!(
+            super::lookup(docroot_str, "/cgi-bin/luci/../../etc/passwd", false, &[]),
+            super::Lookup::NotFound
+        ));
+        assert!(matches!(
+            super::lookup(docroot_str, "/cgi-bin/luci/../../missing/sub", false, &[]),
+            super::Lookup::NotFound
+        ));
+
+        // 5) no_symlinks = true (-S): realpath fallback keeps PATH_INFO tail intact.
+        let super::Lookup::Found(pi) = super::lookup(docroot_str, "/cgi-bin/luci/extra", true, &[])
+        else {
+            panic!("expected /cgi-bin/luci/extra under -S");
+        };
+        assert_eq!(pi.phys, luci.to_str().unwrap());
+        assert_eq!(pi.info.as_deref(), Some("/extra"));
+
+        let super::Lookup::Found(pi) =
+            super::lookup(docroot_str, "/cgi-bin/luci/missing/..", true, &[])
+        else {
+            panic!("expected /cgi-bin/luci/missing/.. under -S");
+        };
+        assert_eq!(pi.phys, luci.to_str().unwrap());
+        assert_eq!(pi.info.as_deref(), Some("/missing/.."));
     }
 }
 

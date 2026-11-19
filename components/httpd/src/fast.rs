@@ -144,7 +144,7 @@ fn head_end(buf: &[u8]) -> Option<usize> {
     None
 }
 
-fn peek_bytes(fd: impl AsFd, buf: &mut [u8]) -> io::Result<usize> {
+pub(crate) fn peek_bytes(fd: impl AsFd, buf: &mut [u8]) -> io::Result<usize> {
     loop {
         match net::recv(&fd, &mut *buf, RecvFlags::PEEK | RecvFlags::DONTWAIT) {
             Ok((_, size)) => return Ok(size),

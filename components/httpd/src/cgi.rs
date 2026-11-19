@@ -255,6 +255,11 @@ pub fn run<W: Sink, R: io::BufRead>(
         .take()
         .map(|s| File::from(OwnedFd::from(s)))
         .ok_or_else(|| io::Error::other("no stdout"))?;
+    // The parent endpoints follow uloop's nonblocking fd contract. The
+    // child's opposite ends keep their blocking stdin and stdout semantics.
+    for pipe in stdin.iter().chain(std::iter::once(&stdout)) {
+        crate::set_nonblocking(pipe.as_raw_fd(), true)?;
+    }
     let client_fd = resp.sink().fd();
     // Everything below polls for readiness, so the socket must not block. The
     // guard restores the connection's normal mode on every exit path.
@@ -309,7 +314,11 @@ pub fn run<W: Sink, R: io::BufRead>(
                 // whole body delivered: closing stdin is the script's EOF
                 Ok(0) => stdin = None,
                 Ok(got) => staged = got,
-                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {}
+                Err(e)
+                    if matches!(
+                        e.kind(),
+                        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted
+                    ) => {}
                 Err(_) => {
                     // truncated or malformed upload: the script sees EOF and
                     // decides, but the connection is no longer reusable
@@ -416,7 +425,13 @@ pub fn run<W: Sink, R: io::BufRead>(
                 .expect("checked")
                 .write(&stage[stage_pos..staged])
             {
-                Ok(0) | Err(_) => stdin = None,
+                Ok(0) => stdin = None,
+                Err(e)
+                    if matches!(
+                        e.kind(),
+                        io::ErrorKind::Interrupted | io::ErrorKind::WouldBlock
+                    ) => {}
+                Err(_) => stdin = None,
                 Ok(w) => stage_pos += w,
             }
         }
@@ -434,7 +449,14 @@ pub fn run<W: Sink, R: io::BufRead>(
                     0
                 }
                 Ok(got) => got,
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(e)
+                    if matches!(
+                        e.kind(),
+                        io::ErrorKind::Interrupted | io::ErrorKind::WouldBlock
+                    ) =>
+                {
+                    continue;
+                }
                 Err(_) => {
                     relay_eof = true;
                     0
@@ -1014,5 +1036,74 @@ mod tests {
         assert!(!close, "{text:?}");
         assert!(text.starts_with("HTTP/1.1 502 Bad Gateway"), "{text:?}");
         assert!(text.contains("Connection: Keep-Alive"), "{text:?}");
+    }
+
+    struct InterruptedStream {
+        data: Vec<u8>,
+        pos: usize,
+        interrupt_next: bool,
+    }
+
+    impl Read for InterruptedStream {
+        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            if self.interrupt_next {
+                self.interrupt_next = false;
+                return Err(io::Error::new(io::ErrorKind::Interrupted, "eintr"));
+            }
+            self.interrupt_next = true;
+            let left = self.data.len() - self.pos;
+            if left == 0 {
+                return Ok(0);
+            }
+            let n = buf.len().min(7).min(left);
+            buf[..n].copy_from_slice(&self.data[self.pos..self.pos + n]);
+            self.pos += n;
+            Ok(n)
+        }
+    }
+
+    #[test]
+    fn interrupted_post_body_uploads_completely_to_cgi() {
+        let payload = b"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let (dir, pi) = script_fixture("printf 'Content-Type: text/plain\\r\\n\\r\\n'\ncat\n");
+        let mut request = get_request();
+        request.method = Method::Post;
+        request.content_length = Some(payload.len());
+        let local = "127.0.0.1:80".parse().unwrap();
+        let ctx = CgiContext {
+            interpreter: None,
+            redirect_status: 200,
+            remote_user: None,
+            docroot: dir.to_str().unwrap(),
+            cgi_path: "/bin:/usr/bin",
+            local,
+            remote: local,
+            tls: false,
+            script_timeout: 5,
+        };
+        let src = std::cell::RefCell::new(io::BufReader::with_capacity(
+            5,
+            InterruptedStream {
+                data: payload.to_vec(),
+                pos: 0,
+                interrupt_next: true,
+            },
+        ));
+        let mut out = VecSink(Vec::new());
+        let reusable;
+        {
+            let mut body = crate::http::BodyReader::new(&src, &request);
+            let mut resp = Response::new(&mut out, &request, 20);
+            run(&ctx, &request, &mut body, &mut resp, &pi).unwrap();
+            reusable = body.reusable();
+        }
+        let _ = fs::remove_dir_all(&dir);
+        assert!(reusable, "connection should remain reusable");
+        let text = String::from_utf8_lossy(&out.0);
+        assert!(text.starts_with("HTTP/1.0 200 OK"), "{text}");
+        assert!(
+            text.ends_with(std::str::from_utf8(payload).unwrap()),
+            "{text}"
+        );
     }
 }

@@ -71,3 +71,75 @@ pub fn server_config(
         .map_err(|e| io::Error::other(e.to_string()))?;
     Ok(Arc::new(config))
 }
+
+#[cfg(test)]
+pub(crate) fn test_configs(
+    dir: &std::path::Path,
+) -> (Arc<rustls::ServerConfig>, Arc<rustls::ClientConfig>) {
+    let key_pem = dir.join("key.pem");
+    let cert_pem = dir.join("cert.pem");
+    let cert_der = dir.join("cert.der");
+    let key_der = dir.join("key.der");
+    let status = std::process::Command::new("openssl")
+        .args([
+            "req",
+            "-x509",
+            "-newkey",
+            "ec",
+            "-pkeyopt",
+            "ec_paramgen_curve:prime256v1",
+            "-nodes",
+            "-days",
+            "1",
+            "-subj",
+            "/CN=localhost",
+            "-addext",
+            "basicConstraints=CA:FALSE",
+            "-addext",
+            "keyUsage=digitalSignature",
+            "-addext",
+            "subjectAltName=DNS:localhost",
+            "-keyout",
+        ])
+        .arg(&key_pem)
+        .arg("-out")
+        .arg(&cert_pem)
+        .status()
+        .expect("run openssl req");
+    assert!(status.success(), "openssl req failed: {status}");
+    let status = std::process::Command::new("openssl")
+        .arg("x509")
+        .arg("-in")
+        .arg(&cert_pem)
+        .args(["-outform", "DER", "-out"])
+        .arg(&cert_der)
+        .status()
+        .expect("run openssl x509");
+    assert!(status.success(), "openssl x509 failed: {status}");
+    let status = std::process::Command::new("openssl")
+        .arg("pkcs8")
+        .args(["-topk8", "-nocrypt", "-in"])
+        .arg(&key_pem)
+        .args(["-outform", "DER", "-out"])
+        .arg(&key_der)
+        .status()
+        .expect("run openssl pkcs8");
+    assert!(status.success(), "openssl pkcs8 failed: {status}");
+
+    let server_cfg =
+        server_config(cert_der.to_str().unwrap(), key_der.to_str().unwrap(), None).unwrap();
+    let mut roots = rustls::RootCertStore::empty();
+    roots
+        .add(rustls::pki_types::CertificateDer::from(
+            fs::read(&cert_der).unwrap(),
+        ))
+        .unwrap();
+    let client_cfg = rustls::ClientConfig::builder_with_provider(Arc::new(
+        rustls::crypto::ring::default_provider(),
+    ))
+    .with_safe_default_protocol_versions()
+    .unwrap()
+    .with_root_certificates(roots)
+    .with_no_client_auth();
+    (server_cfg, Arc::new(client_cfg))
+}

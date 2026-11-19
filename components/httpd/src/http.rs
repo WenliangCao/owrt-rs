@@ -271,8 +271,8 @@ pub enum ReadWait {
     /// lines and request bodies use it; a client that pauses for more than
     /// 50 ms pays the poll, a prompt one never does.
     Budget(Duration),
-    /// Hand every result through unchanged: a nonblocking relay owns the
-    /// socket's readiness itself.
+    /// Return `WouldBlock` to the nonblocking relay, which owns readiness.
+    /// Interrupted syscalls are retried in every mode.
     Passthrough,
 }
 
@@ -317,6 +317,27 @@ impl Read for Sock {
         let mut until: Option<Instant> = None;
         loop {
             match self.0.read(buf) {
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => match read_wait() {
+                    ReadWait::Passthrough => continue,
+                    ReadWait::Linger => {
+                        let deadline = *until.get_or_insert_with(|| Instant::now() + LINGER);
+                        if Instant::now() >= deadline {
+                            return Err(io::Error::new(
+                                io::ErrorKind::WouldBlock,
+                                "no request bytes within the linger",
+                            ));
+                        }
+                    }
+                    ReadWait::Budget(budget) => {
+                        let deadline = *until.get_or_insert_with(|| Instant::now() + budget);
+                        if Instant::now() >= deadline {
+                            return Err(io::Error::new(
+                                io::ErrorKind::TimedOut,
+                                "client read deadline",
+                            ));
+                        }
+                    }
+                },
                 Err(error)
                     if matches!(
                         error.kind(),
@@ -1361,9 +1382,13 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
             Framing::None => Ok(0),
             Framing::Length(left) => {
                 let want = buf.len().min(left as usize);
-                let n = {
+                let n = loop {
                     let mut src = self.src.borrow_mut();
-                    src.read(&mut buf[..want])?
+                    match src.read(&mut buf[..want]) {
+                        Ok(n) => break n,
+                        Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                        Err(e) => return Err(e),
+                    }
                 };
                 if n == 0 {
                     return Err(self.fail(io::ErrorKind::UnexpectedEof, "body ended early"));
@@ -1396,9 +1421,13 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
                 }
                 Stage::Data => {
                     let want = buf.len().min(self.chunk_left as usize);
-                    let n = {
+                    let n = loop {
                         let mut src = self.src.borrow_mut();
-                        src.read(&mut buf[..want])?
+                        match src.read(&mut buf[..want]) {
+                            Ok(n) => break n,
+                            Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                            Err(e) => return Err(e),
+                        }
                     };
                     if n == 0 {
                         return Err(self.fail(io::ErrorKind::UnexpectedEof, "truncated chunk"));
@@ -1451,7 +1480,11 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
         loop {
             let (found, used) = {
                 let mut src = self.src.borrow_mut();
-                let available = src.fill_buf()?;
+                let available = match src.fill_buf() {
+                    Ok(available) => available,
+                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                    Err(e) => return Err(e),
+                };
                 if available.is_empty() {
                     return Err(
                         self.fail(io::ErrorKind::UnexpectedEof, "body ended inside framing")
@@ -3032,6 +3065,126 @@ mod tests {
             "&#x3c;a href=&#x27;x&#x27;&#x3e;&#x26;&#x22;&#x3c;/a&#x3e;"
         );
         assert_eq!(html_escape("/nope.txt?a=1"), "/nope.txt?a=1");
+    }
+
+    struct InterruptedBytes {
+        data: Vec<u8>,
+        pos: usize,
+        interrupt_next: bool,
+        step: usize,
+    }
+
+    impl InterruptedBytes {
+        fn new(data: Vec<u8>, step: usize) -> Self {
+            Self {
+                data,
+                pos: 0,
+                interrupt_next: true,
+                step,
+            }
+        }
+    }
+
+    impl Read for InterruptedBytes {
+        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            if self.interrupt_next {
+                self.interrupt_next = false;
+                return Err(io::Error::new(io::ErrorKind::Interrupted, "eintr"));
+            }
+            self.interrupt_next = true;
+            let left = self.data.len() - self.pos;
+            if left == 0 {
+                return Ok(0);
+            }
+            let n = buf.len().min(self.step).min(left);
+            buf[..n].copy_from_slice(&self.data[self.pos..self.pos + n]);
+            self.pos += n;
+            Ok(n)
+        }
+    }
+
+    impl BufRead for InterruptedBytes {
+        fn fill_buf(&mut self) -> io::Result<&[u8]> {
+            if self.interrupt_next {
+                self.interrupt_next = false;
+                return Err(io::Error::new(io::ErrorKind::Interrupted, "eintr"));
+            }
+            self.interrupt_next = true;
+            let end = (self.pos + self.step).min(self.data.len());
+            Ok(&self.data[self.pos..end])
+        }
+
+        fn consume(&mut self, amt: usize) {
+            self.pos = (self.pos + amt).min(self.data.len());
+        }
+    }
+
+    #[test]
+    fn interrupted_body_reads_preserve_length_chunked_read_all_and_drain() {
+        let len_req = Request {
+            method: Method::Post,
+            version: Version::V1_1,
+            url: "/upload".into(),
+            headers: Vec::new(),
+            header_bytes: 0,
+            content_length: Some(11),
+            transfer_chunked: false,
+            connection_close: false,
+            expect_continue: false,
+        };
+        let cell = RefCell::new(InterruptedBytes::new(b"hello worldEXTRA".to_vec(), 2));
+        let mut body = BodyReader::new(&cell, &len_req);
+        let mut got = Vec::new();
+        let mut buf = [0u8; 3];
+        loop {
+            let n = body.read(&mut buf).unwrap();
+            if n == 0 {
+                break;
+            }
+            got.extend_from_slice(&buf[..n]);
+        }
+        assert_eq!(got, b"hello world");
+        assert!(body.reusable());
+        let remaining = cell.into_inner();
+        assert_eq!(&remaining.data[remaining.pos..], b"EXTRA");
+
+        let chunked_wire =
+            b"4;ext=1\r\nabcd\r\n3\r\nefg\r\n0\r\nX-Trailer: ok\r\n\r\nNEXT".to_vec();
+        let chunk_req = chunked_request();
+        let cell = RefCell::new(InterruptedBytes::new(chunked_wire.clone(), 1));
+        let mut body = BodyReader::new(&cell, &chunk_req);
+        let mut got = Vec::new();
+        loop {
+            let n = body.read(&mut buf).unwrap();
+            if n == 0 {
+                break;
+            }
+            got.extend_from_slice(&buf[..n]);
+        }
+        assert_eq!(got, b"abcdefg");
+        assert!(body.reusable());
+        let remaining = cell.into_inner();
+        assert_eq!(&remaining.data[remaining.pos..], b"NEXT");
+
+        let cell = RefCell::new(InterruptedBytes::new(b"hello world".to_vec(), 1));
+        let mut body = BodyReader::new(&cell, &len_req);
+        assert_eq!(body.read_all(64).unwrap().unwrap(), b"hello world");
+        assert!(body.reusable());
+
+        let cell = RefCell::new(InterruptedBytes::new(chunked_wire.clone(), 1));
+        let mut body = BodyReader::new(&cell, &chunk_req);
+        assert_eq!(body.read_all(64).unwrap().unwrap(), b"abcdefg");
+        assert!(body.reusable());
+
+        let cell = RefCell::new(InterruptedBytes::new(b"hello world".to_vec(), 2));
+        let mut body = BodyReader::new(&cell, &len_req);
+        assert!(body.drain(64));
+        assert!(body.reusable());
+
+        let cell = RefCell::new(InterruptedBytes::new(chunked_wire, 1));
+        let mut body = BodyReader::new(&cell, &chunk_req);
+        assert!(body.drain(64));
+        assert!(body.reusable());
     }
 }
 

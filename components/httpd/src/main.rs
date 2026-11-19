@@ -1084,19 +1084,16 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
                             continue;
                         };
                         if !fast::wants_inline(p) {
-                            // TLS keeps its existing resume path whole.
-                            let p = parked.remove(&token).expect("checked above");
-                            let _ = poller.remove(p.conn.fd);
-                            resume(&server, &parking, p);
-                            continue;
-                        }
-                        let was_writing = p.writing.is_some();
-                        let event = if was_writing {
-                            fast::on_writable(p, &mut scratch)
+                            (peek_parked_tls(p, r.revents), false)
                         } else {
-                            fast::on_readable(&server, p, &mut scratch, writing)
-                        };
-                        (event, was_writing)
+                            let was_writing = p.writing.is_some();
+                            let event = if was_writing {
+                                fast::on_writable(p, &mut scratch)
+                            } else {
+                                fast::on_readable(&server, p, &mut scratch, writing)
+                            };
+                            (event, was_writing)
+                        }
                     };
                     match event {
                         fast::Event::Spurious => {}
@@ -1211,14 +1208,19 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
     }
 }
 
-/// A parked connection's socket reported something. A closed peer is the
-/// usual reason and is answered here; anything else gets a thread again.
-fn resume(server: &Arc<Server>, parking: &Arc<Parking>, p: Parked) {
-    match p.transport.tcp().peek(&mut [0u8; 1]) {
-        Ok(0) | Err(_) => {
-            server.release_connection();
+/// Inspect a parked TLS socket without blocking on `LINGER`: a spurious wakeup
+/// returns `Spurious` immediately so the connection stays parked.
+fn peek_parked_tls(p: &Parked, revents: i16) -> fast::Event {
+    match fast::peek_bytes(p.transport.tcp(), &mut [0u8; 1]) {
+        Ok(0) => fast::Event::Close,
+        Ok(_) => fast::Event::Handoff,
+        Err(e)
+            if e.kind() == io::ErrorKind::WouldBlock
+                && (revents & (owrt_ubus::sys::POLLERR | owrt_ubus::sys::POLLHUP) == 0) =>
+        {
+            fast::Event::Spurious
         }
-        Ok(_) => spawn_connection(server, parking, p.transport, p.conn, Some(p.deadline)),
+        Err(_) => fast::Event::Close,
     }
 }
 
@@ -1555,5 +1557,220 @@ mod connection_tests {
                 .count(),
             2
         );
+    }
+    struct TempDir(std::path::PathBuf);
+
+    impl TempDir {
+        fn new(prefix: &str) -> Self {
+            static NEXT: AtomicUsize = AtomicUsize::new(0);
+            let id = NEXT.fetch_add(1, Ordering::Relaxed);
+            let path = std::env::temp_dir().join(format!("{prefix}-{}-{id}", std::process::id()));
+            let _ = std::fs::remove_dir_all(&path);
+            std::fs::create_dir_all(&path).unwrap();
+            Self(path)
+        }
+    }
+
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn tls_loopback_pair(
+        server_cfg: &Arc<rustls::ServerConfig>,
+        client_cfg: &Arc<rustls::ClientConfig>,
+    ) -> (
+        Transport,
+        Conn,
+        rustls::StreamOwned<rustls::ClientConnection, TcpStream>,
+    ) {
+        let tcp_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = tcp_listener.local_addr().unwrap();
+        let client_tcp = TcpStream::connect(addr).unwrap();
+        let (server_tcp, remote) = tcp_listener.accept().unwrap();
+        server_tcp
+            .set_write_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        let _ = server_tcp.set_nodelay(true);
+        let mut server_tls = rustls::ServerConnection::new(Arc::clone(server_cfg)).unwrap();
+        server_tls.set_buffer_limit(Some(16 * 1024));
+        let mut server_stream = rustls::StreamOwned::new(server_tls, http::Sock::new(server_tcp));
+        let client_tls =
+            rustls::ClientConnection::new(Arc::clone(client_cfg), "localhost".try_into().unwrap())
+                .unwrap();
+        client_tcp
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        client_tcp
+            .set_write_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        let mut client_stream = rustls::StreamOwned::new(client_tls, client_tcp);
+
+        let handle = std::thread::spawn(move || {
+            while server_stream.conn.is_handshaking() {
+                server_stream
+                    .conn
+                    .complete_io(&mut server_stream.sock)
+                    .unwrap();
+            }
+            server_stream
+        });
+        while client_stream.conn.is_handshaking() {
+            client_stream
+                .conn
+                .complete_io(&mut client_stream.sock)
+                .unwrap();
+        }
+        let server_stream = handle.join().unwrap();
+        let fd = server_stream.sock.0.as_raw_fd();
+        let conn = Conn {
+            local: server_stream.sock.0.local_addr().unwrap(),
+            remote,
+            tls: true,
+            fd,
+        };
+        (Transport::Tls(server_stream), conn, client_stream)
+    }
+
+    #[test]
+    fn parked_tls_peek_handles_spurious_handoff_and_close() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = TempDir::new("httpd-parked-tls-peek");
+        let (server_cfg, client_cfg) = tls::test_configs(&dir.0);
+        let hello = dir.0.join("hello.txt");
+        std::fs::write(&hello, b"hello fastpath\n").unwrap();
+        std::fs::set_permissions(&hello, std::fs::Permissions::from_mode(0o644)).unwrap();
+        let config_path = dir.0.join("httpd.conf");
+        std::fs::write(&config_path, b"").unwrap();
+
+        let config = parse_args_from(
+            [
+                "-p",
+                "127.0.0.1:0",
+                "-h",
+                dir.0.to_str().unwrap(),
+                "-c",
+                config_path.to_str().unwrap(),
+            ]
+            .into_iter()
+            .map(str::to_owned),
+        )
+        .unwrap();
+        let server = Arc::new(Server {
+            config,
+            tls_addresses: Vec::new(),
+            cgi_physical_prefix: None,
+            bridge: Bridge {
+                socket: None,
+                noauth: false,
+                cors: false,
+                timeout_ms: 1000,
+                events_retry: 0,
+                record_calls: false,
+                idle: Mutex::new(Vec::new()),
+                calls: Mutex::new(Vec::new()),
+            },
+            connections: AtomicUsize::new(1),
+            accept_lock: Mutex::new(()),
+            listeners: Mutex::new(Vec::new()),
+            scripts: ScriptSlots {
+                count: Mutex::new(0),
+                ready: Condvar::new(),
+                limit: 1,
+            },
+            output_buffers: Mutex::new(Vec::new()),
+            inventory: None,
+        });
+        let (parking, _wake_read) = listener(&server);
+        let (transport, conn, mut client) = tls_loopback_pair(&server_cfg, &client_cfg);
+        let parked = Parked {
+            transport,
+            conn,
+            deadline: Instant::now() + Duration::from_secs(20),
+            writing: None,
+        };
+
+        // A readiness notification does not guarantee that data is queued.
+        let event = peek_parked_tls(&parked, owrt_ubus::sys::POLLIN);
+        assert!(matches!(event, fast::Event::Spurious), "{event:?}");
+
+        // Error/hangup readiness without queued data must release the parked
+        // connection instead of preserving a permanently-ready descriptor.
+        for revents in [
+            owrt_ubus::sys::POLLHUP,
+            owrt_ubus::sys::POLLERR,
+            owrt_ubus::sys::POLLHUP | owrt_ubus::sys::POLLERR,
+            owrt_ubus::sys::POLLIN | owrt_ubus::sys::POLLHUP,
+            owrt_ubus::sys::POLLIN | owrt_ubus::sys::POLLERR,
+        ] {
+            assert!(
+                matches!(peek_parked_tls(&parked, revents), fast::Event::Close),
+                "empty TLS socket must close on revents={revents}"
+            );
+        }
+
+        // Data takes priority over hangup or error readiness, so a TLS request
+        // already in the socket still gets a chance to run.
+        client
+            .write_all(b"GET /hello.txt HTTP/1.1\r\nHost: localhost\r\n\r\n")
+            .unwrap();
+        client.flush().unwrap();
+        let mut pfd = [owrt_ubus::sys::PollFd {
+            fd: parked.conn.fd,
+            events: owrt_ubus::sys::POLLIN,
+            revents: 0,
+        }];
+        assert!(owrt_ubus::sys::poll_fds(&mut pfd, 2000).unwrap() > 0);
+        let event = peek_parked_tls(&parked, pfd[0].revents);
+        assert!(matches!(event, fast::Event::Handoff), "{event:?}");
+        assert!(matches!(
+            peek_parked_tls(&parked, pfd[0].revents | owrt_ubus::sys::POLLHUP),
+            fast::Event::Handoff
+        ));
+
+        let srv = Arc::clone(&server);
+        let park = Arc::clone(&parking);
+        let worker = std::thread::spawn(move || {
+            let mut heads = http::HeadBuffer::default();
+            srv.run_connection(
+                parked.transport,
+                parked.conn,
+                &park,
+                Some(parked.deadline),
+                &mut heads,
+            )
+        });
+        let mut resp_buf = Vec::new();
+        let mut tmp = [0u8; 1024];
+        loop {
+            let n = client.read(&mut tmp).unwrap();
+            assert!(n > 0, "unexpected EOF reading HTTPS response");
+            resp_buf.extend_from_slice(&tmp[..n]);
+            if resp_buf.ends_with(b"hello fastpath\n") {
+                break;
+            }
+        }
+        assert!(
+            std::str::from_utf8(&resp_buf)
+                .unwrap()
+                .starts_with("HTTP/1.1 200 OK\r\n"),
+            "{:?}",
+            String::from_utf8_lossy(&resp_buf)
+        );
+        assert!(matches!(worker.join().unwrap(), Outcome::Parked));
+        let reparked = parking.inbox.lock().unwrap().pop().expect("re-parked");
+
+        // Peer closes the reparked connection.
+        drop(client);
+        let mut pfd = [owrt_ubus::sys::PollFd {
+            fd: reparked.conn.fd,
+            events: owrt_ubus::sys::POLLIN,
+            revents: 0,
+        }];
+        assert!(owrt_ubus::sys::poll_fds(&mut pfd, 2000).unwrap() > 0);
+        let event = peek_parked_tls(&reparked, pfd[0].revents);
+        assert!(matches!(event, fast::Event::Close), "{event:?}");
     }
 }
