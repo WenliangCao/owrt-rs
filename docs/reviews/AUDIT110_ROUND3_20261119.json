@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "date": "2026-11-19",
-  "status": "release_not_qualified",
+  "status": "completed_with_release_blockers",
   "release_qualified": false,
   "purpose": "第三轮交付台账，覆盖 39 项盲审、19 项取舍、9 项任务和发布验收。",
   "snapshot": {
@@ -16467,8 +16467,15 @@
       "issues": []
     },
     "router_final_identity": {
-      "status": "missing",
-      "passed": false
+      "status": "verified",
+      "passed": true,
+      "phase": "after_fourway",
+      "pid_hash_start_ticks_boot_equal": true,
+      "health_passed": true,
+      "health_at": "2026-11-19T22:09:25.748787+00:00",
+      "before_sha256": "0625c767722a3174204e4dcc28041324dff12bfd19d7bdec26a522518a31f7b5",
+      "after_sha256": "0625c767722a3174204e4dcc28041324dff12bfd19d7bdec26a522518a31f7b5",
+      "health_receipt": "device/health-final.json"
     },
     "baseline_core_validation": {
       "source_id": "S22",
@@ -16527,14 +16534,953 @@
       "final_ci": true,
       "firmware": true,
       "sizes": true,
-      "router_final_identity": false,
+      "router_final_identity": true,
       "oracle_final_gates": true
     },
-    "physical_deployment": "not_performed"
+    "physical_deployment": "not_performed",
+    "regression_adjudication": {
+      "status": "completed_with_recorded_release_blockers",
+      "groups": [
+        {
+          "id": "logd-throughput",
+          "source_group": "a081c214",
+          "evidence": {
+            "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/logd-regression.json",
+            "sha256": "852aed118d4e245255da7a2f0501843ea219602cca0bc49dc09f29b51a9fe33f"
+          },
+          "finding": "初测syslog128吞吐final-6.462%、仅工具链-7.811%，新版区间重叠；最窄定位到工具链/依赖升级共同产物，尚未区分编译器、库和布局。",
+          "followup": {
+            "status": "completed",
+            "analysis": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/runs/followup-logd-long/analysis.json",
+            "windows": 20,
+            "comparisons": {
+              "syslog_128.throughput": {
+                "aa_vs_shipped": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 58201.120399271414,
+                    "min": 56599.14789139522,
+                    "max": 58914.576223121534,
+                    "samples": [
+                      57984.85495660843,
+                      58705.97792561712,
+                      58914.576223121534,
+                      56599.14789139522,
+                      58201.120399271414
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 58883.409492237195,
+                    "min": 57074.95397753239,
+                    "max": 59050.71449619592,
+                    "samples": [
+                      58883.409492237195,
+                      59050.71449619592,
+                      57074.95397753239,
+                      58996.469110585786,
+                      58408.279323129296
+                    ]
+                  },
+                  "delta_pct": -1.158711934056278
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "regression",
+                  "new": {
+                    "n": 5,
+                    "median": 54436.00879707132,
+                    "min": 52989.9963662004,
+                    "max": 55862.95147031727,
+                    "samples": [
+                      54851.91748921046,
+                      52989.9963662004,
+                      54436.00879707132,
+                      55862.95147031727,
+                      53506.81684471323
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 58883.409492237195,
+                    "min": 57074.95397753239,
+                    "max": 59050.71449619592,
+                    "samples": [
+                      58883.409492237195,
+                      59050.71449619592,
+                      57074.95397753239,
+                      58996.469110585786,
+                      58408.279323129296
+                    ]
+                  },
+                  "delta_pct": -7.552892628868902
+                },
+                "toolchain_vs_aa": {
+                  "classification": "regression",
+                  "new": {
+                    "n": 5,
+                    "median": 54436.00879707132,
+                    "min": 52989.9963662004,
+                    "max": 55862.95147031727,
+                    "samples": [
+                      54851.91748921046,
+                      52989.9963662004,
+                      54436.00879707132,
+                      55862.95147031727,
+                      53506.81684471323
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 58201.120399271414,
+                    "min": 56599.14789139522,
+                    "max": 58914.576223121534,
+                    "samples": [
+                      57984.85495660843,
+                      58705.97792561712,
+                      58914.576223121534,
+                      56599.14789139522,
+                      58201.120399271414
+                    ]
+                  },
+                  "delta_pct": -6.46913938489615
+                },
+                "final_vs_shipped": {
+                  "classification": "regression",
+                  "new": {
+                    "n": 5,
+                    "median": 55253.858834602506,
+                    "min": 52505.95557464588,
+                    "max": 56597.77516047529,
+                    "samples": [
+                      56597.77516047529,
+                      55553.22551439442,
+                      54986.05998356042,
+                      52505.95557464588,
+                      55253.858834602506
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 58883.409492237195,
+                    "min": 57074.95397753239,
+                    "max": 59050.71449619592,
+                    "samples": [
+                      58883.409492237195,
+                      59050.71449619592,
+                      57074.95397753239,
+                      58996.469110585786,
+                      58408.279323129296
+                    ]
+                  },
+                  "delta_pct": -6.163961443355593
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 55253.858834602506,
+                    "min": 52505.95557464588,
+                    "max": 56597.77516047529,
+                    "samples": [
+                      56597.77516047529,
+                      55553.22551439442,
+                      54986.05998356042,
+                      52505.95557464588,
+                      55253.858834602506
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 54436.00879707132,
+                    "min": 52989.9963662004,
+                    "max": 55862.95147031727,
+                    "samples": [
+                      54851.91748921046,
+                      52989.9963662004,
+                      54436.00879707132,
+                      55862.95147031727,
+                      53506.81684471323
+                    ]
+                  },
+                  "delta_pct": 1.5024063218521455
+                }
+              }
+            },
+            "executed_plan": {
+              "label": "followup-logd-long",
+              "payload": "packages/followup-logd-long.tar",
+              "component": "logd",
+              "sides": [
+                "shipped",
+                "aa",
+                "toolchain",
+                "final"
+              ],
+              "cycles": 5,
+              "count": 2000,
+              "reason": "Singlepredeclaredlengthtestforobservedtoolchainandfinalsyslogthroughputregression;unchangedELFs/benchmark/harness",
+              "baseline": "runs/fourway-logd/analysis.json",
+              "evidence_plan": "logd-regression.json",
+              "must_run_after": "all17fourwayworkloads",
+              "original_windows_retained": true,
+              "payload_sha256": "82b45a960e7484f5815f3bf3e93e4ab90369cd270aa2db4605db6708a62eb684",
+              "syslog_datagrams": 200000,
+              "log_read_rpcs": 2000,
+              "scope_revision": "Before any follow-up run, increase only targetsyslogsamplecount10x;keep downstreamunrelatedlogreadat2000 toavoid10xunrelatedRPCs;all4sidesidenticalone-linemultiplierchange",
+              "prior_plan": "logd-followup-plan-initial-not-run.json",
+              "primary_metric_unchanged": true
+            },
+            "adjudication": "confirmed_shared_upgrade_regression",
+            "paired_delta_pct": {
+              "shipped": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "aa": [
+                -1.525989312400844,
+                -0.583797458709856,
+                3.223169038933116,
+                -4.063499486209777,
+                -0.3546739028414514
+              ],
+              "toolchain": [
+                -6.846566864573667,
+                -10.263581366802853,
+                -4.623648372103617,
+                -5.31136470963186,
+                -8.391725514288728
+              ],
+              "final": [
+                -3.881627017646161,
+                -5.922856330598359,
+                -3.6599135845019837,
+                -11.001528792805848,
+                -5.400639301623222
+              ]
+            },
+            "same_batch_aa_max_abs_pct": 4.063499486209777
+          },
+          "decision": "release_blocker"
+        },
+        {
+          "id": "httpd-static",
+          "source_group": "a3bba354",
+          "evidence": {
+            "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/httpd-regression.json",
+            "sha256": "1dc5bf77af6b284ead0fcf6867e51853113679bd65fa934f2fac3bb58232fbe0"
+          },
+          "finding": "初测16KiB静态请求finalCPU+13.25%、p95+19.47%；仅工具链与线上重叠。可达Sock::read改动，但没有分支计数证明EINTR路径触发，不能归因某一行。",
+          "followup": {
+            "status": "completed",
+            "analysis": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/runs/followup-httpd-static/analysis.json",
+            "windows": 20,
+            "comparisons": {
+              "static_16k_dat_c1.subject_cpu_us_per_op": {
+                "aa_vs_shipped": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 136.76765890000001,
+                    "min": 131.48614245000002,
+                    "max": 148.99031295,
+                    "samples": [
+                      148.99031295,
+                      136.76765890000001,
+                      131.48614245000002,
+                      133.70569975,
+                      136.85254120000002
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 140.40448204999998,
+                    "min": 133.4168947,
+                    "max": 150.91479155,
+                    "samples": [
+                      137.37783825,
+                      133.4168947,
+                      150.91479155,
+                      140.40448204999998,
+                      146.7139949
+                    ]
+                  },
+                  "delta_pct": -2.590247189334627
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 137.75202735,
+                    "min": 131.7832233,
+                    "max": 148.4590308,
+                    "samples": [
+                      131.7832233,
+                      137.9042024,
+                      137.75202735,
+                      132.57738510000001,
+                      148.4590308
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 140.40448204999998,
+                    "min": 133.4168947,
+                    "max": 150.91479155,
+                    "samples": [
+                      137.37783825,
+                      133.4168947,
+                      150.91479155,
+                      140.40448204999998,
+                      146.7139949
+                    ]
+                  },
+                  "delta_pct": -1.8891524410562743
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 137.75202735,
+                    "min": 131.7832233,
+                    "max": 148.4590308,
+                    "samples": [
+                      131.7832233,
+                      137.9042024,
+                      137.75202735,
+                      132.57738510000001,
+                      148.4590308
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 136.76765890000001,
+                    "min": 131.48614245000002,
+                    "max": 148.99031295,
+                    "samples": [
+                      148.99031295,
+                      136.76765890000001,
+                      131.48614245000002,
+                      133.70569975,
+                      136.85254120000002
+                    ]
+                  },
+                  "delta_pct": 0.7197377347225808
+                },
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 141.48161180000002,
+                    "min": 133.05823685,
+                    "max": 142.92372115,
+                    "samples": [
+                      142.92372115,
+                      141.48161180000002,
+                      133.8133525,
+                      133.05823685,
+                      142.1304054
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 140.40448204999998,
+                    "min": 133.4168947,
+                    "max": 150.91479155,
+                    "samples": [
+                      137.37783825,
+                      133.4168947,
+                      150.91479155,
+                      140.40448204999998,
+                      146.7139949
+                    ]
+                  },
+                  "delta_pct": 0.7671619411810937
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 141.48161180000002,
+                    "min": 133.05823685,
+                    "max": 142.92372115,
+                    "samples": [
+                      142.92372115,
+                      141.48161180000002,
+                      133.8133525,
+                      133.05823685,
+                      142.1304054
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 137.75202735,
+                    "min": 131.7832233,
+                    "max": 148.4590308,
+                    "samples": [
+                      131.7832233,
+                      137.9042024,
+                      137.75202735,
+                      132.57738510000001,
+                      148.4590308
+                    ]
+                  },
+                  "delta_pct": 2.7074624756874943
+                }
+              },
+              "static_16k_dat_c1.p95_us": {
+                "aa_vs_shipped": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 434.031,
+                    "min": 400.484,
+                    "max": 484.351,
+                    "samples": [
+                      484.351,
+                      434.031,
+                      400.484,
+                      425.644,
+                      439.34
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 472.656,
+                    "min": 402.639,
+                    "max": 503.279,
+                    "samples": [
+                      422.258,
+                      402.639,
+                      474.887,
+                      472.656,
+                      503.279
+                    ]
+                  },
+                  "delta_pct": -8.171905148776283
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 451.189,
+                    "min": 397.714,
+                    "max": 520.822,
+                    "samples": [
+                      411.564,
+                      489.737,
+                      451.189,
+                      397.714,
+                      520.822
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 472.656,
+                    "min": 402.639,
+                    "max": 503.279,
+                    "samples": [
+                      422.258,
+                      402.639,
+                      474.887,
+                      472.656,
+                      503.279
+                    ]
+                  },
+                  "delta_pct": -4.5417809146609756
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 451.189,
+                    "min": 397.714,
+                    "max": 520.822,
+                    "samples": [
+                      411.564,
+                      489.737,
+                      451.189,
+                      397.714,
+                      520.822
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 434.031,
+                    "min": 400.484,
+                    "max": 484.351,
+                    "samples": [
+                      484.351,
+                      434.031,
+                      400.484,
+                      425.644,
+                      439.34
+                    ]
+                  },
+                  "delta_pct": 3.953173851637337
+                },
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 457.114,
+                    "min": 406.409,
+                    "max": 484.428,
+                    "samples": [
+                      457.114,
+                      484.428,
+                      409.87,
+                      406.409,
+                      459.191
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 472.656,
+                    "min": 402.639,
+                    "max": 503.279,
+                    "samples": [
+                      422.258,
+                      402.639,
+                      474.887,
+                      472.656,
+                      503.279
+                    ]
+                  },
+                  "delta_pct": -3.28822653261569
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "new": {
+                    "n": 5,
+                    "median": 457.114,
+                    "min": 406.409,
+                    "max": 484.428,
+                    "samples": [
+                      457.114,
+                      484.428,
+                      409.87,
+                      406.409,
+                      459.191
+                    ]
+                  },
+                  "baseline": {
+                    "n": 5,
+                    "median": 451.189,
+                    "min": 397.714,
+                    "max": 520.822,
+                    "samples": [
+                      411.564,
+                      489.737,
+                      451.189,
+                      397.714,
+                      520.822
+                    ]
+                  },
+                  "delta_pct": 1.3131969086125572
+                }
+              }
+            },
+            "executed_plan": {
+              "label": "followup-httpd-static",
+              "payload": "packages/followup-httpd-static.tar",
+              "component": "httpd",
+              "sides": [
+                "shipped",
+                "aa",
+                "toolchain",
+                "final"
+              ],
+              "cycles": 5,
+              "count": 20000,
+              "payload_sha256": "cd4a68f589cadb98e17a39fd0c4094e8e05e1be1e41440ba1a11309969ae2464",
+              "change": "Existing OWRT_HTTPD_MATRIX=1;OWRT_HTTPD_WORKLOADS=static_16k_dat_c1;count20000;ELFs/benchmark/innerharnessunchanged",
+              "observed": "finalstaticCPU+13.25%,p95+19.47%nonoverlap;toolchainrangeoverlaps;rootcauseundetermined",
+              "prediction": "If persistent,final staticCPU/p95remain separated fromold andtoolchain;otherwise bound withsamebatchAAfloor;keepalloriginalwindows",
+              "must_run_after": "main17andlogdlengthfollowup",
+              "original_windows_retained": true,
+              "old_invalid_payload": "packages/followup-httpd-static-invalid-not-run.tar;rejected offline before device use",
+              "expected_lane": "static_16k_dat_c1",
+              "predeclared_review": "httpd-regression.json",
+              "phase": "queued_serial_after_original_matrix_and_logd"
+            },
+            "per_metric_adjudication": {
+              "static_16k_dat_c1.subject_cpu_us_per_op": "no_practical_recurrence_in_this_batch",
+              "static_16k_dat_c1.p95_us": "no_practical_recurrence_in_this_batch"
+            }
+          },
+          "correctness_scope_review": {
+            "evidence": {
+              "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/httpd-sock-scope.json",
+              "sha256": "22f017f4b17ccba35252f66d00d8e8566ff86524df0763c0b8d3836d464b710d"
+            },
+            "conclusion": "保留Sock层中断边界；rustls内部可吞掉Interrupted重试，简单删除会改变连续中断的TLS读超时/停放行为，不能只按静态请求指标撤回。"
+          },
+          "decision": "not_confirmed_as_sustained_in_longer_batch;original_observation_retained"
+        },
+        {
+          "id": "procd-memory",
+          "source_group": "a081c214",
+          "evidence": {
+            "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/memory-regressions.json",
+            "sha256": "e9c4947b95e4080e4532a6148600d81a95c43028e475272b52b9647b99fa48ce"
+          },
+          "finding": "RSS增加60–64KiB，shmem驻留从784至848KiB，匿名页不增加；仅工具链和最终ELF逐字节相同，最终合同测试不进入发布产物。",
+          "decision": "release_blocker"
+        },
+        {
+          "id": "netifd-memory-idle",
+          "source_group": "05eb3710",
+          "evidence": {
+            "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/memory-regressions.json",
+            "sha256": "e9c4947b95e4080e4532a6148600d81a95c43028e475272b52b9647b99fa48ce"
+          },
+          "finding": "匿名RSS及总RSS增加4–8KiB；空闲CPU中位增加6.046µs/s，单核占用率约+0.000605个百分点。每秒检查次数未增；UP接口的地址/路由到期遍历是可达新增工作，缺函数计数不能全量归因。",
+          "decision": "release_blocker"
+        },
+        {
+          "id": "odhcpd-memory",
+          "source_group": "a081c214 and b00e63bf; not separately isolated",
+          "evidence": {
+            "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/memory-regressions.json",
+            "sha256": "e9c4947b95e4080e4532a6148600d81a95c43028e475272b52b9647b99fa48ce"
+          },
+          "finding": "空租约及有租约阶段RSS/匿名RSS中位高4KiB；空租约偏移仅工具链已有，final与工具链区间重叠。该负载无PD租约，不能归因PD修复；final未见时序回退。",
+          "decision": "release_blocker"
+        },
+        {
+          "id": "reload-cli-memory",
+          "source_group": "a081c214",
+          "evidence": {
+            "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/reload-memory-regression.json",
+            "sha256": "28b149fc3ac6d850b501d0977b02644c9374170e4e117284bfa21ebb4020e9df"
+          },
+          "finding": "单进程观测峰值RSS484→488KiB，匿名28KiB不变；仅工具链与final源码和ELF相同。不是并发进程树总量，也不保证捕捉绝对峰值。",
+          "decision": "release_blocker"
+        }
+      ],
+      "original_windows_retained": true,
+      "longer_windows_retained": 40,
+      "product_changed_after_measurement": false,
+      "policy": "保留必升Rust1.100、已证明必要的正确性修复和唯一iwinfo perf；没有另做性能优化或擅自放宽全区间门槛。未能在本轮约束内消除的代价按指令列为发版阻塞。",
+      "remaining_original_nonoverlap_metrics": [
+        {
+          "workload": "fourway-logd",
+          "metric": "syslog_128.throughput",
+          "unit": "ops/s",
+          "new": {
+            "n": 5,
+            "min": 49221.82109746828,
+            "max": 55137.33078411766,
+            "median": 54230.850290246904
+          },
+          "baseline": {
+            "n": 5,
+            "min": 56783.863070938314,
+            "max": 58504.22864615619,
+            "median": 57977.488309513465
+          },
+          "classification": "regression",
+          "median_delta": -3746.63801926656,
+          "delta_pct": -6.462228924552736
+        },
+        {
+          "workload": "fourway-httpd",
+          "metric": "static_16k.p95_us",
+          "unit": "µs",
+          "new": {
+            "n": 5,
+            "min": 442.109,
+            "max": 623.77,
+            "median": 472.502
+          },
+          "baseline": {
+            "n": 5,
+            "min": 368.399,
+            "max": 411.025,
+            "median": 395.483
+          },
+          "classification": "regression",
+          "median_delta": 77.019,
+          "delta_pct": 19.474667684830955
+        },
+        {
+          "workload": "fourway-httpd",
+          "metric": "static_16k.subject_cpu_us_per_op",
+          "unit": "µs/op",
+          "new": {
+            "n": 5,
+            "min": 140.7626845,
+            "max": 167.646505,
+            "median": 149.694202
+          },
+          "baseline": {
+            "n": 5,
+            "min": 130.49714,
+            "max": 134.76518,
+            "median": 132.17960399999998
+          },
+          "classification": "regression",
+          "median_delta": 17.514598000000007,
+          "delta_pct": 13.250605592675257
+        },
+        {
+          "workload": "fourway-procd",
+          "metric": "idle.VmRSS",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 940,
+            "max": 944,
+            "median": 940
+          },
+          "baseline": {
+            "n": 5,
+            "min": 880,
+            "max": 880,
+            "median": 880
+          },
+          "classification": "regression",
+          "median_delta": 60,
+          "delta_pct": 6.818181818181818
+        },
+        {
+          "workload": "fourway-procd",
+          "metric": "resident.VmRSS",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 940,
+            "max": 944,
+            "median": 940
+          },
+          "baseline": {
+            "n": 5,
+            "min": 880,
+            "max": 880,
+            "median": 880
+          },
+          "classification": "regression",
+          "median_delta": 60,
+          "delta_pct": 6.818181818181818
+        },
+        {
+          "workload": "fourway-netifd",
+          "metric": "idle.RssAnon",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 200,
+            "max": 200,
+            "median": 200
+          },
+          "baseline": {
+            "n": 5,
+            "min": 192,
+            "max": 196,
+            "median": 196
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 2.0408163265306123
+        },
+        {
+          "workload": "fourway-netifd",
+          "metric": "idle.VmRSS",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 1252,
+            "max": 1252,
+            "median": 1252
+          },
+          "baseline": {
+            "n": 5,
+            "min": 1244,
+            "max": 1248,
+            "median": 1248
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 0.32051282051282054
+        },
+        {
+          "workload": "fourway-netifd",
+          "metric": "idle.cpu_us_per_s",
+          "unit": "µs/s",
+          "new": {
+            "n": 5,
+            "min": 35.0385,
+            "max": 42.8002,
+            "median": 39.261300000000006
+          },
+          "baseline": {
+            "n": 5,
+            "min": 32.5616,
+            "max": 34.6614,
+            "median": 33.215300000000006
+          },
+          "classification": "regression",
+          "median_delta": 6.045999999999999,
+          "delta_pct": 18.20245489277531
+        },
+        {
+          "workload": "fourway-netifd",
+          "metric": "resident.RssAnon",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 200,
+            "max": 200,
+            "median": 200
+          },
+          "baseline": {
+            "n": 5,
+            "min": 192,
+            "max": 196,
+            "median": 196
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 2.0408163265306123
+        },
+        {
+          "workload": "fourway-netifd",
+          "metric": "resident.VmRSS",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 1252,
+            "max": 1252,
+            "median": 1252
+          },
+          "baseline": {
+            "n": 5,
+            "min": 1244,
+            "max": 1248,
+            "median": 1248
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 0.32051282051282054
+        },
+        {
+          "workload": "fourway-odhcpd",
+          "metric": "empty.RssAnon",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 80,
+            "max": 84,
+            "median": 80
+          },
+          "baseline": {
+            "n": 5,
+            "min": 76,
+            "max": 76,
+            "median": 76
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 5.2631578947368425
+        },
+        {
+          "workload": "fourway-odhcpd",
+          "metric": "empty.VmRSS",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 804,
+            "max": 808,
+            "median": 804
+          },
+          "baseline": {
+            "n": 5,
+            "min": 800,
+            "max": 800,
+            "median": 800
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 0.5
+        },
+        {
+          "workload": "fourway-odhcpd",
+          "metric": "populated.RssAnon",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 88,
+            "max": 92,
+            "median": 88
+          },
+          "baseline": {
+            "n": 5,
+            "min": 84,
+            "max": 84,
+            "median": 84
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 4.761904761904762
+        },
+        {
+          "workload": "fourway-odhcpd",
+          "metric": "populated.VmRSS",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 812,
+            "max": 816,
+            "median": 812
+          },
+          "baseline": {
+            "n": 5,
+            "min": 808,
+            "max": 808,
+            "median": 808
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 0.49504950495049505
+        },
+        {
+          "workload": "fourway-reload-config-memory",
+          "metric": "max_per_process_VmRSS_kib",
+          "unit": "KiB",
+          "new": {
+            "n": 5,
+            "min": 488,
+            "max": 488,
+            "median": 488
+          },
+          "baseline": {
+            "n": 5,
+            "min": 484,
+            "max": 484,
+            "median": 484
+          },
+          "classification": "regression",
+          "median_delta": 4,
+          "delta_pct": 0.8264462809917356
+        }
+      ],
+      "scope": "所有结论仅覆盖所列私有namespace或只读无线查询场景；RSS不相加外推整机。原始长窗复核不覆盖初测。",
+      "confirmed_blocker_groups": [
+        "logd-throughput",
+        "procd-memory",
+        "netifd-memory-idle",
+        "odhcpd-memory",
+        "reload-cli-memory"
+      ],
+      "httpd_note": "长窗没有持续复现首轮CPU/p95回退；只说明本次更长静态请求复核范围内未复现，不删除原始门槛失败，也不外推所有HTTP场景。"
+    }
   },
   "primary_completion_fields": [
-    "four_way_no_final_regressions",
-    "router_final_identity"
+    "four_way_no_final_regressions"
   ],
   "sources": [
     {
@@ -16948,6 +17894,10 @@
       "ci/release-image-44616018468/owrt-image-25.12.6-db34b429d03be3130360cd39d848f49a4023edc2/manifest.json": "f3a2afc737862beeff3cd4564f0091cad376e9a74ed0effa60d5d2e3aaf467b9",
       "ci/release-image-44616018468/owrt-image-25.12.6-db34b429d03be3130360cd39d848f49a4023edc2/SHA256SUMS": "4af723834b963cd2ae7f794bb4b426366555cf9ba05e15287856b2b86aae5df4",
       "ci/release-image-44616018468/owrt-image-25.12.6-db34b429d03be3130360cd39d848f49a4023edc2/binary-sha256.txt": "1632c83645c35f9fb7d1f6a9a5c33e4448a40ba52f956f04b05798883481e226",
+      "final-identity-receipt.json": "ee1e4caa2d079a7ad3acc3da66626896be8838b2b90cb4fb5d9875555ae82385",
+      "device/identity-before.txt": "0625c767722a3174204e4dcc28041324dff12bfd19d7bdec26a522518a31f7b5",
+      "device/identity-final.txt": "0625c767722a3174204e4dcc28041324dff12bfd19d7bdec26a522518a31f7b5",
+      "device/health-final.json": "26b95831739bc1e52503b191104aa1adb97f9780fde251689b3702108e7418d8",
       "ci/final-success-initial.json": "631fe1bc8ec2e50d242b23cd9555c538ce18684315956d9d1592b9c483526f4c",
       "final-gates/result.json": "27eaf6ce433ca89dfd838cd6cff53add39847d4b1db2ca2fd93f13a228ac0d83",
       "cleanup-preservation.json": "5142e3fb40b4b9f4745e990bb2cf93dee1ad9a13a8111f9fbd082abb303189b2",
@@ -16957,5 +17907,28 @@
       "cleanup-evidence/r3-blind-other/docs/reviews/AUDIT110_R3_DNS_8E42E8B7_SIDE_REVIEW_20261119.md": "ded6a94fb248d105bb7a007444ec121cd8d2d4adf2d706165d9b15ab5441b471",
       "cleanup-evidence/r3-blind-other/private/r3-other-closeout/ring-wire-results.json": "d4ad43cd3e6d9fcc5aedbedc878beb6e7ed29dcffa24a1fd88f7009b844a8b58"
     }
+  },
+  "completion": {
+    "task_status": "completed_with_release_blockers",
+    "original_pending_count": 0,
+    "blind_commits": 39,
+    "aa_windows": 45,
+    "fourway_windows": 340,
+    "followup_windows": 40,
+    "all_windows_retained": 425,
+    "physical_flash_or_reboot": false,
+    "main_push": false,
+    "merge_tag_release": false,
+    "candidate_branch": "candidate/audit110-r3",
+    "ci_branch": "ci/audit110-r3",
+    "product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+    "decision_required_for_release": "按当前严格无退步门槛不放行；后续须解决阻塞或由用户明确接受代价/调整门槛，当前轮不含新性能优化。"
+  },
+  "cleanup": {
+    "retired_task_worktrees": 6,
+    "preserved_ref_prefix": "refs/heads/archive/audit110-r3/20261119/",
+    "receipt": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/cleanup-result.json",
+    "receipt_sha256": "49b7d2315ac345db16e76ddea8530558aad894a577b3955660d955f39164ba83",
+    "user_original_files_untouched": 12
   }
 }
