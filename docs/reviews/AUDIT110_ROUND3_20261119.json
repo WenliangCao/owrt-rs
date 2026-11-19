@@ -1,0 +1,2659 @@
+{
+  "schema_version": 2,
+  "date": "2026-11-19",
+  "status": "delivery_ledger_draft",
+  "release_qualified": false,
+  "purpose": "汇总39盲审、19最终取舍与9任务；不是可刷机认证。本文编写只读原资料和Git，未构建或访问路由器。",
+  "snapshot": {
+    "main_head_observed": "b9d86de79524ac0b6c457f726f6b0cf991c46e67",
+    "release_base": "1e25d61dc707833f97afa5a56148f4dbceb50ed3",
+    "toolchain_base": "0cbc328d29c31ad585f69292c1bbde1bbef84042",
+    "toolchain_only": "a081c214c51b3514f06c63b76027cbee49558e71",
+    "reviewed_candidate": "153c4589647125a5ad20653d73ee449502eb6c89",
+    "assembly_branch": "candidate/audit110-r3",
+    "assembly_snapshot": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+    "ledger_worktree_product_head": "c5ed0e144fe756febf5eb1bbc7984e071142a06d",
+    "branch_tip_is_a_snapshot_not_a_final_release": true,
+    "product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+    "product_git_tree": "1e2ad3c21a22920618c82b7cb4c8022cdce5b7cd",
+    "components_tree": "cddf931aa79b04ec4be1dcf019d54ba030df9c9f",
+    "history_reassembled_tree_identical": true,
+    "assembly_source_id": "S26"
+  },
+  "counts": {
+    "blind_reviews": 39,
+    "blind_source_only": 25,
+    "blind_with_bounded_executions": 14,
+    "blind_duplicates": 0,
+    "blind_missing": 0,
+    "original_pending": 19,
+    "pending_accept_modified": 4,
+    "pending_reject": 14,
+    "pending_decided_not_to_do": 1,
+    "original_pending_remaining": 0,
+    "task_statuses": 9,
+    "tasks_modified_adoption": 3,
+    "tasks_no_new_fix": 6,
+    "additional_source_findings_assigned": 2,
+    "additional_source_findings_pending_integration": 0,
+    "additional_source_findings_fixed_and_integrated": 2
+  },
+  "evidence_rules": [
+    "source_only不记为已运行；预测base失败不记为实际失败。",
+    "Rust单测、exact C函数oracle、注入故障、stock daemon wire和硬件验收分别标注。",
+    "保留既有合同的测试允许base通过；这不是产品修复的base-fail证据。",
+    "引用旧实测不代表本轮重跑；有界拒绝不表示穷尽证明无缺陷。",
+    "映射是内容归组；squash后的group_commit不要求原commit成为祖先。",
+    "19旧待定结案与额外源码意见、发布验收是否完成是不同字段。"
+  ],
+  "toolchain": {
+    "source_id": "S14",
+    "source_commit": "a081c214c51b3514f06c63b76027cbee49558e71",
+    "rust": {
+      "old": "1.98.1",
+      "new": "1.100.0",
+      "llvm": "23.1.5",
+      "edition_policy": "Keep all16 existing2021 crates. Rust1.100 makes unit never-type fallback a compilation error; the old dependency_on_unit_never_type_fallback lint was removed. Explicitly deny never_type_fallback_flowing_into_unsafe in Linux gates."
+    },
+    "cargo": "huacnlee/cargo0.103.0-1",
+    "lockfiles": [
+      "components/dnsmasq/Cargo.lock",
+      "components/dnsmasq/fuzz/Cargo.lock",
+      "components/dnsmasq/platform/Cargo.lock",
+      "components/fw4/Cargo.lock",
+      "components/httpd/Cargo.lock",
+      "components/logd/Cargo.lock",
+      "components/netifd/Cargo.lock",
+      "components/odhcpd/Cargo.lock",
+      "components/platform/Cargo.lock",
+      "components/procd/Cargo.lock",
+      "components/reload-config/Cargo.lock",
+      "components/rpcd/Cargo.lock",
+      "components/ubus/Cargo.lock",
+      "components/ubusd/Cargo.lock",
+      "components/uci/Cargo.lock",
+      "tools/benchmark/Cargo.lock"
+    ],
+    "lockfile_count": 16,
+    "dependency_upgrades": [
+      {
+        "crate": "cc",
+        "transitions": [
+          {
+            "from": "1.4.4",
+            "to": "1.11.2"
+          },
+          {
+            "from": "1.9.0",
+            "to": "1.11.2"
+          }
+        ],
+        "lockfiles": [
+          "components/dnsmasq/fuzz/Cargo.lock",
+          "components/httpd/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "cfg-if",
+        "transitions": [
+          {
+            "from": "1.0.4",
+            "to": "1.0.5"
+          }
+        ],
+        "lockfiles": [
+          "components/httpd/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "errno",
+        "transitions": [
+          {
+            "from": "0.3.14",
+            "to": "0.3.15"
+          }
+        ],
+        "lockfiles": [
+          "components/dnsmasq/Cargo.lock",
+          "components/dnsmasq/fuzz/Cargo.lock",
+          "components/dnsmasq/platform/Cargo.lock",
+          "components/fw4/Cargo.lock",
+          "components/httpd/Cargo.lock",
+          "components/logd/Cargo.lock",
+          "components/netifd/Cargo.lock",
+          "components/odhcpd/Cargo.lock",
+          "components/platform/Cargo.lock",
+          "components/procd/Cargo.lock",
+          "components/reload-config/Cargo.lock",
+          "components/rpcd/Cargo.lock",
+          "components/ubus/Cargo.lock",
+          "components/ubusd/Cargo.lock",
+          "components/uci/Cargo.lock",
+          "tools/benchmark/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "find-msvc-tools",
+        "transitions": [
+          {
+            "from": "0.1.11",
+            "to": "0.1.15"
+          }
+        ],
+        "lockfiles": [
+          "components/httpd/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "libc",
+        "transitions": [
+          {
+            "from": "0.2.189",
+            "to": "0.2.191"
+          },
+          {
+            "from": "0.2.190",
+            "to": "0.2.191"
+          }
+        ],
+        "lockfiles": [
+          "components/dnsmasq/Cargo.lock",
+          "components/dnsmasq/fuzz/Cargo.lock",
+          "components/dnsmasq/platform/Cargo.lock",
+          "components/fw4/Cargo.lock",
+          "components/httpd/Cargo.lock",
+          "components/logd/Cargo.lock",
+          "components/netifd/Cargo.lock",
+          "components/platform/Cargo.lock",
+          "components/procd/Cargo.lock",
+          "components/reload-config/Cargo.lock",
+          "components/rpcd/Cargo.lock",
+          "components/ubus/Cargo.lock",
+          "components/ubusd/Cargo.lock",
+          "components/uci/Cargo.lock",
+          "tools/benchmark/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "rustix",
+        "transitions": [
+          {
+            "from": "1.1.5",
+            "to": "1.1.6"
+          }
+        ],
+        "lockfiles": [
+          "components/dnsmasq/Cargo.lock",
+          "components/dnsmasq/fuzz/Cargo.lock",
+          "components/dnsmasq/platform/Cargo.lock",
+          "components/fw4/Cargo.lock",
+          "components/httpd/Cargo.lock",
+          "components/logd/Cargo.lock",
+          "components/netifd/Cargo.lock",
+          "components/odhcpd/Cargo.lock",
+          "components/platform/Cargo.lock",
+          "components/procd/Cargo.lock",
+          "components/reload-config/Cargo.lock",
+          "components/rpcd/Cargo.lock",
+          "components/ubus/Cargo.lock",
+          "components/ubusd/Cargo.lock",
+          "components/uci/Cargo.lock",
+          "tools/benchmark/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "rustls-pki-types",
+        "transitions": [
+          {
+            "from": "1.15.1",
+            "to": "1.16.0"
+          }
+        ],
+        "lockfiles": [
+          "components/httpd/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "rustls-webpki",
+        "transitions": [
+          {
+            "from": "0.103.16",
+            "to": "0.103.17"
+          }
+        ],
+        "lockfiles": [
+          "components/httpd/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "windows-link",
+        "transitions": [
+          {
+            "from": null,
+            "to": "0.2.1"
+          }
+        ],
+        "lockfiles": [
+          "components/httpd/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "windows-sys",
+        "transitions": [
+          {
+            "from": "0.52.0",
+            "to": "0.61.2"
+          }
+        ],
+        "lockfiles": [
+          "components/httpd/Cargo.lock"
+        ]
+      },
+      {
+        "crate": "zeroize",
+        "transitions": [
+          {
+            "from": "1.9.0",
+            "to": "1.9.2"
+          }
+        ],
+        "lockfiles": [
+          "components/httpd/Cargo.lock"
+        ]
+      }
+    ],
+    "not_upgraded": [
+      {
+        "name": "windows-link",
+        "selected": [
+          "0.2.1"
+        ],
+        "latest_stable": "0.100.0",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "r-efi",
+        "selected": [
+          "6.0.0"
+        ],
+        "latest_stable": "7.2.0",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "wasi",
+        "selected": [
+          "0.11.1+wasi-snapshot-preview1"
+        ],
+        "latest_stable": "0.14.7+wasi-0.2.4",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows-targets",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.5",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows_aarch64_gnullvm",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.1",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows_aarch64_msvc",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.1",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows_i686_gnu",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.1",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows_i686_gnullvm",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.1",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows_i686_msvc",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.1",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows_x86_64_gnu",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.1",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows_x86_64_gnullvm",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.1",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      },
+      {
+        "name": "windows_x86_64_msvc",
+        "selected": [
+          "0.52.6"
+        ],
+        "latest_stable": "0.53.1",
+        "newer_available": true,
+        "reason": "Transitive dependency for a nondeployment platform; upstream semver constraint, no advisory; upgrading would require unrelated upstream dependency changes."
+      }
+    ],
+    "historical_pins": "Historical release manifests, archived experiments and the frozen DYN1 diagnostic retain1.98.1. PGO training supports old freezes for the required A/A and uses a separately frozen Rust/LLVM pair for new candidates.",
+    "audit": {
+      "reported_lockfiles": 16,
+      "all_exit_zero": true,
+      "reported_vulnerabilities": 0,
+      "scope": "该报告冻结的依赖版本，不代替将来advisory更新。"
+    },
+    "reported_host_verification": {
+      "host": "oracle (aarch64 Linux)",
+      "compiler": "Rust1.100.0 / LLVM23.1.5; absolute RUSTC from rustup which rustc",
+      "rust_gates": "make test check-rust fmt-check check-benchmark check-toolchain all passed in all-gates-2.log",
+      "remaining_gates": "make check-toolchain-negative check-tools check-harnesses; python3 tools/test_ci_check_core.py all passed in remaining-gates.log",
+      "corrected_failures": [
+        "Rust1.100 runtime FFI symbol signature lints, Atomic::fetch_update rename and needless_bool",
+        "Removed dependency_on_unit_never_type_fallback lint: behavior is now a compiler error",
+        "Shared Cargo cached a Rust1.98.1 compiler identity through the rustup proxy; explicit absolute RUSTC resolves this",
+        "Negative CARGO_BUILD_RUSTC test must unset higher-priority RUSTC"
+      ],
+      "logs": {
+        "all-gates-2.log": "41f8566a6ad3d7ba153adbee5dfc6aab8ba8c7578574a4f41534a5a28300ece4",
+        "remaining-gates.log": "8d93111a249429f86a9d6bda043271719360be71463650f9407f8fef27d0ac18"
+      },
+      "target_ci": "Pending official workflow and PGO steps; host results are not firmware qualification"
+    },
+    "execution_by_ledger_author": false
+  },
+  "reviewed_39": [
+    {
+      "commit": "2804d6b61ac9303bca6822c76770504216dd53db",
+      "subject": "test(dnsmasq): lock shared listener iface-done latch on partial TFTP bind failure",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S04",
+        "report": "r3-blind-dns-b.json",
+        "coverage_json_pointer": "/reviews/0/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "ACCEPT as contract coverage; not a production defect fix"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "共享listener latch测试保留；特权TFTP/全transport分支未按独立namespace重新执行。",
+      "base_regression_evidence": "base已有行为；不是base失败修复",
+      "post_review_evidence": "源码盲审；全库报告不能代替ignored namespace测试执行",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "853666d764ee901b7835dbb9df7704103c4b397f",
+      "subject": "test(dnsmasq): lock nonblocking unix stream syslog connect retry contract",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S04",
+        "report": "r3-blind-dns-b.json",
+        "coverage_json_pointer": "/reviews/1/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "ACCEPT the behavior-preserving test seam and retry coverage; retain the inherited diagnostic caveat"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "保留UNIX syslog重试覆盖及私有测试入口；继承的fallback errno文本缺口未宣称修复。",
+      "base_regression_evidence": "base已有retry集合；不是base失败修复",
+      "post_review_evidence": "源码盲审；后续全库检查由S10报告",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "2ab19c4ea6e119dacb58cf8f46a34b45b3d0eb7e",
+      "subject": "fix(dnsmasq): escape routing label separators after exact C wire review",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S04",
+        "report": "r3-blind-dns-b.json",
+        "coverage_json_pointer": "/reviews/2/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "ACCEPT the fix; optional small deduplication"
+      },
+      "decision": "保留修复",
+      "reason_zh": "按C转义label内分隔符，避免单label被拆作domain suffix或DS parent。",
+      "base_regression_evidence": "盲审预测base失败；本汇总无独立base重放记录",
+      "post_review_evidence": "源码盲审与代理全库门禁分别记录",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "e5164e9054f4433cd96914143b08c5692ab1ae26",
+      "subject": "fix(dnsmasq): preserve non-QUERY upstream replies as exact C does",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S04",
+        "report": "r3-blind-dns-b.json",
+        "coverage_json_pointer": "/reviews/3/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "REQUEST SMALL FOLLOW-UP for complete C parity: retain the reply guards, fix TCP notice/counter gaps and correct the tests"
+      },
+      "decision": "修订后保留",
+      "reason_zh": "保留non-QUERY策略gate，补齐B3/B4及日志阳性对照，移除原弱断言的歧义。",
+      "base_regression_evidence": "fc303291有base失败回归",
+      "post_review_evidence": "S10中的TCP通知/UDP日志与计数回归",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "fc303291823576df26b02feedb4e9fb64b9b1e5b"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "fbd91e1c39643455ffad3a5e9ff86659d861a35a",
+      "subject": "fix(dnsmasq): route relayed leasequery replies through the kernel table",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S04",
+        "report": "r3-blind-dns-b.json",
+        "coverage_json_pointer": "/reviews/4/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "ACCEPT"
+      },
+      "decision": "保留修复",
+      "reason_zh": "relay与RelaySource使用内核路由选择，不强制入接口作为出接口。",
+      "base_regression_evidence": "盲审预测relay ifindex断言base失败",
+      "post_review_evidence": "源码与Destination测试；未证明真实多接口路由收发",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "786f4f86a2c69eca1969fb8b6d37306eae11c2c8",
+      "subject": "fix(dnsmasq): refresh inferred DHCP addresses on hostsdir updates",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S04",
+        "report": "r3-blind-dns-b.json",
+        "coverage_json_pointer": "/reviews/5/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "ACCEPT"
+      },
+      "decision": "保留修复",
+      "reason_zh": "hostsdir刷新重新推断固定地址并恢复lookup readiness，同时保留无效bank边界。",
+      "base_regression_evidence": "盲审证明stale inference路径；独立base运行未在本汇总补做",
+      "post_review_evidence": "源码盲审；后续代理全库门禁",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "b57c5882cdc7350b07c4fe0985df986a188dc9bf",
+      "subject": "fix(httpd): retry Interrupted reads across request bodies and CGI relay",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S05",
+        "report": "other.json",
+        "coverage_json_pointer": "/reviews/6/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "reproduced_base_defect"
+      },
+      "decision": "修订后保留",
+      "reason_zh": "body/CGI重试保留已读状态，196fe7e2补stdout EAGAIN，不把首个candidate失败记作通过。",
+      "base_regression_evidence": "移植测试base失败",
+      "post_review_evidence": "S05：注入body EINTR/stdout EAGAIN；C行为部分由源码支持",
+      "group_commit": "a3bba35485932485d8d58c2165b977616104c170",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "196fe7e219171ad4bba8a43ac0c0fa7e058809f7"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "cc34d9e523bbd5b1e749accb02e99949814a7420",
+      "subject": "test(procd): lock watchdog set_stopped timer parity when device is absent",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S05",
+        "report": "other.json",
+        "coverage_json_pointer": "/reviews/7/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "contract_coverage"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "锁定无watchdog设备时仍有timer的合同，adc5a10e校正文档；没有真实watchdog硬件验证。",
+      "base_regression_evidence": "base测试通过",
+      "post_review_evidence": "S05：Rust可控clock/open错误；C为源码复核",
+      "group_commit": "cd50958355b256efe8da497053bd7d059cb0dd1b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "adc5a10ef00057fc8785f08d95ea0607dfb7c9d5"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "dc9415cb91b49136126f6416a3341dd1ac8e39c5",
+      "subject": "test(rpcd): lock upstream uci apply non-positive and overflow timeout clamping",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S05",
+        "report": "other.json",
+        "coverage_json_pointer": "/reviews/8/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "contract_coverage"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "保留apply timeout signed/overflow clamping，不把helper提取当产品修复。",
+      "base_regression_evidence": "base原算术提取后八个边界通过",
+      "post_review_evidence": "S05：Rust边界测试；C为源码复核",
+      "group_commit": "6d626b3be8e69d47ae5e083f12c7d10b8e34217b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "7dcbf1cfe158ebbd3b041b64916dbd0c3e551a8c",
+      "subject": "test(logd): cover immediate and queued oneshot stream drains",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S05",
+        "report": "other.json",
+        "coverage_json_pointer": "/reviews/9/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "contract_coverage"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "保留oneshot立即完成与backpressure drain顺序/EOF覆盖。",
+      "base_regression_evidence": "base测试通过",
+      "post_review_evidence": "S05：Rust真实非阻塞pipe；C为源码复核",
+      "group_commit": "1fdaac74e943b96e33780e27ef7b2607675d10f4",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "0c82bd58c978a3b3a997740f9ba51bcc6c90b538",
+      "subject": "test(httpd): lock uh_path_lookup prefix scan and PATH_INFO semantics",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S05",
+        "report": "other.json",
+        "coverage_json_pointer": "/reviews/10/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "contract_coverage"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "锁定prefix scan和未折叠PATH_INFO；-S按realpath路径处理。",
+      "base_regression_evidence": "base八case通过",
+      "post_review_evidence": "S05：stock CGI/PATH_INFO与Rust lookup",
+      "group_commit": "a3bba35485932485d8d58c2165b977616104c170",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "5c7aaf6bb88d22281a26c29dc84d04a11ab890b4",
+      "subject": "fix(odhcpd): preserve bus replies when refresh work is queued",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S05",
+        "report": "other.json",
+        "coverage_json_pointer": "/reviews/11/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "reproduced_base_defect"
+      },
+      "decision": "保留修复",
+      "reason_zh": "refresh不占reply容量；计数覆盖已接受请求到reply尝试，未宣称运行stock odhcpd全链路。",
+      "base_regression_evidence": "base refresh占slot后第八reply失败",
+      "post_review_evidence": "S05：同步队列burst及stock ubusd+fixture netifd",
+      "group_commit": "b00e63bf6d5bd4525d476d56d38fc44dee164e98",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "1e8c3bd5d516f13c2ad3c59561bd882b645daa03",
+      "subject": "fix(httpd): retain parked TLS connections on spurious readiness",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S05",
+        "report": "other.json",
+        "coverage_json_pointer": "/reviews/12/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "reproduced_base_defect"
+      },
+      "decision": "修订后保留",
+      "reason_zh": "spurious readiness保留TLS连接；788f1034补Handoff+HUP并隔离配置。",
+      "base_regression_evidence": "base empty-readiness丢slot",
+      "post_review_evidence": "S05：注入classifier与真实loopback TLS/EOF",
+      "group_commit": "a3bba35485932485d8d58c2165b977616104c170",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "788f1034c7e786e3f57d6fef8736ea8f8a4d8e11"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "153c4589647125a5ad20653d73ee449502eb6c89",
+      "subject": "perf(rpcd): deduplicate repeated nl80211 and hardware queries in iwinfo info",
+      "kind": "performance",
+      "blind_review": {
+        "source_id": "S05",
+        "report": "other.json",
+        "coverage_json_pointer": "/reviews/13/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "query_deduplication"
+      },
+      "decision": "唯一保留的perf；已归组",
+      "reason_zh": "保留去重，6711d633按首次旧调用位置取快照；旧真机收益不替代本轮四方验收。",
+      "base_regression_evidence": "不是缺陷base失败断言",
+      "post_review_evidence": "S05：23个iwinfo测试及静态调用计数；无新硬件/性能实验",
+      "group_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "6711d6335183ae5303e5770967ca5fc3d0f2a1b2"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "e056d39afc5c091ada5040a5f166dbbb20acfdd7",
+      "subject": "fix(netifd): start newly autostart-enabled interfaces on config reload",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S06",
+        "report": "r3-blind-net-a.json",
+        "coverage_json_pointer": "/reviews/14/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "targeted_fix"
+      },
+      "decision": "保留修复",
+      "reason_zh": "auto=0→1 reload走普通claim/iface_up；手动down后的no-op reload仍down。",
+      "base_regression_evidence": "实际base start_after_reload失败",
+      "post_review_evidence": "S09/S21：C/final namespace通过",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "49991fb6f53ee836d8b28a80b83c711b25ca3799",
+      "subject": "fix(netifd): expire active protocol IP entries before reinstall",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S06",
+        "report": "r3-blind-net-a.json",
+        "coverage_json_pointer": "/reviews/15/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "targeted_fix_with_request_difference"
+      },
+      "decision": "保留修复",
+      "reason_zh": "回收过期协议IP；多发DELADDR只得EADDRNOTAVAIL，未因请求数差异扩大修复。",
+      "base_regression_evidence": "实际base有限地址/路由不退场",
+      "post_review_evidence": "S09/S21：expiry C/final通过",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "5bb773518dde9e0ae40a27daed59c82494d6e011",
+      "subject": "fix(netifd): honor disabled static gateways and isolate proto none",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S06",
+        "report": "r3-blind-net-a.json",
+        "coverage_json_pointer": "/reviews/16/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "targeted_fix_with_scope_limits"
+      },
+      "decision": "保留修复",
+      "reason_zh": "none隔离static配置，defaultroute=0不安装网关。",
+      "base_regression_evidence": "实际base disabled gateway/none断言失败",
+      "post_review_evidence": "S09/S21：C/final通过",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "aebbad87a168791a63a995bf0274aace8684cda9",
+      "subject": "style(netifd): format ported proto none regression",
+      "kind": "format_only",
+      "blind_review": {
+        "source_id": "S06",
+        "report": "r3-blind-net-a.json",
+        "coverage_json_pointer": "/reviews/17/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "format_only"
+      },
+      "decision": "不计缺陷修复",
+      "reason_zh": "只删测试模块空行，无独立产品行为变化。",
+      "base_regression_evidence": "不适用",
+      "post_review_evidence": "源码比较仅一空行；组件门禁通过",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "6862500eb1639dcaac904b4e87043cd282543fb7",
+      "subject": "fix(netifd): preserve typed proto-shell UCI options",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S06",
+        "report": "r3-blind-net-a.json",
+        "coverage_json_pointer": "/reviews/18/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "targeted_fix_with_projection_gaps"
+      },
+      "decision": "保留核心修复",
+      "reason_zh": "保留UCI形状/空白/类型与有效值比较；mtu重复键和typed timer是base已有差异，本轮拒绝扩修。",
+      "base_regression_evidence": "实际base typed参数及reload三项失败",
+      "post_review_evidence": "S09/S21：typed_config C/final通过",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "b9c3aed6376817d55903ac6d3cd1fe76ef7fd61f",
+      "subject": "fix(netifd): retire vanished device presence and shared claims",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S06",
+        "report": "r3-blind-net-a.json",
+        "coverage_json_pointer": "/reviews/19/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "partial_fix"
+      },
+      "decision": "保留修复",
+      "reason_zh": "retire presence和claims；单个reload排序实验未证实新缺陷，不扩写生命周期。",
+      "base_regression_evidence": "实际base named/bulk presence残留",
+      "post_review_evidence": "S09/S21：共享设备消失/恢复",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "82a9759123397a1b130cde332ddd198512ed02f1",
+      "subject": "fix(netifd): destroy unused bridges without rewriting port IPv6 state",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S06",
+        "report": "r3-blind-net-a.json",
+        "coverage_json_pointer": "/reviews/20/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "fix_with_new_ownership_regression"
+      },
+      "decision": "修订后保留",
+      "reason_zh": "7cd413d3限制自管桥清理，保留外桥；不宣称修复所有device sysctl撤销。",
+      "base_regression_evidence": "主线程四方已证明base留自管桥、旧candidate误删外桥",
+      "post_review_evidence": "S02主线程四方裁决；S21只作最终两个回归",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "7cd413d3671c05b09995469344d26d292dae81eb"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "cfa46aa5d57f80163fe13cca92b0d575ae228843",
+      "subject": "test(fw4): lock upstream to_bits compatibility on non-contiguous masks",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S08",
+        "report": "r3-blind-fw-uci.json",
+        "coverage_json_pointer": "/reviews/21/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "retain"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "锁定C to_bits对不连续mask的行为。",
+      "base_regression_evidence": "base已有C行为",
+      "post_review_evidence": "源码盲审；后续组门禁不冒称新C差分",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "70265ee65af94a26b50973b73c5d81f2cef161ee",
+      "subject": "test(fw4): lock upstream negated proto compatibility in rule, redirect, and nat",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S08",
+        "report": "r3-blind-fw-uci.json",
+        "coverage_json_pointer": "/reviews/22/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "retain"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "锁定rule/redirect/nat对negated proto的合同。",
+      "base_regression_evidence": "base已有C行为",
+      "post_review_evidence": "源码盲审；后续组门禁",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "b56497b98f79e1d5f9d41b28e8cfbc9b4a514317",
+      "subject": "test(fw4): lock upstream negated limit compatibility in rule, redirect, and nat",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S08",
+        "report": "r3-blind-fw-uci.json",
+        "coverage_json_pointer": "/reviews/23/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "retain"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "锁定negated limit合同。",
+      "base_regression_evidence": "base已有C行为",
+      "post_review_evidence": "源码盲审；后续组门禁",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "803a1e9e7b1c236fc65b61d10a0c4b02b361c16a",
+      "subject": "test(fw4): lock upstream port-bearing ipset rendering with mixed protocols",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S08",
+        "report": "r3-blind-fw-uci.json",
+        "coverage_json_pointer": "/reviews/24/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "retain"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "锁定带port的ipset在混合protocol下的render。",
+      "base_regression_evidence": "base已有C行为",
+      "post_review_evidence": "源码盲审；后续组门禁",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "f8ac91a24e17f468abd3e693b53c21d3c78dc78b",
+      "subject": "test(fw4): lock upstream parse_setmatch single-delimiter splitting",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S08",
+        "report": "r3-blind-fw-uci.json",
+        "coverage_json_pointer": "/reviews/25/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "retain"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "锁定parse_setmatch只按单个delimiter拆分。",
+      "base_regression_evidence": "base已有C行为",
+      "post_review_evidence": "源码盲审；后续组门禁",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "aa2206898c15096cb4563a353d5c644d714a2c94",
+      "subject": "test(fw4): lock upstream zone range-subnet matching in resolve_dest and reflection",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S08",
+        "report": "r3-blind-fw-uci.json",
+        "coverage_json_pointer": "/reviews/26/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "retain_existing_lock_and_add_discriminating_reflection_fixture"
+      },
+      "decision": "补强后保留",
+      "reason_zh": "6ede6cee让normal/fallback地址不同，补能检出的reflection断言。",
+      "base_regression_evidence": "原reflection断言无判别力；不是base产品缺陷",
+      "post_review_evidence": "S02：exact C选192.168.99.10；mutation退出101",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "6ede6ceea6bcd5c3e4d88e94999b3dd73affb9ea"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "f69ea053d3a8f38fbabde4f25a394e4021a97bec",
+      "subject": "test(uci): lock revert CLI and library parity with libuci 66127cd7",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S08",
+        "report": "r3-blind-fw-uci.json",
+        "coverage_json_pointer": "/reviews/27/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "retain"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "锁定CLI/library revert与libuci 66127cd7合同。",
+      "base_regression_evidence": "base已有C行为",
+      "post_review_evidence": "源码盲审；后续组门禁",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "20e2b8b4cd9a1c521de66f3b2f6ba8c30cce38f6",
+      "subject": "test(uci): isolate revert fixtures from host configuration",
+      "kind": "fixture_only",
+      "blind_review": {
+        "source_id": "S08",
+        "report": "r3-blind-fw-uci.json",
+        "coverage_json_pointer": "/reviews/28/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "retain"
+      },
+      "decision": "保留fixture隔离",
+      "reason_zh": "revert fixture不再依赖host配置。",
+      "base_regression_evidence": "隔离修复，不计产品缺陷",
+      "post_review_evidence": "源码盲审；后续组门禁",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "b32bac157d0a338a2d34400c305b1ebed445768c",
+      "subject": "fix(netifd): preserve offlink routes across interface IP reload",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S07",
+        "report": "r3-blind-net-b.json",
+        "coverage_json_pointer": "/reviews/29/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "real_defect_partial_fix"
+      },
+      "decision": "修订后保留",
+      "reason_zh": "c5ed0e14独立恢复null route并对齐删除顺序；offlink_failure保护候选新增回退。",
+      "base_regression_evidence": "base普通reload多装连接/host路由；失败场景base本来通过",
+      "post_review_evidence": "S09：C/base/旧candidate聚焦；S21最终通过",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "c5ed0e144fe756febf5eb1bbc7984e071142a06d"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "90654c5c160762c5682e2b613a60d58c88ab5eb4",
+      "subject": "fix(netifd): keep inactive protocol routes and neighbors out of the kernel",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S07",
+        "report": "r3-blind-net-b.json",
+        "coverage_json_pointer": "/reviews/30/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "real_defect_partial_fix"
+      },
+      "decision": "保留修复",
+      "reason_zh": "inactive记录不写内核；首次SETUP/reload最终结果未证明需新状态抽象。",
+      "base_regression_evidence": "实际base DOWN通知装route/neighbor并误删外部neighbor",
+      "post_review_evidence": "S09/S21：inactive_ip C/final通过",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "71661f5140373585b8590d65a4ffa3e49bb68d2d",
+      "subject": "test(netifd): replay both exact-ucode stop-during-setup branches",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S07",
+        "report": "r3-blind-net-b.json",
+        "coverage_json_pointer": "/reviews/31/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "test_only_existing_behavior"
+      },
+      "decision": "保留既有合同测试",
+      "reason_zh": "UP分支只setup且最终up；无UP分支setup→teardown且最终down。",
+      "base_regression_evidence": "C/base/final都通过",
+      "post_review_evidence": "S09/S21：两个受控stop分支",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "a091d209522d7448aa10e42884635d7cc6e7b450",
+      "subject": "fix(netifd): apply IPv6 assignment policy with UCI numeric semantics",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S07",
+        "report": "r3-blind-net-b.json",
+        "coverage_json_pointer": "/reviews/32/entry",
+        "evidence_level": "source_only",
+        "original_judgement": "real_defect_partial_fix"
+      },
+      "decision": "修订后保留",
+      "reason_zh": "c5ed0e14记录实际route key、拒绝list ifaceid并保留显式prefix class；不是整张路由表或所有reload组合证明。",
+      "base_regression_evidence": "base忽略class；旧candidate遗留route且误收list ifaceid",
+      "post_review_evidence": "S09/S21：assignment/table100/有效class",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "c5ed0e144fe756febf5eb1bbc7984e071142a06d"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "1e89cd8add2e38acecb7d652ac0e0ea7fbd5e93e",
+      "subject": "fix(dnsmasq): report fatal errors after foreground stdio redirection",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S03",
+        "report": "dns-a.json",
+        "coverage_json_pointer": "/reviews/33/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "production_fix"
+      },
+      "decision": "修订后保留",
+      "reason_zh": "317c11b2补foreground redirect后fatal diagnostics；去除ambient credential依赖。",
+      "base_regression_evidence": "base移植fatal-startup测试失败",
+      "post_review_evidence": "S03：进程日志、stderr/exit及C边界",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "317c11b2914b267b4a22153a65681a257b53d0c2"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "4fb96656c02e5b7afd69f6a72da062d87f3e6066",
+      "subject": "fix(dnsmasq): check local ownership before answering NXDOMAIN",
+      "kind": "production_fix",
+      "blind_review": {
+        "source_id": "S03",
+        "report": "dns-a.json",
+        "coverage_json_pointer": "/reviews/34/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "production_fix"
+      },
+      "decision": "保留修复",
+      "reason_zh": "回答NXDOMAIN前检查local ownership；保留未触达动态接口/broadcast边界。",
+      "base_regression_evidence": "S03已有base/C/Rust语料",
+      "post_review_evidence": "S03：UDP/TCP ownership应答",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "13e41b52a1efad589dc8f559029041126c637039",
+      "subject": "test(dnsmasq): isolate fatal resolver startup branch from privilege dropping",
+      "kind": "fixture_only",
+      "blind_review": {
+        "source_id": "S03",
+        "report": "dns-a.json",
+        "coverage_json_pointer": "/reviews/35/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "fixture_only"
+      },
+      "decision": "修订后保留fixture",
+      "reason_zh": "317c11b2用空user/group隔离fatal resolver路径，不把权限准备失败算watch缺陷。",
+      "base_regression_evidence": "parent无CAP_SETUID失败；旧tip仍受CAP_SETGID影响",
+      "post_review_evidence": "S03：去除两cap后修订fixture通过",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "317c11b2914b267b4a22153a65681a257b53d0c2"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "0f573eb83f7a3dfbf50de1d4196d6af1925f1cc7",
+      "subject": "test(dnsmasq): lock upstream max-ttl answer clipping parity",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S03",
+        "report": "dns-a.json",
+        "coverage_json_pointer": "/reviews/36/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "contract_only"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "4b5d1aaf用有效AAAA mismatch替代短RRSIG；锁定max-ttl，不计产品修复。",
+      "base_regression_evidence": "base/tip原测试均通过",
+      "post_review_evidence": "S03：TTL wire对照及Rust测试",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "4b5d1aaf5e43843cd60195da3661b407cfb98c9f"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "41d347a533f63162ddce6d833bc372f064ac8bf4",
+      "subject": "test(dnsmasq): lock upstream inotify root-slash resolv-file error parity",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S03",
+        "report": "dns-a.json",
+        "coverage_json_pointer": "/reviews/37/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "contract_only"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "4b5d1aaf使用唯一缺失root路径，隔离resolv-file与symlink错误合同。",
+      "base_regression_evidence": "base/tip原测试均通过",
+      "post_review_evidence": "S03：startup C诊断与Rust typed error",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "4b5d1aaf5e43843cd60195da3661b407cfb98c9f"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "cc0b89ec99eae03d51afece0392d0f4395c69ea2",
+      "subject": "test(dnsmasq): lock upstream poll_resolv evaporated-file warning parity",
+      "kind": "contract_test",
+      "blind_review": {
+        "source_id": "S03",
+        "report": "dns-a.json",
+        "coverage_json_pointer": "/reviews/38/entry",
+        "evidence_level": "bounded_tests_and_source",
+        "original_judgement": "contract_only"
+      },
+      "decision": "保留契约测试",
+      "reason_zh": "保留蒸发resolver的延迟/一次warning顺序；不冒称完整stock事件链复现。",
+      "base_regression_evidence": "base/tip原测试均通过",
+      "post_review_evidence": "S03：exact C函数oracle；live stock poll分支未触达",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "group_role": "内容归组，不表示原commit逐字移植或成为祖先",
+      "followup_source_commits": [
+        "4b5d1aaf5e43843cd60195da3661b407cfb98c9f"
+      ],
+      "integration_status": "present_in_final_product_group",
+      "group_mapping_source": "S26"
+    }
+  ],
+  "original_pending_19": [
+    {
+      "commit": "291d0017fdb4014646805519a2f4aa520d8d3dfd",
+      "subject": "fix(httpd): drain rustls send buffer in CGI relay and nonblocking flush",
+      "component": "httpd",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "真实4MiB TLS无超时均完整，timeout=1四方均截断；未证明新规则要求的缺陷。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "reuse completed round2 focused experiment；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。",
+      "historical_alias": "291d0017"
+    },
+    {
+      "commit": "d4a9cf0dd4d95f17710155bc9b03a497a0652f83",
+      "subject": "test(httpd): lock uhttpd -n 0 script deferral and disconnect cleanup",
+      "component": "httpd",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "仅新增测试/注释；base已有-n0排队合同，未证明生产缺陷。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "existing test/source evidence only; no new experiment required by reject rule；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "5fed3cf7218dc59a29ec5b2e95b70723ee4aa98b",
+      "subject": "fix(platform): set MSG_CMSG_CLOEXEC on SCM_RIGHTS recvmsg",
+      "component": "platform",
+      "previous_decision": "无法判定",
+      "final_decision": "decided_not_to_do",
+      "reason_zh": "用户明确决定不做CLOEXEC；精确C与base均不设该标志。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "reuse completed round2 focused experiment；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "10b0e955e41ecbf08b6502335d4296e87c9d4067",
+      "subject": "fix(ubus): drain extra per-frame descriptors in rx_take_fd",
+      "component": "ubus",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "差异仅内部队列人工置入；未证明真实recvmsg可达并造成C可见差异。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "reuse completed round2 focused experiment；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "3f0f2e0c25a6fd28e03446eff93f82f4d5a61ae9",
+      "subject": "fix(logd): evict all overwritten offsets when a max-size record wraps the ring",
+      "component": "logd",
+      "previous_decision": "无法判定",
+      "final_decision": "accept_modified",
+      "reason_zh": "主审最终裁决修改后采纳22115d3e：真实base abort已修复，正常流/lines/恢复与C一致；默认满环C损坏历史不模拟，有意差异披露。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "本轮真实ring实验",
+      "implementation_source_commits": [
+        "22115d3e7afe2f44ebdec6bfb8529e721aa0d808"
+      ],
+      "candidate_group_commit": "1fdaac74e943b96e33780e27ef7b2607675d10f4",
+      "closed": true,
+      "rejection_meaning": null
+    },
+    {
+      "commit": "f185d4aa9ae3ec909f694bcd883d28cd33dc71fe",
+      "subject": "fix(rpcd): terminate netlink receive loops on transport and framing errors",
+      "component": "rpcd",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "EOF反例来自AF_UNIX适配层，未证明内核netlink自然可达。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "reuse completed round2 focused experiment；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "18ff1214631ccc79d50b6adafc1fb9a12b59d1f8",
+      "subject": "fix(rpcd): avoid 16-bit query ID collisions in rrdns batch lookups",
+      "component": "rpcd",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "C同样复用碰撞ID；未证明客户端完成结果改善，不采纳ID探测改动。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "reuse completed round2 focused experiment；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "3bc3a1ca98dca157e5781455d87223334d83a8ce",
+      "subject": "fix(rpcd): retry interrupted waitpid calls in polling child reaper",
+      "component": "rpcd",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "只经strace人为向WNOHANG注入EINTR，未证明Linux自然可达。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "reuse completed round2 focused experiment；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "0892921ac423a455827e73492f52a9aea7bd4c60",
+      "subject": "fix(netifd): advance wireless queue past removed or unhandled radios",
+      "component": "netifd",
+      "previous_decision": "无法判定",
+      "final_decision": "accept_modified",
+      "reason_zh": "单一可达 held radio0→reload删排队radio1→release 实验证明base卡住radio2。保存被删radio旧配置，按C继续radio1旧setup再到radio2；不采用原patch直接跳过radio1。",
+      "evidence_sources": [
+        "S09",
+        "S21"
+      ],
+      "execution_scope": "本轮真实namespace执行",
+      "implementation_source_commits": [
+        "130c5f6cd0e78bd4bc9f8a63642908ea0bda7a3f"
+      ],
+      "candidate_group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "closed": true,
+      "rejection_meaning": null
+    },
+    {
+      "commit": "5664f06c4af4cced3dcd112ae0bdb304c978ee17",
+      "subject": "fix(procd): clear stale stop and respawn state when updating stopped or halting instances",
+      "component": "procd",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "真实halting更新并回收旧PID后四方相同；stopped合成状态未证明可达。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "reuse completed round2 focused experiment；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "0d7170ad64d962e0d19e43804b0cfd1fda3e0202",
+      "subject": "test(procd): lock upstream user and group lookup fallback semantics",
+      "component": "procd",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "helper提取及测试，没有base生产缺陷证据。",
+      "evidence_sources": [
+        "S11",
+        "S12"
+      ],
+      "execution_scope": "existing test/source evidence only; no new experiment required by reject rule；没有冒称本轮重跑旧命令",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "9a646297475100cee9044c62781e800e2c57b0aa",
+      "subject": "fix(dnsmasq): validate intermediate cached CNAME hops before logging",
+      "component": "dnsmasq",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "拒绝：小缓存冲突/到期后三方输出相同；独立 alias 刷新被缓存命中，未触达原 UID 回收假设。一次实验未证明，不继续扩展。",
+      "evidence_sources": [
+        "S10"
+      ],
+      "execution_scope": "Separate CNAME-type refresh attempt followed by expiry and cache-size=3 conflict.",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "805c24633d3ccd8ee39f719d5266f3b2d91d382c",
+      "subject": "fix(dnsmasq): prune server_sockets mapping when failing upstream UDP socket",
+      "component": "dnsmasq",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "拒绝：共享固定 query-port 的两个上游撤销/恢复均与 C 一致；未证明外部输入能触达 owned-FD POLLNVAL，不把人为关错 FD 当生产输入。",
+      "evidence_sources": [
+        "S10"
+      ],
+      "execution_scope": "Two upstreams sharing query-port=40053, all-servers, resolver withdrawal and restoration.",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "7746362e6578b45b80b24989334e8b5665bc6592",
+      "subject": "fix(dnsmasq): advance fast-retry backoff when server group is unavailable",
+      "component": "dnsmasq",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "拒绝：同地址换域组后，C/base 都取消旧事务、丢弃迟到回复，新的 UDP/TCP 查询正常；未证明保留坏事务或挂起。",
+      "evidence_sources": [
+        "S10"
+      ],
+      "execution_scope": "Domain-group replacement with fast retry due and an injected late response.",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "05c560f10edd1675ff326762a62521f950d1c687",
+      "subject": "fix(dnsmasq): suppress inotify poll interest during async endpoint lookup",
+      "component": "dnsmasq",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "拒绝：真实 hostname 解析被挂起时原子替换 resolv-file，三方随后都正确发布 servers-file 与默认 resolver 的后继配置。",
+      "evidence_sources": [
+        "S10"
+      ],
+      "execution_scope": "Held libc A/AAAA hostname resolution plus concurrent atomic resolv-file replacement.",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "6324e4bc28f48c01d91ead061730d1ef61f0ee50",
+      "subject": "fix(dnsmasq): follow configured CNAME chains into forward cache",
+      "component": "dnsmasq",
+      "previous_decision": "无法判定",
+      "final_decision": "accept_modified",
+      "reason_zh": "采纳并拆为两单元：base 的配置别名缺缓存地址/缓存 CNAME 链，AA 也不正确；隔离原 patch 与缩小版在采纳语料上均与 C 一致。",
+      "evidence_sources": [
+        "S10"
+      ],
+      "execution_scope": "Configured-alias forward-cache wire corpus; original patch isolated from 294, followed by same-input verification of the rewritten units.",
+      "implementation_source_commits": [
+        "0994118572465091227b528809099c489d1c86d5",
+        "e4158aa0d915bc781214adefb42faa4f55d19b40",
+        "95ce20407fb3d75e794711e2656e1c35580684f2",
+        "8a3f2390c784274e228015f336eadf729ef946d5"
+      ],
+      "candidate_group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "closed": true,
+      "rejection_meaning": null,
+      "post_review_quality_followups": "N1/N2已修复并集成，见additional_source_findings；不改变原19项计数。",
+      "integration_commit": "4fb8a8cf49a42199fb3742eadbeb3d4aebe5cc9c",
+      "group_mapping_source": "S26"
+    },
+    {
+      "commit": "52c7110576b9babb4b9be2387cf5e8e823180368",
+      "subject": "fix(dnsmasq): run deferred lease scripts after dynamic option file updates",
+      "component": "dnsmasq",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "拒绝：FIFO 未建立 reader，C/base 都记录 ENXIO，未触达所需 deferred-script 交错；没有把内部 provider 单测当完整 main 的生产复现。",
+      "evidence_sources": [
+        "S10"
+      ],
+      "execution_scope": "Live options FIFO and HUP during pending read, observing helper OLD events.",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "dac49f3fb82a46b68fd86b7c154a08ea3a9b46e6",
+      "subject": "fix(dnsmasq): suppress DHCP maintenance wakeups while file reload is pending",
+      "component": "dnsmasq",
+      "previous_decision": "无法判定",
+      "final_decision": "reject",
+      "reason_zh": "拒绝：FIFO 阻塞期间租约到期，SIGALRM 与 EOF 后三方都删除租约、交付一次 DEL 并保持健康；仅有限等待/唤醒差异不采纳。",
+      "evidence_sources": [
+        "S10"
+      ],
+      "execution_scope": "Near-expiry restored lease, pending options FIFO, SIGALRM, EOF, helper deletion and health.",
+      "implementation_source_commits": [],
+      "candidate_group_commit": null,
+      "closed": true,
+      "rejection_meaning": "拒绝表示未满足本轮可达缺陷门，不表示穷举无缺陷。"
+    },
+    {
+      "commit": "64fd2a2cc5ea999164de27d64f5e6206b6f9c6a3",
+      "subject": "fix(dnsmasq): keep full context chain for SELECTING name tags under server override",
+      "component": "dnsmasq",
+      "previous_decision": "无法判定",
+      "final_decision": "accept_modified",
+      "reason_zh": "采纳：真实不同 local 地址与 relay 67 端口下，override 开启时 base 漏 hostname option12 与租约名，C/fix 均保留；无 override 控制一致。",
+      "evidence_sources": [
+        "S10"
+      ],
+      "execution_scope": "Wide/narrow overlapping ranges, distinct local addresses, relay port 67, override on/off controls.",
+      "implementation_source_commits": [
+        "8e42e8b7e4f33a7a6895986abe859340bd03adcd"
+      ],
+      "candidate_group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "closed": true,
+      "rejection_meaning": null,
+      "integration_commit": "4fb8a8cf49a42199fb3742eadbeb3d4aebe5cc9c",
+      "group_mapping_source": "S26"
+    }
+  ],
+  "tasks_9": [
+    {
+      "id": "T1",
+      "topic": "netifd非有限数值",
+      "original_commit": "ada4f5ef548d0fcf7ff90bd49549ce704658b81e",
+      "decision": "implemented_modified",
+      "result": "base raw ubus NaN/±Inf后teardown SIGABRT；结构化保存并按ucode输出NaN字符串、±1e309，不采用null替代。",
+      "source_commits": [
+        "130c5f6cd0e78bd4bc9f8a63642908ea0bda7a3f"
+      ],
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "evidence_sources": [
+        "S09",
+        "S21"
+      ]
+    },
+    {
+      "id": "T2",
+      "topic": "odhcpd PD全部有效源前缀",
+      "original_commit": "ef2402a648f2b52715d64d4797b6aea41fe0e202",
+      "decision": "implemented_modified",
+      "result": "混合/0、/32、/60来源：C3/base2/fixed3。修复避免按source length做危险shift，并保留原地址高位。",
+      "group_commit": "b00e63bf6d5bd4525d476d56d38fc44dee164e98",
+      "evidence_sources": [
+        "S16",
+        "S17",
+        "S18",
+        "S19",
+        "S11"
+      ],
+      "comparison_contract": "IA_PREFIX (prefix,length,preferred,valid)集合相等；同preferred时排序不同，整包字节不相等。",
+      "prefix_lifetime_sets": {
+        "c": [
+          [
+            "2001:db8:0:4::",
+            62,
+            43200,
+            43200
+          ],
+          [
+            "2001:db8:1:4::",
+            62,
+            43200,
+            43200
+          ],
+          [
+            "fd00:1:0:4::",
+            62,
+            43200,
+            43200
+          ]
+        ],
+        "base": [
+          [
+            "2001:db8:0:4::",
+            62,
+            43200,
+            43200
+          ],
+          [
+            "fd00:1:0:4::",
+            62,
+            43200,
+            43200
+          ]
+        ],
+        "fixed": [
+          [
+            "2001:db8:0:4::",
+            62,
+            43200,
+            43200
+          ],
+          [
+            "2001:db8:1:4::",
+            62,
+            43200,
+            43200
+          ],
+          [
+            "fd00:1:0:4::",
+            62,
+            43200,
+            43200
+          ]
+        ]
+      },
+      "packet_bytes_equal_c_fixed": false,
+      "base_regression": "移植pd_reply_projects_every_shorter_source_like_c到base release：1 failed；测试断言panic不等于运行中daemon panic。"
+    },
+    {
+      "id": "T3",
+      "topic": "logd满环记录abort",
+      "original_commit": "3f0f2e0c25a6fd28e03446eff93f82f4d5a61ae9",
+      "decision": "implemented_modified",
+      "result": "base真实历史读取SIGABRT；22115d3e安全淘汰被覆盖头，主审最终允许集成。正常实时流、lines参数与短记录恢复符合C。",
+      "source_commits": [
+        "22115d3e7afe2f44ebdec6bfb8529e721aa0d808"
+      ],
+      "group_commit": "1fdaac74e943b96e33780e27ef7b2607675d10f4",
+      "evidence_sources": [
+        "S11",
+        "S12",
+        "S20"
+      ],
+      "intentional_safety_difference": "默认满环历史：C旧头被正文覆盖，产生损坏id/长度；fixed保留有效记录。不仿造损坏头，不声称完整records或字节等价。",
+      "public_records_equal_to_c": false
+    },
+    {
+      "id": "T4",
+      "topic": "DNS TCP65536与DHCP重复选项（合并为原第4任务）",
+      "decision": "decided_not_to_fix",
+      "evidence_sources": [
+        "S10"
+      ],
+      "subdecisions": [
+        {
+          "topic": "dns-tcp-65536",
+          "decision": "do_not_fix",
+          "reason": "The 65530-byte upstream frame can expand to the internal 65536 boundary. Base closes the client connection before emitting a frame, remains alive and handles the following 65535 control. No daemon panic/abort or illegal client frame was observed, so the stricter hardening criterion is not met. C itself emits a zero-length prefix followed by payload at the expansion boundary.",
+          "evidence_relative_to_S10_root": [
+            "private/tcp65536/result.json"
+          ]
+        },
+        {
+          "topic": "dhcp-duplicate-options",
+          "decision": "do_not_fix",
+          "reason": "For OFFER, ACK and rapid-commit with configured 51/53/54/80 plus encap:54, base emits no reply, remains healthy and exits normally. Its existing InvalidOption encoder rejection prevents illegal mandatory-option duplication. C emits duplicate mandatory options; C behavior is not a reason to make Rust send invalid packets.",
+          "evidence_relative_to_S10_root": [
+            "private/dhcp-duplicates-fixture-repair/result.json"
+          ]
+        }
+      ],
+      "result": "TCP扩张边界base先关闭连接、未abort或发非法frame；重复mandatory option由现有InvalidOption阻止发送。两项均不满足条件采纳门。"
+    },
+    {
+      "id": "T5",
+      "topic": "RA零lifetime",
+      "decision": "decided_not_to_do",
+      "result": "Round3已明确不做：C亦如此且无观察问题。",
+      "evidence_sources": [
+        "S02",
+        "S15"
+      ]
+    },
+    {
+      "id": "T6",
+      "topic": "-S docroot",
+      "decision": "decided_not_to_do",
+      "result": "Round3已明确不做；不把path合同测试转成策略修改。",
+      "evidence_sources": [
+        "S02",
+        "S15"
+      ]
+    },
+    {
+      "id": "T7",
+      "topic": "HEAD错误正文",
+      "decision": "decided_not_to_do",
+      "result": "Round3已明确不做：C亦如此且无观察问题。",
+      "evidence_sources": [
+        "S02",
+        "S15"
+      ]
+    },
+    {
+      "id": "T8",
+      "topic": "CLOEXEC与rpcd信号顺序",
+      "decision": "decided_not_to_do",
+      "result": "Round3已明确不做；5fed3cf7同样在19项中拒绝，避免重复计为修复。",
+      "evidence_sources": [
+        "S02",
+        "S11",
+        "S15"
+      ]
+    },
+    {
+      "id": "T9",
+      "topic": "netifd强杀旧helper",
+      "original_commit": "5405ec2409dc4fa61cbcf1bbd6d13c9afcf453f3",
+      "decision": "decided_not_to_do",
+      "result": "Round3已明确不做，保留C已有restart行为，不增加强杀。",
+      "evidence_sources": [
+        "S09",
+        "S15"
+      ]
+    }
+  ],
+  "post_review_adjudications": [
+    {
+      "topic": "bridge外部误删",
+      "source_ids": [
+        "S02",
+        "S09"
+      ],
+      "original_commit": "82a9759123397a1b130cde332ddd198512ed02f1",
+      "fix_source_commit": "7cd413d3671c05b09995469344d26d292dae81eb",
+      "group_commit": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "decision": "修改后采纳；自管桥删除、外桥保留，四方实证由主线程完成。"
+    },
+    {
+      "topic": "FW reflection弱断言",
+      "source_ids": [
+        "S02",
+        "S08"
+      ],
+      "original_commit": "aa2206898c15096cb4563a353d5c644d714a2c94",
+      "fix_source_commit": "6ede6ceea6bcd5c3e4d88e94999b3dd73affb9ea",
+      "group_commit": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "decision": "补强合同测试；exact C选值与mutation失败证明断言有检出力，不计新产品缺陷。"
+    },
+    {
+      "topic": "non-QUERY盲审B1/B3/B4",
+      "source_ids": [
+        "S04",
+        "S10"
+      ],
+      "original_commit": "e5164e9054f4433cd96914143b08c5692ab1ae26",
+      "fix_source_commit": "fc303291823576df26b02feedb4e9fb64b9b1e5b",
+      "group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "decision": "补TCP notice及UDP计数gate和QUERY阳性对照，已包含于f3c98f1b；不重复集成。"
+    },
+    {
+      "topic": "ring原严格history门",
+      "source_ids": [
+        "S11",
+        "S12",
+        "S20"
+      ],
+      "decision": "以最终主审modified_adoption覆盖暂缓意见；原损坏history差异仍真实并公开。"
+    }
+  ],
+  "known_retained_differences": [
+    {
+      "component": "netifd",
+      "source_id": "S09",
+      "description": "mtu重叠键、custom typed timeout、port orig-settings撤销等base既有差异未扩修；未把所有请求序列宣称C等价。"
+    },
+    {
+      "component": "dnsmasq",
+      "source_ids": [
+        "S10",
+        "S13"
+      ],
+      "description": "无配置CNAME的filter-A过期负终点UDP差异在base/d2/缩小版已存在；不混入此前294组合。ANY stale缺口亦按S13保留归因。"
+    },
+    {
+      "component": "logd",
+      "source_ids": [
+        "S11",
+        "S12"
+      ],
+      "description": "满环损坏历史的有意安全差异，见T3；不能写成完整records等价。"
+    },
+    {
+      "component": "odhcpd",
+      "source_ids": [
+        "S16",
+        "S18"
+      ],
+      "description": "同preferred前缀排序不同；集合等价不等于字节等价。"
+    }
+  ],
+  "additional_source_findings": [
+    {
+      "id": "DNS-N1",
+      "status": "fixed_and_integrated",
+      "source_id": "S13",
+      "source_product_commit": "8e42e8b7e4f33a7a6895986abe859340bd03adcd",
+      "evidence_level": "source_review_followed_by_focused_regression",
+      "finding": "新增配置CNAME地址终点的filtered分支在累计stale前返回；EDE17仍应保留，但可能漏UDP刷新/TCP stale生命周期。",
+      "required_evidence": "已交付前修订失败/修复后通过的聚焦回归；原23个ignored未执行，完整wire大矩阵未重跑。",
+      "final_decision": "fixed_and_integrated",
+      "fix_commit": "95ce20407fb3d75e794711e2656e1c35580684f2",
+      "owner": "Russell",
+      "decision_source": "S29",
+      "validation": {
+        "source_id": "S10",
+        "regression": "configured_cname_filtered_addresses_keep_stale_for_udp_and_tcp",
+        "failing_revision": "bfbfadf07ecf55426a12b494616a5c9f27b626ee",
+        "before_exit": 101,
+        "after": "pass",
+        "suite": {
+          "passed": 883,
+          "failed": 0,
+          "ignored": 23
+        },
+        "clippy": "pass",
+        "fmt": "pass",
+        "proof_limit": "N1 verifies the Stale owner boundary and EDE17; it does not claim a new end-to-end upstream refresh traffic experiment."
+      },
+      "integration_commit": "4fb8a8cf49a42199fb3742eadbeb3d4aebe5cc9c",
+      "original_evidence_level": "source_only",
+      "final_group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "final_product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5"
+    },
+    {
+      "id": "DNS-N2",
+      "status": "fixed_and_integrated",
+      "source_id": "S13",
+      "source_product_commit": "8e42e8b7e4f33a7a6895986abe859340bd03adcd",
+      "evidence_level": "source_review_followed_by_focused_regression",
+      "finding": "EDE路径使用 opt.dnssec_ok() && tcp，配置CNAME指向stale NXDOMAIN时可能清掉UDP DO。",
+      "required_evidence": "已交付前修订失败/修复后通过的聚焦回归；原23个ignored未执行，完整wire大矩阵未重跑。",
+      "final_decision": "fixed_and_integrated",
+      "fix_commit": "8a3f2390c784274e228015f336eadf729ef946d5",
+      "owner": "Russell",
+      "decision_source": "S29",
+      "validation": {
+        "source_id": "S10",
+        "regression": "configured_cname_stale_nxdomain_keeps_do_in_udp_ede",
+        "failing_revision": "bfbfadf07ecf55426a12b494616a5c9f27b626ee",
+        "before_exit": 101,
+        "after": "pass",
+        "suite": {
+          "passed": 883,
+          "failed": 0,
+          "ignored": 23
+        },
+        "clippy": "pass",
+        "fmt": "pass",
+        "proof_limit": "固定时间的packet-output断言；本次未重跑完整wire矩阵。"
+      },
+      "integration_commit": "4fb8a8cf49a42199fb3742eadbeb3d4aebe5cc9c",
+      "original_evidence_level": "source_only",
+      "final_group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "final_product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5"
+    }
+  ],
+  "assembly": {
+    "snapshot": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+    "present_group_commits": {
+      "toolchain": "a081c214c51b3514f06c63b76027cbee49558e71",
+      "ci_binding": "09cbabc6b5351094189be0dd8142844bc71f5e2f",
+      "httpd": "a3bba35485932485d8d58c2165b977616104c170",
+      "fw_uci": "7d662eb71994a2c4a859547311bf7efb014e767e",
+      "dns": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "odhcpd": "b00e63bf6d5bd4525d476d56d38fc44dee164e98",
+      "logd": "1fdaac74e943b96e33780e27ef7b2607675d10f4",
+      "netifd": "05eb371071fd3879ee2619df5fbcb5a084da2a7e",
+      "procd": "cd50958355b256efe8da497053bd7d059cb0dd1b",
+      "rpcd_timeout": "6d626b3be8e69d47ae5e083f12c7d10b8e34217b",
+      "iwinfo_perf": "1f9de983757880c14133998a5befcfdf1d4fafe5"
+    },
+    "dns_additions": {
+      "source_head": "547402166dca3a57d317ea80f69e327e1131f31d",
+      "source_commits": [
+        "0994118572465091227b528809099c489d1c86d5",
+        "e4158aa0d915bc781214adefb42faa4f55d19b40",
+        "8e42e8b7e4f33a7a6895986abe859340bd03adcd",
+        "bfbfadf07ecf55426a12b494616a5c9f27b626ee",
+        "95ce20407fb3d75e794711e2656e1c35580684f2",
+        "8a3f2390c784274e228015f336eadf729ef946d5",
+        "547402166dca3a57d317ea80f69e327e1131f31d"
+      ],
+      "final_integration_commits": [
+        "4fb8a8cf49a42199fb3742eadbeb3d4aebe5cc9c"
+      ],
+      "primary_followup": "N1/N2及格式均已集成；不再有DNS代码待集成，动态CI/固件/四方由主代理继续。",
+      "final_group_commit": "f3c98f1bc33c01790bcde01c79c4897611fd610b",
+      "status": "integrated_and_oracle_gates_passed"
+    },
+    "iwinfo_perf": {
+      "original_commit": "153c4589647125a5ad20653d73ee449502eb6c89",
+      "followup_source_commit": "6711d6335183ae5303e5770967ca5fc3d0f2a1b2",
+      "final_group_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+      "policy": "唯一保留perf，其余39个perf拒绝；不新增性能优化。"
+    },
+    "snapshot_complete_for_release": false,
+    "product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+    "reassembly": {
+      "source_id": "S26",
+      "old_tip": "093a16cfbb3a79d11b7ca3f1c70d9e80a91e4b01",
+      "new_tip": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+      "tree_identical": true,
+      "git_tree": "1e2ad3c21a22920618c82b7cb4c8022cdce5b7cd",
+      "components_tree": "cddf931aa79b04ec4be1dcf019d54ba030df9c9f",
+      "verification": "read_existing_assembly_result_and_verified_git_trees",
+      "mapping_note": "39项与19项、9任务的group字段均指重组后内容组；原修复source commit保持不变。"
+    }
+  },
+  "reported_validation": [
+    {
+      "scope": "工具链分支",
+      "source_id": "S14",
+      "rust": "1.100.0",
+      "result": "报告中的Oracle全仓host gates及16锁audit通过；非最终组合CI。"
+    },
+    {
+      "scope": "netifd独立分片",
+      "source_ids": [
+        "S09",
+        "S21"
+      ],
+      "rust": "1.98.1",
+      "result": "193测试、0 ignored、Clippy/fmt/release及36次C/final namespace通过。"
+    },
+    {
+      "scope": "DNS最终分片",
+      "source_id": "S10",
+      "rust": "1.98.1",
+      "result": "schema2 HEAD54740216：883 passed、0 failed、23 ignored（未执行），Clippy/fmt通过；前修订N1/N2均失败，仅N1修复后N2仍失败，最终均通过。"
+    },
+    {
+      "scope": "logd ring",
+      "source_ids": [
+        "S11",
+        "S12"
+      ],
+      "rust": "1.98.1",
+      "result": "25测试及真实公共read/stream对照，base regression失败；fixed release为host native。"
+    },
+    {
+      "scope": "PD/logd主线程集成",
+      "source_id": "S11",
+      "rust": "1.100.0",
+      "result": {
+        "verification_source": "user/primary report; not rerun by this reviewer",
+        "pd": {
+          "commit": "b00e63bf6d5bd4525d476d56d38fc44dee164e98",
+          "result": "C3/base2/fixed3 full prefix/lifetime sets equal; equal-preferred qsort/stable ordering difference disclosed; Rust1.100 component tests/clippy/fmt PASS"
+        },
+        "logd": {
+          "commit": "1fdaac74e943b96e33780e27ef7b2607675d10f4",
+          "result": "integrated modified adoption; Rust1.100 gates PASS"
+        }
+      },
+      "attribution": "主线程报告；本汇总未重跑。"
+    },
+    {
+      "scope": "netifd主线程集成",
+      "source": "主线程在本会话明确交接",
+      "rust": "1.100.0",
+      "result": "05eb3710已集成7cd413d3+130c5f6c+c5ed0e14，test/clippy/fmt通过；本汇总未重跑。"
+    },
+    {
+      "scope": "组件与冒烟交接（已由最终门禁更新）",
+      "result": "已集成组件的Rust1.100 test/clippy/fmt与最终Oracle全门禁通过；DNS增补与N1/N2均已集成。私有DNS/DHCP6（6个DHCPv4客户端）冒烟通过，身份健康一致。",
+      "attribution": "主代理交接；台账编写者未构建、轮询CI或操作路由器。",
+      "source_ids": [
+        "S22",
+        "S25",
+        "S29"
+      ]
+    },
+    {
+      "scope": "正式v0.3.3配方A/A及CI use",
+      "source_ids": [
+        "S23",
+        "S24"
+      ],
+      "result": "3组45窗通过，所有已测CPU/latency/throughput/RSS/anon/idle区间重叠；低负载DNS/饱和DNS/DHCP6（6个DHCPv4客户端）的CPU中位数差分别+0.592%、+1.944%、-4.034%。主代理报告生产身份健康一致，use44607990145成功且无profile mismatch/编译warning。",
+      "attribution": "读取已有A/A结果；CI use和身份健康由主代理交接，本文未重跑或轮询。"
+    },
+    {
+      "scope": "最终Oracle全部门禁",
+      "source_ids": [
+        "S25",
+        "S26"
+      ],
+      "rust": "1.100.0",
+      "host": "oracle Linux aarch64",
+      "cargo": "huacnlee/cargo0.103.0-1",
+      "result": "passed",
+      "commands": [
+        "make test check-rust fmt-check check-benchmark check-toolchain check-toolchain-negative check-tools check-harnesses"
+      ],
+      "tested_snapshot": "4fb8a8cf",
+      "tested_components_tree": "cddf931aa79b04ec4be1dcf019d54ba030df9c9f",
+      "final_product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+      "tree_binding": "最终产品components tree与受测components tree相同；重组前后完整Git tree也相同。",
+      "scope_limit": "Product snapshot stable; final history reassembly must preserve tree; CI builder followups run relevant Python tests separately",
+      "execution_by_ledger_author": false
+    },
+    {
+      "scope": "5项扩展smoke",
+      "source_ids": [
+        "S27",
+        "S28"
+      ],
+      "result": "全部通过；生产身份和客户端健康保持一致。",
+      "kinds": [
+        "iwinfo",
+        "uci-memory",
+        "fw4-memory",
+        "reload-config-memory",
+        "odhcpd"
+      ],
+      "execution_by_ledger_author": false,
+      "qualification_scope": "已有smoke，不是四方时序/内存验收。"
+    }
+  ],
+  "release_qualification": {
+    "release_qualified": false,
+    "status": "draft_waiting_release_evidence",
+    "aa": {
+      "status": "passed_official_v033_recipe",
+      "online_v033_elf_sha256": null,
+      "ci_rebuilt_v033_elf_sha256": null,
+      "same_recipe_provenance": {
+        "scope": "fresh official v033 recipe A/A;5repeats2shipped+1rebuilt percycle;allwindows retained",
+        "source_id": "S23",
+        "result_at": "2026-11-19T20:41:21.383158+00:00"
+      },
+      "noise_bounds": {
+        "classification": "all_measured_ranges_overlap",
+        "range_kind": "observed_sample_ranges",
+        "metrics": [
+          "CPU",
+          "latency",
+          "throughput",
+          "RSS",
+          "anon",
+          "idle"
+        ],
+        "same_elf_floor_source": "S23",
+        "note": "3组均通过；原始区间及same-ELF floor见S23与其analysis引用。"
+      },
+      "measurement": {
+        "groups": 3,
+        "total_windows": 45,
+        "workloads": {
+          "aa-dns200": {
+            "windows": 15,
+            "all_measured_ranges_overlap": true,
+            "cpu_delta_pct": 0.5920874515180641,
+            "p50_delta_pct": 2.8822468219767527,
+            "throughput_delta_pct": 0.0
+          },
+          "aa-dns-saturation": {
+            "windows": 15,
+            "all_measured_ranges_overlap": true,
+            "cpu_delta_pct": 1.9444883771421617,
+            "p50_delta_pct": 1.0709475727571194,
+            "throughput_delta_pct": -2.873213608752778
+          },
+          "aa-dhcp6": {
+            "windows": 15,
+            "all_measured_ranges_overlap": true,
+            "cpu_delta_pct": -4.034265017917105,
+            "p50_delta_pct": -2.9200687730142616,
+            "throughput_delta_pct": 3.6047983603592737,
+            "workload_description": "6个DHCPv4客户端；DHCP6不是DHCPv6"
+          }
+        }
+      },
+      "passed": true,
+      "source_ids": [
+        "S23",
+        "S24"
+      ],
+      "production_identity_and_health": {
+        "source_id": "S24",
+        "reported_consistent": true,
+        "scope": "A/A执行前后；最终候选四方及发布身份仍待主代理绑定。"
+      },
+      "execution_by_ledger_author": false,
+      "manifest_binding_note": "aa-result没有逐ELF摘要；CI use产物摘要单列于pgo.use_run，不据此推定完整线上/重建manifest。"
+    },
+    "four_way": {
+      "status": "awaiting_four_way_evidence_after_aa_pass",
+      "sides": [
+        {
+          "name": "online_v033",
+          "binary_manifest": null,
+          "memory": null,
+          "idle_cpu": null,
+          "latency_or_throughput": null
+        },
+        {
+          "name": "ci_rebuilt_v033",
+          "binary_manifest": null,
+          "memory": null,
+          "idle_cpu": null,
+          "latency_or_throughput": null
+        },
+        {
+          "name": "toolchain_only",
+          "binary_manifest": null,
+          "memory": null,
+          "idle_cpu": null,
+          "latency_or_throughput": null
+        },
+        {
+          "name": "final_candidate",
+          "binary_manifest": null,
+          "memory": null,
+          "idle_cpu": null,
+          "latency_or_throughput": null
+        }
+      ],
+      "regression_decision": null,
+      "toolchain_effect_separately_reported": null
+    },
+    "pgo": {
+      "status": "v033_generator_transport_and_use_passed",
+      "existing_training_receipt": "private/audit110-round3-20261119/checkpoint.json",
+      "toolchain_profile_manifest": null,
+      "final_candidate_profile_manifest": null,
+      "aa_recipe_binding": null,
+      "note": "tmpcanonical v0.3.3 generator、transport与use均已报告成功；正式配方A/A已通过。最终两版PGO manifest与四方证据仍待绑定。",
+      "v033_comparison_profile": {
+        "run_id": 44603802652,
+        "result": "success",
+        "scenes": 11,
+        "raw_profiles": 50,
+        "merged_sha256": "f6a8dfed8230a70522d22ba2a3c38a2404c97c24b6d38a97bac7fa13037bbed1"
+      },
+      "transport_assembly": {
+        "run_id": 44607652850,
+        "result": "success"
+      },
+      "use_run": {
+        "run_id": 44607990145,
+        "status_at_handoff": "completed",
+        "final_result": "success",
+        "source_id": "S24",
+        "artifact_sha256": "f6bd7dc0906a61a44ab82dd1cf5e91a168b41cd3db02ea9b7c69bc68718a6c53",
+        "artifact_size_bytes": 2321243,
+        "profile_mismatch_reported": false,
+        "compiler_warnings_reported": false,
+        "artifact_scope": "CI use产物；不是最终固件SHA256。",
+        "verification": "reported_by_primary_not_independently_rerun"
+      },
+      "source_ids": [
+        "S22",
+        "S24"
+      ]
+    },
+    "final_ci": {
+      "status": "awaiting_dynamic_ci_for_final_product",
+      "product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+      "workflows": {
+        "ci.yml": {
+          "run_id": null,
+          "result": null
+        },
+        "core-safe-check.yml": {
+          "run_id": null,
+          "result": null
+        },
+        "dnsmasq-target-check.yml": {
+          "run_id": null,
+          "result": null
+        },
+        "dnsmasq-pgo-candidate.yml": {
+          "run_id": null,
+          "result": null
+        },
+        "release-image.yml": {
+          "run_id": null,
+          "result": null
+        }
+      }
+    },
+    "firmware": {
+      "status": "awaiting_final_ci_artifact",
+      "ci_run_id": null,
+      "product_commit": null,
+      "artifact_name": null,
+      "sha256": null
+    },
+    "sizes": {
+      "per_binary_bytes": null,
+      "reload_config_limit_bytes": 524288,
+      "reload_config_observed_bytes": null,
+      "passed": null
+    },
+    "router_final_identity": {
+      "pid_identity_unchanged": null,
+      "binary_hashes_unchanged": null,
+      "boot_identity_unchanged": null,
+      "health_receipt": null,
+      "status": "smoke_identity_health_consistent_final_qualification_receipt_pending"
+    },
+    "baseline_core_validation": {
+      "source_id": "S22",
+      "run_id": 44601798412,
+      "host": "passed",
+      "target": "passed",
+      "scope": "v0.3.3基线core；不是最终组合五workflow全部放行。"
+    },
+    "device_smoke": {
+      "source_id": "S22",
+      "scope": [
+        "DNS",
+        "DHCP6（6个DHCPv4客户端）"
+      ],
+      "result": "passed",
+      "evidence": "private/audit110-round3-20261119/device/smoke/COMPLETE",
+      "identity_and_health_reported_consistent": true,
+      "timing_performed": false,
+      "qualification_scope": "私有DNS/DHCP6（6个DHCPv4客户端）冒烟及当时身份健康检查；不替代最终四方/发版验收。",
+      "scope_correction_source": "S29"
+    },
+    "oracle_final_gates": {
+      "source_id": "S25",
+      "result": "passed",
+      "tested_snapshot": "4fb8a8cf",
+      "components_tree": "cddf931aa79b04ec4be1dcf019d54ba030df9c9f",
+      "final_product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+      "tree_binding_source": "S26",
+      "commands": [
+        "make test check-rust fmt-check check-benchmark check-toolchain check-toolchain-negative check-tools check-harnesses"
+      ]
+    },
+    "extension_smoke": {
+      "source_ids": [
+        "S27",
+        "S28"
+      ],
+      "result": "passed",
+      "fixture_count": 5,
+      "fixtures": [
+        "iwinfo",
+        "uci-memory",
+        "fw4-memory",
+        "reload-config-memory",
+        "odhcpd"
+      ],
+      "production_identity_and_client_health_unchanged": true,
+      "qualification_scope": "私有夹具smoke；不替代四方数值或最终固件验收。"
+    }
+  },
+  "primary_completion_fields": [
+    "release_qualification.aa.online_v033_elf_sha256/ci_rebuilt_v033_elf_sha256",
+    "release_qualification.four_way",
+    "release_qualification.pgo",
+    "release_qualification.final_ci",
+    "release_qualification.firmware",
+    "release_qualification.sizes",
+    "release_qualification.router_final_identity"
+  ],
+  "sources": [
+    {
+      "id": "S01",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/blind/coverage.json",
+      "sha256": "3e725eb70b285ef4e2c5390175b9bd3d31aa4b7127f8d87fd19fdcad9300f9cf",
+      "scope": "39个盲审commit与原报告entry映射；索引本身不是运行证据。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S02",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/prelim-ledger.json",
+      "sha256": "768b9b3a23bdbbb86fe637decd66f4e761e94f9d69e67e4fdb7d2cf3cca75fcb",
+      "scope": "原19项名单、5项决定不做及主线程桥接/FW裁决；in_progress状态不作为最终结案。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S03",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/blind/dns-a.json",
+      "sha256": "520c3a6c7537a960623322a006d9abb45933383b64b09f6000db804da4adf411",
+      "scope": "原始盲审；具体执行层次见逐项记录。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S04",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/blind/r3-blind-dns-b.json",
+      "sha256": "2a4cb0e2a34291ba0408f48e106359238920309dbdc903f126aceb3617dfd8d6",
+      "scope": "原始盲审；具体执行层次见逐项记录。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S05",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/blind/other.json",
+      "sha256": "2c38672a0872797f5ac96d734a33e5ac9ee0dab86494fcb822dbf276481d77ed",
+      "scope": "原始盲审；具体执行层次见逐项记录。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S06",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/blind/r3-blind-net-a.json",
+      "sha256": "7ff12f5d76eed16d4587c3a1f0cbe72949ed258c67f3fa1167056b99268ce08d",
+      "scope": "原始盲审；具体执行层次见逐项记录。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S07",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/blind/r3-blind-net-b.json",
+      "sha256": "6066f85844c7fa213679938a9039c65d728a19785eacd9e5b762db2cb44b4fce",
+      "scope": "原始盲审；具体执行层次见逐项记录。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S08",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/blind/r3-blind-fw-uci.json",
+      "sha256": "4dc51fab6a50f6c80ca3202f272f340b7a5786aa3f2b52cf86fefc749e7c15b3",
+      "scope": "原始盲审；具体执行层次见逐项记录。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S09",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/closeout/r3-net-closeout.json",
+      "sha256": "7125db09c63094bef67434500274df06e9c3cfa173c980dc2442d5f422189acc",
+      "scope": "netifd 11复审、队列pending、非有限数值及Oracle回归；Rust1.98.1。",
+      "source_commit": null,
+      "product_commit": "c5ed0e144fe756febf5eb1bbc7984e071142a06d",
+      "preserved_copy": true
+    },
+    {
+      "id": "S10",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/closeout/r3-dns-closeout.json",
+      "sha256": "201430851e8ba295a9c19fbbd50c0afb0a161b0fab1320b5eac00fc6e9358ce7",
+      "scope": "DNS8项决策、2项条件加固与N1/N2最终结案；883 passed/23 ignored，原wire证据仍按前修订界定。",
+      "source_commit": null,
+      "product_commit": "547402166dca3a57d317ea80f69e327e1131f31d",
+      "preserved_copy": true,
+      "report_schema_version": 2
+    },
+    {
+      "id": "S11",
+      "path": "/Users/wenliang/Developer/r3-blind-other/private/r3-other-closeout/result.json",
+      "sha256": "23aa21fb8aa5c31251ecf1429f986895e91d07a9ce14fe8a5310745e1f424d55",
+      "scope": "other十项最终裁决；以primary_adjudication覆盖旧ring暂缓意见。",
+      "source_commit": null,
+      "product_commit": "22115d3e7afe2f44ebdec6bfb8529e721aa0d808"
+    },
+    {
+      "id": "S12",
+      "path": "/Users/wenliang/Developer/r3-blind-other/docs/reviews/AUDIT110_R3_OTHER_CLOSEOUT_20261119.md",
+      "sha256": "f1f8774043ca6c581dae08bb4010608b9d71342a9c4abd21b850cb6a3a0f2537",
+      "scope": "ring正常合同与损坏历史的有意安全差异。",
+      "source_commit": "180a66d979224133be625d482d585f78076e51f2",
+      "product_commit": null
+    },
+    {
+      "id": "S13",
+      "path": "/Users/wenliang/Developer/r3-blind-other/docs/reviews/AUDIT110_R3_DNS_8E42E8B7_SIDE_REVIEW_20261119.md",
+      "sha256": "ded6a94fb248d105bb7a007444ec121cd8d2d4adf2d706165d9b15ab5441b471",
+      "scope": "N1/N2最初源码侧审；后续聚焦回归、修复与集成已在S10/S25/S29闭环。",
+      "source_commit": "180a66d979224133be625d482d585f78076e51f2",
+      "product_commit": "8e42e8b7e4f33a7a6895986abe859340bd03adcd"
+    },
+    {
+      "id": "S14",
+      "path": "docs/reviews/AUDIT110_ROUND3_TOOLCHAIN_20261119.json",
+      "source_commit": "a081c214c51b3514f06c63b76027cbee49558e71",
+      "observed_at_commit": "70c4bbb9f50dcd3808ec8e32747ed773fdf3f550",
+      "sha256": "fc67d69bf2ba642173c6f89f88c723766c3bf2ee08fd047ed54fe5f88d8d8d2d",
+      "scope": "Rust/依赖清单与工具链分支Oracle门禁；不是最终固件验收。"
+    },
+    {
+      "id": "S15",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/docs/prompts/AUDIT110_ROUND3_RELEASE_CANDIDATE.md",
+      "sha256": "10631e8790f2a049023cd54580460b0cdf5c8f3a3b99a7fbc30c46a7c4c8daa6",
+      "scope": "Round3采纳、perf、九任务与发布门槛。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S16",
+      "path": "/Users/wenliang/Developer/owrt-audit110-r3/private/pd/evidence/wire-c/results.json",
+      "sha256": "3e077de6fa2b58f1801f823e41f0d34fe6bea54415a9b1947b7e022eeb9a755c",
+      "scope": "主线程已有PD wire观察；只比较解码前缀/长度/寿命集合，不比较整包字节。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S17",
+      "path": "/Users/wenliang/Developer/owrt-audit110-r3/private/pd/evidence/wire-base/results.json",
+      "sha256": "fdf34cd5ae9b605695b4a14c348da52a2a1c1e5cf7bad0e051083937ed55d513",
+      "scope": "主线程已有PD wire观察；只比较解码前缀/长度/寿命集合，不比较整包字节。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S18",
+      "path": "/Users/wenliang/Developer/owrt-audit110-r3/private/pd/evidence/wire-fixed/results.json",
+      "sha256": "cf8e6a10f5e73894d28a00cdef5f61e931f2ffc2646bfc44ff1fcba6acf18783",
+      "scope": "主线程已有PD wire观察；只比较解码前缀/长度/寿命集合，不比较整包字节。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S19",
+      "path": "/Users/wenliang/Developer/owrt-audit110-r3/private/pd/evidence/base-test-release.log",
+      "sha256": "e052433bffa1e0cdcef2be4719ad4b39d8467d0d89d5690c5414c7ff4ccb2d39",
+      "scope": "PD原样回归移植base实际失败的日志。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S20",
+      "path": "/Users/wenliang/Developer/r3-blind-other/private/r3-other-closeout/ring-wire-results.json",
+      "sha256": "d4ad43cd3e6d9fcc5aedbedc878beb6e7ed29dcffa24a1fd88f7009b844a8b58",
+      "scope": "C/base/fixed logd公共接口观察，默认满环历史并不严格相等。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S21",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/closeout/r3-net-evidence/logs/delivered-verification-commands.log",
+      "sha256": "cc76b6e7641f9027cdbb08f83e6b60e285d2219094e1c0940660252223575a31",
+      "scope": "netifd 193测试、Clippy及36次namespace执行的原始命令日志。",
+      "source_commit": null,
+      "product_commit": "c5ed0e144fe756febf5eb1bbc7984e071142a06d",
+      "preserved_copy": true
+    },
+    {
+      "id": "S22",
+      "kind": "primary_handoff",
+      "date": "2026-11-19",
+      "scope": "早期交接存档；A/A/use由S23/S24更新，DNS集成与最终门禁由S10/S25/S29更新，DHCP6含义按S29更正。",
+      "source_commit": null,
+      "verification": "reported_by_primary_not_independently_rerun",
+      "facts": {
+        "pgo_generator": {
+          "run_id": 44603802652,
+          "result": "success",
+          "scenes": 11,
+          "raw_profiles": 50,
+          "merged_sha256": "f6a8dfed8230a70522d22ba2a3c38a2404c97c24b6d38a97bac7fa13037bbed1"
+        },
+        "profile_transport_assembly": {
+          "run_id": 44607652850,
+          "result": "success"
+        },
+        "pgo_use": {
+          "run_id": 44607990145,
+          "status_at_handoff": "in_progress",
+          "final_result": null
+        },
+        "core_v033": {
+          "run_id": 44601798412,
+          "host": "passed",
+          "target": "passed"
+        },
+        "device_smoke": {
+          "scope": [
+            "DNS",
+            "DHCP6（6个DHCPv4客户端）"
+          ],
+          "result": "passed",
+          "evidence": "private/audit110-round3-20261119/device/smoke/COMPLETE",
+          "identity_and_health_reported_consistent": true,
+          "timing_performed": false
+        },
+        "integrated_components_rust_1_100": {
+          "test": "passed",
+          "clippy": "passed",
+          "fmt": "passed",
+          "final_dns_additions_integrated_at_initial_handoff": false
+        },
+        "dns_quality_fixes": {
+          "owner": "Russell",
+          "items": [
+            "N1 stale过滤标记",
+            "N2 UDP DO"
+          ],
+          "delivery_commit": null
+        },
+        "aa_performed": false,
+        "timing_performed": false
+      },
+      "superseded_fields": {
+        "aa_performed": "S23",
+        "timing_performed": "S23 (A/A only)",
+        "pgo_use": "S24",
+        "integrated_components_rust_1_100.final_dns_additions_integrated_at_initial_handoff": "S10/S25/S29",
+        "dns_quality_fixes": "S10/S29"
+      }
+    },
+    {
+      "id": "S23",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/aa-result.json",
+      "sha256": "7cea2dbc030eee59b7f315583cf76e3784f4832550bf4ca19725589bb5c327c1",
+      "scope": "正式v0.3.3配方A/A结果：3组45窗全部区间重叠，pass=true；本稿读取现有结果，没有运行实验。",
+      "source_commit": null,
+      "product_commit": null
+    },
+    {
+      "id": "S24",
+      "kind": "primary_handoff",
+      "date": "2026-11-19",
+      "scope": "主代理本会话正式A/A及CI use最终状态交接；未独立重跑或轮询。",
+      "source_commit": null,
+      "verification": "reported_by_primary_not_independently_rerun",
+      "facts": {
+        "aa_passed": true,
+        "production_identity_and_health_consistent": true,
+        "ci_use": {
+          "run_id": 44607990145,
+          "result": "success",
+          "artifact_sha256": "f6bd7dc0906a61a44ab82dd1cf5e91a168b41cd3db02ea9b7c69bc68718a6c53",
+          "artifact_size_bytes": 2321243,
+          "profile_mismatch": false,
+          "compiler_warnings": false
+        },
+        "four_way_result": null,
+        "firmware_sha256": null
+      }
+    },
+    {
+      "id": "S25",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/final-gates/result.json",
+      "sha256": "27eaf6ce433ca89dfd838cd6cff53add39847d4b1db2ca2fd93f13a228ac0d83",
+      "scope": "Oracle Linux aarch64 Rust1.100全门禁通过；components tree绑定最终产品。"
+    },
+    {
+      "id": "S26",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/assembly-result.json",
+      "sha256": "f8a7507f7b3c70dff210e30bf26badc813ec1c9fdb403212a62c0d42f33006ee",
+      "scope": "干净历史重组；完整tree相同，最终产品及新group映射。",
+      "product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5"
+    },
+    {
+      "id": "S27",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/extensions/smoke/COMPLETE",
+      "sha256": "dcfe3aac55aff1c17a7589c8a5a79594dee186579e34db2b613f131a1719f78a",
+      "scope": "5项扩展smoke完成且生产身份/客户端健康未变。"
+    },
+    {
+      "id": "S28",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/device/extensions/smoke/results.json",
+      "sha256": "2e8ee3a49f90ee6b1ac5f20c3e33213d494ba890306587a581d0fc8b9ede9c4b",
+      "scope": "5项扩展smoke夹具清单与各自归档摘要；不是四方验收数据。"
+    },
+    {
+      "id": "S29",
+      "kind": "primary_handoff",
+      "date": "2026-11-19",
+      "scope": "本会话精确更新指令：DNS N1/N2已集成4fb8a8cf、最终产品1f9de983；DHCP6表示6个DHCPv4客户端，动态CI后补。",
+      "verification": "reported_by_primary_and_cross_checked_with_local_reports_and_git",
+      "facts": {
+        "dns_integration_commit": "4fb8a8cf49a42199fb3742eadbeb3d4aebe5cc9c",
+        "final_product_commit": "1f9de983757880c14133998a5befcfdf1d4fafe5",
+        "dhcp6_meaning": "6 DHCPv4 clients; not DHCPv6",
+        "four_way_result": null,
+        "firmware_sha256": null
+      }
+    },
+    {
+      "id": "S30",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/closeout/r3-net-closeout.md",
+      "sha256": "54e73073bd120f445b355168ecc142bcbfb3ca2945dc11d59f01b66e4f64a08d",
+      "scope": "netifd最终结案Markdown原样保全。",
+      "product_commit": "c5ed0e144fe756febf5eb1bbc7984e071142a06d"
+    },
+    {
+      "id": "S31",
+      "path": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/closeout/r3-dns-closeout.md",
+      "sha256": "16989bc6218c8985c2ea4ed34a88ace41b958b854fc3bf75f5363022557613d0",
+      "scope": "DNS schema2最终结案Markdown原样保全。",
+      "product_commit": "547402166dca3a57d317ea80f69e327e1131f31d"
+    }
+  ],
+  "evidence_preservation": {
+    "root": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/closeout",
+    "reports": [
+      "S09",
+      "S10",
+      "S30",
+      "S31"
+    ],
+    "original_reports_unmodified": true,
+    "path_relocations": [
+      {
+        "original_prefix": "/tmp/r3-net-evidence",
+        "durable_prefix": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/closeout/r3-net-evidence"
+      },
+      {
+        "original_prefix": "/tmp/r3-dns-closeout-evidence",
+        "durable_prefix": "/Users/wenliang/Developer/owrt-control-plane-rs/private/audit110-round3-20261119/closeout/r3-dns-closeout-evidence"
+      }
+    ],
+    "note": "报告原样保全，内部历史/tmp路径按前缀映射解析；本台账的sources均引用耐久副本，私有证据不进入Git。"
+  }
+}
