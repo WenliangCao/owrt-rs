@@ -36,6 +36,9 @@ WORKLOAD_MANIFESTS = {
     # New .6 SDK workload-helper builds; the 11 scenes and source inputs remain fixed.
     "391baf0274fda9b33f22034310b4137ea0f85881e40892eddce1205e6161d9f4":
         "a402ab05d5f48477b26ac8cb67460fe9806700b8dc36a0a2a7a1c363a0337a02",
+    # Round 3 rebuilds the same workload sources with the retained .6 SDK.
+    "266a61c343681934410456538de033054c29341baa7d604439d647ea593ca06f":
+        "01c3fa1f4d4519219d35ae1359cc4af0de08516299eecde8ee806f80e328f18d",
 }
 
 
@@ -96,7 +99,7 @@ def validate_ci(built, freeze, baseline, elf):
     header = elf.read_bytes()[:20]
     require(header[:6] == b"\x7fELF\x02\x01" and header[18:20] == b"\xb7\x00", "expected AArch64 ELF")
     rustc = built["toolchain"]["rustc"]
-    compiler = freeze.get("rust_toolchain", {"release": "1.98.1", "llvm": "22.1.8"})
+    compiler = compiler_identity(built, freeze)
     require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", compiler["release"])
             and re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", compiler["llvm"]), "invalid frozen compiler version")
     require(f"release: {compiler['release']}\n" in rustc + "\n"
@@ -119,6 +122,18 @@ def validate_ci(built, freeze, baseline, elf):
             and invocation["static_pie_linker_sha256"] == files["packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"],
             "CI instrumentation flags or static PIE linker differ")
     return default
+
+
+def compiler_identity(built, freeze):
+    compiler = dict(freeze.get("rust_toolchain", {"release": "1.98.1", "llvm": "22.1.8"}))
+    # New specs pin the release before the CI compiler has run. The completed
+    # generator manifest (itself hash-bound by training) supplies the LLVM pair.
+    if "llvm" not in compiler:
+        found = re.search(r"^LLVM version: ([0-9]+\.[0-9]+\.[0-9]+)$", built["toolchain"]["rustc"], re.M)
+        require(found is not None, "generator LLVM version is missing")
+        require(built.get("resolved_rustc", {}).get("sha256") is not None, "resolved generator compiler required")
+        compiler["llvm"] = found[1]
+    return compiler
 
 
 def validate_smoke(smoke, elf_sha256):
@@ -191,7 +206,7 @@ def prepare(request, base):
     keys = ("training_seed", "evaluation_seed", "cpu", "scenes", "workload_tools",
             "input_sha256", "profdata", "expected_profile_count")
     plan = {key: reference[key] for key in keys}
-    compiler = freeze.get("rust_toolchain", {"release": "1.98.1", "llvm": "22.1.8"})
+    compiler = compiler_identity(built, freeze)
     plan["profdata"] = profdata
     plan["profdata_version"] = f"{compiler['llvm']}-rust-{compiler['release']}-stable"
     plan.update({key: freeze[key] for key in ("source_commit", "source_digest", "source_file_count", "source_date_epoch")})

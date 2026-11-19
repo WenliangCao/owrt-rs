@@ -11,11 +11,15 @@ on:
         description: OpenWrt release (needs packaging/image/packages-<version>.txt)
         default: "25.12.6"
         required: true
+      native_spec:
+        description: Committed candidate native spec (empty preserves the historical version spec)
+        type: string
   push:
     tags: ["v*"]
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: release-image-${{ github.ref }}
@@ -23,11 +27,12 @@ concurrency:
 
 jobs:
   image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
       OPENWRT_VERSION: ${{ github.event.inputs.openwrt_version || '25.12.6' }}
       OWRT_CORE_INCLUDE_ODHCPD: "1"
+      OWRT_NATIVE_SPEC: ${{ inputs.native_spec || format('packaging/image/native-{0}.json', inputs.openwrt_version || '25.12.6') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,7 +74,6 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cargo/targets
           key: cargo-0.103.0-1-release-${{ hashFiles('components/*/Cargo.lock') }}
 
       - name: build apks and image
@@ -84,6 +88,9 @@ jobs:
         run: |
           python3 -m unittest discover -s tools -p test_ci_dnsmasq_pgo.py
           python3 -m unittest discover -s tools -p test_native_image.py
+          channel=$(python3 tools/ci_dnsmasq_pgo_inputs.py toolchain --native --spec "$OWRT_NATIVE_SPEC")
+          rustup toolchain install "$channel" --profile minimal
+          rustup target add --toolchain "$channel" aarch64-unknown-linux-musl
           python3 tools/ci_build_dnsmasq.py "$GITHUB_WORKSPACE/work"
 
       - name: integrate eleven native components and verify the final image
@@ -112,13 +119,15 @@ jobs:
             work/out/dnsmasq/manifest.json
             work/out/dnsmasq/pgo-*.json
             work/out/dnsmasq/pgo-compilation/*
+            work/out/dnsmasq/cargo-*.json*
+            work/out/dnsmasq/profile-provenance.json
             work/native/*.log
             work/native/build-inputs.json
             work/native/bin/*-sysupgrade.bin
           retention-days: 90
 
       - name: github release (tags only)
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

@@ -441,5 +441,87 @@ class V033ReleaseInputs(unittest.TestCase):
             self.assertNotIn("manifests/release-25.12.5.json", files)
 
 
+class CandidateReleasePreflight(unittest.TestCase):
+    def test_sdk_step_accepts_spec_only_commit_and_rejects_changed_product_inputs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary)
+
+            def git(*args):
+                return subprocess.check_output(["git", *args], cwd=repo, text=True).strip()
+
+            def put(name, contents):
+                path = repo / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(contents)
+
+            git("init", "-q")
+            git("config", "user.name", "native test")
+            git("config", "user.email", "native-test@example.invalid")
+            script = "tools/ci_build_image.sh"
+            put(script, (REPO / script).read_text())
+            put("tools/toolchain_identity.sh", "echo 'reached toolchain check' >&2\nexit 42\n")
+            put("tools/ci_check_core.py", "import sys\nassert sys.argv[1] == 'warnings'\n")
+            put("components/uci/Cargo.lock", "frozen lock\n")
+            put("rust-toolchain.toml", '[toolchain]\nchannel = "1.100.0"\n')
+            put("packaging/image/packages-25.12.6.txt", "fixture\n")
+            recipe = "packaging/openwrt/owrt-uci/Makefile"
+            put(recipe, "frozen recipe\n")
+            git("add", ".")
+            git("commit", "-qm", "product source")
+            product = git("rev-parse", "HEAD")
+            pin = native_image.sha(repo / "rust-toolchain.toml")
+            spec = "packaging/image/native-candidate.json"
+            put(spec, json.dumps({"openwrt": "25.12.6",
+                "dnsmasq_build": {"source_commit": product, "source_files": {"rust-toolchain.toml": pin}},
+                "comparison_build": {"source_commit": product, "component_tree": git("rev-parse", "HEAD:components"),
+                    "toolchain_sha256": pin, "adapter_files": {name: native_image.sha(repo / name)
+                        for name in (recipe, "tools/toolchain_identity.sh")}}}))
+            git("add", spec)
+            git("commit", "-qm", "add candidate spec")
+            self.assertNotEqual(git("rev-parse", "HEAD"), product)
+
+            def run():
+                return subprocess.run(["sh", script, "work"], cwd=repo, text=True, capture_output=True,
+                                      env=dict(os.environ, OPENWRT_VERSION="25.12.6", OWRT_NATIVE_SPEC=spec))
+
+            result = run()
+            self.assertEqual(result.returncode, 42, result.stderr)
+            self.assertIn("reached toolchain check", result.stderr)
+            for name, message in (("components/uci/Cargo.lock", "component tree differs"),
+                                  ("rust-toolchain.toml", "Rust pin differs"),
+                                  (recipe, "recipes differ")):
+                with self.subTest(input=name):
+                    original = (repo / name).read_text()
+                    put(name, original + "# changed\n")
+                    git("add", name)
+                    git("commit", "-qm", "change build input")
+                    result = run()
+                    self.assertEqual(result.returncode, 1, result.stderr)
+                    self.assertIn(message, result.stderr)
+                    self.assertNotIn("reached toolchain check", result.stderr)
+                    put(name, original)
+                    git("add", name)
+                    git("commit", "-qm", "restore build input")
+
+    def test_image_integration_rejects_oversized_shipped_reload_config(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary)
+            elf = work / "verify/rootfs/usr/sbin/reload_config_rs"
+            elf.parent.mkdir(parents=True)
+            spec = work / "native-candidate.json"
+            spec.write_text("{}\n")
+            # At the limit the script reaches the missing ImageBuilder check.
+            # With one byte more it must fail at the size gate instead.
+            for extra in (0, 1):
+                with self.subTest(extra=extra):
+                    with elf.open("wb") as stream:
+                        stream.truncate(512 * 1024 + extra)
+                    result = subprocess.run(["sh", str(REPO / "tools/ci_integrate_image.sh"), str(work)],
+                                            capture_output=True, text=True, env=dict(os.environ,
+                                            OPENWRT_VERSION="25.12.6", OWRT_NATIVE_SPEC=str(spec)))
+                    self.assertEqual(result.returncode, 1, result.stderr)
+                    self.assertEqual("exceeds the 512 KiB budget" in result.stderr, bool(extra))
+
+
 if __name__ == "__main__":
     unittest.main()

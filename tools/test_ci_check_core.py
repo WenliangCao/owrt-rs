@@ -44,6 +44,54 @@ class WarningBoundaryTests(unittest.TestCase):
                 self.assertFalse(self.classify("image.log", text)["strict_compiler_warnings_zero"])
 
 
+class ComparisonSourceTests(unittest.TestCase):
+    def test_adapter_overlay_preserves_old_product_toolchain_and_benchmark(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runner = root / "runner"
+            runner.mkdir()
+
+            def git(*args):
+                return subprocess.check_output(["git", "-C", str(runner), *args], text=True).strip()
+
+            git("init", "-q")
+            git("config", "user.name", "fixture")
+            git("config", "user.email", "fixture@example.invalid")
+            for name, text in {
+                "components/demo/src/main.rs": "fn main() {}\n",
+                "rust-toolchain.toml": '[toolchain]\nchannel = "1.98.1"\n',
+                "tools/benchmark/Cargo.lock": "old benchmark lock\n",
+                "tools/ci_build_core.sh": "old adapter\n",
+                "packaging/openwrt/demo/Makefile": "old recipe\n",
+            }.items():
+                path = runner / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(text)
+            git("add", ".")
+            git("commit", "-qm", "old product")
+            base = git("rev-parse", "HEAD")
+            (runner / "components/demo/src/main.rs").write_text("fn main() { panic!(); }\n")
+            (runner / "rust-toolchain.toml").write_text('[toolchain]\nchannel = "1.100.0"\n')
+            (runner / "tools/benchmark/Cargo.lock").write_text("new benchmark lock\n")
+            (runner / "tools/ci_build_core.sh").write_text("new adapter\n")
+            (runner / "packaging/openwrt/demo/Makefile").write_text("new recipe\n")
+            git("add", ".")
+            git("commit", "-qm", "current runner")
+            work = root / "work"
+            work.mkdir()
+            source, identity = core.comparison_source(runner, work, base)
+            self.assertEqual(identity["source_commit"], base)
+            self.assertEqual(identity["runner_commit"], git("rev-parse", "HEAD"))
+            self.assertEqual((source / "components/demo/src/main.rs").read_text(), "fn main() {}\n")
+            self.assertEqual((source / "tools/benchmark/Cargo.lock").read_text(), "old benchmark lock\n")
+            self.assertIn("1.98.1", (source / "rust-toolchain.toml").read_text())
+            self.assertEqual((source / "tools/ci_build_core.sh").read_text(), "new adapter\n")
+            self.assertEqual((source / "packaging/openwrt/demo/Makefile").read_text(), "new recipe\n")
+            (source / "components/demo/src/main.rs").write_text("changed\n")
+            with self.assertRaises(subprocess.CalledProcessError):
+                core.verify_comparison_source(source)
+
+
 class OdhcpdBuildBoundaryTests(unittest.TestCase):
     def test_core_recipe_default_stays_three_and_opt_in_copies_netifd_dependency(self):
         """Run the real recipe with a recording compiler, never a Rust build."""

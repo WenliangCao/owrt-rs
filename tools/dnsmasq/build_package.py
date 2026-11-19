@@ -21,6 +21,9 @@ import subprocess
 import sys
 import tomllib
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import ci_dnsmasq_build as build_runtime
+
 ROOT = Path(__file__).resolve().parents[2]
 PACKAGE = "dnsmasq"
 RECIPE = "owrt-dnsmasq"
@@ -398,6 +401,7 @@ def audit_build(args, out, report):
         env.pop(name, None)
     env["RUSTUP_TOOLCHAIN"] = channel
     env["SOURCE_DATE_EPOCH"] = epoch
+    env["CARGO_BUILD_JOBS"] = "1"
     report["rust_channel"] = channel
     report["source_date_epoch"] = env["SOURCE_DATE_EPOCH"]
     build, output = out / "package-build", out / "sdk-output"
@@ -406,6 +410,7 @@ def audit_build(args, out, report):
     make_vars = ["V=s", "-j1", f"V1_PACKAGE_RELEASE={args.package_release}",
                  f"OWRT_COMPONENTS_SOURCE={source / 'components'}",
                  f"OWRT_DNSMASQ_BUILD_DIR={build}", f"OWRT_DNSMASQ_OUTPUT_DIR={output}"]
+    recipe_source = source / f"packaging/openwrt/{RECIPE}"
     if args.frozen_elf:
         frozen_elf = safe_path(args.frozen_elf.resolve())
         manifest = args.freeze_manifest.resolve()
@@ -431,9 +436,10 @@ def audit_build(args, out, report):
         cargo = safe_path(Path(os.environ.get("CARGO") or shutil.which("cargo") or Path.home() / ".cargo/bin/cargo").absolute())
         require(cargo.is_file() and os.access(cargo, os.X_OK), "cargo executable missing")
         report["build_mode"] = "compile-and-package"
-        report["cargo_version"] = run([str(cargo), "--version"], out / "cargo-version.log", env=env).strip()
+        report["cargo_version"] = run([str(cargo), "-V"], out / "cargo-version.log", env=env).strip()
         require("huacnlee/cargo" in report["cargo_version"], "build requires huacnlee/cargo")
-        report["rustc_version"] = run(["rustc", "-Vv"], out / "rustc-version.log", env=env).strip()
+        report["resolved_rustc"] = build_runtime.compiler(channel, env, out, run)
+        report["rustc_version"] = report["resolved_rustc"]["version"]
         report["target_cc_version"] = run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip()
         adapter_root = source if (source / "tools/cargo.sh").is_file() else ROOT
         adapter = safe_path(adapter_root / "tools/cargo.sh")
@@ -444,14 +450,32 @@ def audit_build(args, out, report):
                     "build adapter differs from frozen source identity")
             report["build_adapter_compatibility"] = "source-snapshot-bound"
         else:
-            report["build_adapter_compatibility"] = "legacy freeze has no adapter; current adapter identified separately"
+            report["build_adapter_compatibility"] = "historical source map retained; current huacnlee adapter identified separately"
         make_vars += [f"V1_CARGO={adapter}",
                       f"V1_CARGO_HOME={safe_path(Path(env.get('CARGO_HOME', str(Path.home() / '.cargo'))).resolve())}",
                       f"V1_RUSTUP_HOME={safe_path(Path(env.get('RUSTUP_HOME', str(Path.home() / '.rustup'))).resolve())}"]
+        # Preserve the source snapshot while recording the runner adaptation.
+        # The shared Cargo fork owns output placement, including non-PGO builds.
+        recipe_source = build_runtime.recipe(recipe_source, out, report)
+        install_elf = out / "cargo-output/dnsmasq-rs"
+        for name in ("ci_dnsmasq_build.py", "ci_dnsmasq_pgo_cargo.py"):
+            shutil.copy2(ROOT / "tools" / name, out / name)
+        wrapper = out / "ci_dnsmasq_pgo_cargo.py"
+        wrapper.chmod(0o755)
+        plan = {"mode": "plain", "cargo": str(cargo), "build_dir": str(build),
+            "build_adapter": report["build_adapter"], "rustc_sha256": report["resolved_rustc"]["sha256"],
+            "install_elf": str(install_elf), "artifact_receipt": str(out / "cargo-artifact.json"),
+            "receipt": str(out / "cargo-invocation.json"),
+            "static_pie_linker_sha256": sha(source / f"packaging/openwrt/{RECIPE}/static-pie-linker.py"),
+            "recipe_environment": {"RUSTC": env["RUSTC"], "RUSTUP_TOOLCHAIN": channel}}
+        plan_path = out / "cargo-plan.json"
+        plan_path.write_text(json.dumps(plan, indent=2) + "\n")
+        env["DNSMASQ_PGO_BUILD_PLAN"] = str(plan_path)
+        make_vars += [f"V1_CARGO={wrapper}", f"DNSMASQ_INSTALL_ELF={install_elf}"]
     report["commands"] = []
     with (sdk / ".owrt-dnsmasq-build.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        with package_recipe(sdk, source / f"packaging/openwrt/{RECIPE}", out, report):
+        with package_recipe(sdk, recipe_source, out, report):
             recipe_target = Path(report["sdk_recipe_path"]).relative_to(sdk).as_posix()
             report["make_recipe_target"] = recipe_target
             for stage in ("prepare", "compile"):

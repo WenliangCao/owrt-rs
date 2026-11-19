@@ -243,6 +243,34 @@ class PgoReleaseTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             builder.verify_pgo_build(self.root, report)
 
+    def test_shared_cargo_artifact_reuse_is_recorded_and_link_map_exception_is_narrow(self):
+        out = self.root / "cargo-output"
+        out.mkdir()
+        elf = out / "dnsmasq-rs"
+        elf.write_bytes(b"reused accepted compiler output")
+        receipt = {"installed_elf": str(elf), "sha256": wrapper.sha(elf),
+                   "compiler_artifact": {"fresh": True}, "platform_artifact": {"fresh": True},
+                   "platform_rlibs": [{"path": str(self.root / "platform.rlib"), "bytes": 8,
+                                       "sha256": "a" * 64}]}
+        library = Path(receipt["platform_rlibs"][0]["path"])
+        library.write_bytes(b"platform")
+        receipt["platform_rlibs"][0]["sha256"] = wrapper.sha(library)
+        (self.root / "cargo-artifact.json").write_text(json.dumps(receipt))
+        report = {"link_map": {"output_path": str(self.root / "absent.map"), "bytes": 0}}
+        builder.verify_cargo_output(self.root, report)
+        self.assertTrue(report["cargo_output"]["executable_reused"])
+        self.assertTrue(report["cargo_output"]["platform_reused"])
+        self.assertEqual(report["link_map"]["status"], "not produced because Cargo reused the executable")
+        library.write_bytes(b"changed platform")
+        with self.assertRaisesRegex(ValueError, "platform library identity"):
+            builder.verify_cargo_output(self.root, report)
+        library.write_bytes(b"platform")
+        receipt["compiler_artifact"]["fresh"] = False
+        (self.root / "cargo-artifact.json").write_text(json.dumps(receipt))
+        report = {"link_map": {"output_path": str(self.root / "absent.map"), "bytes": 0}}
+        with self.assertRaisesRegex(ValueError, "same-build linker map"):
+            builder.verify_cargo_output(self.root, report)
+
     def test_generate_has_no_profile_input_and_keeps_diagnostic_gate(self):
         plan = {key: value for key, value in self.plan.items() if not key.startswith("profile")}
         plan.update(mode="generate", profile_output_dir="/tmp/dnsmasq-ci-pgo")

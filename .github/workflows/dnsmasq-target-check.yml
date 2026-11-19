@@ -26,9 +26,18 @@ on:
       - "rust-toolchain.toml"
       - ".github/workflows/dnsmasq-target-check.yml"
   workflow_dispatch:
+    inputs:
+      spec:
+        description: Optional committed PGO source freeze; empty builds checkout without PGO
+        type: string
+      stage:
+        type: choice
+        default: frozen-use
+        options: [generate, candidate-use, frozen-use]
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: dnsmasq-target-check-${{ github.ref }}
@@ -46,7 +55,15 @@ jobs:
           fetch-depth: 0
       - name: pinned Rust toolchain
         id: rust
-        run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+        env:
+          SPEC: ${{ inputs.spec }}
+        run: |
+          if [ -n "$SPEC" ]; then
+            channel=$(python3 tools/ci_dnsmasq_pgo_inputs.py toolchain --spec "$SPEC")
+          else
+            channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          fi
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
@@ -66,7 +83,16 @@ jobs:
       - name: validate compiler-warning hard gate
         run: python3 -m unittest discover -s tools -p test_ci_dnsmasq_target.py
       - name: build current revision for OpenWrt and reject every compiler warning
-        run: python3 tools/ci_check_dnsmasq_target.py "$GITHUB_WORKSPACE/work"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SPEC: ${{ inputs.spec }}
+          PGO_STAGE: ${{ inputs.stage }}
+        run: |
+          if [ -n "$SPEC" ]; then
+            python3 tools/ci_check_dnsmasq_pgo_pipeline.py "$GITHUB_WORKSPACE/work" --spec "$SPEC" --stage "$PGO_STAGE"
+          else
+            python3 tools/ci_check_dnsmasq_target.py "$GITHUB_WORKSPACE/work"
+          fi
       - name: preserve actual target artifacts and all build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -78,5 +104,8 @@ jobs:
             work/out/dnsmasq/*.log
             work/out/dnsmasq/*.json
             work/out/dnsmasq/source.tar
+            work/out/dnsmasq/pgo/*
+            work/out/dnsmasq/pgo-compilation/*
+            work/out/dnsmasq/cargo-*.json*
           if-no-files-found: error
           retention-days: 90

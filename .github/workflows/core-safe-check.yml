@@ -3,6 +3,10 @@ name: core-safe-check
 # gates remain separate; this workflow never publishes or deploys an image.
 on:
   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Optional full product commit SHA; empty uses this checkout
+        type: string
   push:
     branches: [main, ci/audit110-r3, research/core-safe-20261017]
     paths:
@@ -68,15 +72,31 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: pinned Rust toolchain
         id: rust
-        run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          [[ -z "$SOURCE_REF" || "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || { echo 'source_ref must be a full commit SHA' >&2; exit 1; }
+          source_commit=$(git rev-parse --verify --end-of-options "${SOURCE_REF:-HEAD}^{commit}")
+          channel=$(git show "$source_commit:rust-toolchain.toml" | python3 -c 'import sys, tomllib; print(tomllib.loads(sys.stdin.read())["toolchain"]["channel"])')
+          [[ "$channel" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'invalid frozen Rust version' >&2; exit 1; }
+          printf 'channel=%s\nsource_commit=%s\n' "$channel" "$source_commit" >> "$GITHUB_OUTPUT"
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
-          components: rustfmt
+          components: rustfmt, clippy
       - name: install verified huacnlee/cargo
         run: sh tools/install_cargo.sh
+      - name: bind the actual compiler instead of the rustup proxy
+        env:
+          PIN: ${{ steps.rust.outputs.channel }}
+        run: |
+          compiler=$(rustup which --toolchain "$PIN" rustc)
+          "$compiler" -vV | grep -Fx "release: $PIN"
+          printf 'RUSTC=%s\nRUSTUP_TOOLCHAIN=%s\n' "$compiler" "$PIN" >> "$GITHUB_ENV"
       - name: existing component test prerequisites
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables iproute2 util-linux
       - uses: actions/cache/restore@v4
@@ -86,9 +106,14 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cargo/targets
-          key: cargo-0.103.0-1-core-host-${{ hashFiles('components/*/Cargo.lock') }}
+          key: cargo-0.103.0-1-core-host-${{ inputs.source_ref && steps.rust.outputs.source_commit || hashFiles('components/*/Cargo.lock') }}
       - name: run existing host tests and check normal diagnostic examples
-        run: python3 tools/ci_check_core.py host "$GITHUB_WORKSPACE/work"
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_ref && steps.rust.outputs.source_commit || '' }}
+        run: |
+          extra=()
+          if [ -n "$SOURCE_COMMIT" ]; then extra+=(--source-ref "$SOURCE_COMMIT"); fi
+          python3 tools/ci_check_core.py host "$GITHUB_WORKSPACE/work" "${extra[@]}"
       - name: retain downloaded host dependencies after compile failures
         if: always() && steps.host-registry.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
@@ -102,7 +127,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: core-host-${{ github.sha }}
+          name: core-host-${{ github.sha }}${{ inputs.source_ref && format('-source-{0}', steps.rust.outputs.source_commit) || '' }}
           path: work/out/core-host/*
           if-no-files-found: error
           retention-days: 30
@@ -114,15 +139,35 @@ jobs:
       OPENWRT_VERSION: "25.12.6"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: pinned Rust toolchain
         id: rust
-        run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          [[ -z "$SOURCE_REF" || "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || { echo 'source_ref must be a full commit SHA' >&2; exit 1; }
+          source_commit=$(git rev-parse --verify --end-of-options "${SOURCE_REF:-HEAD}^{commit}")
+          channel=$(git show "$source_commit:rust-toolchain.toml" | python3 -c 'import sys, tomllib; print(tomllib.loads(sys.stdin.read())["toolchain"]["channel"])')
+          [[ "$channel" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'invalid frozen Rust version' >&2; exit 1; }
+          printf 'channel=%s\nsource_commit=%s\n' "$channel" "$source_commit" >> "$GITHUB_OUTPUT"
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
           targets: aarch64-unknown-linux-musl
       - name: install verified huacnlee/cargo
         run: sh tools/install_cargo.sh
+      - name: bind the actual compiler instead of the rustup proxy
+        env:
+          PIN: ${{ steps.rust.outputs.channel }}
+        run: |
+          compiler=$(rustup which --toolchain "$PIN" rustc)
+          "$compiler" -vV | grep -Fx "release: $PIN"
+          printf 'RUSTC=%s\nRUSTUP_TOOLCHAIN=%s\n' "$compiler" "$PIN" >> "$GITHUB_ENV"
+      - name: check historical PGO maps and resolved compiler boundaries
+        env:
+          PYTHONPATH: tools
+        run: python3 -m unittest test_ci_dnsmasq_inputs
       - name: unmodified SDK and ImageBuilder prerequisites
         run: |
           sudo apt-get update -qq
@@ -141,7 +186,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cargo/targets
-          key: cargo-0.103.0-1-core-target-${{ hashFiles('components/*/Cargo.lock') }}
+          key: cargo-0.103.0-1-core-target-${{ inputs.source_ref && steps.rust.outputs.source_commit || hashFiles('components/*/Cargo.lock') }}
       - name: verify the existing strict warning classifier
         env:
           PYTHONPATH: tools
@@ -152,7 +197,12 @@ jobs:
             test_ci_dnsmasq_target.TargetCheckTests.test_sdk_kconfig_warnings_are_retained_separately \
             test_ci_dnsmasq_target.TargetCheckTests.test_only_exact_sdk_openssl_configuration_message_is_exempt
       - name: build ten diagnostic candidates and check router tests/examples
-        run: python3 tools/ci_check_core.py target "$GITHUB_WORKSPACE/work"
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_ref && steps.rust.outputs.source_commit || '' }}
+        run: |
+          extra=()
+          if [ -n "$SOURCE_COMMIT" ]; then extra+=(--source-ref "$SOURCE_COMMIT"); fi
+          python3 tools/ci_check_core.py target "$GITHUB_WORKSPACE/work" "${extra[@]}"
       - name: retain checksum-verified SDK downloads after compile failures
         if: always() && steps.sdk-downloads.outputs.cache-hit != 'true' && hashFiles('work/out/sdk-downloads-verified') != ''
         uses: actions/cache/save@v4
@@ -172,7 +222,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: core-target-${{ github.sha }}
+          name: core-target-${{ github.sha }}${{ inputs.source_ref && format('-source-{0}', steps.rust.outputs.source_commit) || '' }}
           path: |
             work/out/core-candidates/*
             work/out/core-binaries/*

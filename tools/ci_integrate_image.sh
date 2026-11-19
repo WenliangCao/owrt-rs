@@ -7,6 +7,12 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 work=$(cd "${1:?usage: ci_integrate_image.sh WORKDIR}" && pwd)
 spec=${OWRT_NATIVE_SPEC:-$repo/packaging/image/native-$ver.json}
 test -f "$spec"
+# Check the stripped ELF that native_image.py will copy and verify by hash.
+reload_bytes=$(wc -c < "$work/verify/rootfs/usr/sbin/reload_config_rs")
+if [ "$reload_bytes" -gt 524288 ]; then
+    echo "reload-config ELF is $reload_bytes bytes; exceeds the 512 KiB budget" >&2
+    exit 1
+fi
 set -- "$work"/openwrt-imagebuilder-"$ver"-*/
 [ "$#" = 1 ] && [ -d "$1" ] || exit 1
 ib=${1%/}

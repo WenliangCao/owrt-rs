@@ -10,6 +10,7 @@ import ci_check_dnsmasq_target as target
 
 
 BUILD_SLOT = "/home/ubuntu/owrt-unified-v022-20261017/private/dnsmasq-sdk-build-slot"
+COMPARISON_BUILD_SLOT = "/tmp/owrt-audit110-r3-pgo/build"
 PROFILE_OUTPUT = "/tmp/dnsmasq-unified-v022-ci-pgo"
 INSTRUMENTATION_BUDGET = {"elf_max_bytes": 6_000_000, "apk_max_bytes": 3_500_000}
 PROFILE_RELEASES = {
@@ -50,22 +51,27 @@ def load_spec(path, expected_stage):
     require(stage in target.builder.PGO_STAGES and stage == expected_stage,
             "explicit dispatch stage must match frozen spec")
     pgo = spec.get("pgo", {})
-    require(pgo.get("build_slot") == BUILD_SLOT and pgo.get("retain_link_map") is True,
+    allowed_slots = (BUILD_SLOT, COMPARISON_BUILD_SLOT) if spec.get("comparison_role") else (BUILD_SLOT,)
+    require(pgo.get("build_slot") in allowed_slots and pgo.get("retain_link_map") is True,
             "canonical build slot and same-build linker map required")
     if stage == "generate":
         require(spec.get("instrumentation_budget") == INSTRUMENTATION_BUDGET,
                 "training-only instrumentation budget differs")
-        require(pgo == {"build_slot": BUILD_SLOT, "profile_output_dir": PROFILE_OUTPUT,
+        require(pgo == {"build_slot": pgo["build_slot"], "profile_output_dir": PROFILE_OUTPUT,
                         "retain_link_map": True}, "generation must not consume an input profile")
     else:
         require("instrumentation_budget" not in spec and "profile_output_dir" not in pgo,
                 "use artifacts cannot use instrumentation settings/budgets")
         require(frozen_hash(pgo.get("profile_sha256")) and type(pgo.get("profile_bytes")) is int
                 and pgo["profile_bytes"] > 0, "profile hash/size must be frozen")
-        repo, tag, name = target.builder.profile_asset(pgo.get("profile_url", ""))
-        require((repo, tag) == PROFILE_RELEASES[version]
-                and name == f"dnsmasq-{spec['source_commit'][:8]}-{pgo['profile_sha256']}.profdata",
-                "profile must name its unique source/hash build-input asset")
+        if "profile_artifact" in pgo:
+            require("profile_url" not in pgo, "ambiguous profile input")
+            target.builder.profile_inputs.artifact_identity(pgo["profile_artifact"])
+        else:
+            repo, tag, name = target.builder.profile_asset(pgo.get("profile_url", ""))
+            require((repo, tag) == PROFILE_RELEASES[version]
+                    and name == f"dnsmasq-{spec['source_commit'][:8]}-{pgo['profile_sha256']}.profdata",
+                    "profile must name its unique source/hash build-input asset")
         provenance = pgo.get("training", {})
         require(all(frozen_hash(provenance.get(key)) for key in (
             "generator_manifest_sha256", "generator_elf_sha256", "training_receipt_sha256")),

@@ -56,6 +56,16 @@ class TrainingOnlyTests(unittest.TestCase):
         self.assertEqual(training.validate_ci(built, reference, self.baseline, self.elf),
                          Path("/tmp/dnsmasq-synthetic-pgo"))
 
+    def test_new_freeze_binds_release_and_actual_generator_llvm_pair(self):
+        reference = {**self.reference, "rust_toolchain": {"release": "1.98.1"}}
+        built = copy.deepcopy(self.ci)
+        with self.assertRaisesRegex(ValueError, "resolved generator compiler"):
+            training.validate_ci(built, reference, self.baseline, self.elf)
+        built["resolved_rustc"] = {"sha256": "a" * 64}
+        self.assertEqual(training.validate_ci(built, reference, self.baseline, self.elf),
+                         Path("/tmp/dnsmasq-synthetic-pgo"))
+        self.assertEqual(training.compiler_identity(built, reference), {"release": "1.98.1", "llvm": "22.1.8"})
+
     def test_committed_workload_manifest_and_changed_identity(self):
         manifest = Path(__file__).resolve().parents[2] / "manifests/dnsmasq-pgo-training-v032.json"
         item = {"path": str(manifest), "sha256": training.sha(manifest)}

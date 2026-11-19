@@ -26,6 +26,55 @@ NPROC=$(nproc 2>/dev/null || echo 2)
 
 log() { printf '\n== %s\n' "$*"; }
 [ -f "$PKGLIST" ] || { echo "no package list for $ver: $PKGLIST (capture it with: ssh router 'apk info' | sort)" >&2; exit 1; }
+
+# The six SDK packages and four standalone components build from this checkout.
+# A candidate spec may be committed after the product, but their inputs must match.
+if [ -n "${OWRT_NATIVE_SPEC:-}" ]; then
+	python3 - "$REPO" "$OWRT_NATIVE_SPEC" "$ver" $PKGS <<'PY'
+import hashlib
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+repo, path, version, *packages = sys.argv[1:]
+spec = json.loads(Path(path).read_text())
+
+def require(ok, message):
+    if not ok:
+        raise SystemExit(message)
+
+def git(*args):
+    return subprocess.check_output(["git", "-C", repo, *args])
+
+require(spec["openwrt"] == version, "native spec OpenWrt version differs from the SDK build")
+if "comparison_build" in spec:
+    comparison, dns = spec["comparison_build"], spec["dnsmasq_build"]
+    source = comparison["source_commit"]
+    require(re.fullmatch(r"[0-9a-f]{40}", source) and source == dns["source_commit"],
+            "native component and dnsmasq product commits differ")
+    tree = git("rev-parse", f"{source}:components").decode().strip()
+    require(tree == comparison["component_tree"] == git("rev-parse", "HEAD:components").decode().strip(),
+            "native checkout component tree differs from the frozen product")
+    pin = hashlib.sha256(git("show", f"{source}:rust-toolchain.toml")).hexdigest()
+    require(pin == comparison["toolchain_sha256"] == dns["source_files"]["rust-toolchain.toml"]
+            == hashlib.sha256((Path(repo) / "rust-toolchain.toml").read_bytes()).hexdigest(),
+            "native checkout Rust pin differs from the frozen product")
+    tools = ("tools/cargo.sh", "tools/install_cargo.sh", "tools/toolchain_identity.sh",
+             "tools/ci_build_core.sh", "tools/check_abi.sh", "tools/testsrc/abi_assert.c")
+    recipes = tuple(f"packaging/openwrt/{package}/" for package in packages)
+    inputs = (*tools, *recipes)
+    require(not git("status", "--porcelain", "--untracked-files=all", "--", "components", "rust-toolchain.toml", *inputs),
+            "native checkout has uncommitted build inputs")
+    expected = {name: digest for name, digest in comparison["adapter_files"].items()
+                if name in tools or name.startswith(recipes)}
+    actual = {name: hashlib.sha256((Path(repo) / name).read_bytes()).hexdigest()
+              for name in git("ls-files", "-z", "--", *inputs).decode().split("\0") if name}
+    require(actual == expected, "native checkout recipes differ from the core target receipt")
+PY
+fi
+
 mkdir -p "$WORK/dl" "$OUT"
 rm -f "$OUT/sdk-downloads-verified"
 finish_image_build() {

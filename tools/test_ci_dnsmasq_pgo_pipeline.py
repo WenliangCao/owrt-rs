@@ -77,6 +77,17 @@ class PipelineTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 pipeline.load_spec(self.save(bad), "candidate-use")
 
+    def test_comparison_slot_does_not_change_historical_freezes(self):
+        spec = copy.deepcopy(self.spec)
+        spec["pgo"]["build_slot"] = pipeline.COMPARISON_BUILD_SLOT
+        with self.assertRaisesRegex(ValueError, "build slot"):
+            pipeline.load_spec(self.save(spec), "generate")
+        spec["comparison_role"] = "v033-aa"
+        self.assertEqual(pipeline.load_spec(self.save(spec), "generate"), spec)
+        spec["pgo"]["build_slot"] = "/tmp/unfrozen-slot"
+        with self.assertRaisesRegex(ValueError, "build slot"):
+            pipeline.load_spec(self.save(spec), "generate")
+
     def test_reference_reproduction_still_requires_actual_accepted_identity(self):
         spec = self.use_spec()
         spec["pgo_stage"] = "frozen-use"

@@ -1,4 +1,5 @@
 name: dnsmasq-pgo-candidate
+run-name: ${{ inputs.stage == 'profile-chunk' && format('dnsmasq-pgo-profile-chunk-{0}-{1}', inputs.transfer, inputs.part) || inputs.stage == 'profile-assemble' && format('dnsmasq-pgo-profile-assemble-{0}-all', inputs.transfer) || format('dnsmasq-pgo-{0}', inputs.stage) }}
 on:
   workflow_dispatch:
     inputs:
@@ -6,22 +7,85 @@ on:
         description: Explicit canonical PGO stage
         required: true
         type: choice
-        options: [generate, candidate-use, frozen-use]
+        options: [generate, candidate-use, frozen-use, profile-chunk, profile-assemble]
       spec:
-        description: Committed freeze for the final integrated source
+        description: Committed source freeze (A/A, toolchain-only, or final)
         required: true
+        type: string
+      transfer:
+        description: Profile transfer ID (set by the transport tool)
+        type: string
+      bundle_sha256:
+        description: Profile ZIP SHA256 (set by the transport tool)
+        type: string
+      generation_run:
+        description: Successful Actions generate run that supplied the trained ELF
+        type: string
+      part:
+        description: Chunk index for upload or ordered run IDs for assembly
+        type: string
+      payload:
+        description: Encoded profile chunk (set by the transport tool)
         type: string
 
 permissions:
   contents: read
-
-concurrency:
-  group: dnsmasq-pgo-candidate-${{ github.ref }}
-  cancel-in-progress: false
+  actions: read
 
 jobs:
+  profile-input:
+    if: github.ref == 'refs/heads/ci/audit110-r3' && startsWith(inputs.stage, 'profile-')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: read and verify the dispatch payload without logging it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/ci_dnsmasq_profile_transport.py receive
+      - uses: actions/upload-artifact@v4
+        if: inputs.stage == 'profile-chunk'
+        with:
+          name: dnsmasq-pgo-profile-chunk-${{ inputs.transfer }}-${{ inputs.part }}-${{ github.run_attempt }}
+          path: profile-chunk/*
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        id: profile
+        if: inputs.stage == 'profile-assemble'
+        with:
+          name: dnsmasq-profile-${{ github.run_id }}-${{ github.run_attempt }}
+          path: profile-input/*
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        if: inputs.stage == 'profile-assemble'
+        with:
+          name: dnsmasq-profile-transport-${{ github.run_id }}-${{ github.run_attempt }}
+          path: profile-transport.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: record immutable input transport identity
+        if: inputs.stage == 'profile-assemble'
+        env:
+          ARTIFACT_ID: ${{ steps.profile.outputs.artifact-id }}
+          ARCHIVE_SHA256: ${{ steps.profile.outputs.artifact-digest }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          print('```json')
+          print(json.dumps(dict(kind='github-actions-artifact', repository=os.environ['GITHUB_REPOSITORY'],
+              artifact_id=int(os.environ['ARTIFACT_ID']), run_id=int(os.environ['GITHUB_RUN_ID']),
+              head_sha=os.environ['GITHUB_SHA'], archive_sha256=os.environ['ARCHIVE_SHA256']), indent=2))
+          print('```')
+          PY
   candidate-build:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/an8855-dtb-trim' || github.ref == 'refs/heads/ci/audit110-r3'
+    if: ${{ !startsWith(inputs.stage, 'profile-') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/an8855-dtb-trim' || github.ref == 'refs/heads/ci/audit110-r3') }}
+    concurrency:
+      group: dnsmasq-pgo-candidate-${{ github.ref }}
+      cancel-in-progress: false
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -30,7 +94,9 @@ jobs:
           fetch-depth: 0
       - name: pinned Rust toolchain
         id: rust
-        run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+        env:
+          SPEC: ${{ inputs.spec }}
+        run: echo "channel=$(python3 tools/ci_dnsmasq_pgo_inputs.py toolchain --spec "$SPEC")" >> "$GITHUB_OUTPUT"
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
@@ -61,6 +127,32 @@ jobs:
           PGO_STAGE: ${{ inputs.stage }}
           PGO_SPEC: ${{ inputs.spec }}
         run: python3 tools/ci_check_dnsmasq_pgo_pipeline.py "$GITHUB_WORKSPACE/work" --stage "$PGO_STAGE" --spec "$PGO_SPEC"
+      - uses: actions/upload-artifact@v4
+        id: freeze-candidate
+        if: success() && inputs.stage == 'candidate-use'
+        with:
+          name: dnsmasq-pgo-freeze-candidate-${{ github.sha }}-${{ github.run_id }}
+          path: |
+            work/out/dnsmasq/build-spec.json
+            work/out/dnsmasq/manifest.json
+            work/out/dnsmasq/dnsmasq-rs
+          if-no-files-found: error
+          retention-days: 90
+      - name: record candidate freeze artifact identity
+        if: success() && inputs.stage == 'candidate-use'
+        env:
+          ARTIFACT_ID: ${{ steps.freeze-candidate.outputs.artifact-id }}
+          ARCHIVE_DIGEST: ${{ steps.freeze-candidate.outputs.artifact-digest }}
+        run: |
+          archive_sha256="${ARCHIVE_DIGEST#sha256:}"
+          python3 - "$ARTIFACT_ID" "$archive_sha256" <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os, sys
+          print('```json')
+          print(json.dumps(dict(kind='github-actions-artifact', repository=os.environ['GITHUB_REPOSITORY'],
+              artifact_id=int(sys.argv[1]), run_id=int(os.environ['GITHUB_RUN_ID']),
+              head_sha=os.environ['GITHUB_SHA'], archive_sha256=sys.argv[2]), indent=2))
+          print('```')
+          PY
       - name: preserve actual artifacts and original diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -75,5 +167,8 @@ jobs:
             work/out/dnsmasq/pgo/*
             work/out/dnsmasq/pgo-compilation/*
             work/out/dnsmasq/pgo-cargo
+            work/out/dnsmasq/cargo-*.json*
+            work/out/dnsmasq/profile-provenance.json
+            work/out/dnsmasq/runner-recipe/*
           if-no-files-found: error
           retention-days: 90

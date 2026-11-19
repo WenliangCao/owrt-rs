@@ -14,6 +14,7 @@ import platform
 import re
 import shutil
 import subprocess
+import tomllib
 
 from dnsmasq.compiler_warnings import scan
 
@@ -67,11 +68,49 @@ def run(command, log, env):
 
 def environment():
     env = os.environ.copy()
-    env.setdefault("RUSTC", subprocess.check_output(["rustup", "which", "rustc"], text=True).strip())
+    channel = tomllib.loads((REPO / "rust-toolchain.toml").read_text())["toolchain"]["channel"]
+    env["RUSTUP_TOOLCHAIN"] = channel
+    env["RUSTC"] = subprocess.check_output(
+        ["rustup", "which", "--toolchain", channel, "rustc"], text=True).strip()
     for key in ("RUSTFLAGS", "RUSTDOCFLAGS"):
         env[key] = (env.get(key, "") + " -Dwarnings").strip()
     env["CARGO_INCREMENTAL"] = "0"
     return env
+
+
+def comparison_source(runner, work, source_ref):
+    """Freeze the product revision while recording the current build adapters."""
+    if not re.fullmatch(r"[0-9a-f]{40}", source_ref):
+        raise ValueError("comparison source must be a full commit SHA")
+    commit = subprocess.check_output(
+        ["git", "-C", str(runner), "rev-parse", source_ref + "^{commit}"], text=True).strip()
+    source = work / "comparison-source"
+    subprocess.run(["git", "-C", str(runner), "worktree", "add", "--detach", str(source), commit], check=True)
+    # Historical product and benchmark code keep their compiler and lockfiles.
+    # Only execution/packaging adapters come from the workflow checkout.
+    for directory in ("tools", "packaging/openwrt"):
+        shutil.copytree(runner / directory, source / directory, dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns("benchmark", "archive", "__pycache__", "*.pyc"))
+    verify_comparison_source(source)
+    adapters = {}
+    for directory in (source / "tools", source / "packaging/openwrt"):
+        for path in sorted(directory.rglob("*")):
+            if path.is_file() and not {"benchmark", "archive", "__pycache__"}.intersection(path.relative_to(source).parts):
+                adapters[str(path.relative_to(source))] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return source, {
+        "source_commit": commit,
+        "runner_commit": subprocess.check_output(
+            ["git", "-C", str(runner), "rev-parse", "HEAD"], text=True).strip(),
+        "component_tree": subprocess.check_output(
+            ["git", "-C", str(source), "rev-parse", "HEAD:components"], text=True).strip(),
+        "toolchain_sha256": hashlib.sha256((source / "rust-toolchain.toml").read_bytes()).hexdigest(),
+        "adapter_files": adapters,
+    }
+
+
+def verify_comparison_source(source):
+    subprocess.run(["git", "-C", str(source), "diff", "--exit-code", "HEAD", "--",
+                    "components", "rust-toolchain.toml", "tools/benchmark"], check=True)
 
 
 def host(work, env, report):
@@ -87,7 +126,10 @@ def host(work, env, report):
         compile_code = run(common + ["--tests", "--no-run"], out / f"build-{component}.log", env)
         test_code = doc_code = example_code = None
         if compile_code == 0:
-            options = ["--", "--test-threads=1"] if component == "platform" else []
+            # Process fixtures fork/exec while other cases create executables.
+            # Match the main Rust gate's serial execution: a concurrent fork
+            # can otherwise inherit a writable script FD and cause ETXTBSY.
+            options = ["--", "--test-threads=1"]
             test_code = run(common + ["--tests", "--no-fail-fast"] + options, out / f"test-{component}.log", env)
             lib_config = re.search(r"^\[lib\]\n(.*?)(?=^\[|\Z)", manifest.read_text(), re.M | re.S)
             docs_disabled = lib_config and re.search(r"^doctest\s*=\s*false\s*$", lib_config.group(1), re.M)
@@ -174,10 +216,13 @@ def sdk_check(work, env, report):
 
 
 def main():
+    global REPO
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="mode", required=True)
     for mode in ("host", "target"):
-        sub.add_parser(mode).add_argument("work", type=Path)
+        command = sub.add_parser(mode)
+        command.add_argument("work", type=Path)
+        command.add_argument("--source-ref", default="", help="full product commit for a comparison build")
     warning_parser = sub.add_parser("warnings")
     warning_parser.add_argument("output", type=Path)
     warning_parser.add_argument("logs", nargs="+", type=Path)
@@ -188,15 +233,22 @@ def main():
         parser.error("use an independent x86_64 Linux CI runner; no Mac builds")
     work = args.work.resolve()
     work.mkdir(parents=True, exist_ok=True)
+    comparison = None
+    if args.source_ref:
+        REPO, comparison = comparison_source(REPO, work, args.source_ref)
     out = work / ("out/core-host" if args.mode == "host" else "out")
     env = environment()
     env.setdefault("OPENWRT_VERSION", "25.12.5")
     report = {"status": "running", "phase": args.mode, "commands": [],
               "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip(),
               "scope": "ten non-dnsmasq candidates; no publication or deployment"}
+    if comparison is not None:
+        report["comparison_source"] = comparison
     passed = False
     try:
         out, passed = (host if args.mode == "host" else sdk_check)(work, env, report)
+        if comparison is not None:
+            verify_comparison_source(REPO)
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         report["error"] = str(error)
     finally:

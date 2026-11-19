@@ -6,13 +6,15 @@ import os
 from pathlib import Path
 import sys
 
+import ci_dnsmasq_build as build_runtime
+
 
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def prepare(plan, argv, env):
-    if argv == ["--version"]:
+    if argv in (["--version"], ["-V"]):
         return None
     build = Path(plan["build_dir"])
     expected_argv = ["build", "--release", "--frozen", "--manifest-path",
@@ -27,10 +29,14 @@ def prepare(plan, argv, env):
         if env.get(name) != value:
             raise ValueError("unexpected SDK recipe environment: " + name)
     for name, value in env.items():
-        if value and (name in {"CARGO_ENCODED_RUSTFLAGS", "RUSTC", "RUSTC_WRAPPER",
+        if value and (name in {"CARGO_ENCODED_RUSTFLAGS", "RUSTC_WRAPPER",
                               "RUSTC_WORKSPACE_WRAPPER", "LLVM_PROFILE_FILE", "CARGO_TARGET_DIR"}
                       or name.startswith("CARGO_PROFILE_") and name != "CARGO_PROFILE_RELEASE_PANIC"):
             raise ValueError("unexpected compiler/profile override: " + name)
+    rustc = env.get("RUSTC")
+    if rustc and (rustc != expected.get("RUSTC") or not Path(rustc).is_absolute()
+                  or sha(rustc) != plan.get("rustc_sha256")):
+        raise ValueError("resolved RUSTC identity differs from build plan")
     linker = env["CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER"]
     if sha(linker) != plan["static_pie_linker_sha256"]:
         raise ValueError("static PIE linker identity changed")
@@ -61,12 +67,15 @@ def prepare(plan, argv, env):
             raise ValueError("frozen PGO profile identity changed")
         added = f"-Cprofile-use={profile} -Cllvm-args=-pgo-warn-missing-function"
         identity = {"profile_sha256": plan["profile_sha256"], "profile_bytes": plan["profile_bytes"]}
+    elif mode == "plain":
+        added, identity = "", {}
     else:
         raise ValueError("unknown PGO mode")
     return {"mode": mode, "argv": argv, "cargo_verbosity": "normal", "recipe_environment": expected,
             "build_adapter": adapter,
             "recipe_rustflags": recipe_flags, "added_rustflags": added,
-            "effective_rustflags": recipe_flags + " " + added,
+            "effective_rustflags": recipe_flags + (" " + added if added else ""),
+            **({"rustc_sha256": plan["rustc_sha256"]} if rustc else {}),
             **identity,
             **({"map_compiler": mapping} if mapping is not None else {}),
             "static_pie_linker_sha256": sha(linker), "wrapper_sha256": sha(__file__)}
@@ -87,6 +96,8 @@ def main():
         os.environ["RUSTFLAGS"] = receipt["effective_rustflags"]
     # Preserve normal recipe verbosity. Diagnostic -vv also changes dependency
     # --cap-lints from allow to warn and emits Cargo's ignored-hint advisories.
+    if receipt is not None and "install_elf" in plan:
+        sys.exit(build_runtime.compile_artifact(plan, argv, dict(os.environ)))
     os.execv(executable, [executable, *argv])
 
 
