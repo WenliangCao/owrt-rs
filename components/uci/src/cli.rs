@@ -432,7 +432,9 @@ Options:\n\
             _ => {}
         }
 
-        // no save necessary for get / revert
+        // Upstream `uci` @ `66127cd7` (`cli.c:530-532`): `CMD_GET` and
+        // `CMD_REVERT` intentionally return 0 directly without calling
+        // `cli_perror()` or saving deltas.
         if matches!(cmd, CliCmd::Get | CliCmd::Revert) {
             return 0;
         }

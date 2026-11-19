@@ -417,3 +417,144 @@ fn ext_index_parsing_matches_strtol_into_int() {
         assert_eq!(pick(idx).unwrap(), want, "index {idx:?}");
     }
 }
+
+// ---------------------------------------------------------------- revert
+
+struct RevertTestDir(std::path::PathBuf);
+
+impl RevertTestDir {
+    fn new(prefix: &str) -> Self {
+        static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let n = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let path = std::env::temp_dir().join(format!(
+            "owrt_uci_revert_{prefix}_{}_{n}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&path).unwrap();
+        Self(path)
+    }
+}
+
+impl Drop for RevertTestDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+#[test]
+fn revert_cli_and_library_match_libuci_66127cd7() {
+    let dir = RevertTestDir::new("cli");
+    let namespace = dir.0.file_name().unwrap().to_str().unwrap();
+    let pkg = format!("{namespace}_pkg");
+    let badpkg = format!("{namespace}_badpkg");
+    let cleanpkg = format!("{namespace}_cleanpkg");
+    let missingpkg = format!("{namespace}_missing");
+    let conf = dir.0.join("conf");
+    let save = dir.0.join("save");
+    std::fs::create_dir_all(&conf).unwrap();
+    std::fs::create_dir_all(&save).unwrap();
+
+    std::fs::write(
+        conf.join(&pkg),
+        "config sec 'sec'\n\toption opt1 'orig1'\n\toption opt2 'orig2'\nconfig sec 'other'\n\toption opt3 'orig3'\n",
+    )
+    .unwrap();
+    std::fs::write(conf.join(&badpkg), "config 'broken\n").unwrap();
+    std::fs::write(conf.join(&cleanpkg), "config sec 'sec'\n\toption k 'v'\n").unwrap();
+
+    let ext_file = dir.0.join("extpkg");
+    std::fs::write(&ext_file, "config sec 'sec'\n\toption k 'v'\n").unwrap();
+
+    let run = |args: &[&str]| -> std::process::Output {
+        std::process::Command::new(env!("CARGO_BIN_EXE_uci-rs"))
+            // Config overrides are independent of -c; package names also avoid
+            // ordinary packages in the default read-only delta search path.
+            .args(["-C", ""])
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    let conf_s = conf.to_str().unwrap();
+    let save_s = save.to_str().unwrap();
+
+    // 1. Missing package, syntax error, and `=value` assignment exit 1.
+    let out_missing = run(&["-c", conf_s, "-t", save_s, "revert", &missingpkg]);
+    assert_eq!(out_missing.status.code(), Some(1));
+    assert!(
+        String::from_utf8_lossy(&out_missing.stderr).contains("uci-rs: Entry not found"),
+        "stderr: {:?}",
+        String::from_utf8_lossy(&out_missing.stderr)
+    );
+
+    let out_bad = run(&["-c", conf_s, "-t", save_s, "revert", &badpkg]);
+    assert_eq!(out_bad.status.code(), Some(1));
+    assert!(
+        String::from_utf8_lossy(&out_bad.stderr).contains("uci-rs: Parse error"),
+        "stderr: {:?}",
+        String::from_utf8_lossy(&out_bad.stderr)
+    );
+
+    let out_val = run(&[
+        "-c",
+        conf_s,
+        "-t",
+        save_s,
+        "revert",
+        &format!("{pkg}.sec=val"),
+    ]);
+    assert_eq!(out_val.status.code(), Some(1));
+
+    // 2. Partial revert keeps unmatched deltas in the same and other sections.
+    for assignment in [
+        format!("{pkg}.sec.opt1=new1"),
+        format!("{pkg}.sec.opt2=new2"),
+        format!("{pkg}.other.opt3=new3"),
+    ] {
+        let out = run(&["-c", conf_s, "-t", save_s, "set", &assignment]);
+        assert_eq!(out.status.code(), Some(0));
+    }
+    let out_rev = run(&[
+        "-c",
+        conf_s,
+        "-t",
+        save_s,
+        "revert",
+        &format!("{pkg}.sec.opt1"),
+    ]);
+    assert_eq!(out_rev.status.code(), Some(0));
+    assert!(out_rev.stderr.is_empty());
+
+    let get_val = |target: &str| -> String {
+        let out = run(&["-c", conf_s, "-t", save_s, "get", target]);
+        assert_eq!(out.status.code(), Some(0));
+        String::from_utf8(out.stdout)
+            .unwrap()
+            .trim_end()
+            .to_string()
+    };
+    assert_eq!(get_val(&format!("{pkg}.sec.opt1")), "orig1");
+    assert_eq!(get_val(&format!("{pkg}.sec.opt2")), "new2");
+    assert_eq!(get_val(&format!("{pkg}.other.opt3")), "new3");
+
+    // 3. External file (`has_delta == false`) and clean package: library
+    //    `delta::revert` returns `Err(Error::Inval)` on `has_delta == false`,
+    //    while CLI `revert` exits 0 with empty stderr per `cli.c:530-532`.
+    let mut ctx = Context::new();
+    let mut ext_ptr = Ptr::default();
+    let ext_path_str = ext_file.to_str().unwrap();
+    ops::lookup_ptr(&mut ctx, &mut ext_ptr, Some(ext_path_str.as_bytes()), true).unwrap();
+    let pidx = ext_ptr.p.unwrap();
+    assert!(!ctx.root[pidx].has_delta);
+    assert_eq!(
+        owrt_uci::delta::revert(&mut ctx, &mut ext_ptr),
+        Err(Error::Inval)
+    );
+
+    let out_ext = run(&["revert", ext_path_str]);
+    assert_eq!(out_ext.status.code(), Some(0));
+    assert!(out_ext.stderr.is_empty());
+
+    let out_clean = run(&["-c", conf_s, "-t", save_s, "revert", &cleanpkg]);
+    assert_eq!(out_clean.status.code(), Some(0));
+    assert!(out_clean.stderr.is_empty());
+}

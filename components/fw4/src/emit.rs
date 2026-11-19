@@ -112,6 +112,8 @@ pub fn nfproto(family: i64, human: bool) -> String {
     }
 }
 
+/// `fw4.l4proto(family, proto)`: matches `fw4.uc` / `rule.uc` / `redirect.uc`,
+/// which never read `proto.invert` (and `NO_INVERT` only checks scalar options).
 pub fn l4proto(family: i64, proto: &Proto) -> String {
     match proto.name() {
         "icmp" => match family {

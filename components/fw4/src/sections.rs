@@ -1778,6 +1778,8 @@ impl Fw4 {
                                 if dest_addr.family != zone_addr.family {
                                     continue;
                                 }
+                                // Matches `fw4.uc:2711-2715`: range subnets have `mask == None`,
+                                // so `apply_mask(..., null)` yields `None` on both sides and matches.
                                 let a = zone_addr.mask.as_deref().and_then(|m| {
                                     crate::ip::apply_mask(&dest_addr.addr, crate::ip::Mask::Addr(m))
                                 });
@@ -1987,6 +1989,8 @@ impl Fw4 {
                                 if zone_addr.family != ripi[0].family {
                                     continue;
                                 }
+                                // Matches `fw4.uc:2944-2948`: range subnets have `mask == None`,
+                                // so `apply_mask(..., null)` yields `None` on both sides and matches.
                                 let r = zone_addr.mask.as_deref().and_then(|m| {
                                     crate::ip::apply_mask(&ripi[0].addr, crate::ip::Mask::Addr(m))
                                 });
@@ -3075,5 +3079,344 @@ mod tests {
                 "{out}"
             );
         }
+    }
+
+    struct MockFixture {
+        dir: std::path::PathBuf,
+    }
+
+    impl MockFixture {
+        fn new(tag: &str, firewall_json: &str) -> Self {
+            use std::sync::atomic::{AtomicU64, Ordering};
+            static SEQ: AtomicU64 = AtomicU64::new(0);
+            let id = SEQ.fetch_add(1, Ordering::Relaxed);
+            let dir =
+                std::env::temp_dir().join(format!("fw4rs-test-{tag}-{}-{id}", std::process::id()));
+            let _ = std::fs::remove_dir_all(&dir);
+            std::fs::create_dir_all(dir.join("uci")).unwrap();
+            std::fs::create_dir_all(dir.join("fs")).unwrap();
+            std::fs::write(dir.join("uci/firewall.json"), firewall_json).unwrap();
+            std::fs::write(
+                dir.join("fs/popen~_usr_sbin_nft_--terse_--json_list_flowtables_inet.txt"),
+                r#"{"nftables":[]}"#,
+            )
+            .unwrap();
+            Self { dir }
+        }
+
+        fn into_fw(self) -> (Self, Fw4) {
+            let fw = Fw4 {
+                inputs: Inputs::mock(vec![self.dir.to_str().unwrap().to_owned()], false),
+                firewall: Rc::new(Config::empty()),
+                helpers_cfg: Rc::new(Config::empty()),
+                state: State::default(),
+                kernel: 0,
+                quiet: true,
+                aborted: false,
+                tty: false,
+            };
+            (self, fw)
+        }
+    }
+
+    impl Drop for MockFixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.dir);
+        }
+    }
+
+    #[test]
+    fn to_bits_non_contiguous_mask_compat() {
+        for (tag, src_ip, expected) in [
+            ("254_255", "10.0.0.5/254.255.0.0", "ip saddr 10.0.0.0/15 "),
+            ("128_128", "10.0.0.5/128.128.0.0", "ip saddr 0.0.0.0/2 "),
+            (
+                "255_0_255",
+                "10.0.0.5/255.0.255.0",
+                "ip saddr & 255.0.255.0 == 10.0.0.0 ",
+            ),
+        ] {
+            let cfg = format!(
+                r#"{{"defaults":{{"input":"DROP","output":"ACCEPT","forward":"DROP"}},{ZONE},"rule":[{{"name":"mask_{tag}","src":"lan","src_ip":"{src_ip}","proto":"tcp","target":"ACCEPT"}}]}}"#
+            );
+            let (_fix, mut fw) = MockFixture::new(tag, &cfg).into_fw();
+            assert_eq!(fw.load(), Ok(()));
+            let out = fw.render_ruleset();
+            assert!(
+                out.contains(expected),
+                "missing `{expected}` for {src_ip} in:\n{out}"
+            );
+        }
+    }
+
+    #[test]
+    fn negated_proto_compat_in_rule_redirect_nat() {
+        let cfg = r#"{
+            "defaults":{"input":"DROP","output":"ACCEPT","forward":"DROP"},
+            "zone":[
+                {"name":"lan","device":"br-lan","subnet":["192.168.1.0/24"],"input":"ACCEPT","output":"ACCEPT","forward":"ACCEPT"},
+                {"name":"wan","device":"eth1","subnet":["203.0.113.0/24"],"masq":"1","input":"REJECT","output":"ACCEPT","forward":"REJECT"}
+            ],
+            "rule":[
+                {"name":"rule_neg_noports","src":"wan","proto":"!tcp","target":"ACCEPT"},
+                {"name":"rule_neg_dport","src":"wan","proto":"!tcp","dest_port":"80","target":"ACCEPT"}
+            ],
+            "redirect":[
+                {"name":"redir_neg_udp","src":"wan","dest":"lan","proto":"!udp","src_dport":"5353","dest_ip":"192.168.1.10","dest_port":"5353","reflection":"1","target":"DNAT"},
+                {"name":"redir_neg_udp_noports","src":"wan","dest":"lan","proto":"!udp","dest_ip":"192.168.1.11","reflection":"1","target":"DNAT"}
+            ],
+            "nat":[
+                {"name":"nat_neg_tcp","src":"wan","proto":"!tcp","target":"MASQUERADE"}
+            ]
+        }"#;
+        let (_fix, mut fw) = MockFixture::new("neg_proto", cfg).into_fw();
+        assert_eq!(fw.load(), Ok(()));
+        let out = fw.render_ruleset();
+
+        let lines_for = |comment: &str| -> Vec<String> {
+            let matches: Vec<String> = out
+                .lines()
+                .filter(|l| l.contains(comment))
+                .map(str::to_owned)
+                .collect();
+            assert!(!matches.is_empty(), "missing `{comment}` in:\n{out}");
+            matches
+        };
+
+        let r1 = &lines_for("rule_neg_noports")[0];
+        assert!(r1.contains("meta l4proto tcp "), "{r1}");
+        assert!(!r1.contains("l4proto !="), "{r1}");
+
+        let r2 = &lines_for("rule_neg_dport")[0];
+        assert!(r2.contains("tcp dport 80 "), "{r2}");
+        assert!(!r2.contains("l4proto !="), "{r2}");
+
+        let rd_lines: Vec<String> = out
+            .lines()
+            .filter(|l| l.contains("redir_neg_udp\"") || l.contains("redir_neg_udp (reflection)"))
+            .map(str::to_owned)
+            .collect();
+        assert!(
+            rd_lines
+                .iter()
+                .any(|l| l.contains("udp dport 5353 ") && l.contains("dnat 192.168.1.10:5353")),
+            "{rd_lines:?}"
+        );
+        assert!(
+            rd_lines
+                .iter()
+                .any(|l| l.contains("udp dport 5353 ") && l.contains("(reflection)")),
+            "{rd_lines:?}"
+        );
+        assert!(
+            rd_lines.iter().all(|l| !l.contains("l4proto !=")),
+            "{rd_lines:?}"
+        );
+
+        let rd_noports = lines_for("redir_neg_udp_noports");
+        assert!(
+            rd_noports.iter().any(|l| l.contains("meta l4proto udp ")),
+            "{rd_noports:?}"
+        );
+        assert!(
+            rd_noports.iter().all(|l| !l.contains("l4proto !=")),
+            "{rd_noports:?}"
+        );
+
+        let nat = &lines_for("nat_neg_tcp")[0];
+        assert!(nat.contains("meta l4proto tcp "), "{nat}");
+        assert!(!nat.contains("l4proto !="), "{nat}");
+    }
+
+    #[test]
+    fn negated_limit_compat_in_rule_redirect_nat() {
+        let cfg = r#"{
+            "defaults":{"input":"DROP","output":"ACCEPT","forward":"DROP"},
+            "zone":[
+                {"name":"lan","device":"br-lan","subnet":["192.168.1.0/24"],"input":"ACCEPT","output":"ACCEPT","forward":"ACCEPT"},
+                {"name":"wan","device":"eth1","subnet":["203.0.113.0/24"],"masq":"1","input":"REJECT","output":"ACCEPT","forward":"REJECT"}
+            ],
+            "rule":[
+                {"name":"rule_neg_limit","src":"wan","proto":"tcp","limit":"!25/second","limit_burst":"5","target":"ACCEPT"}
+            ],
+            "redirect":[
+                {"name":"redir_neg_limit","src":"wan","dest":"lan","proto":"tcp","src_dport":"8080","dest_ip":"192.168.1.10","dest_port":"80","limit":"!10/minute","target":"DNAT"}
+            ],
+            "nat":[
+                {"name":"nat_neg_limit","src":"wan","proto":"tcp","limit":"!5/second","target":"MASQUERADE"}
+            ]
+        }"#;
+        let (_fix, mut fw) = MockFixture::new("neg_limit", cfg).into_fw();
+        assert_eq!(fw.load(), Ok(()));
+        let out = fw.render_ruleset();
+
+        let line_for = |comment: &str| -> String {
+            out.lines()
+                .find(|l| l.contains(comment))
+                .unwrap_or_else(|| panic!("missing `{comment}` in:\n{out}"))
+                .to_owned()
+        };
+
+        let r = line_for("rule_neg_limit");
+        assert!(r.contains("limit rate 25/second burst 5 packets "), "{r}");
+        assert!(!r.contains(" over "), "{r}");
+
+        let rd = line_for("redir_neg_limit");
+        assert!(rd.contains("limit rate 10/minute "), "{rd}");
+        assert!(!rd.contains(" over "), "{rd}");
+
+        let nat = line_for("nat_neg_limit");
+        assert!(nat.contains("limit rate 5/second "), "{nat}");
+        assert!(!nat.contains(" over "), "{nat}");
+    }
+
+    #[test]
+    fn port_bearing_ipset_mixed_protocols_compat() {
+        let cfg = r#"{
+            "defaults":{"input":"DROP","output":"ACCEPT","forward":"DROP"},
+            "zone":[
+                {"name":"lan","device":"br-lan","subnet":["192.168.1.0/24"],"input":"ACCEPT","output":"ACCEPT","forward":"ACCEPT"},
+                {"name":"wan","device":"eth1","subnet":["203.0.113.0/24"],"masq":"1","input":"REJECT","output":"ACCEPT","forward":"REJECT"}
+            ],
+            "ipset":[
+                {"name":"pset","family":"4","match":["src_ip","dest_port"]}
+            ],
+            "rule":[
+                {"name":"rule_mixed_pset","src":"wan","proto":["tcp","icmp"],"ipset":"pset","target":"ACCEPT"},
+                {"name":"rule_icmp_only_pset","src":"wan","proto":"icmp","ipset":"pset","target":"ACCEPT"}
+            ],
+            "redirect":[
+                {"name":"redir_mixed_pset","src":"wan","dest":"lan","proto":["tcp","icmp"],"ipset":"pset","dest_ip":"192.168.1.10","target":"DNAT"},
+                {"name":"redir_icmp_only_pset","src":"wan","dest":"lan","proto":"icmp","ipset":"pset","dest_ip":"192.168.1.10","target":"DNAT"}
+            ]
+        }"#;
+        let (_fix, mut fw) = MockFixture::new("mixed_pset", cfg).into_fw();
+        assert_eq!(fw.load(), Ok(()));
+        let out = fw.render_ruleset();
+
+        let rule_lines: Vec<&str> = out
+            .lines()
+            .filter(|l| l.contains("rule_mixed_pset"))
+            .collect();
+        assert!(
+            rule_lines
+                .iter()
+                .any(|l| l.contains("ip saddr . tcp dport @pset ")),
+            "{rule_lines:?}"
+        );
+        assert!(
+            rule_lines
+                .iter()
+                .any(|l| l.contains("meta l4proto icmp  @pset ")),
+            "{rule_lines:?}"
+        );
+
+        let redir_lines: Vec<&str> = out
+            .lines()
+            .filter(|l| l.contains("redir_mixed_pset"))
+            .collect();
+        assert!(
+            redir_lines
+                .iter()
+                .any(|l| l.contains("ip saddr . tcp dport @pset ")),
+            "{redir_lines:?}"
+        );
+        assert!(
+            redir_lines
+                .iter()
+                .any(|l| l.contains("meta l4proto icmp  @pset ")),
+            "{redir_lines:?}"
+        );
+
+        assert!(
+            !out.contains("rule_icmp_only_pset"),
+            "pure icmp rule with port-bearing ipset must be skipped:\n{out}"
+        );
+        assert!(
+            !out.contains("redir_icmp_only_pset"),
+            "pure icmp redirect with port-bearing ipset must be skipped:\n{out}"
+        );
+    }
+
+    #[test]
+    fn parse_setmatch_single_delimiter_splitting_compat() {
+        let cfg = r#"{
+            "defaults":{"input":"DROP","output":"ACCEPT","forward":"DROP"},
+            "zone":[
+                {"name":"wan","device":"eth1","input":"REJECT","output":"ACCEPT","forward":"REJECT"}
+            ],
+            "ipset":[
+                {"name":"pset2","family":"4","match":["src_ip","dest_port"]},
+                {"name":"pset3","family":"4","match":["src_ip","src_ip","dest_port"]}
+            ],
+            "rule":[
+                {"name":"rule_pset2_comma","src":"wan","proto":"tcp","ipset":"pset2 dst, src","target":"ACCEPT"},
+                {"name":"rule_pset3_comma","src":"wan","proto":"tcp","ipset":"pset3 dst, src","target":"ACCEPT"}
+            ]
+        }"#;
+        let (_fix, mut fw) = MockFixture::new("setmatch_split", cfg).into_fw();
+        assert_eq!(fw.load(), Ok(()));
+        let out = fw.render_ruleset();
+
+        let r2 = out
+            .lines()
+            .find(|l| l.contains("rule_pset2_comma"))
+            .unwrap_or_else(|| panic!("missing rule_pset2_comma in:\n{out}"));
+        assert!(r2.contains("ip daddr . tcp dport @pset2 "), "{r2}");
+
+        let r3 = out
+            .lines()
+            .find(|l| l.contains("rule_pset3_comma"))
+            .unwrap_or_else(|| panic!("missing rule_pset3_comma in:\n{out}"));
+        assert!(
+            r3.contains("ip daddr . ip saddr . tcp sport @pset3 "),
+            "{r3}"
+        );
+    }
+
+    #[test]
+    fn zone_range_subnet_matching_in_resolve_dest_and_reflection() {
+        let cfg = r#"{
+            "defaults":{"input":"DROP","output":"ACCEPT","forward":"DROP"},
+            "zone":[
+                {"name":"wan","device":"eth1","subnet":["203.0.113.0/24"],"masq":"1","input":"REJECT","output":"ACCEPT","forward":"REJECT"},
+                {"name":"dmz","device":"eth2","subnet":["10.99.0.0/24","192.168.99.10-192.168.99.20"],"input":"ACCEPT","output":"ACCEPT","forward":"ACCEPT"},
+                {"name":"lan","device":"br-lan","subnet":["192.168.1.0/24"],"input":"ACCEPT","output":"ACCEPT","forward":"ACCEPT"}
+            ],
+            "redirect":[
+                {"name":"dnat_range_dmz","src":"wan","proto":"tcp","src_dport":"80","dest_ip":"192.168.50.5","dest_port":"80","reflection":"1","reflection_src":"internal","target":"DNAT"}
+            ]
+        }"#;
+        let (_fix, mut fw) = MockFixture::new("range_dest", cfg).into_fw();
+        assert_eq!(fw.load(), Ok(()));
+
+        let dmz_idx = fw
+            .state
+            .zones
+            .iter()
+            .position(|z| z.name == "dmz")
+            .expect("dmz zone");
+        assert!(
+            fw.state.redirects.iter().any(|r| {
+                r.chain == "dstnat_wan"
+                    && r.name == "dnat_range_dmz"
+                    && r.dest.as_ref().and_then(|z| z.zone) == Some(dmz_idx)
+            }),
+            "expected redirect to resolve dest to dmz: {:?}",
+            fw.state
+                .redirects
+                .iter()
+                .map(|r| (&r.chain, &r.name))
+                .collect::<Vec<_>>()
+        );
+
+        let out = fw.render_ruleset();
+        let refl_snat = out
+            .lines()
+            .find(|l| l.contains("dnat_range_dmz (reflection)") && l.contains("snat "))
+            .unwrap_or_else(|| panic!("missing reflection snat rule in:\n{out}"));
+        assert!(refl_snat.contains("snat 192.168.99.10 "), "{refl_snat}");
+        assert!(out.contains("chain dstnat_dmz"), "{out}");
+        assert!(out.contains("chain srcnat_dmz"), "{out}");
     }
 }

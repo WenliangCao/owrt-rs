@@ -218,7 +218,12 @@ pub fn to_mask(bits: i64, v6: bool) -> Option<String> {
     arrtoip(&m)
 }
 
-/// fw4.uc `to_bits(mask)`: contiguous mask string to prefix length.
+/// fw4.uc `to_bits(mask)`: mask string to prefix length.
+///
+/// Matches `fw4.uc`'s byte-level `z ||= !a[i]` check rather than rejecting
+/// non-contiguous bits within a non-zero byte (e.g. `254.255.0.0` -> `15`,
+/// `128.128.0.0` -> `2`, whereas `255.0.255.0` -> `None`) so rendered rulesets
+/// remain byte-identical to upstream.
 pub fn to_bits(mask: &str) -> Option<i64> {
     let mut a = iptoarr(mask)?;
     let mut bits = 0i64;
@@ -344,6 +349,8 @@ mod tests {
         assert_eq!(to_mask(60, true).unwrap(), "ffff:ffff:ffff:fff0::");
         assert_eq!(to_mask(33, false), None);
         assert_eq!(to_bits("255.255.255.0"), Some(24));
+        assert_eq!(to_bits("254.255.0.0"), Some(15));
+        assert_eq!(to_bits("128.128.0.0"), Some(2));
         assert_eq!(to_bits("255.0.255.0"), None);
         assert_eq!(to_bits("::ffff:ffff:ffff:ffff"), None);
         assert_eq!(to_bits("ffff:ffff:ffff:fff0::"), Some(60));

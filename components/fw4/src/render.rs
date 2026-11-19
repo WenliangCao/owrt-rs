@@ -27,6 +27,8 @@ fn masked_frag(family: i64, which: &str, a: &Addr) -> String {
     )
 }
 
+/// Matches `rule.uc:41-43` and `redirect.uc:35-37`, which ignore `l.invert`
+/// and never emit `over`.
 fn limit_frag(l: &Limit, burst: Option<crate::val::Num>) -> String {
     let mut s = format!("limit rate {}/{}", num(l.rate), l.unit);
     if let Some(b) = burst {
@@ -100,6 +102,10 @@ fn mark_frag(m: &Mark, out: &mut String) {
     }
 }
 
+/// Matches `fw4.uc:2445-2452`, `rule.uc:68-71`, and `redirect.uc:60-63`:
+/// when `map_setmatch` returns `None` on a non-TCP/UDP branch (after
+/// `ensure_tcpudp` passed on another proto), `fields` stays unset and
+/// rendering emits ` @<name> `.
 fn setmatch_frag(sm: &SetMatch, out: &mut String) {
     write!(
         out,

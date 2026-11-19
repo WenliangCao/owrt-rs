@@ -577,6 +577,9 @@ impl Fw4 {
             None => (rv.val.clone(), String::new()),
         };
         let mut dir: Vec<Option<String>> = Vec::new();
+        // Matches `fw4.uc:1120` `split(rv.val, /[ \t,]/)`: each delimiter
+        // advances the slot index, so `"dst, src"` / `"dst  src"` leave
+        // index 1 as `None` (falling back to the set's default direction).
         for (i, tok) in rest.split([' ', '\t', ',']).enumerate() {
             if i >= 3 {
                 break;
@@ -1346,6 +1349,11 @@ mod tests {
                 && sm.name == "myset"
                 && sm.dir == vec![Some("dst".into()), Some("src".into())]
         );
+        for spec in ["pset dst, src", "pset dst  src"] {
+            let sm = f.parse_setmatch(&js(spec)).unwrap();
+            assert_eq!(sm.name, "pset");
+            assert_eq!(sm.dir, vec![Some("dst".into()), None, Some("src".into())]);
+        }
     }
 
     #[test]
