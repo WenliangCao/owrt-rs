@@ -1357,8 +1357,10 @@ impl<R: Random> DnsDaemon<R> {
                         // recipients, including a replyless stale refresh.
                         if !counted_reply {
                             if let Ok(header) = Header::parse(&packet) {
-                                self.upstream
-                                    .note_reply_rcode(reply.server, header.flags & 15);
+                                if header.opcode() == 0 {
+                                    self.upstream
+                                        .note_reply_rcode(reply.server, header.flags & 15);
+                                }
                             }
                             counted_reply = true;
                         }
@@ -1440,7 +1442,9 @@ impl<R: Random> DnsDaemon<R> {
         }
         // C suppresses ordinary commit for original request CD or raw reply
         // CD, before return_reply restores the outgoing bit to the request.
-        let upstream_checking_disabled = Header::parse(&reply.packet)?.flags & 0x10 != 0;
+        let reply_header = Header::parse(&reply.packet)?;
+        let reply_opcode = reply_header.opcode();
+        let upstream_checking_disabled = reply_header.flags & 0x10 != 0;
         let envelope = prepare_udp_reply(
             &reply.packet,
             ReplyPolicy {
@@ -1451,6 +1455,10 @@ impl<R: Random> DnsDaemon<R> {
             },
         )?;
         let rcode = envelope.rcode;
+        if reply_opcode != 0 {
+            reply.packet = envelope.packet;
+            return Ok(Some(rcode));
+        }
         let context = reply
             .recipients
             .first()
@@ -1584,7 +1592,7 @@ impl<R: Random> DnsDaemon<R> {
             },
         )?;
         let mut packet = envelope.packet;
-        if matches!(rcode, 0 | 3) {
+        if Header::parse(&packet)?.opcode() == 0 && matches!(rcode, 0 | 3) {
             let report = process_admitted_reply(&mut packet, &self.policy, rcode)?;
             if report.action == ProcessAction::Ignore {
                 return Ok(None);
@@ -1940,6 +1948,7 @@ impl<R: Random> DnsDaemon<R> {
             question,
             now,
             cache.as_deref_mut(),
+            cacheable,
             tcp,
             &mut name_lookup,
         );
@@ -1954,9 +1963,14 @@ impl<R: Random> DnsDaemon<R> {
             .as_ref()
             .is_some_and(|answer| !answer.forward_rule)
         {
-            return Ok(LocalLookup::answered(QueryResult::Local(
-                local.finish_local_answer(local_answer.unwrap()),
-            )));
+            let answer = local_answer.unwrap();
+            let stale = answer.stale;
+            let packet = local.finish_local_answer(answer);
+            return Ok(LocalLookup::answered(if stale {
+                QueryResult::Stale(packet)
+            } else {
+                QueryResult::Local(packet)
+            }));
         }
         let mut forward_name = None;
         if cacheable {
@@ -3076,5 +3090,366 @@ mod tests {
         apply(&mut config, b"server=127.0.0.1#5300");
         let daemon = DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0));
         assert!(daemon.is_ok());
+    }
+
+    #[test]
+    fn non_query_opcode_upstream_reply_skips_error_logging_cache_bogus_and_filter() {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let address = server.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            for (flags, answer_ip) in [(0xa180u16, Some([192u8, 0, 2, 99])), (0xa182u16, None)] {
+                let mut input = [0; 2048];
+                let (length, peer) = server.recv_from(&mut input).unwrap();
+                let header = Header::parse(&input[..length]).unwrap();
+                let q = super::super::forward::Question::parse(&input[..length]).unwrap();
+                let mut writer = PacketWriter::new(header.id, flags, 1232).unwrap();
+                writer.question(&q.name, q.rrtype, q.class).unwrap();
+                if let Some(ip) = answer_ip {
+                    writer
+                        .record(Section::Answer, &q.name, 1, 1, 60, &ip)
+                        .unwrap();
+                }
+                server.send_to(&writer.finish(), peer).unwrap();
+            }
+        });
+
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"all-servers");
+        apply(&mut config, b"filter-A");
+        apply(&mut config, b"bogus-nxdomain=192.0.2.99");
+        apply(&mut config, b"log-queries");
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[address], options(), Counter(0))
+                .unwrap();
+        daemon.set_query_logging(crate::config::logging::QueryLogging {
+            enabled: true,
+            ..Default::default()
+        });
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        let client = ClientRequest {
+            source: "127.0.0.1:53601".parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+
+        // 1. Upstream NOERROR reply with opcode=4 carrying bogus+filtered A record.
+        let q1 = query("opcode-ok.test", 0x1111);
+        assert!(matches!(
+            daemon.handle_udp(&q1, client.clone()),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        let replies1 = daemon.poll(Duration::from_secs(1)).unwrap();
+        assert_eq!(replies1.len(), 1);
+        let msg1 = Message::parse(&replies1[0].packet).unwrap();
+        assert_eq!(msg1.header.opcode(), 4);
+        assert_eq!(msg1.header.rcode(), 0);
+        assert_eq!(msg1.header.answers, 1);
+        assert_eq!(
+            msg1.records(Section::Answer).next().unwrap().rdata,
+            &[192, 0, 2, 99]
+        );
+        // Must not be extracted into cache.
+        let parsed_q1 = super::super::forward::Question::parse(&q1).unwrap();
+        assert!(daemon.cached_answer(&q1, &parsed_q1).unwrap().is_none());
+
+        // 2. Upstream SERVFAIL reply with opcode=4 skips reply-error query logging.
+        let _ = daemon.take_query_events();
+        let q2 = query("opcode-err.test", 0x2222);
+        assert!(matches!(
+            daemon.handle_udp(&q2, client),
+            Ok(QueryResult::Forwarded(_))
+        ));
+        let replies2 = daemon.poll(Duration::from_secs(1)).unwrap();
+        assert_eq!(replies2.len(), 1);
+        let msg2 = Message::parse(&replies2[0].packet).unwrap();
+        assert_eq!(msg2.header.opcode(), 4);
+        assert_eq!(msg2.header.rcode(), 2);
+        let events = daemon.take_query_events();
+        assert!(
+            !events
+                .iter()
+                .any(|(_, event)| event.name.as_deref() == Some(b"error")),
+            "non-QUERY upstream errors must not emit reply error logs: {events:?}"
+        );
+
+        worker.join().unwrap();
+    }
+
+    fn opcode_reply_daemon(
+        flags: &[u16],
+    ) -> (DnsDaemon<Counter>, ClientRequest, thread::JoinHandle<()>) {
+        let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+        server
+            .set_read_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        let address = server.local_addr().unwrap();
+        let flags = flags.to_vec();
+        let worker = thread::spawn(move || {
+            for flags in flags {
+                let mut input = [0; 2048];
+                let (length, peer) = server.recv_from(&mut input).unwrap();
+                let header = Header::parse(&input[..length]).unwrap();
+                assert_eq!(header.opcode(), 0);
+                let q = super::super::forward::Question::parse(&input[..length]).unwrap();
+                let mut writer = PacketWriter::new(header.id, flags, 1232).unwrap();
+                writer.question(&q.name, q.rrtype, q.class).unwrap();
+                server.send_to(&writer.finish(), peer).unwrap();
+            }
+        });
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"all-servers");
+        apply(&mut config, b"log-queries");
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[address], options(), Counter(0))
+                .unwrap();
+        daemon.set_query_logging(crate::config::logging::QueryLogging {
+            enabled: true,
+            ..Default::default()
+        });
+        let client = ClientRequest {
+            source: "127.0.0.1:53601".parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        (daemon, client, worker)
+    }
+
+    #[test]
+    fn upstream_non_query_errors_skip_logging_with_query_positive_control() {
+        let (mut daemon, client, worker) = opcode_reply_daemon(&[0x8182, 0xa182]);
+        for (name, expected) in [("query-error.test", 1), ("notify-error.test", 0)] {
+            let request = query(name, 0x1234);
+            assert!(matches!(
+                daemon.handle_udp(&request, client.clone()).unwrap(),
+                QueryResult::Forwarded(_)
+            ));
+            assert_eq!(daemon.poll(Duration::from_secs(1)).unwrap().len(), 1);
+            let events = daemon.take_query_events();
+            let errors = events
+                .iter()
+                .filter(|(_, event)| {
+                    event.name.as_deref() == Some(b"error")
+                        && matches!(event.data, qlog::QueryData::Rcode { value: 2, .. })
+                })
+                .count();
+            assert_eq!(errors, expected, "{name}: {events:?}");
+        }
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn upstream_non_query_nxdomain_skips_counter_with_query_positive_control() {
+        let (mut daemon, client, worker) = opcode_reply_daemon(&[0x8183, 0xa183]);
+        let server = daemon.routing.groups().next().unwrap().servers[0].id;
+        for name in ["query-nxdomain.test", "notify-nxdomain.test"] {
+            let request = query(name, 0x1234);
+            assert!(matches!(
+                daemon.handle_udp(&request, client.clone()).unwrap(),
+                QueryResult::Forwarded(_)
+            ));
+            assert_eq!(daemon.poll(Duration::from_secs(1)).unwrap().len(), 1);
+            assert_eq!(
+                daemon.upstream.server_counters(server).nxdomain,
+                1,
+                "{name}"
+            );
+        }
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn configured_cname_to_stale_and_filtered_cache_terminals_return_expected_ede() {
+        let edns_query = |name: &str, id: u16| {
+            let mut w = PacketWriter::new(id, 0x0100, 1232).unwrap();
+            w.question(&Name::from_ascii(name).unwrap(), 1, 1).unwrap();
+            w.record_wire(Section::Additional, &[0], 41, 1232, 0, &[])
+                .unwrap();
+            w.finish()
+        };
+
+        // 1. Stale cached terminal behind configured CNAME -> QueryResult::Stale + EDE 3.
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"cname=stale-alias.test,stale-target.test");
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0)).unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Seconds(600));
+        let now = unix_seconds();
+        {
+            let cache = daemon.cache.as_mut().unwrap();
+            cache.start_insert();
+            cache
+                .insert(
+                    Record {
+                        name: Name::from_ascii("stale-target.test").unwrap(),
+                        kind: Kind::Ipv4,
+                        negative: false,
+                        data: vec![192, 0, 2, 55],
+                    },
+                    now - 20,
+                    15,
+                )
+                .unwrap();
+            assert!(cache.commit());
+        }
+        let client = ClientRequest {
+            source: "127.0.0.1:53701".parse().unwrap(),
+            destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        };
+        let stale_result = daemon
+            .handle_udp(&edns_query("stale-alias.test", 0x1111), client.clone())
+            .unwrap();
+        let QueryResult::Stale(stale_packet) = stale_result else {
+            panic!("expected QueryResult::Stale for configured CNAME to stale terminal");
+        };
+        let stale_msg = Message::parse(&stale_packet).unwrap();
+        assert_eq!(stale_msg.header.flags & 0x0400, 0);
+        assert_eq!(
+            stale_msg
+                .records(Section::Answer)
+                .map(|r| r.rrtype)
+                .collect::<Vec<_>>(),
+            vec![5, 1]
+        );
+        let stale_opt = super::super::wire::find_pseudoheader(&stale_packet, false)
+            .unwrap()
+            .opt
+            .unwrap();
+        assert_eq!(
+            stale_opt.options().next().unwrap().unwrap(),
+            (15, [0, 3].as_slice())
+        );
+
+        // 2. --filter-A on cached terminal behind configured CNAME -> CNAME-only + AA=0 + EDE 17.
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"cname=filt-alias.test,filt-target.test");
+        apply(&mut config, b"filter-A");
+        let mut daemon =
+            DnsDaemon::with_random(config, Hosts::new(), &[], options(), Counter(0)).unwrap();
+        daemon.enable_cache(8, 0, 60, StalePolicy::Disabled);
+        {
+            let cache = daemon.cache.as_mut().unwrap();
+            cache.start_insert();
+            cache
+                .insert(
+                    Record {
+                        name: Name::from_ascii("filt-target.test").unwrap(),
+                        kind: Kind::Ipv4,
+                        negative: false,
+                        data: vec![192, 0, 2, 77],
+                    },
+                    unix_seconds(),
+                    60,
+                )
+                .unwrap();
+            assert!(cache.commit());
+        }
+        let filtered_result = daemon
+            .handle_udp(&edns_query("filt-alias.test", 0x2222), client)
+            .unwrap();
+        let QueryResult::Local(filtered_packet) = filtered_result else {
+            panic!("expected QueryResult::Local for filtered cached terminal behind CNAME");
+        };
+        let filtered_msg = Message::parse(&filtered_packet).unwrap();
+        assert_eq!(filtered_msg.header.flags & 0x0400, 0);
+        assert_eq!(
+            filtered_msg
+                .records(Section::Answer)
+                .map(|r| r.rrtype)
+                .collect::<Vec<_>>(),
+            vec![5]
+        );
+        let filtered_opt = super::super::wire::find_pseudoheader(&filtered_packet, false)
+            .unwrap()
+            .opt
+            .unwrap();
+        assert_eq!(
+            filtered_opt.options().next().unwrap().unwrap(),
+            (15, [0, 17].as_slice())
+        );
+    }
+
+    #[test]
+    fn configured_cname_filtered_addresses_keep_stale_for_udp_and_tcp() {
+        for (kind, rrtype, filter, data) in [
+            (Kind::Ipv4, 1, b"filter-A".as_slice(), vec![192, 0, 2, 7]),
+            (Kind::Ipv6, 28, b"filter-AAAA".as_slice(), vec![0x20; 16]),
+        ] {
+            let mut config = DnsConfig::default();
+            apply(&mut config, b"cname=alias.test,target.test");
+            apply(&mut config, filter);
+            let mut local = LocalDnsService::new(config, Hosts::new(), 60, 1232);
+            let mut cache = Cache::new(
+                8,
+                CachePolicy {
+                    stale: StalePolicy::Seconds(600),
+                    ..Default::default()
+                },
+            );
+            cache.start_insert();
+            cache
+                .insert(
+                    Record {
+                        name: Name::from_ascii("target.test").unwrap(),
+                        kind,
+                        negative: false,
+                        data,
+                    },
+                    100,
+                    15,
+                )
+                .unwrap();
+            assert!(cache.commit());
+            let mut writer = PacketWriter::new(7, 0x0100, 1232).unwrap();
+            writer
+                .question(&Name::from_ascii("alias.test").unwrap(), rrtype, 1)
+                .unwrap();
+            writer
+                .record_wire(Section::Additional, &[0], 41, 1232, 0, &[])
+                .unwrap();
+            let query = writer.finish();
+            let header = Header::parse(&query).unwrap();
+            let question = super::super::forward::Question::parse(&query).unwrap();
+            for (now, stale) in [(110, false), (120, true)] {
+                for tcp in [false, true] {
+                    let answer = DnsDaemon::<Counter>::answer_local_or_cached(
+                        Some(&mut cache),
+                        &query,
+                        header,
+                        &question,
+                        &mut local,
+                        now,
+                        true,
+                        tcp,
+                    )
+                    .unwrap()
+                    .answer
+                    .unwrap();
+                    assert_eq!(
+                        matches!(&answer, QueryResult::Stale(_)),
+                        stale,
+                        "type={rrtype}, tcp={tcp}, now={now}: {answer:?}"
+                    );
+                    let packet = match answer {
+                        QueryResult::Local(packet) | QueryResult::Stale(packet) => packet,
+                        other => panic!("unexpected filtered answer: {other:?}"),
+                    };
+                    let message = Message::parse(&packet).unwrap();
+                    assert_eq!(message.header.flags & 0x0400, 0);
+                    assert_eq!(
+                        message
+                            .records(Section::Answer)
+                            .map(|rr| rr.rrtype)
+                            .collect::<Vec<_>>(),
+                        vec![5]
+                    );
+                    let opt = find_pseudoheader(&packet, false).unwrap().opt.unwrap();
+                    assert_eq!(
+                        opt.options().next().unwrap().unwrap(),
+                        (15, [0, 17].as_slice())
+                    );
+                }
+            }
+        }
     }
 }

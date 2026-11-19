@@ -85,6 +85,9 @@ impl ResolverSelection {
                 }
                 file.logged = true;
                 if file.stamp.modified != 0 {
+                    // Matches dnsmasq.c::poll_resolv (1777-1793): an evaporated
+                    // file logs once, restarts with force=1 (resetting mtime
+                    // without logging later missing files), and returns.
                     let mut forced = self.select(true, stamps);
                     forced.warn_missing = result.warn_missing;
                     return forced;

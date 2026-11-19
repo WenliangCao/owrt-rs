@@ -128,6 +128,8 @@ pub(crate) struct LocalAnswer {
     /// records and hosts use answer_request's policy.
     pub forward_rule: bool,
     pub query_events: Vec<qlog::QueryEvent>,
+    pub stale: bool,
+    pub filtered: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -244,6 +246,7 @@ impl<'a> LocalAnswerer<'a> {
             cache,
             interfaces,
             logging,
+            true,
             &mut None,
         )
     }
@@ -260,6 +263,7 @@ impl<'a> LocalAnswerer<'a> {
         cache: Option<&mut Cache>,
         interfaces: &super::interface_records::InterfaceRecords,
         logging: bool,
+        cacheable: bool,
         name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
         if header.opcode() != 0
@@ -370,6 +374,7 @@ impl<'a> LocalAnswerer<'a> {
             cache,
             interfaces,
             logging,
+            cacheable,
             has_cname,
             dotted_name,
         )
@@ -390,6 +395,7 @@ impl<'a> LocalAnswerer<'a> {
         mut cache: Option<&mut Cache>,
         interfaces: &super::interface_records::InterfaceRecords,
         logging: bool,
+        cacheable: bool,
         has_cname: bool,
         dotted_name: Option<Vec<u8>>,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
@@ -409,19 +415,28 @@ impl<'a> LocalAnswerer<'a> {
         let mut windows_filtered = false;
         let mut preserve_negative_authority = true;
         let mut cname_terminal = None;
+        let mut cached = CnameCacheAnswer::default();
 
         if has_cname {
-            let (local_owned, terminal) = add_cname_chain(
+            let do_bit = super::wire::find_pseudoheader(query, true)
+                .ok()
+                .and_then(|scan| scan.opt)
+                .is_some_and(|opt| opt.dnssec_ok());
+            let Some((local_owned, terminal)) = add_cname_chain(
                 self.config,
                 self.hosts,
                 &question.name,
                 question.rrtype,
                 leases,
                 cache.as_deref_mut(),
+                cacheable && header.flags & 0x0100 != 0 && !do_bit,
+                &mut cached,
                 &mut rows,
                 &mut extra_rows,
                 &mut notices,
-            );
+            ) else {
+                return Ok(None);
+            };
             owned = local_owned;
             preserve_negative_authority = terminal.is_some();
             cname_terminal = terminal;
@@ -520,7 +535,8 @@ impl<'a> LocalAnswerer<'a> {
         // an upstream server.
         let flags = 0x8000
             | 0x0080
-            | if !windows_filtered && rows.is_empty() && extra_rows.is_empty() {
+            | if cached.clear_aa || (!windows_filtered && rows.is_empty() && extra_rows.is_empty())
+            {
                 0
             } else {
                 0x0400
@@ -614,22 +630,20 @@ impl<'a> LocalAnswerer<'a> {
                     Some(Err(_)) => None,
                     None => Some(&question.name),
                 };
-                if let Some(name) = name {
-                    if let Some(id) = cache
-                        .lookup(name, &[Kind::NxDomain], now, !self.config.no_round_robin)
-                        .first()
-                        .copied()
+                let negative = cached.negative.or_else(|| {
+                    name.and_then(|name| {
+                        cache
+                            .lookup(name, &[Kind::NxDomain], now, !self.config.no_round_robin)
+                            .first()
+                            .copied()
+                    })
+                });
+                if let Some(id) = negative {
+                    match super::cache_reply::append_negative_authority(&mut writer, cache, id, now)
                     {
-                        match super::cache_reply::append_negative_authority(
-                            &mut writer,
-                            cache,
-                            id,
-                            now,
-                        ) {
-                            Ok(_) => {}
-                            Err(WireError::Full) => truncated = true,
-                            Err(error) => return Err(error.into()),
-                        }
+                        Ok(_) => {}
+                        Err(WireError::Full) => truncated = true,
+                        Err(error) => return Err(error.into()),
                     }
                 }
             }
@@ -660,6 +674,8 @@ impl<'a> LocalAnswerer<'a> {
             packet,
             forward_rule: false,
             query_events: notices.events,
+            stale: cached.stale,
+            filtered: cached.filtered,
         }))
     }
 
@@ -770,9 +786,8 @@ impl<'a> LocalAnswerer<'a> {
         }
         let nxdomain = !owned
             && local_only
-            && !has_descendant_local(self.config, self.hosts, name)
-            && !cache.is_some_and(|cache| cache.contains_forward_name(name, now))
-            && !wire_to_dotted(name).is_some_and(|name| leases.name_exists(&name, now));
+            && !known_forwarded_domain_with_leases(self.config, self.hosts, name, leases, now)
+            && !cache.is_some_and(|cache| cache.contains_forward_name(name, now));
         if local_only {
             let family = match question.rrtype {
                 TYPE_A => qlog::IPV4,
@@ -822,6 +837,8 @@ impl<'a> LocalAnswerer<'a> {
             packet,
             forward_rule: true,
             query_events: notices.events,
+            stale: false,
+            filtered: false,
         }))
     }
 }
@@ -1215,6 +1232,16 @@ pub(super) fn arpa_address(name: &[u8]) -> Option<IpAddr> {
     Some(IpAddr::V6(Ipv6Addr::from(address)))
 }
 
+/// Cache effects that must survive local CNAME packet assembly. A negative
+/// address entry owns its SOA; NXDOMAIN still uses the existing terminal lookup.
+#[derive(Default)]
+struct CnameCacheAnswer {
+    clear_aa: bool,
+    stale: bool,
+    filtered: bool,
+    negative: Option<super::cache::EntryId>,
+}
+
 /// Resolve a configured CNAME chain and answer the requested RR type at its
 /// terminal owner.  `rows` contains the first CNAME (whose owner is the
 /// question name); subsequent CNAMEs and terminal records use explicit owners
@@ -1230,37 +1257,99 @@ fn add_cname_chain(
     alias: &Name,
     qtype: u16,
     leases: LeaseView<'_>,
-    cache: Option<&mut Cache>,
+    mut cache: Option<&mut Cache>,
+    allow_dynamic: bool,
+    cached: &mut CnameCacheAnswer,
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     extra_rows: &mut Vec<(Vec<u8>, u16, u32, Vec<u8>)>,
     notices: &mut QueryEvents,
-) -> (bool, Option<Vec<u8>>) {
+) -> Option<(bool, Option<Vec<u8>>)> {
     let ttl = leases.local_ttl;
     let Some(mut current) = wire_to_dotted(alias) else {
-        return (false, None);
+        return Some((false, None));
     };
     let mut visited = Vec::<Vec<u8>>::new();
     let mut first = true;
-    loop {
+    // answer_request shares its 254-hop bound across configured and cached aliases.
+    for _ in 0..254 {
         let current_key = dotted_key(&current);
-        let Some(record) = config
+        if visited.iter().any(|name| name == &current_key) {
+            break;
+        }
+        visited.push(current_key.clone());
+        let (target, target_wire, record_ttl) = if let Some(record) = config
             .records
             .cnames
             .iter()
             .find(|record| dotted_key_matches(&record.alias, &current_key))
-        else {
-            break;
+        {
+            notices.label(qlog::CONFIG | qlog::CNAME, &current, None, 0);
+            (
+                record.target.clone(),
+                wire_name(&record.target).unwrap_or_else(|| vec![0]),
+                record.ttl.unwrap_or(ttl),
+            )
+        } else {
+            let Some(cache) = cache.as_deref_mut() else {
+                break;
+            };
+            if current.ends_with(b".") {
+                break;
+            }
+            let Ok(name) = Name::from_dotted_bytes(&current) else {
+                break;
+            };
+            let hits = cache.lookup(
+                &name,
+                &[Kind::Cname, Kind::NxDomain],
+                leases.now,
+                !config.no_round_robin,
+            );
+            cached.stale |= hits.iter().any(|id| {
+                cache.get(*id).is_some_and(|entry| {
+                    entry.record.kind == Kind::NxDomain && entry.is_stale(leases.now)
+                })
+            });
+            let Some(id) = hits.into_iter().find(|id| {
+                cache
+                    .get(*id)
+                    .is_some_and(|entry| entry.record.kind == Kind::Cname)
+            }) else {
+                break;
+            };
+            // C abandons the complete local answer if this dynamic hop is unusable.
+            if !allow_dynamic {
+                return None;
+            }
+            let entry = cache.get(id).expect("lookup yields a live CNAME");
+            let Some(target) = entry.cname_target() else {
+                break;
+            };
+            let target = match target {
+                super::cache::CnameTarget::Local(target) => target.name.clone(),
+                super::cache::CnameTarget::Dynamic(id) => {
+                    let Some(target) = cache.get(id) else { break };
+                    target.record.name.clone()
+                }
+            };
+            let Some(target) = wire_to_dotted(&target) else {
+                break;
+            };
+            cached.stale |= entry.is_stale(leases.now);
+            if notices.enabled {
+                super::cache_engine::push_cached_query_event(
+                    &mut notices.events,
+                    cache,
+                    id,
+                    leases.now,
+                );
+            }
+            (
+                target,
+                entry.record.data.clone(),
+                entry.reply_ttl(leases.now, cache.policy()),
+            )
         };
-        if visited.iter().any(|name| name == &current_key) {
-            // Configuration validation rejects loops. Keep this guard so a
-            // caller constructing DnsConfig directly cannot make answering
-            // recurse or emit an unbounded packet.
-            break;
-        }
-        visited.push(current_key);
-        notices.label(qlog::CONFIG | qlog::CNAME, &current, None, 0);
-        let target_wire = wire_name(&record.target).unwrap_or_else(|| vec![0]);
-        let record_ttl = record.ttl.unwrap_or(ttl);
         if first {
             rows.push((TYPE_CNAME, record_ttl, target_wire));
             first = false;
@@ -1268,14 +1357,13 @@ fn add_cname_chain(
             let owner = wire_name(&current).unwrap_or_else(|| vec![0]);
             extra_rows.push((owner, TYPE_CNAME, record_ttl, target_wire));
         }
-        // C's CNAME query stops after the first alias record.
         if qtype == TYPE_CNAME {
-            return (true, None);
+            return Some((true, None));
         }
-        current = record.target.clone();
+        current = target;
     }
 
-    let (terminal_rows, _terminal_owned, reverse_synthesized) = add_local_records_for_name(
+    let (terminal_rows, terminal_owned, reverse_synthesized) = add_local_records_for_name(
         config,
         hosts,
         &current,
@@ -1289,9 +1377,61 @@ fn add_cname_chain(
     for (rrtype, record_ttl, data) in terminal_rows {
         extra_rows.push((owner.clone(), rrtype, record_ttl, data));
     }
-    // The alias itself owns the answer even when its terminal target has no
-    // matching RR (CNAME-only response).
-    (true, (!reverse_synthesized).then_some(current))
+    // Only fill an unclaimed A/AAAA terminal. Other local sources and reverse
+    // lookups keep their established selection and SOA rules.
+    let kind = match qtype {
+        TYPE_A => Some(Kind::Ipv4),
+        TYPE_AAAA => Some(Kind::Ipv6),
+        _ => None,
+    };
+    if let (false, true, Some(kind), Some(cache)) = (terminal_owned, allow_dynamic, kind, cache) {
+        if !current.ends_with(b".") {
+            if let Ok(name) = Name::from_dotted_bytes(&current) {
+                let ids = cache.lookup(&name, &[kind], leases.now, !config.no_round_robin);
+                cached.clear_aa = !ids.is_empty();
+                cached.stale |= ids.iter().any(|id| {
+                    cache
+                        .get(*id)
+                        .is_some_and(|entry| entry.is_stale(leases.now))
+                });
+                cached.filtered = config.filter_rr.contains(&qtype)
+                    && ids
+                        .iter()
+                        .any(|id| cache.get(*id).is_some_and(|entry| !entry.record.negative));
+                if cached.filtered {
+                    let family = if qtype == TYPE_A {
+                        qlog::IPV4
+                    } else {
+                        qlog::IPV6
+                    };
+                    notices.label(qlog::CONFIG | qlog::NEGATIVE | family, &current, None, 0);
+                } else {
+                    for id in ids {
+                        let entry = cache.get(id).expect("lookup yields a live address");
+                        if notices.enabled {
+                            super::cache_engine::push_cached_query_event(
+                                &mut notices.events,
+                                cache,
+                                id,
+                                leases.now,
+                            );
+                        }
+                        if entry.record.negative {
+                            cached.negative.get_or_insert(id);
+                        } else {
+                            extra_rows.push((
+                                owner.clone(),
+                                qtype,
+                                entry.reply_ttl(leases.now, cache.policy()),
+                                entry.record.data.clone(),
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Some((true, (!reverse_synthesized).then_some(current)))
 }
 
 /// Collect all local records for one owner. The returned rows are ownerless;
@@ -1899,7 +2039,9 @@ pub(super) fn known_forwarded_domain(config: &DnsConfig, hosts: &Hosts, query: &
             || !config.records.ptr.is_empty()
             || !config.records.mx.is_empty()
             || !config.records.srv.is_empty()
-            || !config.records.naptr.is_empty();
+            || !config.records.naptr.is_empty()
+            || config.records.cnames.iter().any(|r| r.alias.is_empty())
+            || hosts.name_exists(b"");
     }
     has_descendant_local(config, hosts, query)
 }
@@ -3652,6 +3794,226 @@ mod local_record_family_tests {
         assert_ne!(header.flags & 0x200, 0);
         assert_eq!(header.answers, 0);
         assert!(cache.get(id).is_none());
+    }
+
+    #[test]
+    fn local_only_root_and_synth_domain_existence_align_with_check_for_local_domain() {
+        let root_query = {
+            let mut w = PacketWriter::new(9, 0x0100, 1232).unwrap();
+            w.question(&Name::from_ascii("").unwrap(), TYPE_A, CLASS_IN)
+                .unwrap();
+            w.finish()
+        };
+
+        // 1. local=/#/ + cname + host-record -> . IN A is NXDOMAIN (no empty-name or RR-list match).
+        let (config1, mut hosts1) = setup(&[
+            "local=/#/",
+            "cname=alias.test,target.test",
+            "host-record=host.test,192.0.2.1",
+        ]);
+        let ans1 = LocalAnswerer {
+            config: &config1,
+            hosts: &mut hosts1,
+            local_ttl: 60,
+            max_packet: 1232,
+        }
+        .answer(&root_query)
+        .unwrap()
+        .unwrap();
+        assert_eq!(Header::parse(&ans1).unwrap().rcode(), 3);
+
+        // 2. local=/#/ + interface-name=router.test,lo -> . IN A is NOERROR (NODATA).
+        let (config2, mut hosts2) = setup(&["local=/#/", "interface-name=router.test,lo"]);
+        let ans2 = LocalAnswerer {
+            config: &config2,
+            hosts: &mut hosts2,
+            local_ttl: 60,
+            max_packet: 1232,
+        }
+        .answer(&root_query)
+        .unwrap()
+        .unwrap();
+        assert_eq!(Header::parse(&ans2).unwrap().rcode(), 0);
+        assert_eq!(Header::parse(&ans2).unwrap().answers, 0);
+
+        // 3. local=/#/ + txt-record=note.test,hello -> . IN A is NOERROR (NODATA).
+        let (config3, mut hosts3) = setup(&["local=/#/", "txt-record=note.test,hello"]);
+        let ans3 = LocalAnswerer {
+            config: &config3,
+            hosts: &mut hosts3,
+            local_ttl: 60,
+            max_packet: 1232,
+        }
+        .answer(&root_query)
+        .unwrap()
+        .unwrap();
+        assert_eq!(Header::parse(&ans3).unwrap().rcode(), 0);
+        assert_eq!(Header::parse(&ans3).unwrap().answers, 0);
+
+        // 4. Non-root local=/corp.test/ + synth-domain=corp.test,192.0.2.0/24,host- :
+        //    querying AAAA for synthetic IPv4 name returns NOERROR (NODATA) via synth_domains.name_exists.
+        let (config4, mut hosts4) = setup(&[
+            "local=/corp.test/",
+            "synth-domain=corp.test,192.0.2.0/24,host-",
+        ]);
+        let mut w = PacketWriter::new(10, 0x0100, 1232).unwrap();
+        w.question(
+            &Name::from_ascii("host-192-0-2-7.corp.test").unwrap(),
+            TYPE_AAAA,
+            CLASS_IN,
+        )
+        .unwrap();
+        let ans4 = LocalAnswerer {
+            config: &config4,
+            hosts: &mut hosts4,
+            local_ttl: 60,
+            max_packet: 1232,
+        }
+        .answer(&w.finish())
+        .unwrap()
+        .unwrap();
+        assert_eq!(Header::parse(&ans4).unwrap().rcode(), 0);
+        assert_eq!(Header::parse(&ans4).unwrap().answers, 0);
+    }
+    fn configured_cname_cache_fixture() -> (DnsConfig, Hosts, Cache) {
+        let (config, hosts) = setup(&["cname=alias.test,target.test"]);
+        let mut cache = Cache::new(8, Policy::default());
+        cache.start_insert();
+        for (kind, data) in [
+            (Kind::Ipv4, vec![192, 0, 2, 11]),
+            (Kind::Ipv6, vec![0x20; 16]),
+        ] {
+            cache
+                .insert(
+                    Record {
+                        name: Name::from_ascii("target.test").unwrap(),
+                        kind,
+                        negative: false,
+                        data,
+                    },
+                    100,
+                    60,
+                )
+                .unwrap();
+        }
+        assert!(cache.commit());
+        (config, hosts, cache)
+    }
+
+    fn cname_cache_query(name: &str, rrtype: u16, rd: bool, dnssec: bool) -> Vec<u8> {
+        let mut w = PacketWriter::new(7, if rd { 0x0100 } else { 0 }, 1232).unwrap();
+        w.question(&Name::from_ascii(name).unwrap(), rrtype, 1)
+            .unwrap();
+        if dnssec {
+            w.record_wire(Section::Additional, &[0], 41, 1232, 0x8000, &[])
+                .unwrap();
+        }
+        w.finish()
+    }
+
+    #[test]
+    fn configured_cname_uses_cached_addresses_with_rd_do_controls() {
+        let (config, mut hosts, mut cache) = configured_cname_cache_fixture();
+        for (rd, dnssec, expect_addr, expect_aa) in [
+            (true, false, true, false),
+            (false, false, false, true),
+            (true, true, false, true),
+        ] {
+            for rrtype in [TYPE_A, TYPE_AAAA] {
+                let answer = LocalAnswerer {
+                    config: &config,
+                    hosts: &mut hosts,
+                    local_ttl: 37,
+                    max_packet: 1232,
+                }
+                .answer_on_network_with_cache(
+                    &cname_cache_query("alias.test", rrtype, rd, dnssec),
+                    &mut Arc::new(LeaseNames::default()),
+                    105,
+                    None,
+                    Some(&mut cache),
+                )
+                .unwrap()
+                .unwrap();
+                let msg = Message::parse(&answer.packet).unwrap();
+                assert_eq!(msg.header.rcode(), 0);
+                assert_eq!(msg.header.flags & 0x0400 != 0, expect_aa);
+                assert_eq!(msg.header.answers, if expect_addr { 2 } else { 1 });
+                if expect_addr {
+                    let types: Vec<_> = msg.records(Section::Answer).map(|r| r.rrtype).collect();
+                    assert_eq!(types, vec![TYPE_CNAME, rrtype]);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn configured_cname_follows_cached_alias_with_rd_do_controls() {
+        let (mut config, mut hosts, mut cache) = configured_cname_cache_fixture();
+        config
+            .apply(
+                &crate::config::lex_line(b"cname=chain.test,mid.test")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        let target = Name::from_ascii("target.test").unwrap();
+        let target_id = cache.lookup(&target, &[Kind::Ipv4], 100, false)[0];
+        cache.start_insert();
+        let alias_id = cache
+            .insert(
+                Record {
+                    name: Name::from_ascii("mid.test").unwrap(),
+                    kind: Kind::Cname,
+                    negative: false,
+                    data: target.as_wire().to_vec(),
+                },
+                100,
+                60,
+            )
+            .unwrap();
+        assert!(cache.set_cname_target(alias_id, target_id));
+        assert!(cache.commit());
+        let ok = LocalAnswerer {
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 37,
+            max_packet: 1232,
+        }
+        .answer_on_network_with_cache(
+            &cname_cache_query("chain.test", TYPE_A, true, false),
+            &mut Arc::new(LeaseNames::default()),
+            105,
+            None,
+            Some(&mut cache),
+        )
+        .unwrap()
+        .unwrap();
+        let ok_msg = Message::parse(&ok.packet).unwrap();
+        assert_eq!(ok_msg.header.flags & 0x0400, 0);
+        let types: Vec<_> = ok_msg.records(Section::Answer).map(|r| r.rrtype).collect();
+        assert_eq!(types, vec![TYPE_CNAME, TYPE_CNAME, TYPE_A]);
+
+        for (rd, dnssec) in [(false, false), (true, true)] {
+            let aborted = LocalAnswerer {
+                config: &config,
+                hosts: &mut hosts,
+                local_ttl: 37,
+                max_packet: 1232,
+            }
+            .answer_on_network_with_cache(
+                &cname_cache_query("chain.test", TYPE_A, rd, dnssec),
+                &mut Arc::new(LeaseNames::default()),
+                105,
+                None,
+                Some(&mut cache),
+            )
+            .unwrap();
+            assert!(
+                aborted.is_none(),
+                "dynamic CNAME hop with rd={rd}, do={dnssec} must abort local answer"
+            );
+        }
     }
 }
 

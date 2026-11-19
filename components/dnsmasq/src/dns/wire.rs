@@ -669,8 +669,10 @@ pub struct EdnsScan<'a> {
     pub signed: bool,
 }
 
-/// Mirrors find_pseudoheader including last-OPT selection and TSIG placement.
-/// `detect_signed=false` follows its normal question-skipping path.
+/// Mirrors `edns0.c:31-55` (`find_pseudoheader`) including last-OPT selection
+/// and TSIG placement. When `detect_signed` is true (`is_sign != NULL`), the
+/// question section is skipped only if `OPCODE(header) == QUERY`; `detect_signed=false`
+/// follows the normal question-skipping path.
 pub fn find_pseudoheader(packet: &[u8], detect_signed: bool) -> Result<EdnsScan<'_>, WireError> {
     let header = Header::parse(packet)?;
     let mut scan = EdnsScan {

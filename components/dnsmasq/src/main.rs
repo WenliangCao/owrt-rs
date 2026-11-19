@@ -726,6 +726,25 @@ fn finalize_dns_config(config: &mut DnsConfig) -> Result<(), loader::LoadError> 
     })
 }
 
+#[cfg(target_os = "linux")]
+fn post_redirect_startup_error<E: std::error::Error + 'static>(
+    startup: &dnsmasq_rs::startup::daemonize::StartupChannel,
+    logger: &mut dnsmasq_rs::logging::Logger,
+    error: E,
+    code: i32,
+    message: impl FnOnce(&E) -> Vec<u8>,
+) -> Box<dyn std::error::Error> {
+    if startup.active() {
+        return Box::new(error);
+    }
+    let message = message(&error);
+    logger.fatal(&message);
+    Box::new(SilentStartupError(dnsmasq_rs::startup::StartupError {
+        code,
+        message: String::from_utf8_lossy(&message).into_owned(),
+    }))
+}
+
 fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     let mut startup = dnsmasq_rs::startup::daemonize::StartupChannel::default();
@@ -1319,7 +1338,15 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let dhcp_helper = helper_config.map(Helper::start).transpose()?;
+    let dhcp_helper = helper_config
+        .map(Helper::start)
+        .transpose()
+        .map_err(|error| {
+            let code = error.code;
+            post_redirect_startup_error(startup, &mut logger, error, code, |error| {
+                error.message.as_bytes().to_vec()
+            })
+        })?;
     #[cfg(target_os = "linux")]
     identity
         .drop_privileges(&runtime.process, capabilities)
@@ -1360,15 +1387,24 @@ fn run_inner(
         Vec::new()
     };
     #[cfg(target_os = "linux")]
-    let mut dns_files = DnsFiles::new(&daemon_config, dns_enabled, daemon_config.clear_on_reload)?;
+    let mut dns_files = DnsFiles::new(&daemon_config, dns_enabled, daemon_config.clear_on_reload)
+        .map_err(|error| {
+        // EVENT_RESOLV_ERR and other inotify startup errors use EC_MISC.
+        post_redirect_startup_error(startup, &mut logger, error, 5, WatchError::message_bytes)
+    })?;
     #[cfg(target_os = "linux")]
-    let route_watch =
-        Some(
-            RouteWatch::new().map_err(|error| dnsmasq_rs::startup::StartupError {
-                code: 5,
-                message: format!("cannot create netlink socket: {error}"),
-            })?,
-        );
+    let route_watch = Some(RouteWatch::new().map_err(|error| {
+        let startup_error = dnsmasq_rs::startup::StartupError {
+            code: 5,
+            message: format!(
+                "cannot create netlink socket: {}",
+                dnsmasq_rs::logging::error_text(&error)
+            ),
+        };
+        post_redirect_startup_error(startup, &mut logger, startup_error, 5, |error| {
+            error.message.as_bytes().to_vec()
+        })
+    })?);
     #[cfg(target_os = "linux")]
     dns_files.request(ReloadReason::Init);
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1379,7 +1415,19 @@ fn run_inner(
         provider
             .try_borrow_mut()
             .map_err(|_| io::Error::other("DHCP state already borrowed"))?
-            .start_file_owner()?;
+            .start_file_owner()
+            .map_err(|error| {
+                let startup_error = dnsmasq_rs::startup::StartupError {
+                    code: 5,
+                    message: format!(
+                        "failed to create inotify: {}",
+                        dnsmasq_rs::logging::error_text(&error)
+                    ),
+                };
+                post_redirect_startup_error(startup, &mut logger, startup_error, 5, |error| {
+                    error.message.as_bytes().to_vec()
+                })
+            })?;
     }
     // The daemon owns all sockets from the foreground loop.  This keeps the
     // runtime at one service thread and makes ordering explicit across DNS,

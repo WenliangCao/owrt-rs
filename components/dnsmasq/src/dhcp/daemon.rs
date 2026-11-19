@@ -183,6 +183,7 @@ pub struct LocalProvider {
     hosts: Vec<HostPolicy>,
     ethers: crate::config::ethers::Ethers,
     host_files: HostFiles,
+    host_files_valid: bool,
     host_files_ready: bool,
     file_owner: Option<super::files_runtime::DhcpFiles>,
     ethers_read: Option<crate::config::ethers::EthersRead>,
@@ -336,6 +337,7 @@ impl LocalProvider {
             hosts: config.hosts.iter().map(host_policy).collect(),
             ethers: crate::config::ethers::Ethers::new(&config.hosts),
             host_files: HostFiles::new(&config.host_files),
+            host_files_valid: true,
             host_files_ready: true,
             file_owner: None,
             ethers_read: None,
@@ -1180,6 +1182,7 @@ impl LocalProvider {
             })
             .collect();
         self.config.hosts = self.ethers.hosts().to_vec();
+        self.host_files_valid = true;
         self.host_files_ready = true;
         self.file_init_ready = true;
         let mut report = if !self.initialized {
@@ -1477,7 +1480,8 @@ impl LocalProvider {
         let report = self
             .ethers
             .reload_host_files(&mut self.host_files, &self.config.hosts);
-        self.host_files_ready = report.ready();
+        self.host_files_valid = report.ready();
+        self.host_files_ready = self.host_files_valid;
         let mut errors = report.errors;
         if !self.host_files_ready {
             return errors;
@@ -1548,6 +1552,20 @@ impl LocalProvider {
         if !self.initialized {
             return self.initialize(now);
         }
+        if !self.host_files_valid {
+            self.host_files_ready = false;
+            let report = self.maintain(now, Vec::new(), true);
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            self.queue_script_from_maintenance();
+            return report;
+        }
+        // Clear previously inferred hosts-cache addresses before re-resolving
+        // against the updated hosts bank (dhcp-common.c dhcp_update_configs).
+        self.ethers.clear_inferred_addresses();
+        for (host, base) in self.config.hosts.iter_mut().zip(self.ethers.hosts()) {
+            host.address = base.address;
+        }
+        self.host_files_ready = true;
         let address_error = self.update_configured_addresses();
         let name_error = self
             .host_files_ready
@@ -2254,8 +2272,8 @@ impl LocalProvider {
             Ok(name.map(|name| (name, authoritative)))
         };
         let request_name = if packet.message_type() == 3 {
-            // SELECTING consumes the server-ID suffix before narrowing.
-            let first = if packet.requested_address().is_some() {
+            // C advances to the server-ID context only without a relay override.
+            let first = if packet.requested_address().is_some() && override_server.is_none() {
                 packet
                     .server_identifier()
                     .and_then(|server| ranges.iter().position(|range| range.local == server))
@@ -4457,6 +4475,223 @@ mod startup_tests {
         assert_eq!(
             StartupError::Restore(RestoreError::Lease(LeaseError::Full)).exit_code(),
             5
+        );
+    }
+
+    #[test]
+    fn hosts_changed_clears_and_re_resolves_inferred_host_addresses() {
+        let mut config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            ..DhcpConfig::default()
+        };
+        for line in [
+            b"dhcp-host=02:00:00:00:00:01,laptop".as_slice(),
+            b"dhcp-host=02:00:00:00:00:02,192.0.2.60",
+        ] {
+            config
+                .apply(&crate::config::lex_line(line).unwrap().unwrap())
+                .unwrap();
+        }
+        let mut provider = LocalProvider::new(config, Vec::new(), 53, || false).unwrap();
+        let first = Ipv4Addr::new(192, 0, 2, 50);
+        let second = Ipv4Addr::new(192, 0, 2, 51);
+        let explicit = Ipv4Addr::new(192, 0, 2, 60);
+
+        provider.set_config_host_lookup(move |name| Ok((name == b"laptop").then_some(first)));
+        assert!(provider.initialize(100).address_error.is_none());
+        assert_eq!(provider.config.hosts[0].address, Some(explicit));
+        assert_eq!(provider.config.hosts[1].address, Some(first));
+        assert_eq!(provider.hosts[1].address, Some(first));
+        assert_eq!(provider.reserved, [explicit, first]);
+
+        provider.set_config_host_lookup(move |name| Ok((name == b"laptop").then_some(second)));
+        assert!(provider.hosts_changed(101).address_error.is_none());
+        assert_eq!(provider.config.hosts[0].address, Some(explicit));
+        assert_eq!(provider.config.hosts[1].address, Some(second));
+        assert_eq!(provider.hosts[1].address, Some(second));
+        assert_eq!(provider.reserved, [explicit, second]);
+
+        provider.set_config_host_lookup(|_| Ok(None));
+        assert!(provider.hosts_changed(102).address_error.is_none());
+        assert_eq!(provider.config.hosts[0].address, Some(explicit));
+        assert_eq!(provider.config.hosts[1].address, None);
+        assert_eq!(provider.hosts[1].address, None);
+        assert_eq!(provider.reserved, [explicit]);
+    }
+
+    #[test]
+    fn hosts_changed_restores_readiness_after_lookup_error_unless_host_files_invalid() {
+        let mut config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            ..DhcpConfig::default()
+        };
+        for line in [
+            b"dhcp-range=192.0.2.10,192.0.2.30,600".as_slice(),
+            b"dhcp-host=02:00:00:00:00:01,laptop",
+        ] {
+            config
+                .apply(&crate::config::lex_line(line).unwrap().unwrap())
+                .unwrap();
+        }
+        let now = epoch_seconds();
+        let mut provider = LocalProvider::new(config, Vec::new(), 53, || false).unwrap();
+        let lease_ip = Ipv4Addr::new(192, 0, 2, 20);
+        provider
+            .leases
+            .allocate(
+                lease_ip,
+                super::super::lease::ClientIdentity {
+                    hardware_type: 1,
+                    hardware_address: vec![2, 0, 0, 0, 0, 9],
+                    client_id: None,
+                },
+            )
+            .unwrap();
+        provider.leases.set_expires(lease_ip, 600, now).unwrap();
+
+        provider.set_config_host_lookup(|_| Err(io::ErrorKind::TimedOut.into()));
+        provider.set_reverse_host_lookup(|address| {
+            Ok((address == Ipv4Addr::new(192, 0, 2, 20)).then(|| b"renamed".to_vec()))
+        });
+
+        let report = provider.initialize(now);
+        assert!(report.address_error.is_some());
+        assert!(provider.host_files_valid);
+        assert!(!provider.host_files_ready);
+
+        let mut discover = vec![0u8; 248];
+        discover[0] = 1;
+        discover[1] = 1;
+        discover[2] = 6;
+        discover[28..34].copy_from_slice(&[2, 0, 0, 0, 0, 1]);
+        discover[236..240].copy_from_slice(&super::super::packet::COOKIE);
+        discover[240..244].copy_from_slice(&[53, 1, 1, 255]);
+        let dispatch = super::super::service::dispatch(
+            &discover,
+            super::super::service::Ingress {
+                listener: super::super::service::Listener::Dhcp,
+                interface_index: 1,
+                unicast_destination: false,
+            },
+            &[],
+        )
+        .unwrap();
+        assert_eq!(
+            provider.resolve(&dispatch).unwrap().reply,
+            super::super::state::Reply::Ignore
+        );
+
+        provider.set_config_host_lookup(|_| Ok(Some(Ipv4Addr::new(192, 0, 2, 15))));
+        let report = provider.hosts_changed(now + 1);
+        assert!(report.address_error.is_none());
+        assert!(report.name_error.is_none());
+        assert!(provider.host_files_ready);
+        assert_eq!(
+            provider.config.hosts[0].address,
+            Some(Ipv4Addr::new(192, 0, 2, 15))
+        );
+        assert_eq!(
+            provider.leases.get(lease_ip).unwrap().hostname.as_deref(),
+            Some(b"renamed".as_slice())
+        );
+
+        // If dhcp-hostsfile parsing itself paused admission, hosts_changed must
+        // not unpause host_files_ready.
+        provider.host_files_valid = false;
+        provider.host_files_ready = false;
+        let report = provider.hosts_changed(now + 2);
+        assert!(report.address_error.is_none());
+        assert!(!provider.host_files_ready);
+        assert_eq!(
+            provider.resolve(&dispatch).unwrap().reply,
+            super::super::state::Reply::Ignore
+        );
+    }
+    #[test]
+    fn selecting_request_with_server_override_keeps_full_context_chain_for_names() {
+        let lo = crate::interfaces::ipv4_interfaces()
+            .unwrap()
+            .into_iter()
+            .find(|iface| iface.loopback)
+            .expect("loopback interface");
+        let mut config = DhcpConfig {
+            no_ping: true,
+            lease_read_only: true,
+            ..DhcpConfig::default()
+        };
+        for line in [
+            b"dhcp-range=set:primary,192.0.2.10,192.0.2.20,255.255.255.0,600".as_slice(),
+            b"dhcp-range=set:secondary,192.0.2.10,192.0.2.20,255.255.255.0,600",
+            b"dhcp-ignore-names=tag:secondary",
+        ] {
+            config
+                .apply(&crate::config::lex_line(line).unwrap().unwrap())
+                .unwrap();
+        }
+        let mut provider = LocalProvider::new(config, Vec::new(), 0, || false).unwrap();
+        let now = epoch_seconds();
+        provider.initialize(now);
+        // DhcpConfig::apply prepends ranges and select_remote_contexts reverses
+        // them, so config.ranges[0] (secondary) becomes selected[1].
+        let override_ip = Ipv4Addr::new(192, 0, 2, 2);
+        provider.states[0].local = override_ip;
+
+        let requested = Ipv4Addr::new(192, 0, 2, 15);
+        let mut request = vec![0u8; 320];
+        request[0] = 1;
+        request[1] = 1;
+        request[2] = 6;
+        request[24..28].copy_from_slice(&[192, 0, 2, 1]); // giaddr
+        request[28..34].copy_from_slice(&[2, 0, 0, 0, 0, 1]);
+        request[236..240].copy_from_slice(&super::super::packet::COOKIE);
+        let mut pos = 240;
+        let opts: &[u8] = &[
+            53, 1, 3, // DHCPREQUEST
+            50, 4, 192, 0, 2, 15, // requested IP
+            54, 4, 192, 0, 2, 2, // server identifier matching override
+            12, 13, b'o', b'v', b'e', b'r', b'r', b'i', b'd', b'e', b'-', b'h', b'o', b's',
+            b't', // hostname
+            82, 6, 11, 4, 192, 0, 2, 2, // relay agent server-id override suboption 11
+            255,
+        ];
+        request[pos..pos + opts.len()].copy_from_slice(opts);
+        pos += opts.len();
+        request.truncate(pos);
+
+        let dispatch = super::super::service::dispatch(
+            &request,
+            super::super::service::Ingress {
+                listener: super::super::service::Listener::Dhcp,
+                interface_index: lo.index,
+                unicast_destination: false,
+            },
+            &[],
+        )
+        .unwrap();
+        let outcome = provider
+            .resolve_on_interface(&dispatch, Some(b"lo"))
+            .unwrap();
+        assert!(matches!(
+            outcome.reply,
+            Reply::Ack {
+                address,
+                context: 0,
+                server,
+                ..
+            } if address == requested && server == override_ip
+        ));
+        assert_eq!(
+            provider
+                .reply_names(dispatch.packet, &outcome)
+                .unwrap()
+                .hostname,
+            Some(b"override-host".as_slice())
+        );
+        assert_eq!(
+            provider.leases.get(requested).unwrap().hostname.as_deref(),
+            Some(b"override-host".as_slice())
         );
     }
 }

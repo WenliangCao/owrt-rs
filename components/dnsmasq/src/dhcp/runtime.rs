@@ -788,7 +788,11 @@ where
                 } else {
                     SocketAddr::from((source, ports.server))
                 },
-                interface: if dispatch.ingress.listener == super::service::Listener::Pxe {
+                interface: if dispatch.ingress.listener == super::service::Listener::Pxe
+                    || matches!(
+                        dispatch.route,
+                        Route::Relay { .. } | Route::RelaySource { .. }
+                    ) {
                     0
                 } else {
                     dispatch.ingress.interface_index
@@ -3429,5 +3433,122 @@ mod tests {
             failure.error,
             RuntimeError::Reply(ReplyError::BufferTooSmall { .. })
         ));
+    }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn relayed_lease_query_replies_route_via_kernel_table_without_egress_ifindex() {
+        struct LeaseQueryProvider;
+        impl OutcomeProvider for LeaseQueryProvider {
+            fn resolve(&mut self, _: &Dispatch<'_>) -> Result<Outcome, RuntimeError> {
+                unreachable!("leasequery uses lease_query_reply")
+            }
+
+            fn lease_query_reply(
+                &mut self,
+                dispatch: &Dispatch<'_>,
+                _interface: Option<&[u8]>,
+                _source: Ipv4Addr,
+                buffer: &mut [u8],
+            ) -> Result<Option<usize>, RuntimeError> {
+                let raw = dispatch.packet.bytes();
+                let len = raw.len().max(248);
+                buffer[..raw.len()].copy_from_slice(raw);
+                buffer[0] = 2; // BOOTREPLY
+                Ok(Some(len))
+            }
+        }
+
+        let ports = crate::config::dhcp_relay::DhcpPorts {
+            server: 1067,
+            client: 1068,
+        };
+        let peer = SocketAddr::from(([198, 51, 100, 9], 40001));
+
+        // 1. Standard relay (giaddr != 0): interface = 0, address = (giaddr, ports.server)
+        let giaddr = Ipv4Addr::new(192, 0, 2, 254);
+        let relay_pkt = packet(&[53, 1, 10, 255], 0, Ipv4Addr::UNSPECIFIED, giaddr);
+        let mut sender = Sender {
+            sent: Vec::new(),
+            fail: false,
+        };
+        let mut buffer = vec![0; 548];
+        let report = process_with_random_and_ports(
+            dispatch_for(&relay_pkt),
+            peer,
+            &mut LeaseQueryProvider,
+            &mut sender,
+            &[],
+            &mut buffer,
+            ports,
+            || Ok(0),
+        )
+        .unwrap();
+        let selected = report
+            .events
+            .iter()
+            .find_map(|event| match event {
+                RuntimeEvent::DestinationSelected(dest) => Some(dest),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(selected.interface, 0);
+        assert_eq!(selected.address, SocketAddr::from((giaddr, ports.server)));
+
+        // 2. RelaySource (giaddr == 255.255.255.255): interface = 0, address = peer
+        let relay_source_pkt = packet(
+            &[53, 1, 10, 255],
+            0,
+            Ipv4Addr::UNSPECIFIED,
+            Ipv4Addr::BROADCAST,
+        );
+        let report = process_with_random_and_ports(
+            dispatch_for(&relay_source_pkt),
+            peer,
+            &mut LeaseQueryProvider,
+            &mut sender,
+            &[],
+            &mut buffer,
+            ports,
+            || Ok(0),
+        )
+        .unwrap();
+        let selected = report
+            .events
+            .iter()
+            .find_map(|event| match event {
+                RuntimeEvent::DestinationSelected(dest) => Some(dest),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(selected.interface, 0);
+        assert_eq!(selected.address, peer);
+
+        // 3. Direct local leasequery (giaddr == 0): keeps ingress interface_index
+        let local_pkt = packet(
+            &[53, 1, 10, 255],
+            0,
+            Ipv4Addr::new(192, 0, 2, 10),
+            Ipv4Addr::UNSPECIFIED,
+        );
+        let report = process_with_random_and_ports(
+            dispatch_for(&local_pkt),
+            peer,
+            &mut LeaseQueryProvider,
+            &mut sender,
+            &[],
+            &mut buffer,
+            ports,
+            || Ok(0),
+        )
+        .unwrap();
+        let selected = report
+            .events
+            .iter()
+            .find_map(|event| match event {
+                RuntimeEvent::DestinationSelected(dest) => Some(dest),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(selected.interface, 7);
     }
 }

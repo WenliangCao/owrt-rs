@@ -525,6 +525,10 @@ impl Logger {
     /// Safe both after readiness and once per owner step: every write is
     /// nonblocking and a finite budget bounds short-write/EINTR/reconnect work.
     pub fn flush_ready(&mut self) {
+        self.flush_ready_with_connect(|fd| connect_syslog(fd));
+    }
+
+    fn flush_ready_with_connect(&mut self, connect_fn: impl Fn(&OwnedFd) -> io::Result<()>) {
         if let Some(echo) = self.echo {
             drain_echo(echo, &mut self.echo_queue);
         }
@@ -625,7 +629,7 @@ impl Logger {
                         continue;
                     }
                 } else if matches!(error.raw_os_error(), Some(111 | 107 | 89 | 104)) {
-                    match connect_syslog(fd.as_ref()) {
+                    match connect_fn(fd.as_ref()) {
                         Ok(()) => continue,
                         Err(error) if error.raw_os_error() == Some(91) => {
                             // EPROTOTYPE
@@ -634,6 +638,10 @@ impl Logger {
                                 continue;
                             }
                         }
+                        // log.c:255-261 retries only ENOENT | EALREADY | ECONNREFUSED |
+                        // EISCONN | EINTR | EAGAIN | EWOULDBLOCK; Linux nonblocking
+                        // AF_UNIX SOCK_STREAM returns EAGAIN (11), never EINPROGRESS,
+                        // when the listener backlog is saturated.
                         Err(error)
                             if matches!(
                                 error.raw_os_error(),
@@ -1013,5 +1021,176 @@ mod tests {
         assert_eq!(current.iter().filter(|byte| **byte == b'\n').count(), 1);
         std::fs::remove_file(path).unwrap();
         std::fs::remove_file(rotated).unwrap();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn unix_stream_syslog_retries_kernel_eagain_and_falls_back_on_non_retryable_connect() {
+        use rustix::net::{
+            accept, bind, listen, recv, socket_with, AddressFamily, RecvFlags, SocketAddrUnix,
+            SocketFlags, SocketType,
+        };
+        use std::os::fd::AsRawFd;
+
+        let dir =
+            std::env::temp_dir().join(format!("dnsmasq-syslog-stream-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let stream_path = dir.join("log.stream");
+        let stream_addr = SocketAddrUnix::new(&stream_path).unwrap();
+
+        let listener = socket_with(
+            AddressFamily::UNIX,
+            SocketType::STREAM,
+            SocketFlags::NONBLOCK | SocketFlags::CLOEXEC,
+            None,
+        )
+        .unwrap();
+        bind(&listener, &stream_addr).unwrap();
+        listen(&listener, 1).unwrap();
+
+        // Saturate the AF_UNIX SOCK_STREAM listener backlog and verify the kernel
+        // returns EAGAIN (11), never EINPROGRESS (115).
+        let mut fillers = Vec::new();
+        let mut saw_eagain = false;
+        for _ in 0..32 {
+            let client = socket_with(
+                AddressFamily::UNIX,
+                SocketType::STREAM,
+                SocketFlags::NONBLOCK | SocketFlags::CLOEXEC,
+                None,
+            )
+            .unwrap();
+            match rustix::net::connect(&client, &stream_addr) {
+                Ok(()) => fillers.push(client),
+                Err(errno) => {
+                    assert_eq!(errno, rustix::io::Errno::AGAIN);
+                    assert_eq!(errno.raw_os_error(), 11);
+                    saw_eagain = true;
+                    break;
+                }
+            }
+        }
+        assert!(
+            saw_eagain,
+            "AF_UNIX stream backlog saturation must return EAGAIN"
+        );
+
+        let client_fd = Rc::new(
+            socket_with(
+                AddressFamily::UNIX,
+                SocketType::STREAM,
+                SocketFlags::NONBLOCK | SocketFlags::CLOEXEC,
+                None,
+            )
+            .unwrap(),
+        );
+        let mut logger = Logger {
+            config: LoggingConfig::default(),
+            destination: Destination::Syslog {
+                fd: Rc::clone(&client_fd),
+                stream: true,
+            },
+            echo: None,
+            echo_queue: VecDeque::new(),
+            queue: VecDeque::new(),
+            limit: 8,
+            lost: 0,
+            facility: 24,
+            omit_timestamp: false,
+            connection_good: true,
+            debug_enabled: false,
+            fallback: false,
+            fifo_retry_at: None,
+        };
+        let record = logger.format_record(Service::Dns, Priority::Info, b"stream-recovered");
+        logger.queue.push_back(record);
+        logger.flush_ready_with_connect(|fd| Ok(rustix::net::connect(fd, &stream_addr)?));
+        assert_eq!(logger.queue.len(), 1);
+        assert!(!logger.fallback);
+        assert!(!logger.connection_good);
+
+        // Drain the listener backlog so the queued syslog connection can complete.
+        let mut accepted = Vec::new();
+        while let Ok(peer) = accept(&listener) {
+            accepted.push(peer);
+        }
+        drop(accepted);
+        drop(fillers);
+
+        logger.connection_good = true;
+        logger.flush_ready_with_connect(|fd| Ok(rustix::net::connect(fd, &stream_addr)?));
+        assert!(logger.queue.is_empty());
+        assert!(!logger.fallback);
+        assert!(logger.connection_good);
+
+        let peer = accept(&listener).unwrap();
+        let mut buf = [0u8; 256];
+        let (n, _) = recv(&peer, &mut buf, RecvFlags::empty()).unwrap();
+        let text = std::str::from_utf8(&buf[..n]).unwrap();
+        assert!(
+            text.contains("stream-recovered"),
+            "unexpected stream syslog: {text}"
+        );
+
+        // Part 2: non-retryable connect error falls back to DGRAM syslog and logs "log failed: ...".
+        let dgram_path = dir.join("log.dgram");
+        let dgram_addr = SocketAddrUnix::new(&dgram_path).unwrap();
+        let dgram_listener = socket_with(
+            AddressFamily::UNIX,
+            SocketType::DGRAM,
+            SocketFlags::NONBLOCK | SocketFlags::CLOEXEC,
+            None,
+        )
+        .unwrap();
+        bind(&dgram_listener, &dgram_addr).unwrap();
+
+        let failing_fd = Rc::new(
+            socket_with(
+                AddressFamily::UNIX,
+                SocketType::STREAM,
+                SocketFlags::NONBLOCK | SocketFlags::CLOEXEC,
+                None,
+            )
+            .unwrap(),
+        );
+        let failing_raw = failing_fd.as_raw_fd();
+        let mut fallback_logger = Logger {
+            config: LoggingConfig::default(),
+            destination: Destination::Syslog {
+                fd: failing_fd,
+                stream: true,
+            },
+            echo: None,
+            echo_queue: VecDeque::new(),
+            queue: VecDeque::new(),
+            limit: 8,
+            lost: 0,
+            facility: 24,
+            omit_timestamp: false,
+            connection_good: true,
+            debug_enabled: false,
+            fallback: false,
+            fifo_retry_at: None,
+        };
+        let record = fallback_logger.format_record(Service::Dns, Priority::Info, b"lost-on-error");
+        fallback_logger.queue.push_back(record);
+        fallback_logger.flush_ready_with_connect(|fd| {
+            if fd.as_raw_fd() == failing_raw {
+                Err(io::Error::from_raw_os_error(13))
+            } else {
+                Ok(rustix::net::connect(fd, &dgram_addr)?)
+            }
+        });
+        assert!(fallback_logger.fallback);
+        assert!(fallback_logger.queue.is_empty());
+
+        let (n, _) = recv(&dgram_listener, &mut buf, RecvFlags::empty()).unwrap();
+        let dgram_text = std::str::from_utf8(&buf[..n]).unwrap();
+        assert!(
+            dgram_text.contains("log failed:"),
+            "expected fallback log failed message, got: {dgram_text}"
+        );
+        let _ = std::fs::remove_dir_all(dir);
     }
 }

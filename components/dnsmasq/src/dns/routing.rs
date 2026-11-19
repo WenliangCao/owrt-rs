@@ -556,10 +556,17 @@ fn dotted_name(name: &Name) -> Vec<u8> {
         if !dotted.is_empty() {
             dotted.push(b'.');
         }
-        dotted.extend_from_slice(&wire[offset + 1..offset + 1 + length]);
+        // Escape embedded NUL/SOH/dot inside a label to match
+        // rfc1035.c::extract_name before domain_match comparison.
+        for &byte in &wire[offset + 1..offset + 1 + length] {
+            if matches!(byte, 0 | 1 | b'.') {
+                dotted.extend_from_slice(&[1, byte + 1]);
+            } else {
+                dotted.push(byte.to_ascii_lowercase());
+            }
+        }
         offset += length + 1;
     }
-    dotted.make_ascii_lowercase();
     dotted
 }
 
@@ -979,6 +986,72 @@ mod tests {
         assert_eq!(
             endpoints(&table, route(&table, "a.test", TYPE_AAAA)),
             vec!["192.0.2.53:53".parse().unwrap()]
+        );
+    }
+
+    #[test]
+    fn embedded_label_dots_do_not_split_domain_matching_or_ds_parent() {
+        let single = super::super::wire::decode_name(b"\x07Foo.Bar\x00", 0, 0)
+            .unwrap()
+            .0;
+        let two_label = super::super::wire::decode_name(b"\x07foo.bar\x03baz\x00", 0, 0)
+            .unwrap()
+            .0;
+
+        // Without a dotless or default server, single-label "Foo.Bar" must not
+        // match local=/bar/, address=/bar/..., server=/bar/..., or server=/foo.bar/...
+        let restricted = table(&[
+            "local=/bar/",
+            "address=/bar/192.0.2.1",
+            "server=/bar/192.0.2.2",
+            "server=/foo.bar/192.0.2.4",
+            "server=/bar.baz/192.0.2.6",
+            "server=/baz/192.0.2.7",
+        ]);
+        assert_eq!(
+            restricted.select(&single, TYPE_A, CLASS_IN, false).reason,
+            RouteReason::NoMatchingRule
+        );
+        assert!(!restricted.has_domain_server(&single));
+        assert!(!restricted.has_configured_address(&single));
+
+        // With dotless server=//192.0.2.3 and default server=192.0.2.5,
+        // single-label "Foo.Bar" contains no unescaped '.' and routes via dotless.
+        let with_dotless = table(&[
+            "local=/bar/",
+            "address=/bar/192.0.2.1",
+            "server=/bar/192.0.2.2",
+            "server=//192.0.2.3",
+            "server=/foo.bar/192.0.2.4",
+            "server=192.0.2.5",
+        ]);
+        assert_eq!(
+            endpoints(
+                &with_dotless,
+                with_dotless.select(&single, TYPE_A, CLASS_IN, false)
+            ),
+            vec!["192.0.2.3:53".parse().unwrap()]
+        );
+        assert!(with_dotless.has_domain_server(&single));
+        assert!(!with_dotless.has_configured_address(&single));
+
+        // Two-label "\x07foo.bar\x03baz\x00" matches /baz/ and TYPE_DS strips the
+        // entire first escaped label to route on parent "baz" (not "bar.baz").
+        let ds_selection = restricted.select(&two_label, TYPE_DS, CLASS_IN, false);
+        assert_eq!(
+            endpoints(&restricted, ds_selection),
+            vec!["192.0.2.7:53".parse().unwrap()]
+        );
+        let local_baz = table(&["local=/baz/"]);
+        assert_eq!(
+            local_baz.select(&two_label, TYPE_A, CLASS_IN, false).reason,
+            RouteReason::LocalOnly
+        );
+        assert_eq!(
+            local_baz
+                .select(&two_label, TYPE_DS, CLASS_IN, false)
+                .reason,
+            RouteReason::LocalOnly
         );
     }
 }

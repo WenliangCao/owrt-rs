@@ -139,6 +139,9 @@ impl TcpDnsService {
             }
         }
         if let Ok(header) = Header::parse(packet) {
+            if header.opcode() != 0 {
+                return;
+            }
             if !matches!(header.rcode(), 0 | 3) {
                 self.query_events.push(QueryEvent::error(
                     qlog::REPLY,
@@ -676,7 +679,7 @@ fn finish_reply_with_edns(
     let mut bogus = None;
     // process_reply captures the full RCODE before possibly stripping OPT.
     // Do not reinterpret an extended error as NOERROR after that strip.
-    if matches!(envelope.rcode, 0 | 3) {
+    if Header::parse(&packet)?.opcode() == 0 && matches!(envelope.rcode, 0 | 3) {
         apply_known_local_nxdomain(&mut packet, envelope.rcode, |name| {
             super::reply::known_name(
                 name,
@@ -1022,5 +1025,136 @@ mod tests {
             scan.opt.unwrap().options().next().unwrap().unwrap(),
             (15, [0, 23].as_slice())
         );
+    }
+    #[test]
+    fn non_query_opcode_reply_skips_local_nxdomain_cache_bogus_and_filter() {
+        let name = Name::from_ascii("caller.test").unwrap();
+        let mut writer = PacketWriter::new(0x1234, 0xa180, 1232).unwrap(); // QR=1, OPCODE=4, RD=1, RA=1
+        writer.question(&name, 1, 1).unwrap();
+        writer
+            .record(Section::Answer, &name, 1, 1, 60, &[8, 8, 4, 4])
+            .unwrap();
+        let reply = writer.finish();
+
+        let policy = AddressPolicy {
+            bogus_addresses: vec![super::super::process::AddressPrefix::new(
+                "8.8.4.4".parse().unwrap(),
+                32,
+            )
+            .unwrap()],
+            ..AddressPolicy::default()
+        };
+        let mut cache_called = false;
+        let mut cache_sink = |_pkt: &mut Vec<u8>,
+                              _pol: &AddressPolicy,
+                              _rcode: u16,
+                              _ext: super::super::cache::Extraction| {
+            cache_called = true;
+            Ok(())
+        };
+        let local =
+            LocalDnsService::new(DnsConfig::default(), crate::hosts::Hosts::new(), 60, 1232);
+        let finished = finish_reply_with_edns(
+            &query(false),
+            &reply,
+            &policy,
+            false,
+            1232,
+            &[1],
+            Some(&local),
+            None,
+            None,
+            Some(&mut cache_sink),
+            false,
+            Some(100),
+            false,
+        )
+        .unwrap();
+        assert!(!cache_called);
+        assert_eq!(finished.bogus, None);
+        let message = Message::parse(&finished.packet).unwrap();
+        assert_eq!(message.header.opcode(), 4);
+        assert_eq!(message.header.rcode(), 0);
+        assert_eq!(message.header.answers, 1);
+        let rr = message.records(Section::Answer).next().unwrap();
+        assert_eq!(rr.rrtype, 1);
+        assert_eq!(rr.rdata, &[8, 8, 4, 4]);
+    }
+
+    #[test]
+    fn upstream_non_query_replies_skip_notices_with_query_positive_controls() {
+        use dnsmasq_platform::poll::{poll_fds, PollFd};
+
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let endpoint = listener.local_addr().unwrap();
+        let flags = [0x8182u16, 0xa182, 0x8380, 0xa380];
+        let worker = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
+            for flags in flags {
+                let mut length = [0; 2];
+                stream.read_exact(&mut length).unwrap();
+                let mut packet = vec![0; usize::from(u16::from_be_bytes(length))];
+                stream.read_exact(&mut packet).unwrap();
+                let mut header = Header::parse(&packet).unwrap();
+                assert_eq!(header.opcode(), 0);
+                header.flags = flags;
+                header.write(&mut packet).unwrap();
+                stream.write_all(&length).unwrap();
+                stream.write_all(&packet).unwrap();
+            }
+        });
+        let config = DnsConfig::default();
+        let local = LocalDnsService::new(config.clone(), crate::hosts::Hosts::new(), 60, 1232);
+        let mut service = TcpDnsService::new(&config, &[endpoint], 1232).unwrap();
+        service.set_query_logging(true);
+        for flags in flags {
+            let deadline = Instant::now() + Duration::from_secs(3);
+            let mut progress = service
+                .start_with_local_upstream(&query(false), &local, deadline)
+                .unwrap();
+            let packet = loop {
+                match progress {
+                    TcpServiceProgress::Complete(packet, _) => break packet,
+                    TcpServiceProgress::Pending(wait) => {
+                        assert!(Instant::now() < deadline, "TCP reply deadline expired");
+                        let mut fds = [PollFd {
+                            fd: wait.fd,
+                            events: wait.events,
+                            revents: 0,
+                        }];
+                        poll_fds(&mut fds, 50).unwrap();
+                        progress = service.step_with_local_upstream(&local).unwrap();
+                    }
+                }
+            };
+            assert_eq!(
+                Header::parse(&packet).unwrap().opcode(),
+                ((flags >> 11) & 15) as u8
+            );
+            let events = service.take_query_events();
+            let errors = events
+                .iter()
+                .filter(|event| event.name.as_deref() == Some(b"error"))
+                .count();
+            let truncated = events
+                .iter()
+                .filter(|event| event.argument.as_deref() == Some(b"truncated"))
+                .count();
+            assert_eq!(
+                errors,
+                usize::from(flags == 0x8182),
+                "flags={flags:x}: {events:?}"
+            );
+            assert_eq!(
+                truncated,
+                usize::from(flags == 0x8380),
+                "flags={flags:x}: {events:?}"
+            );
+        }
+        drop(service);
+        worker.join().unwrap();
     }
 }

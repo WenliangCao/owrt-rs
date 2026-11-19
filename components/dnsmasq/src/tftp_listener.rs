@@ -1111,4 +1111,124 @@ mod tests {
         drop(listener);
         std::fs::remove_dir_all(root).unwrap();
     }
+
+    #[test]
+    fn shared_listener_latch_clears_pending_bind_when_dns_succeeds_without_tftp() {
+        use std::net::Ipv4Addr;
+
+        let mut dns = DnsConfig::default();
+        dns.bind_interfaces = true;
+        dns.interfaces.push(Some(b"lo".to_vec()));
+        let tftp_cfg = TftpConfig {
+            enabled: true,
+            ..TftpConfig::default()
+        };
+        let policy = Policy::new(&tftp_cfg, &dns, &[], &[]).unwrap();
+        let runtime = TransferRuntime::new(RuntimeConfig::default(), RealFileOpener::new(0, false));
+        let mut listener = TftpListener::empty(runtime, None);
+        listener.policy = Some(policy);
+        listener.use_shared_listener_owner();
+        listener.policy.as_mut().unwrap().interfaces = vec![DnsInterface {
+            index: 1,
+            name: b"lo".to_vec(),
+            address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            netmask: IpAddr::V4(Ipv4Addr::new(255, 0, 0, 0)),
+            loopback: true,
+            tentative: true,
+        }];
+        listener.sync_servers(true).unwrap();
+
+        let tftp_addr: SocketAddr = "127.0.0.1:69".parse().unwrap();
+        let dns_addr: SocketAddr = "127.0.0.1:53".parse().unwrap();
+        assert_eq!(listener.pending_listener_addresses(), &[tftp_addr]);
+        assert!(!listener.has_listener(dns_addr));
+        // While tentative, bind_listener returns Ok(false) and keeps pending_bind.
+        assert!(!listener.bind_listener(dns_addr).unwrap());
+        assert_eq!(listener.pending_listener_addresses(), &[tftp_addr]);
+
+        // Once DNS binds and calls finish_shared_listener_attempt, pending_bind clears
+        // (matching iface->done = 1) even though TFTP has no listener bound.
+        listener.finish_shared_listener_attempt(dns_addr);
+        assert!(listener.pending_listener_addresses().is_empty());
+        assert!(!listener.has_listener(dns_addr));
+    }
+
+    #[test]
+    #[ignore = "requires tools/dnsmasq/run_isolated.sh network namespace"]
+    fn shared_listener_iface_done_latch_and_all_transport_retry_on_partial_tftp_bind_failure() {
+        use std::net::Ipv4Addr;
+
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        let mut dns = DnsConfig::default();
+        dns.bind_interfaces = true;
+        dns.interfaces.push(Some(b"lo".to_vec()));
+        let tftp_cfg = TftpConfig {
+            enabled: true,
+            ..TftpConfig::default()
+        };
+        let tentative_lo = DnsInterface {
+            index: 1,
+            name: b"lo".to_vec(),
+            address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            netmask: IpAddr::V4(Ipv4Addr::new(255, 0, 0, 0)),
+            loopback: true,
+            tentative: true,
+        };
+        let mature_lo = DnsInterface {
+            tentative: false,
+            ..tentative_lo.clone()
+        };
+        let tftp_addr: SocketAddr = "127.0.0.1:69".parse().unwrap();
+        let dns_addr: SocketAddr = "127.0.0.1:53".parse().unwrap();
+
+        // Part 1: DNS succeeds while TFTP port 69 fails with EADDRINUSE ->
+        // finish_shared_listener_attempt clears pending_bind (iface->done = 1)
+        // while has_listener remains false.
+        let blocker = UdpSocket::bind(tftp_addr).unwrap();
+        let mut listener = TftpListener::empty(
+            TransferRuntime::new(RuntimeConfig::default(), RealFileOpener::new(0, false)),
+            None,
+        );
+        listener.policy = Some(Policy::new(&tftp_cfg, &dns, &[], &[]).unwrap());
+        listener.use_shared_listener_owner();
+        listener.policy.as_mut().unwrap().interfaces = vec![tentative_lo.clone()];
+        listener.sync_servers(true).unwrap();
+        assert_eq!(listener.pending_listener_addresses(), &[tftp_addr]);
+
+        listener.refresh_listener_interfaces(std::slice::from_ref(&mature_lo));
+        let err = listener.bind_listener(dns_addr).unwrap_err();
+        assert_eq!(err.kind(), io::ErrorKind::AddrInUse);
+        assert_eq!(listener.pending_listener_addresses(), &[tftp_addr]);
+        assert!(!listener.has_listener(dns_addr));
+
+        listener.finish_shared_listener_attempt(dns_addr);
+        assert!(listener.pending_listener_addresses().is_empty());
+        assert!(!listener.has_listener(dns_addr));
+        drop(listener);
+
+        // Part 2: All transports fail (finish_shared_listener_attempt NOT called) ->
+        // pending_bind stays intact and subsequent refresh + bind_listener succeeds
+        // once the port blocker closes.
+        let mut retry_listener = TftpListener::empty(
+            TransferRuntime::new(RuntimeConfig::default(), RealFileOpener::new(0, false)),
+            None,
+        );
+        retry_listener.policy = Some(Policy::new(&tftp_cfg, &dns, &[], &[]).unwrap());
+        retry_listener.use_shared_listener_owner();
+        retry_listener.policy.as_mut().unwrap().interfaces = vec![tentative_lo];
+        retry_listener.sync_servers(true).unwrap();
+
+        retry_listener.refresh_listener_interfaces(std::slice::from_ref(&mature_lo));
+        assert_eq!(
+            retry_listener.bind_listener(dns_addr).unwrap_err().kind(),
+            io::ErrorKind::AddrInUse
+        );
+        assert_eq!(retry_listener.pending_listener_addresses(), &[tftp_addr]);
+
+        drop(blocker);
+        retry_listener.refresh_listener_interfaces(std::slice::from_ref(&mature_lo));
+        assert!(retry_listener.bind_listener(dns_addr).unwrap());
+        assert!(retry_listener.has_listener(dns_addr));
+        assert!(retry_listener.pending_listener_addresses().is_empty());
+    }
 }

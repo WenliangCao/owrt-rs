@@ -52,7 +52,10 @@ pub fn install_worker(worker: HelperWorker) -> Result<(), HelperWorker> {
 fn start_error(error: io::Error) -> StartError {
     StartError {
         code: 5,
-        message: format!("failed to create helper: {error}"),
+        message: format!(
+            "failed to create helper: {}",
+            crate::logging::error_text(&error)
+        ),
     }
 }
 

@@ -240,13 +240,6 @@ impl CacheContext<'_> {
                 forward_name: None,
             });
         }
-        // answer_request overwrites the Additional section with its own OPT.
-        // Request signatures, OPT version/flags and opaque options do not
-        // change the cached record representation. Source-bound NO_CACHE is
-        // evaluated by the owner before entering this context. DO still
-        // rejects unsigned dynamic records in the exact no-DNSSEC image.
-        let edns = find_pseudoheader(query, true)?;
-        let dnssec_requested = edns.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         if header.questions != 1
             || header.answers != 0
             || header.authorities != 0
@@ -260,6 +253,13 @@ impl CacheContext<'_> {
                 stale: false,
             });
         }
+        // answer_request overwrites the Additional section with its own OPT.
+        // Request signatures, OPT version/flags and opaque options do not
+        // change the cached record representation. Source-bound NO_CACHE is
+        // evaluated by the owner before entering this context. DO still
+        // rejects unsigned dynamic records in the exact no-DNSSEC image.
+        let edns = find_pseudoheader(query, true)?;
+        let dnssec_requested = edns.opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         if dnssec_requested {
             // answer_request looks up each group before rejecting unsigned
             // DO answers. Preserve LRU/rotation/expiry effects in that order,
@@ -1682,25 +1682,23 @@ fn record_filter(local: &mut LocalDnsService, name: &Name, kind: Kind) {
     ));
 }
 
-fn record_cached(local: &mut LocalDnsService, cache: &Cache, id: super::cache::EntryId, now: i64) {
-    if !local.query_logging {
-        return;
-    }
+pub(super) fn push_cached_query_event(
+    events: &mut Vec<QueryEvent>,
+    cache: &Cache,
+    id: super::cache::EntryId,
+    now: i64,
+) {
     let Some(entry) = cache.get(id) else {
         return;
     };
     let record = &entry.record;
     if record.kind == Kind::Generic(16) && !record.negative {
-        let mut events = Vec::new();
         qlog::txt_events(
             if entry.is_stale(now) { qlog::STALE } else { 0 },
             &record.name.dnsmasq_bytes(),
             &record.data,
-            &mut events,
+            events,
         );
-        for event in events {
-            local.record_query_event(event);
-        }
         return;
     }
     let mut flags = if entry.is_stale(now) { qlog::STALE } else { 0 };
@@ -1727,13 +1725,24 @@ fn record_cached(local: &mut LocalDnsService, cache: &Cache, id: super::cache::E
         Kind::Generic(kind) => QueryData::RrType(kind),
         _ => QueryData::None,
     };
-    local.record_query_event(QueryEvent {
+    events.push(QueryEvent {
         flags,
         name: Some(record.name.dnsmasq_bytes()),
         data,
         argument: None,
         kind: 0,
     });
+}
+
+fn record_cached(local: &mut LocalDnsService, cache: &Cache, id: super::cache::EntryId, now: i64) {
+    if !local.query_logging {
+        return;
+    }
+    let mut events = Vec::new();
+    push_cached_query_event(&mut events, cache, id, now);
+    for event in events {
+        local.record_query_event(event);
+    }
 }
 
 /// `answer_request` clears all response sections when any cached RR cannot
@@ -3164,6 +3173,37 @@ mod tests {
         )
         .unwrap();
         assert!(answer.packet.is_none());
+    }
+    #[test]
+    fn non_query_opcode_with_question_and_additional_returns_none_without_edns_misparsing() {
+        let name = Name::from_ascii("a.test").unwrap();
+        let root = Name::from_ascii("").unwrap();
+        // Opcode=4 (NOTIFY, flags=0x2100) with Question + OPT in Additional.
+        // Calling find_pseudoheader(query, true) on opcode!=0 does not skip
+        // qdcount and would misparse the Question bytes as a truncated RR.
+        let mut writer = PacketWriter::new(0x4444, 0x2100, 1232).unwrap();
+        writer.question(&name, 1, 1).unwrap();
+        writer
+            .record(Section::Additional, &root, 41, 1232, 0, &[])
+            .unwrap();
+        let query = writer.finish();
+        let question = super::super::forward::Question::parse(&query).unwrap();
+
+        let mut cache = Cache::new(4, Policy::default());
+        let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+        let mut counters = CacheCounters::default();
+        let answer = CacheContext {
+            cache: &mut cache,
+            counters: &mut counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        }
+        .answer_udp_with_edns(&query, &question, 100, &mut local, 1232, 1232, true)
+        .unwrap();
+        assert!(answer.packet.is_none());
+        assert!(!answer.stale);
+        assert!(!answer.filtered);
     }
 }
 

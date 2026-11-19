@@ -361,7 +361,7 @@ impl LocalDnsService {
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
         let answer =
-            self.lookup_local_parsed(query, header, question, now, cache, tcp, &mut None)?;
+            self.lookup_local_parsed(query, header, question, now, cache, true, tcp, &mut None)?;
         Ok(answer.map(|answer| self.finish_local_answer(answer)))
     }
 
@@ -380,6 +380,7 @@ impl LocalDnsService {
         question: &'q super::forward::Question,
         now: i64,
         cache: Option<&mut Cache>,
+        cacheable: bool,
         tcp: bool,
         name_lookup: &mut Option<super::cache::NameLookup<'q>>,
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
@@ -414,6 +415,7 @@ impl LocalDnsService {
             cache,
             &self.interfaces,
             self.query_logging,
+            cacheable,
             name_lookup,
         )?
         else {
@@ -433,12 +435,23 @@ impl LocalDnsService {
             } else {
                 usize::from(self.edns_packet_max)
             };
-            append_empty_opt(
-                &mut answer.packet,
-                self.edns_packet_max,
-                opt.dnssec_ok() && (tcp || !answer.forward_rule),
-                opt_limit,
-            )?;
+            if answer.stale || answer.filtered {
+                super::tcp_service::add_ede(
+                    &mut answer.packet,
+                    self.edns_packet_max,
+                    opt.dnssec_ok() && (tcp || !answer.forward_rule),
+                    if answer.filtered { 17 } else { 3 },
+                    opt_limit,
+                )
+                .map_err(super::local::AnswerError::from)?;
+            } else {
+                append_empty_opt(
+                    &mut answer.packet,
+                    self.edns_packet_max,
+                    opt.dnssec_ok() && (tcp || !answer.forward_rule),
+                    opt_limit,
+                )?;
+            }
         }
         Ok(Some(answer))
     }
@@ -924,6 +937,61 @@ mod tests {
                 let broken = &packet[..packet.len() - 11 + length];
                 let reply = service.handle_udp(broken).unwrap().unwrap();
                 assert_eq!(Header::parse(&reply).unwrap().additionals, 0);
+            }
+        }
+    }
+
+    #[test]
+    fn configured_cname_stale_nxdomain_keeps_do_in_udp_ede() {
+        use super::super::cache::{Cache, Kind, Policy, Record, StalePolicy};
+
+        let mut service = configured(&[b"cname=router.test,missing.test".to_vec()], 1232);
+        let mut cache = Cache::new(
+            8,
+            Policy {
+                stale: StalePolicy::Seconds(600),
+                ..Default::default()
+            },
+        );
+        cache.start_insert();
+        cache
+            .insert(
+                Record {
+                    name: super::super::wire::Name::from_ascii("missing.test").unwrap(),
+                    kind: Kind::NxDomain,
+                    negative: true,
+                    data: Vec::new(),
+                },
+                100,
+                15,
+            )
+            .unwrap();
+        assert!(cache.commit());
+        let query = opt_query(1, 1232);
+        assert!(find_pseudoheader(&query, true)
+            .unwrap()
+            .opt
+            .unwrap()
+            .dnssec_ok());
+        for (now, stale) in [(110, false), (120, true)] {
+            for tcp in [true, false] {
+                let reply = if tcp {
+                    service.handle_tcp_with_cache(&query, now, Some(&mut cache))
+                } else {
+                    service.handle_udp_with_cache(&query, now, Some(&mut cache))
+                }
+                .unwrap()
+                .unwrap();
+                let opt = find_pseudoheader(&reply, true).unwrap().opt.unwrap();
+                assert!(opt.dnssec_ok(), "tcp={tcp}, now={now}");
+                if stale {
+                    assert_eq!(
+                        opt.options().next().unwrap().unwrap(),
+                        (15, [0, 3].as_slice())
+                    );
+                } else {
+                    assert!(opt.options().next().is_none());
+                }
             }
         }
     }

@@ -162,33 +162,41 @@ pub enum WatchError {
     Add { path: PathBuf, error: io::Error },
 }
 
+impl WatchError {
+    /// Format the fatal log message with the original Unix path bytes.
+    pub fn message_bytes(&self) -> Vec<u8> {
+        let (prefix, path, suffix, error) = match self {
+            Self::Init(error) => ("failed to create inotify: ", None, "", Some(error)),
+            Self::Link { path, error } => ("cannot access path ", Some(path), ": ", Some(error)),
+            Self::TooManyLinks(path) => ("too many symlinks following ", Some(path), "", None),
+            Self::MissingParent(path) => (
+                "directory ",
+                Some(path),
+                " for resolv-file is missing, cannot poll",
+                None,
+            ),
+            Self::Add { path, error } => (
+                "failed to create inotify for ",
+                Some(path),
+                ": ",
+                Some(error),
+            ),
+        };
+        let mut message = prefix.as_bytes().to_vec();
+        if let Some(path) = path {
+            message.extend_from_slice(path.as_os_str().as_bytes());
+        }
+        message.extend_from_slice(suffix.as_bytes());
+        if let Some(error) = error {
+            message.extend_from_slice(os_message(error).as_bytes());
+        }
+        message
+    }
+}
+
 impl std::fmt::Display for WatchError {
     fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Init(error) => write!(out, "failed to create inotify: {}", os_message(error)),
-            Self::Link { path, error } => {
-                write!(
-                    out,
-                    "cannot access path {}: {}",
-                    path.display(),
-                    os_message(error)
-                )
-            }
-            Self::TooManyLinks(path) => {
-                write!(out, "too many symlinks following {}", path.display())
-            }
-            Self::MissingParent(path) => write!(
-                out,
-                "directory {} for resolv-file is missing, cannot poll",
-                path.display()
-            ),
-            Self::Add { path, error } => write!(
-                out,
-                "failed to create inotify for {}: {}",
-                path.display(),
-                os_message(error)
-            ),
-        }
+        out.write_str(&String::from_utf8_lossy(&self.message_bytes()))
     }
 }
 
@@ -238,6 +246,8 @@ impl FileWatch {
                     error: last_error,
                 });
             };
+            // inotify.c::inotify_dnsmasq_init truncates at strrchr(path, '/'),
+            // producing "" for a root-level /leaf -> ENOENT -> MissingParent.
             let parent = CString::new(&bytes[..slash]).map_err(|_| WatchError::Add {
                 path: original.to_owned(),
                 error: io::Error::from_raw_os_error(22),

@@ -1514,6 +1514,9 @@ pub fn clip_live_reply_ttls(
             if rr.class != 1 || !rr.name()?.eq_ignore_ascii_case(&current) {
                 continue;
             }
+            // rfc1035.c::extract_addresses rewrites TTLs in-place for every IN-class
+            // Answer RR matching the current owner cursor before branching on qtype,
+            // T_ANY, or NXDOMAIN.
             let (fixed, ttl, kind) = (rr.fixed, rr.ttl, rr.rrtype);
             clip(packet, fixed, ttl);
             if kind == 5 {
