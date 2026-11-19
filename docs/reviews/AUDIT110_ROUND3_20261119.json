@@ -3144,9 +3144,9 @@
       "source": "device/aa-result.json"
     },
     "four_way": {
-      "status": "incomplete",
+      "status": "failed",
       "passed": false,
-      "complete": false,
+      "complete": true,
       "source": "device/fourway-summary.json",
       "sides": [
         "shipped",
@@ -10898,106 +10898,4112 @@
         },
         "fourway-odhcpd": {
           "component": "odhcpd",
-          "status": "incomplete",
-          "analyzed_windows": 0,
+          "status": "failed",
+          "analyzed_windows": 20,
           "planned_windows": 20,
-          "issues": [
-            "analysis.json 尚缺",
-            "缺少完整的四方原窗分析与归档确认"
-          ],
-          "analysis": null,
-          "metrics": {}
+          "issues": [],
+          "analysis": "runs/fourway-odhcpd/analysis.json",
+          "metrics": {
+            "empty.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 76,
+                  "max": 76,
+                  "median": 76
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 76,
+                  "max": 80,
+                  "median": 76
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 80,
+                  "max": 84,
+                  "median": 80
+                },
+                "final": {
+                  "n": 5,
+                  "min": 80,
+                  "max": 84,
+                  "median": 80
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 4,
+                  "delta_pct": 5.2631578947368425
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 5.2631578947368425
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 4,
+                  "delta_pct": 5.2631578947368425
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "empty.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 800,
+                  "max": 800,
+                  "median": 800
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 800,
+                  "max": 804,
+                  "median": 800
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 804,
+                  "max": 808,
+                  "median": 804
+                },
+                "final": {
+                  "n": 5,
+                  "min": 804,
+                  "max": 808,
+                  "median": 804
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 4,
+                  "delta_pct": 0.5
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.5
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 4,
+                  "delta_pct": 0.5
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "idle.cpu_us_per_s": {
+              "unit": "µs/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.nonvoluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.voluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "populated.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 84,
+                  "max": 84,
+                  "median": 84
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 84,
+                  "max": 88,
+                  "median": 88
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 80,
+                  "max": 88,
+                  "median": 88
+                },
+                "final": {
+                  "n": 5,
+                  "min": 88,
+                  "max": 92,
+                  "median": 88
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 4,
+                  "delta_pct": 4.761904761904762
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 4.761904761904762
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "populated.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 808,
+                  "max": 808,
+                  "median": 808
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 808,
+                  "max": 812,
+                  "median": 812
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 804,
+                  "max": 812,
+                  "median": 812
+                },
+                "final": {
+                  "n": 5,
+                  "min": 812,
+                  "max": 816,
+                  "median": 812
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 4,
+                  "delta_pct": 0.49504950495049505
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.49504950495049505
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "renew.p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 99.9865,
+                  "max": 195.6255,
+                  "median": 157.6545
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 197.895,
+                  "max": 2020.8474999999999,
+                  "median": 312.9235
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 96.2165,
+                  "max": 165.8875,
+                  "median": 102.9485
+                },
+                "final": {
+                  "n": 5,
+                  "min": 96.9085,
+                  "max": 230.48000000000002,
+                  "median": 122.41499999999999
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -35.23950000000002,
+                  "delta_pct": -22.35235911439256
+                },
+                "toolchain_vs_aa": {
+                  "classification": "improvement",
+                  "median_delta": -209.975,
+                  "delta_pct": -67.10106463720366
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -54.70600000000002,
+                  "delta_pct": -34.69992927572636
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 19.466499999999996,
+                  "delta_pct": 18.90896904763061
+                }
+              }
+            },
+            "renew.p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 989.861,
+                  "max": 2180.772,
+                  "median": 1675.646
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 912.842,
+                  "max": 7892.882,
+                  "median": 2283.181
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 507.587,
+                  "max": 2515.086,
+                  "median": 2271.487
+                },
+                "final": {
+                  "n": 5,
+                  "min": 528.746,
+                  "max": 2376.513,
+                  "median": 2183.542
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 507.89599999999996,
+                  "delta_pct": 30.31045936910302
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -11.69399999999996,
+                  "delta_pct": -0.512180155668778
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 595.8410000000001,
+                  "delta_pct": 35.55888296215311
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -87.94500000000016,
+                  "delta_pct": -3.8716928602276903
+                }
+              }
+            },
+            "renew.serial_elapsed_ops_per_s": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 2407.813112769626,
+                  "max": 4971.989056652086,
+                  "median": 2678.470686984206
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 377.527843858259,
+                  "max": 2909.4273446893135,
+                  "median": 1671.7727133048763
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1391.4707193251368,
+                  "max": 5637.143419850567,
+                  "median": 3438.9795000282643
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1349.3328223859712,
+                  "max": 4973.420177538667,
+                  "median": 2616.3943926743573
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -62.07629430984889,
+                  "delta_pct": -2.317602153030952
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 1767.206786723388,
+                  "delta_pct": 105.7085555146938
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 760.5088130440581,
+                  "delta_pct": 28.393396901436482
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -822.585107353907,
+                  "delta_pct": -23.919453644522928
+                }
+              }
+            },
+            "request.p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 98.64,
+                  "max": 202.627,
+                  "median": 140.8815
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 136.611,
+                  "max": 677.3605,
+                  "median": 464.4225
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 97.48599999999999,
+                  "max": 155.1155,
+                  "median": 104.52600000000001
+                },
+                "final": {
+                  "n": 5,
+                  "min": 100.44800000000001,
+                  "max": 152.0375,
+                  "median": 122.95349999999999
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -17.927999999999997,
+                  "delta_pct": -12.725588526527613
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -359.8965,
+                  "delta_pct": -77.49333850104162
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -36.35549999999998,
+                  "delta_pct": -25.80573034784552
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 18.42749999999998,
+                  "delta_pct": 17.629584983640413
+                }
+              }
+            },
+            "request.p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 156.424,
+                  "max": 2063.896,
+                  "median": 469.27
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 2459.533,
+                  "max": 5315.396,
+                  "median": 4184.269
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 425.26,
+                  "max": 2196.314,
+                  "median": 1828.992
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1219.302,
+                  "max": 2381.822,
+                  "median": 2051.356
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 1582.0860000000002,
+                  "delta_pct": 337.1376819315107
+                },
+                "toolchain_vs_aa": {
+                  "classification": "improvement",
+                  "median_delta": -2355.277,
+                  "delta_pct": -56.28885236584933
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 1359.722,
+                  "delta_pct": 289.7525944552177
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 222.36400000000026,
+                  "delta_pct": 12.157734970956694
+                }
+              }
+            },
+            "request.serial_elapsed_ops_per_s": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 3027.301529638701,
+                  "max": 9705.410463039067,
+                  "median": 5111.554893467209
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 687.2985973481357,
+                  "max": 1738.5387646878005,
+                  "median": 1029.3303832724548
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 2351.133569661443,
+                  "max": 7472.092900531033,
+                  "median": 3694.104163578627
+                },
+                "final": {
+                  "n": 5,
+                  "min": 2007.0301247695365,
+                  "max": 4359.143275776295,
+                  "median": 2186.2833674666826
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -2925.271526000526,
+                  "delta_pct": -57.22860434775241
+                },
+                "toolchain_vs_aa": {
+                  "classification": "improvement",
+                  "median_delta": 2664.773780306172,
+                  "delta_pct": 258.8842050726515
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -1417.450729888582,
+                  "delta_pct": -27.730323931376457
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -1507.8207961119442,
+                  "delta_pct": -40.8169539716297
+                }
+              }
+            },
+            "resident.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 84,
+                  "max": 88,
+                  "median": 84
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 88,
+                  "max": 96,
+                  "median": 92
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 84,
+                  "max": 92,
+                  "median": 92
+                },
+                "final": {
+                  "n": 5,
+                  "min": 88,
+                  "max": 96,
+                  "median": 92
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 8,
+                  "delta_pct": 9.523809523809524
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 8,
+                  "delta_pct": 9.523809523809524
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "resident.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 808,
+                  "max": 812,
+                  "median": 808
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 812,
+                  "max": 820,
+                  "median": 816
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 808,
+                  "max": 816,
+                  "median": 816
+                },
+                "final": {
+                  "n": 5,
+                  "min": 812,
+                  "max": 820,
+                  "median": 816
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 8,
+                  "delta_pct": 0.9900990099009901
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 8,
+                  "delta_pct": 0.9900990099009901
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "rs.p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 7400.0285,
+                  "max": 7516.8265,
+                  "median": 7458.7735
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 7479.4335,
+                  "max": 17216.157,
+                  "median": 7489.704
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 7446.8095,
+                  "max": 7463.6985,
+                  "median": 7453.2335
+                },
+                "final": {
+                  "n": 5,
+                  "min": 7418.494500000001,
+                  "max": 7519.7119999999995,
+                  "median": 7486.665
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 27.891499999999724,
+                  "delta_pct": 0.3739421769544245
+                },
+                "toolchain_vs_aa": {
+                  "classification": "improvement",
+                  "median_delta": -36.47049999999945,
+                  "delta_pct": -0.4869418070460388
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -5.539999999999964,
+                  "delta_pct": -0.07427494614228417
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 33.43149999999969,
+                  "delta_pct": 0.4485502835782575
+                }
+              }
+            },
+            "rs.p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 7586.652,
+                  "max": 7777.545,
+                  "median": 7667.749
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 7636.818,
+                  "max": 30575.434,
+                  "median": 7768.466
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 7610.581,
+                  "max": 7877.877,
+                  "median": 7692.986
+                },
+                "final": {
+                  "n": 5,
+                  "min": 7653.745,
+                  "max": 8167.258,
+                  "median": 7696.448
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 28.699000000000524,
+                  "delta_pct": 0.3742819437621201
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -75.48000000000047,
+                  "delta_pct": -0.9716203945540918
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 25.23700000000008,
+                  "delta_pct": 0.32913179604601145
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 3.462000000000444,
+                  "delta_pct": 0.04500203172084863
+                }
+              }
+            },
+            "rs.serial_elapsed_ops_per_s": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 207.54223799099321,
+                  "max": 210.2635997215006,
+                  "median": 209.01731801231168
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 60.78893837062036,
+                  "max": 209.01332880610462,
+                  "median": 203.12577044969964
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 207.19132335571572,
+                  "max": 210.04972402091886,
+                  "median": 208.5809961072268
+                },
+                "final": {
+                  "n": 5,
+                  "min": 204.2963809828211,
+                  "max": 208.91399727568313,
+                  "median": 207.41035455490834
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -1.6069634574033387,
+                  "delta_pct": -0.7688183317464079
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 5.455225657527166,
+                  "delta_pct": 2.6856393678900785
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -0.436321905084867,
+                  "delta_pct": -0.208749164535336
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -1.1706415523184717,
+                  "delta_pct": -0.5612407525931419
+                }
+              }
+            },
+            "solicit.p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 96.447,
+                  "max": 209.937,
+                  "median": 192.5865
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 126.37799999999999,
+                  "max": 1316.5185000000001,
+                  "median": 384.557
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 95.139,
+                  "max": 220.67000000000002,
+                  "median": 98.90899999999999
+                },
+                "final": {
+                  "n": 5,
+                  "min": 95.2935,
+                  "max": 325.889,
+                  "median": 121.799
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -70.7875,
+                  "delta_pct": -36.756210845516165
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -285.648,
+                  "delta_pct": -74.27975566691025
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -93.67750000000001,
+                  "delta_pct": -48.64177914859037
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 22.890000000000015,
+                  "delta_pct": 23.142484505960038
+                }
+              }
+            },
+            "solicit.p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 997.325,
+                  "max": 2248.173,
+                  "median": 1207.146
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 857.983,
+                  "max": 6237.702,
+                  "median": 2503.237
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 213.283,
+                  "max": 2287.26,
+                  "median": 1602.629
+                },
+                "final": {
+                  "n": 5,
+                  "min": 568.372,
+                  "max": 2160.613,
+                  "median": 2115.602
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 908.4559999999999,
+                  "delta_pct": 75.25651412505198
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -900.6080000000002,
+                  "delta_pct": -35.97773602739174
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 395.48299999999995,
+                  "delta_pct": 32.76182002839756
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 512.973,
+                  "delta_pct": 32.008218995163574
+                }
+              }
+            },
+            "solicit.serial_elapsed_ops_per_s": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 2069.262081742319,
+                  "max": 6044.829970266993,
+                  "median": 3062.4781918056888
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 493.29472192221164,
+                  "max": 4082.2189513442877,
+                  "median": 1180.0630124147053
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1920.8236491807686,
+                  "max": 8802.046916010318,
+                  "median": 3091.93919856163
+                },
+                "final": {
+                  "n": 5,
+                  "min": 2299.7536245195133,
+                  "max": 4517.9668245696075,
+                  "median": 2801.8596643056917
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -260.61852749999707,
+                  "delta_pct": -8.510053335149857
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 1911.8761861469245,
+                  "delta_pct": 162.01475396087073
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 29.46100675594107,
+                  "delta_pct": 0.9619989077724783
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -290.07953425593814,
+                  "delta_pct": -9.381799434829867
+                }
+              }
+            },
+            "update.cpu_us_per_op": {
+              "unit": "µs/op",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1502.89475,
+                  "max": 1536.711875,
+                  "median": 1516.71175
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1441.576875,
+                  "max": 1565.143875,
+                  "median": 1527.798
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1468.509375,
+                  "max": 1512.683,
+                  "median": 1493.259375
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1454.115875,
+                  "max": 1524.80725,
+                  "median": 1489.788875
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -26.922874999999976,
+                  "delta_pct": -1.7750818505889452
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -34.53862499999991,
+                  "delta_pct": -2.260680076816432
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -23.452374999999847,
+                  "delta_pct": -1.5462644764240698
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -3.470500000000129,
+                  "delta_pct": -0.2324110638850085
+                }
+              }
+            },
+            "update.p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1009919.7085,
+                  "max": 1011952.0645,
+                  "median": 1010460.149
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1009926.7545,
+                  "max": 1012665.0415,
+                  "median": 1011945.6645
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1009862.2255,
+                  "max": 1011499.097,
+                  "median": 1010127.648
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1009884.3175,
+                  "max": 1011789.1355,
+                  "median": 1010635.4965
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 175.3475000000326,
+                  "delta_pct": 0.017353232601361363
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -1818.0164999999106,
+                  "delta_pct": -0.17965554513227627
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -332.5009999999311,
+                  "delta_pct": -0.032905899389400965
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 507.8484999999637,
+                  "delta_pct": 0.05027567565401038
+                }
+              }
+            },
+            "update.p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1010553.02,
+                  "max": 1022291.307,
+                  "median": 1013948.481
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1012249.446,
+                  "max": 1040330.712,
+                  "median": 1024913.356
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1012030.777,
+                  "max": 1028514.318,
+                  "median": 1012317.912
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1011284.656,
+                  "max": 1029374.231,
+                  "median": 1013942.163
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -6.318000000086613,
+                  "delta_pct": -0.0006231085817945629
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -12595.444000000018,
+                  "delta_pct": -1.2289276870346508
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -1630.5690000000177,
+                  "delta_pct": -0.16081379187943354
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 1624.250999999931,
+                  "delta_pct": 0.16044870694730246
+                }
+              }
+            },
+            "update.serial_elapsed_ops_per_s": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.9880154888298239,
+                  "max": 0.9902523206917461,
+                  "median": 0.988903870128746
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.984114741766933,
+                  "max": 0.9899273571098461,
+                  "median": 0.9866225206563614
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.9862655159500551,
+                  "max": 0.9898999247319817,
+                  "median": 0.9896244197108209
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.9836085700256179,
+                  "max": 0.9899410644366069,
+                  "median": 0.9891685025184827
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.00026463238973661873,
+                  "delta_pct": 0.026760173332334727
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.003001899054459578,
+                  "delta_pct": 0.304260139172835
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.000720549582074903,
+                  "delta_pct": 0.07286346062950429
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -0.0004559171923382843,
+                  "delta_pct": -0.04606971930538136
+                }
+              }
+            }
+          }
         },
         "fourway-iwinfo": {
           "component": "rpcd",
-          "status": "incomplete",
-          "analyzed_windows": 0,
+          "status": "passed",
+          "analyzed_windows": 20,
           "planned_windows": 20,
-          "issues": [
-            "analysis.json 尚缺",
-            "缺少完整的四方原窗分析与归档确认",
-            "四方测试包的 ELF 身份缺证或与 CI 输入不符"
-          ],
-          "analysis": null,
-          "metrics": {}
+          "issues": [],
+          "analysis": "runs/fourway-iwinfo/analysis.json",
+          "metrics": {
+            "idle.cpu_us_per_s": {
+              "unit": "µs/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 12.743666666666666,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.nonvoluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.voluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.3333333333333333,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "iwinfo-phy0-ap0.cpu_us_per_op": {
+              "unit": "µs/op",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 7815.6852659999995,
+                  "max": 8237.590879,
+                  "median": 7890.603601
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 7842.623458,
+                  "max": 8100.7143559999995,
+                  "median": 8001.723706000001
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 8001.143917,
+                  "max": 8084.522592,
+                  "median": 8059.44118
+                },
+                "final": {
+                  "n": 5,
+                  "min": 4838.85734,
+                  "max": 5014.382495,
+                  "median": 4890.538676
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -3000.0649249999997,
+                  "delta_pct": -38.02072790248636
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 57.71747399999913,
+                  "delta_pct": 0.7213130085548985
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 168.837579,
+                  "delta_pct": 2.1397295763102675
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": -3168.9025039999997,
+                  "delta_pct": -39.31913433233841
+                }
+              }
+            },
+            "iwinfo-phy0-ap0.p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 9307.695,
+                  "max": 9463.272,
+                  "median": 9356.399
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 9317.39,
+                  "max": 9410.874,
+                  "median": 9356.63
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 9349.782,
+                  "max": 9496.665,
+                  "median": 9400.717
+                },
+                "final": {
+                  "n": 5,
+                  "min": 6026.496,
+                  "max": 6097.437,
+                  "median": 6034.729
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -3321.669999999999,
+                  "delta_pct": -35.501585599331534
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 44.08700000000135,
+                  "delta_pct": 0.471184603858455
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 44.31800000000112,
+                  "delta_pct": 0.4736651354864315
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": -3365.9880000000003,
+                  "delta_pct": -35.805651845492214
+                }
+              }
+            },
+            "iwinfo-phy0-ap0.p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 10316.561,
+                  "max": 15619.953,
+                  "median": 10394.272
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 10564.776,
+                  "max": 13390.247,
+                  "median": 12033.448
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 12029.37,
+                  "max": 12785.404,
+                  "median": 12181.793
+                },
+                "final": {
+                  "n": 5,
+                  "min": 6776.912,
+                  "max": 8027.762,
+                  "median": 7261.187
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -3133.085000000001,
+                  "delta_pct": -30.142418824521823
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 148.34499999999935,
+                  "delta_pct": 1.2327721863259753
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 1787.5209999999988,
+                  "delta_pct": 17.197173597150417
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": -4920.606,
+                  "delta_pct": -40.39311782756447
+                }
+              }
+            },
+            "iwinfo-phy0-ap0.p99_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 12322.366,
+                  "max": 30288.517,
+                  "median": 13291.683
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 13470.421,
+                  "max": 27340.708,
+                  "median": 14133.739
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 13891.063,
+                  "max": 20329.738,
+                  "median": 16724.767
+                },
+                "final": {
+                  "n": 5,
+                  "min": 7578.419,
+                  "max": 15621.647,
+                  "median": 8373.617
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -4918.066000000001,
+                  "delta_pct": -37.00107804256241
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 2591.0280000000002,
+                  "delta_pct": 18.33221909644716
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 3433.083999999999,
+                  "delta_pct": 25.828813401583524
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -8351.15,
+                  "delta_pct": -49.93283314499987
+                }
+              }
+            },
+            "iwinfo-phy0-ap0.throughput": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 93.1381450862186,
+                  "max": 104.04838680163927,
+                  "median": 103.30951849303642
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 97.08593683920807,
+                  "max": 103.67443090098838,
+                  "median": 101.21369421671413
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 98.96380708799468,
+                  "max": 101.52163528452786,
+                  "median": 100.46576839442861
+                },
+                "final": {
+                  "n": 5,
+                  "min": 154.85049303667637,
+                  "max": 160.80895410063053,
+                  "median": 157.8728776554468
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": 54.56335916241039,
+                  "delta_pct": 52.8154229719774
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -0.7479258222855236,
+                  "delta_pct": -0.7389571421868063
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -2.8437500986078135,
+                  "delta_pct": -2.7526506173770393
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": 57.407109261018206,
+                  "delta_pct": 57.14096470714074
+                }
+              }
+            },
+            "iwinfo-phy1-ap0.cpu_us_per_op": {
+              "unit": "µs/op",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 8823.176992,
+                  "max": 8941.773379,
+                  "median": 8912.653905
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 8792.477307,
+                  "max": 9073.279919999999,
+                  "median": 8862.596831
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 8837.575953,
+                  "max": 8972.284261,
+                  "median": 8885.670177999998
+                },
+                "final": {
+                  "n": 5,
+                  "min": 5209.995431,
+                  "max": 5383.263247999999,
+                  "median": 5261.891616999999
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -3650.762288,
+                  "delta_pct": -40.96156236866689
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 23.07334699999774,
+                  "delta_pct": 0.26034521754719475
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -26.983727000000727,
+                  "delta_pct": -0.3027574871370564
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": -3623.778560999999,
+                  "delta_pct": -40.7822762763815
+                }
+              }
+            },
+            "iwinfo-phy1-ap0.p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 11278.722,
+                  "max": 11356.049,
+                  "median": 11329.427
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 11280.646,
+                  "max": 11361.589,
+                  "median": 11303.497
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 11266.335,
+                  "max": 11414.218,
+                  "median": 11373.592
+                },
+                "final": {
+                  "n": 5,
+                  "min": 6749.675,
+                  "max": 6856.779,
+                  "median": 6794.301
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -4535.125999999999,
+                  "delta_pct": -40.02961491344619
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 70.09500000000116,
+                  "delta_pct": 0.6201178272529392
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 44.16500000000087,
+                  "delta_pct": 0.3898255401619241
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": -4579.291,
+                  "delta_pct": -40.262486996192585
+                }
+              }
+            },
+            "iwinfo-phy1-ap0.p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 12777.632,
+                  "max": 14435.044,
+                  "median": 14323.94
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 12502.026,
+                  "max": 15913.564,
+                  "median": 13596.913
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 12491.869,
+                  "max": 14083.88,
+                  "median": 13422.639
+                },
+                "final": {
+                  "n": 5,
+                  "min": 7411.147,
+                  "max": 9162.736,
+                  "median": 7750.924
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -6573.0160000000005,
+                  "delta_pct": -45.888324022580385
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -174.27400000000125,
+                  "delta_pct": -1.28171740158962
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -901.3010000000013,
+                  "delta_pct": -6.2922701435498976
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": -5671.714999999999,
+                  "delta_pct": -42.25484273249097
+                }
+              }
+            },
+            "iwinfo-phy1-ap0.p99_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 16459.316,
+                  "max": 21621.52,
+                  "median": 18073.255
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 16265.268,
+                  "max": 35161.188,
+                  "median": 26812.038
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 15612.028,
+                  "max": 23242.46,
+                  "median": 17785.876
+                },
+                "final": {
+                  "n": 5,
+                  "min": 8781.333,
+                  "max": 19725.511,
+                  "median": 9733.955
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -8339.300000000001,
+                  "delta_pct": -46.14166070251319
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -9026.162,
+                  "delta_pct": -33.66458752594637
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -287.3790000000008,
+                  "delta_pct": -1.5900788208875534
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -8051.921,
+                  "delta_pct": -45.271433355320816
+                }
+              }
+            },
+            "iwinfo-phy1-ap0.throughput": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 82.87827587007264,
+                  "max": 84.92605620940347,
+                  "median": 83.53158455791721
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 80.48182141522439,
+                  "max": 85.27771287852461,
+                  "median": 82.69931121436544
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 83.20605482020504,
+                  "max": 84.64149725562227,
+                  "median": 83.71970261434507
+                },
+                "final": {
+                  "n": 5,
+                  "min": 132.427662667195,
+                  "max": 142.44307051692994,
+                  "median": 139.23885492104424
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": 55.70727036312702,
+                  "delta_pct": 66.69006778448217
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 1.02039139997963,
+                  "delta_pct": 1.2338571929996691
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.18811805642785373,
+                  "delta_pct": 0.22520589956894776
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": 55.51915230669917,
+                  "delta_pct": 66.31551543183117
+                }
+              }
+            },
+            "resident.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 128,
+                  "max": 132,
+                  "median": 128
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 128,
+                  "max": 132,
+                  "median": 128
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 128,
+                  "max": 132,
+                  "median": 128
+                },
+                "final": {
+                  "n": 5,
+                  "min": 128,
+                  "max": 132,
+                  "median": 128
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "resident.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1188,
+                  "max": 1192,
+                  "median": 1188
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1124,
+                  "max": 1128,
+                  "median": 1124
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1252,
+                  "max": 1256,
+                  "median": 1252
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1124,
+                  "max": 1128,
+                  "median": 1124
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -64,
+                  "delta_pct": -5.3872053872053876
+                },
+                "toolchain_vs_aa": {
+                  "classification": "regression",
+                  "median_delta": 128,
+                  "delta_pct": 11.387900355871887
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 64,
+                  "delta_pct": 5.3872053872053876
+                },
+                "final_vs_toolchain": {
+                  "classification": "improvement",
+                  "median_delta": -128,
+                  "delta_pct": -10.223642172523961
+                }
+              }
+            }
+          }
         },
         "fourway-uci-memory": {
           "component": "uci",
-          "status": "incomplete",
-          "analyzed_windows": 0,
+          "status": "passed",
+          "analyzed_windows": 20,
           "planned_windows": 20,
-          "issues": [
-            "analysis.json 尚缺",
-            "缺少完整的四方原窗分析与归档确认",
-            "四方测试包的 ELF 身份缺证或与 CI 输入不符"
-          ],
-          "analysis": null,
-          "metrics": {}
+          "issues": [],
+          "analysis": "runs/fourway-uci-memory/analysis.json",
+          "metrics": {
+            "max_per_process_RssAnon_kib": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 28,
+                  "max": 28,
+                  "median": 28
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 28,
+                  "max": 28,
+                  "median": 28
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 28,
+                  "max": 28,
+                  "median": 28
+                },
+                "final": {
+                  "n": 5,
+                  "min": 28,
+                  "max": 28,
+                  "median": 28
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "max_per_process_VmRSS_kib": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 488,
+                  "max": 488,
+                  "median": 488
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 488,
+                  "max": 488,
+                  "median": 488
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 488,
+                  "max": 488,
+                  "median": 488
+                },
+                "final": {
+                  "n": 5,
+                  "min": 488,
+                  "max": 488,
+                  "median": 488
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            }
+          }
         },
         "fourway-fw4-memory": {
           "component": "fw4",
-          "status": "incomplete",
-          "analyzed_windows": 0,
+          "status": "passed",
+          "analyzed_windows": 20,
           "planned_windows": 20,
-          "issues": [
-            "analysis.json 尚缺",
-            "缺少完整的四方原窗分析与归档确认",
-            "四方测试包的 ELF 身份缺证或与 CI 输入不符"
-          ],
-          "analysis": null,
-          "metrics": {}
+          "issues": [],
+          "analysis": "runs/fourway-fw4-memory/analysis.json",
+          "metrics": {
+            "max_per_process_RssAnon_kib": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 32,
+                  "max": 36,
+                  "median": 32
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 32,
+                  "max": 36,
+                  "median": 32
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 32,
+                  "max": 32,
+                  "median": 32
+                },
+                "final": {
+                  "n": 5,
+                  "min": 32,
+                  "max": 36,
+                  "median": 32
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "max_per_process_VmRSS_kib": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 952,
+                  "max": 956,
+                  "median": 952
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 952,
+                  "max": 956,
+                  "median": 952
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 952,
+                  "max": 952,
+                  "median": 952
+                },
+                "final": {
+                  "n": 5,
+                  "min": 952,
+                  "max": 956,
+                  "median": 952
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            }
+          }
         },
         "fourway-reload-config-memory": {
           "component": "reload-config",
-          "status": "incomplete",
-          "analyzed_windows": 0,
+          "status": "failed",
+          "analyzed_windows": 20,
           "planned_windows": 20,
-          "issues": [
-            "analysis.json 尚缺",
-            "缺少完整的四方原窗分析与归档确认",
-            "四方测试包的 ELF 身份缺证或与 CI 输入不符"
-          ],
-          "analysis": null,
-          "metrics": {}
+          "issues": [],
+          "analysis": "runs/fourway-reload-config-memory/analysis.json",
+          "metrics": {
+            "max_per_process_RssAnon_kib": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 28,
+                  "max": 28,
+                  "median": 28
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 28,
+                  "max": 32,
+                  "median": 28
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 28,
+                  "max": 32,
+                  "median": 28
+                },
+                "final": {
+                  "n": 5,
+                  "min": 28,
+                  "max": 28,
+                  "median": 28
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "max_per_process_VmRSS_kib": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 484,
+                  "max": 484,
+                  "median": 484
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 484,
+                  "max": 488,
+                  "median": 484
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 488,
+                  "max": 492,
+                  "median": 488
+                },
+                "final": {
+                  "n": 5,
+                  "min": 488,
+                  "max": 488,
+                  "median": 488
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 4,
+                  "delta_pct": 0.8264462809917356
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.8264462809917356
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "regression",
+                  "median_delta": 4,
+                  "delta_pct": 0.8264462809917356
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            }
+          }
         },
         "fourway-dns200": {
           "component": "dnsmasq",
-          "status": "incomplete",
-          "analyzed_windows": 0,
+          "status": "passed",
+          "analyzed_windows": 20,
           "planned_windows": 20,
-          "issues": [
-            "analysis.json 尚缺",
-            "缺少完整的四方原窗分析与归档确认",
-            "四方测试包的 ELF 身份缺证或与 CI 输入不符"
-          ],
-          "analysis": null,
-          "metrics": {}
+          "issues": [],
+          "analysis": "runs/fourway-dns200/analysis.json",
+          "metrics": {
+            "cpu_us_per_op": {
+              "unit": "µs/op",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 77.249701,
+                  "max": 83.22564100000001,
+                  "median": 80.062236
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 78.353853,
+                  "max": 86.837591,
+                  "median": 79.503163
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 76.75275599999999,
+                  "max": 90.00770200000001,
+                  "median": 81.788658
+                },
+                "final": {
+                  "n": 5,
+                  "min": 78.822347,
+                  "max": 87.733465,
+                  "median": 84.041255
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 3.979019000000008,
+                  "delta_pct": 4.969907410529989
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 2.2854949999999974,
+                  "delta_pct": 2.874722103823715
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 1.7264219999999995,
+                  "delta_pct": 2.1563499675427495
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 2.2525970000000086,
+                  "delta_pct": 2.75416794343295
+                }
+              }
+            },
+            "idle.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 504,
+                  "max": 508,
+                  "median": 508
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 504,
+                  "max": 508,
+                  "median": 504
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 492,
+                  "max": 500,
+                  "median": 496
+                },
+                "final": {
+                  "n": 5,
+                  "min": 492,
+                  "max": 504,
+                  "median": 500
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -8,
+                  "delta_pct": -1.5748031496062993
+                },
+                "toolchain_vs_aa": {
+                  "classification": "improvement",
+                  "median_delta": -8,
+                  "delta_pct": -1.5873015873015872
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -12,
+                  "delta_pct": -2.3622047244094486
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.8064516129032258
+                }
+              }
+            },
+            "idle.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 2344,
+                  "max": 2460,
+                  "median": 2368
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 2348,
+                  "max": 2552,
+                  "median": 2384
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 2336,
+                  "max": 2484,
+                  "median": 2452
+                },
+                "final": {
+                  "n": 5,
+                  "min": 2408,
+                  "max": 2484,
+                  "median": 2420
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 52,
+                  "delta_pct": 2.195945945945946
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 68,
+                  "delta_pct": 2.8523489932885906
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 84,
+                  "delta_pct": 3.5472972972972974
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -32,
+                  "delta_pct": -1.3050570962479608
+                }
+              }
+            },
+            "idle.cpu_us_per_s": {
+              "unit": "µs/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.nonvoluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.voluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 149.653,
+                  "max": 162.425,
+                  "median": 155.115
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 154.346,
+                  "max": 170.196,
+                  "median": 159.963
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 148.421,
+                  "max": 183.661,
+                  "median": 161.425
+                },
+                "final": {
+                  "n": 5,
+                  "min": 157.655,
+                  "max": 188.201,
+                  "median": 161.117
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 6.001999999999981,
+                  "delta_pct": 3.8693872288302105
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 1.4620000000000175,
+                  "delta_pct": 0.9139613535630224
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 6.310000000000002,
+                  "delta_pct": 4.0679495857911885
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -0.30800000000002115,
+                  "delta_pct": -0.1908006814310182
+                }
+              }
+            },
+            "p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 262.912,
+                  "max": 319.925,
+                  "median": 297.381
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 234.212,
+                  "max": 369.63,
+                  "median": 332.006
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 232.673,
+                  "max": 381.633,
+                  "median": 299.459
+                },
+                "final": {
+                  "n": 5,
+                  "min": 286.225,
+                  "max": 497.123,
+                  "median": 313.308
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 15.927000000000021,
+                  "delta_pct": 5.35575574767723
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -32.54699999999997,
+                  "delta_pct": -9.803136087902018
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 2.0780000000000314,
+                  "delta_pct": 0.6987669017186813
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 13.84899999999999,
+                  "delta_pct": 4.624673160599611
+                }
+              }
+            },
+            "resident.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 504,
+                  "max": 508,
+                  "median": 508
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 504,
+                  "max": 508,
+                  "median": 504
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 492,
+                  "max": 500,
+                  "median": 496
+                },
+                "final": {
+                  "n": 5,
+                  "min": 492,
+                  "max": 504,
+                  "median": 500
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -8,
+                  "delta_pct": -1.5748031496062993
+                },
+                "toolchain_vs_aa": {
+                  "classification": "improvement",
+                  "median_delta": -8,
+                  "delta_pct": -1.5873015873015872
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -12,
+                  "delta_pct": -2.3622047244094486
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.8064516129032258
+                }
+              }
+            },
+            "resident.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 2344,
+                  "max": 2460,
+                  "median": 2368
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 2348,
+                  "max": 2552,
+                  "median": 2384
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 2336,
+                  "max": 2484,
+                  "median": 2452
+                },
+                "final": {
+                  "n": 5,
+                  "min": 2408,
+                  "max": 2484,
+                  "median": 2420
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 52,
+                  "delta_pct": 2.195945945945946
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 68,
+                  "delta_pct": 2.8523489932885906
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 84,
+                  "delta_pct": 3.5472972972972974
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -32,
+                  "delta_pct": -1.3050570962479608
+                }
+              }
+            },
+            "throughput": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 200.0,
+                  "max": 200.0,
+                  "median": 200.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 200.0,
+                  "max": 200.0,
+                  "median": 200.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 200.0,
+                  "max": 200.0,
+                  "median": 200.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 200.0,
+                  "max": 200.0,
+                  "median": 200.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": 0.0
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": 0.0
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": 0.0
+                }
+              }
+            }
+          }
         },
         "fourway-dns-saturation": {
           "component": "dnsmasq",
-          "status": "incomplete",
-          "analyzed_windows": 0,
+          "status": "passed",
+          "analyzed_windows": 20,
           "planned_windows": 20,
-          "issues": [
-            "analysis.json 尚缺",
-            "缺少完整的四方原窗分析与归档确认",
-            "四方测试包的 ELF 身份缺证或与 CI 输入不符"
-          ],
-          "analysis": null,
-          "metrics": {}
+          "issues": [],
+          "analysis": "runs/fourway-dns-saturation/analysis.json",
+          "metrics": {
+            "cpu_us_per_op": {
+              "unit": "µs/op",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 17.33392857506275,
+                  "max": 17.96086563692854,
+                  "median": 17.808120148731412
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 17.33439625837247,
+                  "max": 18.040977804308895,
+                  "median": 17.600257655342464
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 17.257677902178326,
+                  "max": 17.960048402157653,
+                  "median": 17.70252094735102
+                },
+                "final": {
+                  "n": 5,
+                  "min": 17.038584553769915,
+                  "max": 18.02363854182923,
+                  "median": 17.58232878267781
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -0.22579136605360262,
+                  "delta_pct": -1.267912413931502
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.10226329200855488,
+                  "delta_pct": 0.5810329258305682
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -0.10559920138039303,
+                  "delta_pct": -0.5929834283374124
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -0.12019216467320959,
+                  "delta_pct": -0.6789550766846854
+                }
+              }
+            },
+            "idle.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 504,
+                  "max": 508,
+                  "median": 508
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 504,
+                  "max": 504,
+                  "median": 504
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 492,
+                  "max": 504,
+                  "median": 496
+                },
+                "final": {
+                  "n": 5,
+                  "min": 492,
+                  "max": 504,
+                  "median": 500
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -8,
+                  "delta_pct": -1.5748031496062993
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -8,
+                  "delta_pct": -1.5873015873015872
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -12,
+                  "delta_pct": -2.3622047244094486
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.8064516129032258
+                }
+              }
+            },
+            "idle.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 2384,
+                  "max": 2528,
+                  "median": 2484
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 2380,
+                  "max": 2528,
+                  "median": 2492
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 2408,
+                  "max": 2492,
+                  "median": 2452
+                },
+                "final": {
+                  "n": 5,
+                  "min": 2420,
+                  "max": 2488,
+                  "median": 2452
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -32,
+                  "delta_pct": -1.288244766505636
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -40,
+                  "delta_pct": -1.6051364365971108
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -32,
+                  "delta_pct": -1.288244766505636
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "idle.cpu_us_per_s": {
+              "unit": "µs/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.nonvoluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.voluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1050.877,
+                  "max": 1091.04,
+                  "median": 1076.652
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1055.57,
+                  "max": 1081.346,
+                  "median": 1068.496
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1045.798,
+                  "max": 1072.497,
+                  "median": 1067.341
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1032.179,
+                  "max": 1069.958,
+                  "median": 1053.723
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -22.929000000000087,
+                  "delta_pct": -2.129657493786301
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -1.1550000000002,
+                  "delta_pct": -0.10809586559053098
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -9.31100000000015,
+                  "delta_pct": -0.8648105423108069
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -13.617999999999938,
+                  "delta_pct": -1.2758809040409709
+                }
+              }
+            },
+            "p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1553.924,
+                  "max": 1777.441,
+                  "median": 1659.643
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1562.157,
+                  "max": 1732.276,
+                  "median": 1611.016
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1578.392,
+                  "max": 1821.298,
+                  "median": 1658.027
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1611.246,
+                  "max": 1811.757,
+                  "median": 1690.266
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 30.623000000000047,
+                  "delta_pct": 1.845155855807547
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 47.01099999999997,
+                  "delta_pct": 2.9180964062430146
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -1.6159999999999854,
+                  "delta_pct": -0.09737033807873051
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 32.23900000000003,
+                  "delta_pct": 1.9444194817092866
+                }
+              }
+            },
+            "resident.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 504,
+                  "max": 508,
+                  "median": 508
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 504,
+                  "max": 504,
+                  "median": 504
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 492,
+                  "max": 504,
+                  "median": 496
+                },
+                "final": {
+                  "n": 5,
+                  "min": 492,
+                  "max": 504,
+                  "median": 500
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -8,
+                  "delta_pct": -1.5748031496062993
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -8,
+                  "delta_pct": -1.5873015873015872
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -12,
+                  "delta_pct": -2.3622047244094486
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.8064516129032258
+                }
+              }
+            },
+            "resident.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 2384,
+                  "max": 2528,
+                  "median": 2484
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 2380,
+                  "max": 2528,
+                  "median": 2492
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 2408,
+                  "max": 2492,
+                  "median": 2452
+                },
+                "final": {
+                  "n": 5,
+                  "min": 2420,
+                  "max": 2488,
+                  "median": 2452
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -32,
+                  "delta_pct": -1.288244766505636
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -40,
+                  "delta_pct": -1.6051364365971108
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -32,
+                  "delta_pct": -1.288244766505636
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "throughput": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 22523.6,
+                  "max": 23633.4,
+                  "median": 22853.6
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 22109.4,
+                  "max": 23597.6,
+                  "median": 23374.2
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 22057.8,
+                  "max": 23644.8,
+                  "median": 22979.8
+                },
+                "final": {
+                  "n": 5,
+                  "min": 21779.8,
+                  "max": 23580.2,
+                  "median": 22891.4
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 37.80000000000291,
+                  "delta_pct": 0.16540063709876304
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -394.40000000000146,
+                  "delta_pct": -1.68733047548152
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 126.20000000000073,
+                  "delta_pct": 0.5522105926418627
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -88.39999999999782,
+                  "delta_pct": -0.38468568046718343
+                }
+              }
+            }
+          }
         },
         "fourway-dhcp6": {
           "component": "dnsmasq",
-          "status": "incomplete",
-          "analyzed_windows": 0,
+          "status": "passed",
+          "analyzed_windows": 20,
           "planned_windows": 20,
-          "issues": [
-            "analysis.json 尚缺",
-            "缺少完整的四方原窗分析与归档确认",
-            "四方测试包的 ELF 身份缺证或与 CI 输入不符"
-          ],
-          "analysis": null,
-          "metrics": {}
+          "issues": [],
+          "analysis": "runs/fourway-dhcp6/analysis.json",
+          "metrics": {
+            "cpu_us_per_op": {
+              "unit": "µs/op",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 218.75950415812258,
+                  "max": 227.3809220632081,
+                  "median": 220.04598604211026
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 215.3733001845741,
+                  "max": 221.13391355932205,
+                  "median": 218.22807421785797
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 210.77427969892003,
+                  "max": 227.41624998497687,
+                  "median": 214.0599634731207
+                },
+                "final": {
+                  "n": 5,
+                  "min": 214.78092857542055,
+                  "max": 220.93840973424903,
+                  "median": 220.09505878248734
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.049072740377084756,
+                  "delta_pct": 0.022301129531939606
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -4.168110744737277,
+                  "delta_pct": -1.9099791627067355
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -5.9860225689895685,
+                  "delta_pct": -2.720350721527827
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 6.035095309366653,
+                  "delta_pct": 2.8193480048521424
+                }
+              }
+            },
+            "idle.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 208,
+                  "max": 208,
+                  "median": 208
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 204,
+                  "max": 208,
+                  "median": 208
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 200,
+                  "max": 204,
+                  "median": 204
+                },
+                "final": {
+                  "n": 5,
+                  "min": 204,
+                  "max": 204,
+                  "median": 204
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -4,
+                  "delta_pct": -1.9230769230769231
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -4,
+                  "delta_pct": -1.9230769230769231
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -4,
+                  "delta_pct": -1.9230769230769231
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "idle.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1792,
+                  "max": 2024,
+                  "median": 1876
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1796,
+                  "max": 2036,
+                  "median": 1936
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1792,
+                  "max": 1936,
+                  "median": 1868
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1796,
+                  "max": 2036,
+                  "median": 1872
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -4,
+                  "delta_pct": -0.21321961620469082
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -68,
+                  "delta_pct": -3.512396694214876
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -8,
+                  "delta_pct": -0.42643923240938164
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.21413276231263384
+                }
+              }
+            },
+            "idle.cpu_us_per_s": {
+              "unit": "µs/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.nonvoluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "idle.voluntary_ctxt_switches_per_s": {
+              "unit": "switches/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                },
+                "final": {
+                  "n": 5,
+                  "min": 0.0,
+                  "max": 0.0,
+                  "median": 0.0
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0.0,
+                  "delta_pct": null
+                }
+              }
+            },
+            "p50_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1568.928,
+                  "max": 1608.091,
+                  "median": 1597.474
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1574.468,
+                  "max": 1611.554,
+                  "median": 1591.549
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1547.999,
+                  "max": 1570.697,
+                  "median": 1551.924
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1580.392,
+                  "max": 1613.477,
+                  "median": 1589.626
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -7.847999999999956,
+                  "delta_pct": -0.4912756013556375
+                },
+                "toolchain_vs_aa": {
+                  "classification": "improvement",
+                  "median_delta": -39.625,
+                  "delta_pct": -2.48971285207053
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -45.549999999999955,
+                  "delta_pct": -2.851376610824336
+                },
+                "final_vs_toolchain": {
+                  "classification": "regression",
+                  "median_delta": 37.702,
+                  "delta_pct": 2.4293715413899135
+                }
+              }
+            },
+            "p95_us": {
+              "unit": "µs",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 2323.962,
+                  "max": 2778.921,
+                  "median": 2550.403
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 2204.701,
+                  "max": 2494.158,
+                  "median": 2299.186
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 2053.049,
+                  "max": 2805.466,
+                  "median": 2329.732
+                },
+                "final": {
+                  "n": 5,
+                  "min": 2150.303,
+                  "max": 2621.113,
+                  "median": 2425.525
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -124.8779999999997,
+                  "delta_pct": -4.896402646954215
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 30.54599999999982,
+                  "delta_pct": 1.3285571502262026
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -220.67099999999982,
+                  "delta_pct": -8.652397287801177
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 95.79300000000012,
+                  "delta_pct": 4.1117604943401265
+                }
+              }
+            },
+            "resident.RssAnon": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 208,
+                  "max": 208,
+                  "median": 208
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 204,
+                  "max": 208,
+                  "median": 208
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 200,
+                  "max": 204,
+                  "median": 204
+                },
+                "final": {
+                  "n": 5,
+                  "min": 204,
+                  "max": 204,
+                  "median": 204
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -4,
+                  "delta_pct": -1.9230769230769231
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -4,
+                  "delta_pct": -1.9230769230769231
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "improvement",
+                  "median_delta": -4,
+                  "delta_pct": -1.9230769230769231
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 0,
+                  "delta_pct": 0.0
+                }
+              }
+            },
+            "resident.VmRSS": {
+              "unit": "KiB",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 1792,
+                  "max": 2024,
+                  "median": 1876
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 1796,
+                  "max": 2036,
+                  "median": 1936
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 1792,
+                  "max": 1936,
+                  "median": 1868
+                },
+                "final": {
+                  "n": 5,
+                  "min": 1796,
+                  "max": 2036,
+                  "median": 1872
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -4,
+                  "delta_pct": -0.21321961620469082
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": -68,
+                  "delta_pct": -3.512396694214876
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": -8,
+                  "delta_pct": -0.42643923240938164
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": 4,
+                  "delta_pct": 0.21413276231263384
+                }
+              }
+            },
+            "throughput": {
+              "unit": "ops/s",
+              "sides": {
+                "shipped": {
+                  "n": 5,
+                  "min": 3352.8,
+                  "max": 3510.0,
+                  "median": 3440.2
+                },
+                "aa": {
+                  "n": 5,
+                  "min": 3420.8,
+                  "max": 3574.6,
+                  "median": 3514.0
+                },
+                "toolchain": {
+                  "n": 5,
+                  "min": 3327.0,
+                  "max": 3665.6,
+                  "median": 3585.2
+                },
+                "final": {
+                  "n": 5,
+                  "min": 3347.8,
+                  "max": 3577.4,
+                  "median": 3464.8
+                }
+              },
+              "comparisons": {
+                "final_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 24.600000000000364,
+                  "delta_pct": 0.7150747049590246
+                },
+                "toolchain_vs_aa": {
+                  "classification": "overlap",
+                  "median_delta": 71.19999999999982,
+                  "delta_pct": 2.0261809903244115
+                },
+                "toolchain_vs_shipped": {
+                  "classification": "overlap",
+                  "median_delta": 145.0,
+                  "delta_pct": 4.2148712284169525
+                },
+                "final_vs_toolchain": {
+                  "classification": "overlap",
+                  "median_delta": -120.39999999999964,
+                  "delta_pct": -3.3582505857413714
+                }
+              }
+            }
+          }
         }
       },
       "range_rule": "strict min/max separation, touching ranges overlap, no windows discarded",
@@ -11202,6 +15208,106 @@
             "classification": "regression",
             "median_delta": 4,
             "delta_pct": 0.32051282051282054
+          },
+          {
+            "workload": "fourway-odhcpd",
+            "metric": "empty.RssAnon",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 80,
+              "max": 84,
+              "median": 80
+            },
+            "baseline": {
+              "n": 5,
+              "min": 76,
+              "max": 76,
+              "median": 76
+            },
+            "classification": "regression",
+            "median_delta": 4,
+            "delta_pct": 5.2631578947368425
+          },
+          {
+            "workload": "fourway-odhcpd",
+            "metric": "empty.VmRSS",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 804,
+              "max": 808,
+              "median": 804
+            },
+            "baseline": {
+              "n": 5,
+              "min": 800,
+              "max": 800,
+              "median": 800
+            },
+            "classification": "regression",
+            "median_delta": 4,
+            "delta_pct": 0.5
+          },
+          {
+            "workload": "fourway-odhcpd",
+            "metric": "populated.RssAnon",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 88,
+              "max": 92,
+              "median": 88
+            },
+            "baseline": {
+              "n": 5,
+              "min": 84,
+              "max": 84,
+              "median": 84
+            },
+            "classification": "regression",
+            "median_delta": 4,
+            "delta_pct": 4.761904761904762
+          },
+          {
+            "workload": "fourway-odhcpd",
+            "metric": "populated.VmRSS",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 812,
+              "max": 816,
+              "median": 812
+            },
+            "baseline": {
+              "n": 5,
+              "min": 808,
+              "max": 808,
+              "median": 808
+            },
+            "classification": "regression",
+            "median_delta": 4,
+            "delta_pct": 0.49504950495049505
+          },
+          {
+            "workload": "fourway-reload-config-memory",
+            "metric": "max_per_process_VmRSS_kib",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 488,
+              "max": 488,
+              "median": 488
+            },
+            "baseline": {
+              "n": 5,
+              "min": 484,
+              "max": 484,
+              "median": 484
+            },
+            "classification": "regression",
+            "median_delta": 4,
+            "delta_pct": 0.8264462809917356
           }
         ],
         "toolchain_vs_aa": [
@@ -11344,6 +15450,26 @@
             "classification": "regression",
             "median_delta": 2.354532500000005,
             "delta_pct": 3.5814913878756163
+          },
+          {
+            "workload": "fourway-iwinfo",
+            "metric": "resident.VmRSS",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 1252,
+              "max": 1256,
+              "median": 1252
+            },
+            "baseline": {
+              "n": 5,
+              "min": 1124,
+              "max": 1128,
+              "median": 1124
+            },
+            "classification": "regression",
+            "median_delta": 128,
+            "delta_pct": 11.387900355871887
           }
         ],
         "toolchain_vs_shipped": [
@@ -11446,6 +15572,86 @@
             "classification": "regression",
             "median_delta": 64,
             "delta_pct": 7.2727272727272725
+          },
+          {
+            "workload": "fourway-odhcpd",
+            "metric": "empty.RssAnon",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 80,
+              "max": 84,
+              "median": 80
+            },
+            "baseline": {
+              "n": 5,
+              "min": 76,
+              "max": 76,
+              "median": 76
+            },
+            "classification": "regression",
+            "median_delta": 4,
+            "delta_pct": 5.2631578947368425
+          },
+          {
+            "workload": "fourway-odhcpd",
+            "metric": "empty.VmRSS",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 804,
+              "max": 808,
+              "median": 804
+            },
+            "baseline": {
+              "n": 5,
+              "min": 800,
+              "max": 800,
+              "median": 800
+            },
+            "classification": "regression",
+            "median_delta": 4,
+            "delta_pct": 0.5
+          },
+          {
+            "workload": "fourway-iwinfo",
+            "metric": "resident.VmRSS",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 1252,
+              "max": 1256,
+              "median": 1252
+            },
+            "baseline": {
+              "n": 5,
+              "min": 1188,
+              "max": 1192,
+              "median": 1188
+            },
+            "classification": "regression",
+            "median_delta": 64,
+            "delta_pct": 5.3872053872053876
+          },
+          {
+            "workload": "fourway-reload-config-memory",
+            "metric": "max_per_process_VmRSS_kib",
+            "unit": "KiB",
+            "new": {
+              "n": 5,
+              "min": 488,
+              "max": 492,
+              "median": 488
+            },
+            "baseline": {
+              "n": 5,
+              "min": 484,
+              "max": 484,
+              "median": 484
+            },
+            "classification": "regression",
+            "median_delta": 4,
+            "delta_pct": 0.8264462809917356
           }
         ],
         "final_vs_toolchain": [
@@ -11668,6 +15874,26 @@
             "classification": "regression",
             "median_delta": 0.9239999999999924,
             "delta_pct": 0.8961998797307447
+          },
+          {
+            "workload": "fourway-dhcp6",
+            "metric": "p50_us",
+            "unit": "µs",
+            "new": {
+              "n": 5,
+              "min": 1580.392,
+              "max": 1613.477,
+              "median": 1589.626
+            },
+            "baseline": {
+              "n": 5,
+              "min": 1547.999,
+              "max": 1570.697,
+              "median": 1551.924
+            },
+            "classification": "regression",
+            "median_delta": 37.702,
+            "delta_pct": 2.4293715413899135
           }
         ]
       },
@@ -12295,7 +16521,7 @@
     },
     "gates": {
       "aa": true,
-      "four_way_complete": false,
+      "four_way_complete": true,
       "four_way_no_final_regressions": false,
       "pgo": true,
       "final_ci": true,
@@ -12307,7 +16533,6 @@
     "physical_deployment": "not_performed"
   },
   "primary_completion_fields": [
-    "four_way_complete",
     "four_way_no_final_regressions",
     "router_final_identity"
   ],
@@ -12701,7 +16926,7 @@
       "ci/toolchain-use-44613984164/dnsmasq-pgo-freeze-candidate-0f65fcd71516f8bda18b86cb8cdd6ff65fc76c78-44613984164/manifest.json": "dc6e79c9cedaafb3604a2df4e91dfcaf985d9e4f3a8ba0cdd027f5e6942e361b",
       "ci/final-use-44615067016/dnsmasq-pgo-freeze-candidate-b9f37d87b6c8016cb21fe3b0d426eabeb80d31a3-44615067016/manifest.json": "398fa7e69ba50ee47dc2573140eee61c5fd3b98fb76293fae6058745ca5efafc",
       "device/fourway-plan.json": "66e6900997dfe093a56aaa12e06b43017d39e502d1616f34589fe5fc6e32dfcd",
-      "device/fourway-summary.json": "5ffb4b1fd1b88e5ac566ba2f422d4233b0823fa2c7335571fd8e34654c9ae664",
+      "device/fourway-summary.json": "64822db5246d220aa22d9d1ffe5fdb16b2b9c9322833a3feb4bf61fd22b9acf9",
       "device/packages/fourway-uci/input-identities.json": "4fef96dc338c3fca579c7d82d416657b455066fe2af6df99a62bfe0187771c08",
       "device/packages/fourway-fw4/input-identities.json": "d85e62e801cee4a319d85b8e6313f06eea0dfdcbf5e0343ab2649879d7220b06",
       "device/packages/fourway-reload-config/input-identities.json": "953b9a605ffe08faab5359efc3734f6c3785c2126b4b59aafd223ee7cdcc6d0f",
@@ -12712,6 +16937,13 @@
       "device/packages/fourway-procd/input-identities.json": "bee9beeb00bc43dd2b9194230421b63e222ab3b8affd25b28c12f198732bcd96",
       "device/packages/fourway-netifd/input-identities.json": "c4cdab35a1469cab083342d881bc9e1fd4e01743a8cbb16e044be40d20ec510e",
       "device/extensions/artifacts/fourway-odhcpd/input-identities.json": "582f9b8f9658b71d5e268062f1ddedb31d084b283f203170df72e8550bb88368",
+      "device/extensions/artifacts/fourway-iwinfo/input-identities.json": "20a221edd241f576ec993721923bc3afba89a21309ef62604bddfbf9454961cb",
+      "device/extensions/artifacts/fourway-uci-memory/input-identities.json": "2c3ebf9651564f4c1546f23af542331b5e7c1ef98228adf6e6dc9192b40974e4",
+      "device/extensions/artifacts/fourway-fw4-memory/input-identities.json": "7a3cb7659cab849cd8e0a39e794619f07e7fdd53d9215e5b311e829138063b91",
+      "device/extensions/artifacts/fourway-reload-config-memory/input-identities.json": "5673feefbebc6babc42a1283fdd5226e3762d14891fae9b197ec6243757840c4",
+      "device/packages/fourway-dns200/input-identities.json": "43af0a5fe85e28f6d7cc671c8da746135e031bf929d36efd40268ce9aee72f66",
+      "device/packages/fourway-dns-saturation/input-identities.json": "43af0a5fe85e28f6d7cc671c8da746135e031bf929d36efd40268ce9aee72f66",
+      "device/packages/fourway-dhcp6/input-identities.json": "43af0a5fe85e28f6d7cc671c8da746135e031bf929d36efd40268ce9aee72f66",
       "firmware-receipt.json": "daeff7f9c481ff76d610983cac3f96df075bad78f980f601124a5814a736f57b",
       "ci/release-image-44616018468/owrt-image-25.12.6-db34b429d03be3130360cd39d848f49a4023edc2/manifest.json": "f3a2afc737862beeff3cd4564f0091cad376e9a74ed0effa60d5d2e3aaf467b9",
       "ci/release-image-44616018468/owrt-image-25.12.6-db34b429d03be3130360cd39d848f49a4023edc2/SHA256SUMS": "4af723834b963cd2ae7f794bb4b426366555cf9ba05e15287856b2b86aae5df4",

@@ -15,7 +15,7 @@
 
 本轮决策已收齐：39个候选提交均有盲审映射，其中25项最初只读源码、14项有有界执行；19项旧待定最终采纳/修订采纳4项、关闭其余15项，剩余0。9项任务均有处理；DNS TCP65536与重复DHCP选项未观察到用户规定的abort/非法发送条件，决定不修。RA零lifetime、-S docroot、HEAD错误正文、CLOEXEC/rpcd信号顺序和netifd强杀旧helper依既定取舍不做。
 
-最终Oracle全部门禁已通过（Linux aarch64、Rust1.100）：`make test check-rust fmt-check check-benchmark check-toolchain check-toolchain-negative check-tools check-harnesses`。原组件证据包括netifd 193测试及36次namespace运行、DNS最终分片883通过和23 ignored、ring公共接口及PD解码对照。**23项ignored未执行；源码推导、组件门禁与整机验收分开记载。** N1/N2由`95ce2040`、`8a3f2390`修复，经`4fb8a8cf`集成并重组至DNS组`f3c98f1b`；两项新测试在前修订均失败、最终均通过。N1仅验证Stale owner边界，没有新增真实上游刷新实验。最终DNS报告HEAD`54740216`及net报告已原样保全到主证据`closeout/`；详见台账S09/S10/S25/S26。
+最终Oracle全部门禁已通过（Linux aarch64、Rust1.100）：`make test check-rust fmt-check check-benchmark check-toolchain check-toolchain-negative check-tools check-harnesses`。原组件证据包括netifd 193测试及36次namespace运行、DNS最终分片883通过和23 ignored、ring公共接口及PD解码对照。这23项是独立代理当时未执行的ignored项；最终Rust 1.100全门禁另行执行了19条隔离namespace用例。仍需要独立C oracle或额外语料的ignored项未计为通过；源码复核、组件测试与真机测量分开记载。 N1/N2由`95ce2040`、`8a3f2390`修复，经`4fb8a8cf`集成并重组至DNS组`f3c98f1b`；两项新测试在前修订均失败、最终均通过。N1仅验证Stale owner边界，没有新增真实上游刷新实验。最终DNS报告HEAD`54740216`及net报告已原样保全到主证据`closeout/`；详见台账S09/S10/S25/S26。
 
 <!-- BEGIN round3-evidence -->
 
@@ -56,7 +56,7 @@ A/A PGO 生成 [44603802652](https://github.com/WenliangCao/owrt-rs/actions/runs
 最终 `reload-config` 为 465,771 字节，512 KiB 门槛通过，余量 58,517 字节。
 
 **四方真机结果。**
-证据未齐。完成 9/17 项，已分析 180/340 窗。 使用全部窗的最小值和最大值，区间相接视为重叠。发版门槛比较最终候选与线上。
+发现不重叠回退。完成 17/17 项，已分析 340/340 窗。 使用全部窗的最小值和最大值，区间相接视为重叠。发版门槛比较最终候选与线上。
 
 数值为中位数 [最小值, 最大值]。`dhcp6` 表示 6 个 DHCPv4 客户端。
 
@@ -80,11 +80,22 @@ A/A PGO 生成 [44603802652](https://github.com/WenliangCao/owrt-rs/actions/runs
 | fourway-procd `service_list_32.throughput` | ops/s | 2170.25 [2029.75, 2239.49] | 1978.15 [1960.23, 2216.98] | 2223.32 [2000.92, 2268.94] | 2096.3 [1834.02, 2240.78] | +12.394% | 重叠 -3.408% |
 | fourway-netifd `device_status.p50_us` | µs | 609.459 [603.611, 625.771] | 612.921 [606.843, 620.154] | 610.074 [607.766, 635.311] | 615.153 [612.306, 624.001] | -0.464% | 重叠 +0.934% |
 | fourway-netifd `device_status.throughput` | ops/s | 1255 [1203.39, 1274.31] | 1186.74 [1163.85, 1265.24] | 1198.89 [1168.3, 1211.49] | 1223.56 [1205.92, 1258.81] | +1.024% | 重叠 -2.506% |
-
-待补负载：`fourway-odhcpd`、`fourway-iwinfo`、`fourway-uci-memory`、`fourway-fw4-memory`、`fourway-reload-config-memory`、`fourway-dns200`、`fourway-dns-saturation`、`fourway-dhcp6`。各项缺证原因见 JSON。
+| fourway-odhcpd `renew.p50_us` | µs | 157.655 [99.9865, 195.625] | 312.923 [197.895, 2020.85] | 102.948 [96.2165, 165.887] | 122.415 [96.9085, 230.48] | -67.101% | 重叠 -22.352% |
+| fourway-odhcpd `renew.serial_elapsed_ops_per_s` | ops/s | 2678.47 [2407.81, 4971.99] | 1671.77 [377.528, 2909.43] | 3438.98 [1391.47, 5637.14] | 2616.39 [1349.33, 4973.42] | +105.709% | 重叠 -2.318% |
+| fourway-iwinfo `iwinfo-phy0-ap0.p50_us` | µs | 9356.4 [9307.69, 9463.27] | 9356.63 [9317.39, 9410.87] | 9400.72 [9349.78, 9496.67] | 6034.73 [6026.5, 6097.44] | +0.471% | 改善 -35.502% |
+| fourway-iwinfo `iwinfo-phy0-ap0.throughput` | ops/s | 103.31 [93.1381, 104.048] | 101.214 [97.0859, 103.674] | 100.466 [98.9638, 101.522] | 157.873 [154.85, 160.809] | -0.739% | 改善 +52.815% |
+| fourway-uci-memory `max_per_process_RssAnon_kib` | KiB | 28 [28, 28] | 28 [28, 28] | 28 [28, 28] | 28 [28, 28] | +0.000% | 重叠 +0.000% |
+| fourway-fw4-memory `max_per_process_RssAnon_kib` | KiB | 32 [32, 36] | 32 [32, 36] | 32 [32, 32] | 32 [32, 36] | +0.000% | 重叠 +0.000% |
+| fourway-reload-config-memory `max_per_process_RssAnon_kib` | KiB | 28 [28, 28] | 28 [28, 32] | 28 [28, 32] | 28 [28, 28] | +0.000% | 重叠 +0.000% |
+| fourway-dns200 `p50_us` | µs | 155.115 [149.653, 162.425] | 159.963 [154.346, 170.196] | 161.425 [148.421, 183.661] | 161.117 [157.655, 188.201] | +0.914% | 重叠 +3.869% |
+| fourway-dns200 `throughput` | ops/s | 200 [200, 200] | 200 [200, 200] | 200 [200, 200] | 200 [200, 200] | +0.000% | 重叠 +0.000% |
+| fourway-dns-saturation `p50_us` | µs | 1076.65 [1050.88, 1091.04] | 1068.5 [1055.57, 1081.35] | 1067.34 [1045.8, 1072.5] | 1053.72 [1032.18, 1069.96] | -0.108% | 重叠 -2.130% |
+| fourway-dns-saturation `throughput` | ops/s | 22853.6 [22523.6, 23633.4] | 23374.2 [22109.4, 23597.6] | 22979.8 [22057.8, 23644.8] | 22891.4 [21779.8, 23580.2] | -1.687% | 重叠 +0.165% |
+| fourway-dhcp6 `p50_us` | µs | 1597.47 [1568.93, 1608.09] | 1591.55 [1574.47, 1611.55] | 1551.92 [1548, 1570.7] | 1589.63 [1580.39, 1613.48] | -2.490% | 重叠 -0.491% |
+| fourway-dhcp6 `throughput` | ops/s | 3440.2 [3352.8, 3510] | 3514 [3420.8, 3574.6] | 3585.2 [3327, 3665.6] | 3464.8 [3347.8, 3577.4] | +2.026% | 重叠 +0.715% |
 
 **工具链影响。** 仅工具链与 CI 重建 v0.3.3 相比，单独估计 Rust 和依赖升级的变化。
-已比较 150 个指标，10 个不重叠改善，7 个不重叠回退，133 个区间重叠。 JSON 记录每项中位变化，回退逐项列于下表。
+已比较 229 个指标，17 个不重叠改善，8 个不重叠回退，204 个区间重叠。 JSON 记录每项中位变化，回退逐项列于下表。
 
 **不重叠回退。** 最终候选对线上的回退阻塞发版。
 
@@ -100,6 +111,11 @@ A/A PGO 生成 [44603802652](https://github.com/WenliangCao/owrt-rs/actions/runs
 | final_vs_shipped | fourway-netifd `idle.cpu_us_per_s` | µs/s | 39.2613 [35.0385, 42.8002] | 33.2153 [32.5616, 34.6614] | +18.202% |
 | final_vs_shipped | fourway-netifd `resident.RssAnon` | KiB | 200 [200, 200] | 196 [192, 196] | +2.041% |
 | final_vs_shipped | fourway-netifd `resident.VmRSS` | KiB | 1252 [1252, 1252] | 1248 [1244, 1248] | +0.321% |
+| final_vs_shipped | fourway-odhcpd `empty.RssAnon` | KiB | 80 [80, 84] | 76 [76, 76] | +5.263% |
+| final_vs_shipped | fourway-odhcpd `empty.VmRSS` | KiB | 804 [804, 808] | 800 [800, 800] | +0.500% |
+| final_vs_shipped | fourway-odhcpd `populated.RssAnon` | KiB | 88 [88, 92] | 84 [84, 84] | +4.762% |
+| final_vs_shipped | fourway-odhcpd `populated.VmRSS` | KiB | 812 [812, 816] | 808 [808, 808] | +0.495% |
+| final_vs_shipped | fourway-reload-config-memory `max_per_process_VmRSS_kib` | KiB | 488 [488, 488] | 484 [484, 484] | +0.826% |
 | toolchain_vs_aa | fourway-fw4 `check.children_cpu_us_per_op` | µs/op | 13696 [13580.1, 14167.1] | 13466.1 [13413.5, 13532.7] | +1.707% |
 | toolchain_vs_aa | fourway-logd `syslog_128.subject_cpu_us_per_op` | µs/op | 8.36377 [7.90173, 8.69879] | 7.81857 [7.71605, 7.88318] | +6.973% |
 | toolchain_vs_aa | fourway-logd `syslog_128.throughput` | ops/s | 53448.7 [44976.1, 55143.3] | 58224.3 [57166.9, 59123.6] | -8.202% |
@@ -107,11 +123,16 @@ A/A PGO 生成 [44603802652](https://github.com/WenliangCao/owrt-rs/actions/runs
 | toolchain_vs_aa | fourway-procd `idle.VmRSS` | KiB | 944 [944, 944] | 880 [880, 880] | +7.273% |
 | toolchain_vs_aa | fourway-procd `resident.VmRSS` | KiB | 944 [944, 944] | 880 [880, 880] | +7.273% |
 | toolchain_vs_aa | fourway-netifd `interface_dump.subject_cpu_us_per_op` | µs/op | 68.0962 [67.5116, 68.7896] | 65.7417 [65.0087, 66.3929] | +3.581% |
+| toolchain_vs_aa | fourway-iwinfo `resident.VmRSS` | KiB | 1252 [1252, 1256] | 1124 [1124, 1128] | +11.388% |
 | toolchain_vs_shipped | fourway-logd `syslog_128.throughput` | ops/s | 53448.7 [44976.1, 55143.3] | 57977.5 [56783.9, 58504.2] | -7.811% |
 | toolchain_vs_shipped | fourway-rpcd `file_stat.p50_us` | µs | 179.967 [176.737, 188.739] | 171.119 [165.734, 171.581] | +5.171% |
 | toolchain_vs_shipped | fourway-rpcd `file_stat.subject_cpu_us_per_op` | µs/op | 87.6447 [85.3063, 94.3388] | 80.6006 [74.7634, 82.8892] | +8.740% |
 | toolchain_vs_shipped | fourway-procd `idle.VmRSS` | KiB | 944 [944, 944] | 880 [880, 880] | +7.273% |
 | toolchain_vs_shipped | fourway-procd `resident.VmRSS` | KiB | 944 [944, 944] | 880 [880, 880] | +7.273% |
+| toolchain_vs_shipped | fourway-odhcpd `empty.RssAnon` | KiB | 80 [80, 84] | 76 [76, 76] | +5.263% |
+| toolchain_vs_shipped | fourway-odhcpd `empty.VmRSS` | KiB | 804 [804, 808] | 800 [800, 800] | +0.500% |
+| toolchain_vs_shipped | fourway-iwinfo `resident.VmRSS` | KiB | 1252 [1252, 1256] | 1188 [1188, 1192] | +5.387% |
+| toolchain_vs_shipped | fourway-reload-config-memory `max_per_process_VmRSS_kib` | KiB | 488 [488, 492] | 484 [484, 484] | +0.826% |
 | final_vs_toolchain | fourway-uci `export_network.children_cpu_us_per_op` | µs/op | 752.46 [749.26, 755.45] | 733.49 [726.99, 739.68] | +2.586% |
 | final_vs_toolchain | fourway-uci `export_network.p50_us` | µs | 1161.21 [1151.82, 1173.83] | 1140.13 [1131.97, 1144.21] | +1.849% |
 | final_vs_toolchain | fourway-logd `syslog_128.p50_us` | µs | 17.004 [16.773, 17.158] | 16.62 [16.619, 16.697] | +2.310% |
@@ -123,6 +144,7 @@ A/A PGO 生成 [44603802652](https://github.com/WenliangCao/owrt-rs/actions/runs
 | final_vs_toolchain | fourway-netifd `resident.RssAnon` | KiB | 200 [200, 200] | 192 [192, 196] | +4.167% |
 | final_vs_toolchain | fourway-netifd `resident.VmRSS` | KiB | 1252 [1252, 1252] | 1180 [1180, 1184] | +6.102% |
 | final_vs_toolchain | fourway-netifd `wireless_status.p50_us` | µs | 104.026 [103.488, 115.644] | 103.102 [101.718, 103.179] | +0.896% |
+| final_vs_toolchain | fourway-dhcp6 `p50_us` | µs | 1589.63 [1580.39, 1613.48] | 1551.92 [1548, 1570.7] | +2.429% |
 
 **正式 CI 和固件。**
 
@@ -142,7 +164,7 @@ SHA256 `5ba5d461c39939108346e9c15bc6154c3c8980d36e13be18a25ac28ee333b156`。镜�
 
 固件物理启动和刷机仍未执行。
 
-待通过的门槛为 `four_way_complete`、`four_way_no_final_regressions`、`router_final_identity`。
+待通过的门槛为 `four_way_no_final_regressions`、`router_final_identity`。
 
 发版说明草稿，未创建 GitHub Release。
 
