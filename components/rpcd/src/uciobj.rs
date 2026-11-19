@@ -1340,6 +1340,19 @@ pub fn apply_timeout(rctx: &Ctx) {
     }
 }
 
+/// Clamp the rollback timeout (seconds) to milliseconds for the apply deadline.
+/// Matches rpc_uci_apply in uci.c:1663-1668:
+///   `int msecs = (timeout > 0 && timeout <= INT_MAX / 1000) ? timeout * 1000 : INT_MAX;`
+/// Non-positive or overflow values become i32::MAX ms to prevent the rollback
+/// timer from firing immediately.
+fn apply_rollback_msecs(timeout: i32) -> u64 {
+    if timeout > 0 && timeout <= i32::MAX / 1000 {
+        timeout as u64 * 1000
+    } else {
+        i32::MAX as u64
+    }
+}
+
 fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
     let rollback = arg(raw, "rollback", MsgType::Int8)
         .and_then(|f| f.as_bool())
@@ -1436,13 +1449,8 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
             }
         }
         if rollback {
-            let msecs: i64 = if timeout > 0 && timeout <= i32::MAX / 1000 {
-                timeout as i64 * 1000
-            } else {
-                i32::MAX as i64
-            };
             rctx.apply.borrow_mut().deadline =
-                Some(Instant::now() + Duration::from_millis(msecs as u64));
+                Some(Instant::now() + Duration::from_millis(apply_rollback_msecs(timeout)));
         }
         return code(uci_status(&ctx));
     }
@@ -1653,5 +1661,26 @@ mod reply_capacity_tests {
         let mut b = BlobBuf::with_capacity(package_reply_capacity(&p));
         dump_package(&mut b, &p, "values", None, None);
         assert!(b.into_payload().len() > 100_000);
+    }
+
+    /// Lock the rollback timeout clamping that matches uci.c rpc_uci_apply:
+    ///   `int msecs = (timeout > 0 && timeout <= INT_MAX / 1000) ? timeout * 1000 : INT_MAX;`
+    #[test]
+    fn apply_rollback_msecs_clamping() {
+        let max = i32::MAX as u64;
+        // Non-positive values clamp to i32::MAX ms.
+        assert_eq!(apply_rollback_msecs(0), max);
+        assert_eq!(apply_rollback_msecs(-1), max);
+        assert_eq!(apply_rollback_msecs(i32::MIN), max);
+        // Normal positive values: seconds * 1000.
+        assert_eq!(apply_rollback_msecs(1), 1000);
+        assert_eq!(apply_rollback_msecs(60), 60_000);
+        // Boundary: largest value that does not overflow i32 when * 1000.
+        let boundary = i32::MAX / 1000;
+        assert_eq!(apply_rollback_msecs(boundary), boundary as u64 * 1000);
+        // One past the boundary overflows, clamped to i32::MAX.
+        assert_eq!(apply_rollback_msecs(boundary + 1), max);
+        // i32::MAX itself overflows, clamped.
+        assert_eq!(apply_rollback_msecs(i32::MAX), max);
     }
 }
