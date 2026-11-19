@@ -76,7 +76,7 @@ def main():
         driver = source_root / 'driver.rs'
         driver.write_text(dns_cache_diff.rust_modules(source_root) + allocator + DRIVER)
         binary = source_root / 'probe'
-        command = [args.rustc, '+1.98.1', '--edition=2021', '-A', 'dead_code', '-O', '--cfg', 'allocation_tracking',
+        command = [args.rustc, '+1.100.0', '--edition=2021', '-A', 'dead_code', '-O', '--cfg', 'allocation_tracking',
                    str(driver), '-o', str(binary)]
         if label == 'capture':
             command += ['--cfg', 'capture']

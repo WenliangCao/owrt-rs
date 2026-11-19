@@ -51,6 +51,10 @@ def warnings(output, logs):
 
 
 def run(command, log, env):
+    if command[0] == "cargo":
+        version = subprocess.check_output(["cargo", "-V"], env=env, text=True)
+        if "huacnlee/cargo" not in version:
+            raise RuntimeError("expected huacnlee/cargo: " + version.strip())
     print("+ " + " ".join(map(str, command)), flush=True)
     log.parent.mkdir(parents=True, exist_ok=True)
     with log.open("w") as stream:
@@ -63,6 +67,7 @@ def run(command, log, env):
 
 def environment():
     env = os.environ.copy()
+    env.setdefault("RUSTC", subprocess.check_output(["rustup", "which", "rustc"], text=True).strip())
     for key in ("RUSTFLAGS", "RUSTDOCFLAGS"):
         env[key] = (env.get(key, "") + " -Dwarnings").strip()
     env["CARGO_INCREMENTAL"] = "0"
@@ -75,7 +80,7 @@ def host(work, env, report):
     for component in COMPONENTS:
         crate = REPO / "components" / component
         manifest = crate / "Cargo.toml"
-        common = ["mbx", "test", "--locked", "--manifest-path", manifest]
+        common = ["cargo", "test", "--locked", "--manifest-path", manifest]
         # --tests retains the normal lib/bin/integration test targets. Turning
         # examples which include src modules into extra libtest roots would
         # duplicate their tests in an unsupported crate-root environment.
@@ -89,7 +94,7 @@ def host(work, env, report):
             if (crate / "src/lib.rs").is_file() and not docs_disabled:
                 doc_code = run(common + ["--doc"], out / f"doc-{component}.log", env)
         if any((crate / "examples").glob("*.rs")):
-            example_code = run(["mbx", "check", "--locked", "--examples", "--manifest-path", manifest],
+            example_code = run(["cargo", "check", "--locked", "--examples", "--manifest-path", manifest],
                                out / f"examples-{component}.log", env)
         report["commands"].append({"component": component, "compile": compile_code,
                                    "test": test_code, "doc": doc_code, "examples": example_code})
@@ -134,16 +139,16 @@ def sdk_check(work, env, report):
     # Also compile business tests and normal examples for the router architecture; these
     # check-only products cannot be substituted for those release artifacts.
     for component in COMPONENTS:
-        code = run(["mbx", "check", "--locked", "--tests", "--manifest-path",
-                    REPO / "components" / component / "Cargo.toml", "--target-dir", work / "target-check"],
+        code = run(["cargo", "check", "--locked", "--tests", "--manifest-path",
+                    REPO / "components" / component / "Cargo.toml"],
                    out / f"check-target-{component}.log", check_env)
         report["commands"].append({"target_check": component, "returncode": code})
         if code and component in COMMON:
             return out, False
         crate = REPO / "components" / component
         if any((crate / "examples").glob("*.rs")):
-            example_code = run(["mbx", "check", "--locked", "--examples", "--manifest-path",
-                                crate / "Cargo.toml", "--target-dir", work / "target-check"],
+            example_code = run(["cargo", "check", "--locked", "--examples", "--manifest-path",
+                                crate / "Cargo.toml"],
                                out / f"check-examples-{component}.log", check_env)
             report["commands"].append({"target_examples": component, "returncode": example_code})
     if any(row.get("returncode", 0) for row in report["commands"]):

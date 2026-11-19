@@ -137,8 +137,8 @@ def state_differential(reference, work):
     subprocess.run(['cc','-O2','-Werror=format',*flags,'-I'+str(build),'-I'+str(deps/'include'),str(work/'state_probe.c'),str(work/'dnsmasq-without-main.o'),*objects,'-L'+str(deps/'lib'),'-Wl,-rpath,'+str(deps/'lib'),'-lubus','-lubox','-o',str(work/'c-state')],check=True)
     rustc = shutil.which('rustc')
     if not rustc:
-        candidates = sorted((Path.home()/'.rustup/toolchains').glob('1.98.1-*/bin/rustc'))
-        if not candidates: raise SystemExit('rustc 1.98.1 missing')
+        candidates = sorted((Path.home()/'.rustup/toolchains').glob('1.100.0-*/bin/rustc'))
+        if not candidates: raise SystemExit('rustc 1.100.0 missing')
         rustc = str(next((p for p in candidates if 'aarch64' in str(p)), candidates[0]))
     subprocess.run([rustc,'--edition=2021','-A','dead_code','-A','unused_imports',str(ROOT/'components/dnsmasq/src/config/state_probe.rs'),'-o',str(work/'rust-state')],check=True)
     cases = [b'', b'port=\ncache-size=5000001\nedns-packet-max=65536\nmin-cache-ttl=4000',

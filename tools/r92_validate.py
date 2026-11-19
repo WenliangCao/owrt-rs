@@ -78,7 +78,7 @@ def main():
         gates.append((group, name, [str(v) for v in cmd], extra_env or {}, required))
 
     for c in ("ubus", "uci", "reload-config", "ubusd", "procd", "netifd", "logd", "httpd", "rpcd", "fw4"):
-        cargo = ["cargo", "+1.98.1"]
+        cargo = ["cargo", "+1.100.0"]
         add("unit", c + "-unit", cargo + ["test", "--locked", "--manifest-path", f"components/{c}/Cargo.toml"])
         add("unit", c + "-clippy", cargo + ["clippy", "--locked", "--manifest-path", f"components/{c}/Cargo.toml",
             "--all-targets", "--", "-D", "clippy::undocumented_unsafe_blocks"])

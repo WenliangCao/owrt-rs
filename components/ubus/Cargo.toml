@@ -2,7 +2,7 @@
 name = "owrt-ubus"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.98.1"
+rust-version = "1.100.0"
 license = "MIT OR Apache-2.0"
 description = "Minimal pure-Rust client and object server for the OpenWrt ubus wire protocol"
 publish = false
@@ -13,4 +13,4 @@ path = "src/lib.rs"
 
 [dependencies]
 owrt-platform = { path = "../platform" }
-rustix = { version = "=1.1.5", features = ["event", "fs", "net", "pipe", "process", "stdio", "time"] }
+rustix = { version = "=1.1.6", features = ["event", "fs", "net", "pipe", "process", "stdio", "time"] }

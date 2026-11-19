@@ -45,10 +45,10 @@ def build(reference, out):
              f"-I{obj}", f"-I{reference / 'deps/include'}",
              ROOT / "tools/dnsmasq/lease_metrics_driver.c", *objects, renamed,
              f"-L{deps}", f"-Wl,-rpath,{deps}", "-lubus", "-lubox", "-o", c], out, "build-c")
-    execute(["cargo", "+1.98.1", "build", "--manifest-path", ROOT / "components/dnsmasq/Cargo.toml", "--lib"], out, "build-lib")
+    execute(["cargo", "+1.100.0", "build", "--manifest-path", ROOT / "components/dnsmasq/Cargo.toml", "--lib"], out, "build-lib")
     target = ROOT / "components/dnsmasq/target/debug"
     rust = out / "rust-probe"
-    execute(["rustc", "+1.98.1", "--edition=2021", "-O", ROOT / "tools/dnsmasq/lease_metrics_probe.rs",
+    execute(["rustc", "+1.100.0", "--edition=2021", "-O", ROOT / "tools/dnsmasq/lease_metrics_probe.rs",
              "--extern", f"dnsmasq_rs={target / 'libdnsmasq_rs.rlib'}", "-L", f"dependency={target / 'deps'}",
              "-o", rust], out, "build-rust")
     identity = {"reference_source": {name: digest(obj / name) for name in ("lease.c", "dnsmasq.h", "config.h")},

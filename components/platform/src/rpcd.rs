@@ -13,8 +13,8 @@ unsafe extern "C" {
     fn _exit(status: i32) -> !;
     fn sync();
     fn reboot(command: i32) -> i32;
-    fn write(fd: i32, bytes: *const u8, count: usize) -> isize;
-    fn read(fd: i32, bytes: *mut u8, count: usize) -> isize;
+    fn write(fd: i32, bytes: *const std::ffi::c_void, count: usize) -> isize;
+    fn read(fd: i32, bytes: *mut std::ffi::c_void, count: usize) -> isize;
     fn __errno_location() -> *mut i32;
     fn localtime_r(time: *const i64, output: *mut std::ffi::c_void) -> *mut std::ffi::c_void;
     fn time(output: *mut i64) -> i64;
@@ -73,7 +73,7 @@ pub fn wake(fd: i32) {
     unsafe {
         let errno = __errno_location();
         let saved = *errno;
-        let _ = write(fd, [1u8].as_ptr(), 1);
+        let _ = write(fd, [1u8].as_ptr().cast(), 1);
         *errno = saved;
     }
 }
@@ -83,7 +83,7 @@ pub fn drain_pipe(fd: i32) {
     loop {
         // SAFETY: writable local buffer has the supplied size. Raw snapshots
         // may already be closed, which read reports without claiming ownership.
-        if unsafe { read(fd, buffer.as_mut_ptr(), buffer.len()) } <= 0 {
+        if unsafe { read(fd, buffer.as_mut_ptr().cast(), buffer.len()) } <= 0 {
             break;
         }
     }

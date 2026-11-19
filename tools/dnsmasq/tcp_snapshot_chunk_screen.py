@@ -71,7 +71,7 @@ def run(command, stem, stdin=None, check=True):
 def compiler(rustc):
     path = Path(shutil.which(rustc)).resolve()
     version = subprocess.run([str(path), "--version", "--verbose"], capture_output=True, text=True, check=True).stdout
-    assert version.startswith("rustc 1.98.1 "), "compiler is pinned before any result"
+    assert version.startswith("rustc 1.100.0 "), "compiler is pinned before any result"
     return {"path": str(path), "sha256": sha(path), "version": version}
 
 

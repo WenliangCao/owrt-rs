@@ -42,7 +42,7 @@ fn main() { for line in io::stdin().lock().lines() {
 '''
     (out / "driver.rs").write_text(rust.replace("HOSTS", str(REPO / "components/dnsmasq/src/hosts.rs")))
     subprocess.run(["cc", "-O1", "-g", "-fsanitize=address,undefined", "-fno-sanitize-recover=all", str(out / "oracle.c"), "-o", str(out / "oracle")], check=True)
-    rustc = shutil.which("rustc") or str(Path.home() / ".rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/rustc")
+    rustc = shutil.which("rustc") or str(Path.home() / ".rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/rustc")
     subprocess.run([rustc, "--edition=2021", "-A", "dead_code", str(out / "driver.rs"), "-o", str(out / "driver")], check=True)
     cases = [b"", b".", b"..", b"a..b", b" ", b" .", b"A.B.", b"a\0trailing", b"a\x7f", b"\xff"]
     for size in (0,1,62,63,64,252,253,254,255,256,502,503):

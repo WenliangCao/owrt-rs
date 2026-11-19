@@ -200,7 +200,7 @@ def main():
     commands = {
         'c': shlex.split(args.oracle_command),
         'rust': (rust_lib_probe.argv(probe, TEST) if probe else
-                 [args.cargo, '+1.98.1', 'test', '--manifest-path', str(source_root / 'components/dnsmasq/Cargo.toml'),
+                 [args.cargo, '+1.100.0', 'test', '--manifest-path', str(source_root / 'components/dnsmasq/Cargo.toml'),
                   '--lib', TEST, '--', '--ignored', '--exact', '--nocapture', '--test-threads=1']),
     }
     observed = {}

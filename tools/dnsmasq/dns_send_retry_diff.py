@@ -157,7 +157,7 @@ def main():
     (out / "oracle.c").write_text(C_PREFIX + c_body + C_MAIN)
     (out / "probe.rs").write_text("use std::io;\n" + rust_body + RUST_MAIN)
     commands = [["cc", "-std=c11", "-O2", "-Wall", "-Wextra", "-Werror", str(out / "oracle.c"), "-o", str(out / "oracle")],
-                [args.rustc, "+1.98.1", "--edition=2021", str(out / "probe.rs"), "-o", str(out / "probe")]]
+                [args.rustc, "+1.100.0", "--edition=2021", str(out / "probe.rs"), "-o", str(out / "probe")]]
     for index, command in enumerate(commands):
         result = subprocess.run(command, capture_output=True, text=True)
         (out / f"build-{index}.json").write_text(json.dumps({"command": command, "exit": result.returncode,

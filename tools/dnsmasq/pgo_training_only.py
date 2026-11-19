@@ -96,8 +96,13 @@ def validate_ci(built, freeze, baseline, elf):
     header = elf.read_bytes()[:20]
     require(header[:6] == b"\x7fELF\x02\x01" and header[18:20] == b"\xb7\x00", "expected AArch64 ELF")
     rustc = built["toolchain"]["rustc"]
-    require("release: 1.98.1\n" in rustc + "\n" and "host: x86_64-unknown-linux-gnu\n" in rustc + "\n"
-            and "LLVM version: 22.1.8" in rustc, "CI compiler must be canonical x86 Rust 1.98.1/LLVM 22.1.8")
+    compiler = freeze.get("rust_toolchain", {"release": "1.98.1", "llvm": "22.1.8"})
+    require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", compiler["release"])
+            and re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", compiler["llvm"]), "invalid frozen compiler version")
+    require(f"release: {compiler['release']}\n" in rustc + "\n"
+            and "host: x86_64-unknown-linux-gnu\n" in rustc + "\n"
+            and f"LLVM version: {compiler['llvm']}\n" in rustc + "\n",
+            "CI compiler must match the frozen canonical x86 Rust/LLVM pair")
     require(built["compiler_warnings"]["strict_compiler_warnings_zero"], "CI compiler warnings remain")
     pgo, invocation = built["pgo"], built["pgo"]["invocation"]
     require(freeze["pgo_stage"] == "generate" and pgo["build_slot"] == freeze["pgo"]["build_slot"]
@@ -165,7 +170,8 @@ def prepare(request, base):
     require(reference["scenes"] == [list(scene) for scene in original.SCENES], "original scenes differ")
     for item in reference["workload_tools"].values():
         checked_file(item)
-    checked_file(reference["profdata"])
+    profdata = request.get("profdata", reference["profdata"])
+    checked_file(profdata)
     helper_base = Path(reference["attempt"])
     helper = helper_base / "device_perf_lifecycle"
     helper_build = json.loads((helper_base / "helper-build.json").read_text())
@@ -185,6 +191,9 @@ def prepare(request, base):
     keys = ("training_seed", "evaluation_seed", "cpu", "scenes", "workload_tools",
             "input_sha256", "profdata", "expected_profile_count")
     plan = {key: reference[key] for key in keys}
+    compiler = freeze.get("rust_toolchain", {"release": "1.98.1", "llvm": "22.1.8"})
+    plan["profdata"] = profdata
+    plan["profdata_version"] = f"{compiler['llvm']}-rust-{compiler['release']}-stable"
     plan.update({key: freeze[key] for key in ("source_commit", "source_digest", "source_file_count", "source_date_epoch")})
     plan.update(attempt=str(base), training_directory=str(base / "training"), runtime_directory=str(runtime),
                 generate_elf=request["generate_elf"], generate_default_profile_directory=str(default),
@@ -253,7 +262,7 @@ def execute(request_path):
             return (base / (label + ".stdout")).read_text()
 
         version = run("profdata-version", [plan["profdata"]["path"], "--version"])
-        require("22.1.8-rust-1.98.1-stable" in version, "Oracle llvm-profdata version differs")
+        require(plan["profdata_version"] in version, "Oracle llvm-profdata version differs from generator")
         state["status"] = "training"
         inputs = base / "inputs"
         run("collect", ["sudo", "-n", "python3", "-B", inputs / "pgo_train.py", inputs / "plan.json", "--collect"], 1500)

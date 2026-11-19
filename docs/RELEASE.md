@@ -1,5 +1,11 @@
 # 集成固件的发布与维护
 
+2026-11-19：第三轮候选使用 **Rust 1.100.0 / LLVM 23.1.5**；编译器版本以
+`rust-toolchain.toml` 为准。正式 CI 安装校验和固定的 `huacnlee/cargo 0.103.0-1`，
+每次编译前验证身份，使用其自动维护的共享目录。Cargo 的版本号与 rustc 的版本号
+分别核验；不再使用 mbx、目标目录覆盖或 `cargo clean`。历史发行材料中的旧工具链
+与 PGO 身份保留原值，不能作为升级候选的资格。候选必须重新训练 PGO 并完成真机对照。
+
 2026-10-23：已发布 **v0.3.3 / `0.3.3-r1` / OpenWrt 25.12.6**
 [正式 Latest](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.3)。默认构建与
 [新配方](../packaging/image/native-25.12.6.json)已切换到25.12.6；历史25.12.5配方不变。

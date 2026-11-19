@@ -47,7 +47,7 @@ expect 1 "cargo --config override refused" \
 
 if [ -n "$old_rustc" ]; then
 	expect 1 "RUSTC on $old refused" env RUSTC="$old_rustc" sh tools/toolchain_identity.sh
-	expect 1 "CARGO_BUILD_RUSTC on $old refused" env CARGO_BUILD_RUSTC="$old_rustc" sh tools/toolchain_identity.sh
+	expect 1 "CARGO_BUILD_RUSTC on $old refused" env -u RUSTC CARGO_BUILD_RUSTC="$old_rustc" sh tools/toolchain_identity.sh
 else
 	echo "skip     no second toolchain rustc; version-mismatch cases not exercised"
 fi

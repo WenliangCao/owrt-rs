@@ -92,7 +92,7 @@ def main():
                if path.is_file() and 'target' not in path.parts and
                (path.suffix == '.rs' or path.name in ['Cargo.toml', 'Cargo.lock'])}
     if probe is None:
-        command = [args.cargo, '+1.98.1', 'test', '--manifest-path', str(source_root / 'components/dnsmasq/Cargo.toml'),
+        command = [args.cargo, '+1.100.0', 'test', '--manifest-path', str(source_root / 'components/dnsmasq/Cargo.toml'),
                    '--lib', '--no-run', '--message-format=json', '--target-dir', str(out / 'target')]
         if args.target:
             command += ['--target', args.target]

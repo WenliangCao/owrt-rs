@@ -107,13 +107,13 @@ def main():
               "failures": [], "c_only_not_representable": [], "compared": 0, "matched": 0}
     try:
         if probe is None:
-            output = command(out, "build", [args.cargo, "+1.98.1", "test", "--locked", "--manifest-path",
+            output = command(out, "build", [args.cargo, "+1.100.0", "test", "--locked", "--manifest-path",
                 source_root / "components/dnsmasq/Cargo.toml", "--lib", "--no-run", "--message-format=json", "--target-dir", out / "target"])
             executables = [Path(row["executable"]) for row in map(json.loads, output.splitlines())
                            if row.get("reason") == "compiler-artifact" and row.get("executable") and row.get("profile", {}).get("test")]
             assert len(executables) == 1
             probe = executables[0]
-            command(out, "compiler", [args.cargo, "+1.98.1", "--version"])
+            command(out, "compiler", [args.cargo, "+1.100.0", "--version"])
         report["probe_sha256"] = sha(probe)
         for case in schedule:
             rust_lib_probe.recheck(binding)

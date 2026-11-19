@@ -97,9 +97,9 @@ def main():
                         f"-I{obj}", f"-I{build / 'deps/include'}", str(Path(__file__).with_name("doctor_packet_driver.c")),
                         *map(str, sorted(p for p in obj.glob("*.o") if p.name not in {"ubus.o", "dnsmasq.o", "dnsmasq-renamed.o"})), str(renamed),
                         f"-L{deps}", f"-Wl,-rpath,{deps}", "-Wl,--wrap=log_query", "-Wl,--wrap=inet_pton", "-lubus", "-lubox", "-o", str(oracle)], stdout=log, stderr=log, check=True)
-        subprocess.run([args.cargo, "+1.98.1", "build", "--manifest-path", str(ROOT / "components/dnsmasq/Cargo.toml"),
+        subprocess.run([args.cargo, "+1.100.0", "build", "--manifest-path", str(ROOT / "components/dnsmasq/Cargo.toml"),
                         "--lib", "--target-dir", str(out / "target")], stdout=log, stderr=log, check=True)
-        subprocess.run([str(Path(args.cargo).with_name("rustc")), "+1.98.1", "--edition=2021", str(Path(__file__).with_name("doctor_packet_probe.rs")),
+        subprocess.run([str(Path(args.cargo).with_name("rustc")), "+1.100.0", "--edition=2021", str(Path(__file__).with_name("doctor_packet_probe.rs")),
                         "--extern", f"dnsmasq_rs={out / 'target/debug/libdnsmasq_rs.rlib'}", "-L", f"dependency={out / 'target/debug/deps'}",
                         "-o", str(probe)], stdout=log, stderr=log, check=True)
     rows = []

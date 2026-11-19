@@ -165,7 +165,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--reference-build", type=Path, required=True)
     parser.add_argument("--rustc", default=shutil.which("rustc") or
-                        str(next(iter(sorted((Path.home() / ".rustup/toolchains").glob("1.98.1-*/bin/rustc"))), "rustc")))
+                        str(next(iter(sorted((Path.home() / ".rustup/toolchains").glob("1.100.0-*/bin/rustc"))), "rustc")))
     parser.add_argument("--out", type=Path, default=ROOT / "private/dnsmasq-rs/tftp-config-diff")
     args = parser.parse_args()
     out = args.out.resolve()

@@ -234,7 +234,7 @@ def main() -> int:
     cc = shutil.which("cc")
     if not cc:
         raise SystemExit("cc is required")
-    rustc = shutil.which("rustc") or str(Path.home() / ".rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/rustc")
+    rustc = shutil.which("rustc") or str(Path.home() / ".rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/rustc")
     subprocess.run([cc, "-O1", "-g", "-Wall", "-Wextra", "-fsanitize=address,undefined", "-fno-sanitize-recover=all", str(out / "oracle.c"), "-o", str(out / "oracle")], check=True)
     subprocess.run([rustc, "--edition=2021", "-O", "-A", "dead_code", str(out / "driver.rs"), "-o", str(out / "driver")], check=True)
     cases = generate_cases(args.random_cases)

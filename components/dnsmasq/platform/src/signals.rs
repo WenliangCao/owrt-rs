@@ -25,7 +25,7 @@ pub const SIGUSR2: i32 = 31;
 pub const SIGALRM: i32 = 14;
 #[cfg(target_os = "linux")]
 unsafe extern "C" {
-    fn write(fd: i32, buffer: *const u8, length: usize) -> isize;
+    fn write(fd: i32, buffer: *const std::ffi::c_void, length: usize) -> isize;
     fn __errno_location() -> *mut i32;
 }
 
@@ -40,7 +40,7 @@ fn wake_signal_waiter() {
         unsafe {
             let errno = __errno_location();
             let saved_errno = *errno;
-            let _ = write(fd, byte.as_ptr(), 1);
+            let _ = write(fd, byte.as_ptr().cast(), 1);
             *errno = saved_errno;
         }
     }
@@ -57,28 +57,28 @@ pub extern "C" fn request_stop(_signal: i32) {
 pub extern "C" fn request_reload(_signal: i32) {
     // Standard signals coalesce in the kernel. Each delivered handler maps
     // to a distinct C EVENT_RELOAD and must survive an active file read.
-    let _ = RELOAD_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+    let _ = RELOAD_REQUESTED.try_update(Ordering::Release, Ordering::Relaxed, |count| {
         Some(count.saturating_add(1))
     });
     wake_signal_waiter();
 }
 
 pub extern "C" fn request_log_reopen(_signal: i32) {
-    let _ = LOG_REOPEN_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+    let _ = LOG_REOPEN_REQUESTED.try_update(Ordering::Release, Ordering::Relaxed, |count| {
         Some(count.saturating_add(1))
     });
     wake_signal_waiter();
 }
 
 pub extern "C" fn request_cache_dump(_signal: i32) {
-    let _ = CACHE_DUMP_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+    let _ = CACHE_DUMP_REQUESTED.try_update(Ordering::Release, Ordering::Relaxed, |count| {
         Some(count.saturating_add(1))
     });
     wake_signal_waiter();
 }
 
 pub extern "C" fn request_alarm(_signal: i32) {
-    let _ = ALARM_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+    let _ = ALARM_REQUESTED.try_update(Ordering::Release, Ordering::Relaxed, |count| {
         Some(count.saturating_add(1))
     });
     wake_signal_waiter();

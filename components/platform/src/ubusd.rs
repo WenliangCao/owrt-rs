@@ -2,7 +2,7 @@
 pub use crate::unix::with_errno;
 
 unsafe extern "C" {
-    fn write(fd: i32, bytes: *const u8, count: usize) -> isize;
+    fn write(fd: i32, bytes: *const std::ffi::c_void, count: usize) -> isize;
     fn __errno_location() -> *mut i32;
 }
 
@@ -13,7 +13,7 @@ pub fn wake(fd: i32) {
     unsafe {
         let errno = __errno_location();
         let saved = *errno;
-        let _ = write(fd, [0u8].as_ptr(), 1);
+        let _ = write(fd, [0u8].as_ptr().cast(), 1);
         *errno = saved;
     }
 }

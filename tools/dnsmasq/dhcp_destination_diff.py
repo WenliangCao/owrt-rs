@@ -155,7 +155,7 @@ def main() -> int:
     subprocess.run([shutil.which("cc") or "cc", "-O1", "-g", "-Wall", "-Wextra",
                     "-fsanitize=address,undefined", "-fno-sanitize-recover=all",
                     str(out / "oracle.c"), "-o", str(out / "oracle")], check=True)
-    cargo = shutil.which("cargo") or str(Path.home() / ".rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo")
+    cargo = shutil.which("cargo") or str(Path.home() / ".rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/cargo")
     env = os.environ.copy()
     env["PATH"] = str(Path(cargo).parent) + os.pathsep + env.get("PATH", "")
     subprocess.run([cargo, "build", "--quiet", "--manifest-path",

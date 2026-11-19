@@ -34,7 +34,7 @@ class RustGateTests(unittest.TestCase):
         output = io.StringIO()
         with patch.object(gate.platform, "system", return_value="Linux"), \
                 patch.object(gate.os, "geteuid", return_value=1000), \
-                patch.object(gate.shutil, "which", return_value="/tools/mbx"), \
+                patch.object(gate.shutil, "which", return_value="/tools/cargo"), \
                 patch.object(gate.subprocess, "check_output", return_value="host: x86_64-unknown-linux-gnu\n"), \
                 patch.object(gate, "verify_business_boundaries"), \
                 patch.object(gate, "execute") as execute, \
@@ -46,7 +46,7 @@ class RustGateTests(unittest.TestCase):
         commands, output = self.recorded_entry(["check"])
         fuzz = str(gate.ROOT / "components/dnsmasq/fuzz/Cargo.toml")
         self.assertEqual([command for command in commands if fuzz in command], [[
-            "mbx", "check", "--locked", "--manifest-path", fuzz,
+            "cargo", "check", "--locked", "--manifest-path", fuzz,
             "--target", "x86_64-unknown-linux-gnu", "--bins",
         ]])
         self.assertIn("Rust check: passed (14 crates)", output)
@@ -55,7 +55,7 @@ class RustGateTests(unittest.TestCase):
     def test_fmt_entry_includes_fuzz_but_benchmark_entries_stay_scoped(self):
         fuzz = str(gate.ROOT / "components/dnsmasq/fuzz/Cargo.toml")
         commands, output = self.recorded_entry(["fmt-check"])
-        self.assertIn(["mbx", "fmt", "--manifest-path", fuzz, "--check"], commands)
+        self.assertIn(["cargo", "fmt", "--manifest-path", fuzz, "--check"], commands)
         self.assertIn("Rust fuzz fmt-check: passed", output)
         for mode in ["check", "fmt-check"]:
             commands, output = self.recorded_entry([mode, "--benchmark"])
@@ -86,7 +86,7 @@ class RustGateTests(unittest.TestCase):
         test_rows = [(label, command) for label, command in rows if label.startswith("test-")]
         self.assertEqual([label for label, _ in test_rows], ["test-default", "test-all-features"])
         for _, command in test_rows:
-            self.assertEqual(command[0], "mbx")
+            self.assertEqual(command[0], "cargo")
             self.assertIn("--locked", command)
             self.assertIn("--all-targets", command)
             self.assertIn("--test-threads=1", command)
@@ -131,9 +131,18 @@ class RustGateTests(unittest.TestCase):
 
     def test_compilation_failure_cannot_be_reported_as_success(self):
         with tempfile.TemporaryDirectory() as folder:
-            with patch.object(gate.subprocess, "run", return_value=subprocess.CompletedProcess([], 7)):
+            with patch.object(gate.subprocess, "check_output", return_value="cargo (huacnlee/cargo)"), \
+                    patch.object(gate.subprocess, "run", return_value=subprocess.CompletedProcess([], 7)):
                 with self.assertRaises(subprocess.CalledProcessError):
-                    gate.execute(["mbx", "check"], Path(folder) / "failure.log", {})
+                    gate.execute(["cargo", "check"], Path(folder) / "failure.log", {})
+
+    def test_unverified_cargo_is_rejected_before_compilation(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(gate.subprocess, "check_output", return_value="cargo 1.100.0"), \
+                patch.object(gate.subprocess, "run") as run:
+            with self.assertRaisesRegex(RuntimeError, "require huacnlee/cargo"):
+                gate.execute(["cargo", "check"], Path(folder) / "failure.log", {})
+            run.assert_not_called()
 
     def test_runner_elevates_only_the_elf_and_cleans_its_own_temporary_path(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -149,7 +158,7 @@ class RustGateTests(unittest.TestCase):
                 self.assertEqual(command[:3], ["sudo", "-n", "env"])
                 self.assertIn(str(gate.ROOT / "tools/dnsmasq/run_isolated.sh"), command)
                 self.assertEqual(command[-3:], [str(executable), "--exact", "fixture"])
-                self.assertNotIn("mbx", command)
+                self.assertNotIn("cargo", command)
                 self.assertEqual(cleanup.args[0], ["sudo", "-n", "rm", "-rf", "--", str(private)])
 
 

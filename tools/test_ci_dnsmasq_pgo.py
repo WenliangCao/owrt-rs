@@ -44,17 +44,17 @@ class PgoReleaseTests(unittest.TestCase):
         self.profile.write_bytes(b"frozen synthetic profile")
         self.linker = self.root / "linker.py"
         self.linker.write_bytes(b"unchanged static PIE linker")
-        adapter = self.root / "mbx-cargo"
+        adapter = self.root / "verified-cargo"
         adapter.write_text("verified adapter")
         self.adapter = {"path": str(adapter), "sha256": wrapper.sha(adapter)}
-        self.env = {"RUSTUP_TOOLCHAIN": "1.98.1", "CARGO_BUILD_TARGET": "aarch64-unknown-linux-musl",
+        self.env = {"RUSTUP_TOOLCHAIN": "1.100.0", "CARGO_BUILD_TARGET": "aarch64-unknown-linux-musl",
                     "CARGO_PROFILE_RELEASE_PANIC": "abort", "RUSTFLAGS": "-Cforce-unwind-tables=no",
                     "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER": str(self.linker)}
         self.plan = {"build_dir": str(self.root), "profile": str(self.profile), "build_adapter": self.adapter,
                      "profile_sha256": wrapper.sha(self.profile), "profile_bytes": self.profile.stat().st_size,
                      "static_pie_linker_sha256": wrapper.sha(self.linker), "recipe_environment": dict(self.env)}
         self.argv = ["build", "--release", "--frozen", "--manifest-path", str(self.root / "dnsmasq/Cargo.toml"),
-                     "--bin", "dnsmasq-rs", "--target-dir", str(self.root / "dnsmasq/target")]
+                     "--bin", "dnsmasq-rs"]
 
     def test_release_commit_does_not_replace_the_frozen_product_epoch(self):
         spec = {"source_commit": "a" * 40, "source_date_epoch": 1234}
@@ -76,7 +76,7 @@ class PgoReleaseTests(unittest.TestCase):
         self.assertIsNone(wrapper.prepare(self.plan, ["--version"], self.env))
 
     def test_exec_preserves_normal_recipe_verbosity(self):
-        adapter = self.root / "mbx-cargo"
+        adapter = self.root / "verified-cargo"
         adapter.write_text("verified adapter")
         identity = {"path": str(adapter), "sha256": wrapper.sha(adapter)}
         plan = {**self.plan, "cargo": "/pinned/cargo", "build_adapter": identity,
@@ -91,7 +91,7 @@ class PgoReleaseTests(unittest.TestCase):
         self.assertEqual(json.loads((self.root / "receipt.json").read_text())["build_adapter"], identity)
 
     def test_exec_rejects_missing_or_changed_build_adapter(self):
-        adapter = self.root / "mbx-cargo"
+        adapter = self.root / "verified-cargo"
         adapter.write_text("changed adapter")
         for identity in [None, {"path": str(adapter), "sha256": "0" * 64}]:
             plan = {**self.plan, "cargo": "/pinned/cargo", "build_adapter": identity,
@@ -101,7 +101,7 @@ class PgoReleaseTests(unittest.TestCase):
             with patch.dict(wrapper.os.environ, {**self.env, "DNSMASQ_PGO_BUILD_PLAN": str(path)}, clear=True), \
                  patch.object(wrapper.sys, "argv", ["pgo-cargo", *self.argv]), \
                  patch.object(wrapper.os, "execv") as execute:
-                with self.assertRaisesRegex(ValueError, "mbx build adapter"):
+                with self.assertRaisesRegex(ValueError, "Cargo build adapter"):
                     wrapper.main()
                 execute.assert_not_called()
 

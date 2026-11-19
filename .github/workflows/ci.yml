@@ -1,9 +1,10 @@
 name: ci
 on:
   push:
-    branches: [main]
+    branches: [main, ci/audit110-r3]
     tags: ["research-netifd-*"]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   host-tests:
@@ -20,18 +21,8 @@ jobs:
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
           components: rustfmt, clippy
-      - name: install verified mr-boxington 1.26.0
-        run: |
-          mbx_archive="$RUNNER_TEMP/mbx-1.26.0.tar.gz"
-          curl --fail --silent --show-error --location \
-            https://github.com/jdx/mr-boxington/releases/download/v1.26.0/mbx-x86_64-unknown-linux-gnu.tar.gz \
-            --output "$mbx_archive"
-          echo "decb2c1233d194d9d8f98fa926d86a5f726e9091e92fcff75f44a53ed9cab2b9  $mbx_archive" | sha256sum --check --strict
-          mkdir -p "$RUNNER_TEMP/mbx-1.26.0" "$HOME/.local/bin"
-          tar -xzf "$mbx_archive" -C "$RUNNER_TEMP/mbx-1.26.0"
-          install -m 755 "$RUNNER_TEMP/mbx-1.26.0/mbx" "$HOME/.local/bin/mbx"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/mbx" --version
+      - name: install verified huacnlee/cargo
+        run: sh tools/install_cargo.sh
       - name: host deps (rpcd, fw4 and dnsmasq namespace tests)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables iproute2 util-linux
       - name: cache shared Rust artifacts
@@ -40,13 +31,11 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cache/mbx
-          key: mbx-1.26.0-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/**/Cargo.lock', 'tools/benchmark/Cargo.lock') }}-${{ github.sha }}
+            ~/.cargo/targets
+          key: cargo-0.103.0-1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/**/Cargo.lock', 'tools/benchmark/Cargo.lock') }}-${{ github.sha }}
           restore-keys: |
-            mbx-1.26.0-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/**/Cargo.lock', 'tools/benchmark/Cargo.lock') }}-
+            cargo-0.103.0-1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/**/Cargo.lock', 'tools/benchmark/Cargo.lock') }}-
       - name: default and feature tests, isolated process tests, examples and Clippy
-        env:
-          MBX_DISPLAY: plain
         run: make test check-rust fmt-check check-benchmark
       - name: preserve host warning and test diagnostics
         if: always()

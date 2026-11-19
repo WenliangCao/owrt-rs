@@ -38,6 +38,8 @@ jobs:
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
           targets: aarch64-unknown-linux-musl
+      - name: install verified huacnlee/cargo
+        run: sh tools/install_cargo.sh
 
       - name: host packages
         run: sudo apt-get update -qq && sudo apt-get install -y -qq build-essential zstd file

@@ -54,7 +54,7 @@ endef
 define Build/Compile
 	# build from a host-independent path: cargo hashes the absolute path of path
 	# dependencies into symbol names, so this is what makes CI and build-host
-	# binaries byte-identical (target dir stays under PKG_BUILD_DIR for install)
+	# binaries byte-identical (Cargo publishes executable links in the source target directory)
 	rm -rf /tmp/owrt-build/$(PKG_NAME) && mkdir -p /tmp/owrt-build && cp -a $(PKG_BUILD_DIR) /tmp/owrt-build/$(PKG_NAME)
 	+RUSTUP_HOME="$(V1_RUSTUP_HOME)" \
 	CARGO_HOME="$(V1_CARGO_HOME)" \
@@ -62,12 +62,12 @@ define Build/Compile
 	CARGO_PROFILE_RELEASE_PANIC=abort \
 	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
 	RUSTFLAGS="-Dwarnings --remap-path-prefix=/tmp/owrt-build/$(PKG_NAME)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
-	$(V1_CARGO) build --release --locked --manifest-path /tmp/owrt-build/$(PKG_NAME)/reload-config/Cargo.toml --target-dir $(PKG_BUILD_DIR)/target
+	$(V1_CARGO) build --release --locked --manifest-path /tmp/owrt-build/$(PKG_NAME)/reload-config/Cargo.toml
 endef
 
 define Package/owrt-reload-config/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/target/$(RUST_TARGET)/release/reload-config-rs \
+	$(INSTALL_BIN) /tmp/owrt-build/$(PKG_NAME)/reload-config/target/$(RUST_TARGET)/release/reload-config-rs \
 		$(1)/usr/sbin/reload_config_rs
 	$(INSTALL_BIN) ./files/owrt-reload-config-switch \
 		$(1)/usr/sbin/owrt-reload-config-switch

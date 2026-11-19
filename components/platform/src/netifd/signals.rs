@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 static CHILD_PIPE_W: AtomicI32 = AtomicI32::new(-1);
 static EXIT_REQUESTED: AtomicBool = AtomicBool::new(false);
 unsafe extern "C" {
-    fn write(fd: i32, bytes: *const u8, count: usize) -> isize;
+    fn write(fd: i32, bytes: *const std::ffi::c_void, count: usize) -> isize;
     fn __errno_location() -> *mut i32;
 }
 
@@ -23,7 +23,7 @@ extern "C" fn on_sigchld(_number: i32) {
         let saved = *errno;
         let fd = CHILD_PIPE_W.load(Ordering::Relaxed);
         if fd >= 0 {
-            let _ = write(fd, [1u8].as_ptr(), 1);
+            let _ = write(fd, [1u8].as_ptr().cast(), 1);
         }
         *errno = saved;
     }

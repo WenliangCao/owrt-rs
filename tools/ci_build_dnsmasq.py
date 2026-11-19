@@ -147,7 +147,7 @@ def verify_pgo_build(out, report):
     audit.require(receipt["mode"] == mode, "PGO invocation mode differs from plan")
     audit.require(receipt["cargo_verbosity"] == "normal", "canonical PGO requires normal Cargo verbosity")
     audit.require(receipt.get("build_adapter") == report["build_adapter"],
-                  "PGO build did not use the verified mbx adapter")
+                  "PGO build did not use the verified Cargo adapter")
     if mode == "generate":
         audit.require(receipt["profile_output_dir"] == report["pgo"]["profile_output_dir"]
                       and "-Cprofile-use" not in receipt["effective_rustflags"],
@@ -268,9 +268,10 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
     audit.require(cargo.is_file(), "cargo executable missing")
     report["toolchain"] = {
         "cargo": audit.run([str(cargo), "--version"], out / "cargo-version.log", env=env).strip(),
-        "rustc": audit.run([str(cargo.with_name("rustc")), "-Vv"], out / "rustc-version.log", env=env).strip(),
+        "rustc": audit.run(["rustc", "-Vv"], out / "rustc-version.log", env=env).strip(),
         "target_cc": audit.run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip(),
     }
+    audit.require("huacnlee/cargo" in report["toolchain"]["cargo"], "build requires huacnlee/cargo")
     build_dir = (pgo_build_slot(audit.safe_path(Path(spec["pgo"].get("build_slot", PGO_BUILD_SLOT))))
                  if "pgo" in spec else out / "package-build")
     output = out / "sdk-output"
@@ -281,19 +282,18 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
     audit.run([str(cargo), "fetch", "--locked", "--target", "aarch64-unknown-linux-musl",
                "--manifest-path", str(source / "components/dnsmasq/Cargo.toml")],
               out / "cargo-fetch.log", env=env)
-    adapter_root = source if (source / "tools/mbx_cargo.sh").is_file() else REPO
-    build_cargo = audit.safe_path(adapter_root / "tools/mbx_cargo.sh")
-    audit.require(build_cargo.is_file() and os.access(build_cargo, os.X_OK), "mbx Cargo adapter missing")
+    adapter_root = source if (source / "tools/cargo.sh").is_file() else REPO
+    build_cargo = audit.safe_path(adapter_root / "tools/cargo.sh")
+    audit.require(build_cargo.is_file() and os.access(build_cargo, os.X_OK), "Cargo adapter missing")
     report["build_adapter"] = {"path": str(build_cargo), "sha256": audit.sha(build_cargo)}
-    if "tools/mbx_cargo.sh" in files:
-        audit.require(report["build_adapter"]["sha256"] == files["tools/mbx_cargo.sh"],
+    if "tools/cargo.sh" in files:
+        audit.require(report["build_adapter"]["sha256"] == files["tools/cargo.sh"],
                       "build adapter differs from frozen source identity")
         report["build_adapter_compatibility"] = "source-snapshot-bound"
     else:
         report["build_adapter_compatibility"] = "legacy freeze has no adapter; current adapter identified separately"
     cc_override = []
     if "pgo" in spec:
-        audit.require(env["RUSTUP_TOOLCHAIN"] == "1.98.1", "PGO requires pinned Rust 1.98.1")
         mode = "generate" if pgo_stage == "generate" else "use"
         if mode == "generate":
             profile_input = {"profile_output_dir": spec["pgo"]["profile_output_dir"]}
@@ -327,7 +327,7 @@ def build(work, spec, report, *, frozen_source=None, pgo_stage="frozen-use", rel
         plan = {"mode": mode, "cargo": str(cargo), "build_adapter": report["build_adapter"], "build_dir": str(build_dir), **profile_input,
                 "receipt": str(out / "pgo-invocation.json"),
                 "static_pie_linker_sha256": audit.sha(source / "packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"),
-                "recipe_environment": {"RUSTUP_TOOLCHAIN": "1.98.1", "CARGO_HOME": str(cargo_home),
+                "recipe_environment": {"RUSTUP_TOOLCHAIN": env["RUSTUP_TOOLCHAIN"], "CARGO_HOME": str(cargo_home),
                     "RUSTUP_HOME": str(rustup_home), "CARGO_BUILD_TARGET": "aarch64-unknown-linux-musl",
                     "CARGO_PROFILE_RELEASE_PANIC": "abort", "RUSTFLAGS": flags,
                     "DNSMASQ_STATIC_PIE_CC": cc, **map_environment}}

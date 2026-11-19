@@ -268,7 +268,7 @@ def main() -> int:
     (out / "c.stderr").write_text(c_run.stderr)
     c_run.check_returncode()
     c = c_run.stdout.splitlines()
-    cargo = shutil.which("cargo") or str(Path.home() / ".rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo")
+    cargo = shutil.which("cargo") or str(Path.home() / ".rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/cargo")
     cargo_bin = str(Path(cargo).parent)
     cargo_env = os.environ.copy()
     cargo_env["PATH"] = cargo_bin + os.pathsep + cargo_env.get("PATH", "")

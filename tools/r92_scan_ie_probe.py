@@ -112,7 +112,7 @@ def main():
     assert count == 262144
     commands = (
         [a.cc, "-std=c99", "-O2", "-I", str(a.reference / "include"), str(a.output / "original.c"), "-o", str(a.output / "original")],
-        [a.cargo, "+1.98.1", "build", "--offline", "--release", "--manifest-path", str(project / "Cargo.toml")],
+        [a.cargo, "+1.100.0", "build", "--offline", "--release", "--manifest-path", str(project / "Cargo.toml")],
     )
     for index, command in enumerate(commands):
         with (a.output / f"build-{index}.log").open("xb") as log:

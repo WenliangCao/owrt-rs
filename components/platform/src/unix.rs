@@ -25,8 +25,8 @@ unsafe extern "C" {
     fn fcntl(fd: i32, operation: i32, ...) -> i32;
     fn signal(number: i32, handler: usize) -> usize;
     fn strerror(error: i32) -> *const c_char;
-    fn read(fd: i32, data: *mut u8, length: usize) -> isize;
-    fn write(fd: i32, data: *const u8, length: usize) -> isize;
+    fn read(fd: i32, data: *mut std::ffi::c_void, length: usize) -> isize;
+    fn write(fd: i32, data: *const std::ffi::c_void, length: usize) -> isize;
 }
 
 pub fn poll_once(fds: &mut [PollFd], timeout: i32) -> io::Result<usize> {
@@ -133,7 +133,7 @@ pub fn error_text(code: i32) -> String {
 }
 pub fn read_fd(fd: i32, bytes: &mut [u8]) -> io::Result<usize> {
     // SAFETY: the exclusive slice bounds every kernel write, including EBADF.
-    let result = unsafe { read(fd, bytes.as_mut_ptr(), bytes.len()) };
+    let result = unsafe { read(fd, bytes.as_mut_ptr().cast(), bytes.len()) };
     if result < 0 {
         Err(io::Error::last_os_error())
     } else {
@@ -143,7 +143,7 @@ pub fn read_fd(fd: i32, bytes: &mut [u8]) -> io::Result<usize> {
 pub fn write_fd(fd: i32, bytes: &[u8]) -> isize {
     // SAFETY: initialized shared bytes remain live throughout write(2); no
     // ownership is inferred from fd. write is also async-signal-safe.
-    unsafe { write(fd, bytes.as_ptr(), bytes.len()) }
+    unsafe { write(fd, bytes.as_ptr().cast(), bytes.len()) }
 }
 
 #[cfg(target_os = "linux")]

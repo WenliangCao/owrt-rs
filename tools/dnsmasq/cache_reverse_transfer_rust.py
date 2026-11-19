@@ -83,7 +83,7 @@ def main():
                                      'historical pinned reverse native/target C transcripts; additional regression, not fresh A service'),
                   cases=[], ordering_cases=[], failures=[], inject_error=args.inject_error)
     if probe is None:
-        command = [args.cargo,'+1.98.1','test','--manifest-path',str(source/'components/dnsmasq/Cargo.toml'),'--lib','--no-run','--message-format=json','--target-dir',str(out/'target')]
+        command = [args.cargo,'+1.100.0','test','--manifest-path',str(source/'components/dnsmasq/Cargo.toml'),'--lib','--no-run','--message-format=json','--target-dir',str(out/'target')]
         build = subprocess.run(command, text=True, capture_output=True)
         (out/'build.stdout').write_text(build.stdout); (out/'build.stderr').write_text(build.stderr)
         save(out/'build-command.json', {'argv':command,'exit':build.returncode})

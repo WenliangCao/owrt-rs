@@ -47,6 +47,15 @@ class TrainingOnlyTests(unittest.TestCase):
         self.assertEqual(training.validate_ci(self.ci, self.reference, self.baseline, self.elf),
                          Path("/tmp/dnsmasq-synthetic-pgo"))
 
+    def test_upgraded_compiler_must_match_the_new_freeze(self):
+        reference = {**self.reference, "rust_toolchain": {"release": "1.100.0", "llvm": "23.1.5"}}
+        with self.assertRaisesRegex(ValueError, "compiler must match"):
+            training.validate_ci(self.ci, reference, self.baseline, self.elf)
+        built = copy.deepcopy(self.ci)
+        built["toolchain"]["rustc"] = "release: 1.100.0\nhost: x86_64-unknown-linux-gnu\nLLVM version: 23.1.5"
+        self.assertEqual(training.validate_ci(built, reference, self.baseline, self.elf),
+                         Path("/tmp/dnsmasq-synthetic-pgo"))
+
     def test_committed_workload_manifest_and_changed_identity(self):
         manifest = Path(__file__).resolve().parents[2] / "manifests/dnsmasq-pgo-training-v032.json"
         item = {"path": str(manifest), "sha256": training.sha(manifest)}

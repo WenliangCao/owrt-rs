@@ -38,7 +38,7 @@ extern "C" fn signal(number: i32) {
         // already guarantees a wake. Preserve the interrupted thread's errno.
         unsafe {
             let saved = *__errno_location();
-            while write(fd, &byte, 1) < 0 && *__errno_location() == 4 {} // EINTR only.
+            while write(fd, std::ptr::from_ref(&byte).cast(), 1) < 0 && *__errno_location() == 4 {} // EINTR only.
             *__errno_location() = saved;
         }
     }
@@ -47,7 +47,7 @@ extern "C" fn signal(number: i32) {
 unsafe extern "C" {
     fn openlog(ident: *const c_char, option: c_int, facility: c_int);
     fn syslog(priority: c_int, format: *const c_char, ...);
-    fn write(fd: c_int, bytes: *const u8, count: usize) -> isize;
+    fn write(fd: c_int, bytes: *const std::ffi::c_void, count: usize) -> isize;
     fn __errno_location() -> *mut c_int;
 }
 

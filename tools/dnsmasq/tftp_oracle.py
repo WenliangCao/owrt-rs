@@ -115,7 +115,7 @@ def main():
     subprocess.run(["cc", "-O1", "-g", "-Wall", "-Wextra", "-fsanitize=address,undefined", "-fno-sanitize-recover=all", str(out / "oracle.c"), "-o", str(out / "oracle")], check=True)
     rustc = shutil.which("rustc")
     if not rustc:
-        rustc = str(Path.home() / ".rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/rustc")
+        rustc = str(Path.home() / ".rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/rustc")
     subprocess.run([rustc, "--edition=2021", "-O", "-A", "dead_code", str(out / "driver.rs"), "-o", str(out / "driver")], check=True)
     cases = []
     for n in range(8):

@@ -17,11 +17,13 @@ if [ "$build_kind" = ubus-tests ]; then
     package_name=owrt-ubus
     manifest_path="$source_dir/components/ubus/Cargo.toml"
 fi
-export CARGO_TARGET_DIR=/home/ubuntu/dnsmasq-cargo-target
-mkdir -p "$CARGO_TARGET_DIR" "$output_dir"
+mkdir -p "$output_dir"
+export PATH=/home/ubuntu/.cargo/bin:$PATH
+export RUSTUP_TOOLCHAIN=$(sed -n 's/^channel = "\(.*\)"/\1/p' "$source_dir/rust-toolchain.toml")
+cargo -V | grep -F huacnlee/cargo
 # Keep artifact copying inside the lock: another build must not replace a
 # shared output between Cargo returning and the immutable copy being saved.
-exec 9>"$CARGO_TARGET_DIR/.dnsmasq-build.lock"
+exec 9>"$source_dir/.dnsmasq-build.lock"
 flock 9
 if [ "$build_kind" = fuzz ]; then
     # Instrumented fuzz ELFs are separate native artifacts from the same source.
@@ -36,15 +38,11 @@ if [ "$build_kind" = fuzz ]; then
     export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
     cargo=/home/ubuntu/.cargo/bin/cargo
     fuzz_manifest="$output_dir/input/components/dnsmasq/fuzz/Cargo.toml"
-    "$cargo" +nightly clean --manifest-path "$fuzz_manifest" \
-        --package dnsmasq-rs --package dnsmasq-fuzz --package owrt-ubus \
-        --target aarch64-unknown-linux-gnu --release \
-        >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
     for fuzz_target in dns_wire dhcp_packet config_line; do
         "$cargo" +nightly fuzz build "$fuzz_target" --fuzz-dir "$(dirname "$fuzz_manifest")" \
-            --target aarch64-unknown-linux-gnu --target-dir "$CARGO_TARGET_DIR" \
+            --target aarch64-unknown-linux-gnu \
             >"$output_dir/$fuzz_target.build.stdout" 2>"$output_dir/$fuzz_target.build.log"
-        cp "$CARGO_TARGET_DIR/aarch64-unknown-linux-gnu/release/$fuzz_target" "$output_dir/$fuzz_target"
+        cp "$output_dir/input/components/dnsmasq/fuzz/target/aarch64-unknown-linux-gnu/release/$fuzz_target" "$output_dir/$fuzz_target"
     done
     "$cargo" +nightly -V >"$output_dir/cargo-version"
     "$cargo" +nightly fuzz -V >"$output_dir/cargo-fuzz-version"
@@ -62,7 +60,7 @@ for name, expected in files.items():
     if digest(out / 'input' / name) != expected:
         raise RuntimeError(f'fuzz build changed a source input: {name}')
 artifacts = [out / name for name in ('dns_wire', 'dhcp_packet', 'config_line')]
-report = {'source': str(source), 'kind': 'fuzz', 'cargo_target_dir': os.environ['CARGO_TARGET_DIR'],
+report = {'source': str(source), 'kind': 'fuzz', 'cargo_target_dir': str(out / 'input/components/dnsmasq/fuzz/target'),
           'source_files': files, 'native_target': 'aarch64-unknown-linux-gnu', 'sanitizer': 'address',
           'cargo_version': (out / 'cargo-version').read_text().strip(),
           'cargo_fuzz_version': (out / 'cargo-fuzz-version').read_text().strip(),
@@ -133,43 +131,31 @@ if sys.argv[3] == 'primitive-probes':
 PY
 fi
 cargo=/home/ubuntu/.cargo/bin/cargo
-# Git archives preserve historical mtimes. Reusing a fixed source path can
-# otherwise make Cargo accept stale package artifacts after the input changes.
-# Keep dependency caches, but invalidate this package inside the copy lock.
-if [ "$build_kind" = release ] || [ "$build_kind" = probe-tests ] || [ "$build_kind" = primitive-probes ]; then
-    "$cargo" +1.98.1 clean --manifest-path "$manifest_path" \
-        --package "$package_name" --target aarch64-unknown-linux-musl --release \
-        >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
-else
-    "$cargo" +1.98.1 clean --manifest-path "$manifest_path" \
-        --package "$package_name" --target aarch64-unknown-linux-musl --profile dev \
-        >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
-fi
 if [ "$build_kind" = release ]; then
-    "$cargo" +1.98.1 build --release --frozen --target aarch64-unknown-linux-musl \
+    "$cargo" build --release --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --bin dnsmasq-rs $feature_args \
         >"$output_dir/build.stdout" 2>"$output_dir/build.log"
-    cp "$CARGO_TARGET_DIR/aarch64-unknown-linux-musl/release/dnsmasq-rs" "$output_dir/dnsmasq-rs"
+    cp "$source_dir/components/dnsmasq/target/aarch64-unknown-linux-musl/release/dnsmasq-rs" "$output_dir/dnsmasq-rs"
 elif [ "$build_kind" = tests ]; then
-    "$cargo" +1.98.1 test --frozen --target aarch64-unknown-linux-musl \
+    "$cargo" test --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --lib --bin dnsmasq-rs \
         --no-run --message-format=json >"$output_dir/build.stdout" 2>"$output_dir/build.log"
 elif [ "$build_kind" = primitive-probes ]; then
     # Four source-bound actual-crate bridges. No main product or harness runs;
     # only the allowlisted example binaries are copied under the shared lock.
-    "$cargo" +1.98.1 build --release --frozen --target aarch64-unknown-linux-musl \
+    "$cargo" build --release --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$manifest_path" \
         --example m6b-cache-core --example m6b-cache-policy \
         --example m6b-cache-edns --example m6b-cache-lease --message-format=json \
         >"$output_dir/build.stdout" 2>"$output_dir/build.log"
 elif [ "$build_kind" = probe-tests ]; then
     # Diagnostic-only ignored lib tests use the same release settings, target,
-    # copy lock and source invalidation. Nothing executes inside this build.
-    "$cargo" +1.98.1 test --release --frozen --target aarch64-unknown-linux-musl \
+    # copy lock. The Cargo fork keys reuse by source content.
+    "$cargo" test --release --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$manifest_path" --lib --no-run --message-format=json \
         >"$output_dir/build.stdout" 2>"$output_dir/build.log"
 else
-    "$cargo" +1.98.1 test --frozen --target aarch64-unknown-linux-musl \
+    "$cargo" test --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$manifest_path" --lib \
         --no-run --message-format=json >"$output_dir/build.stdout" 2>"$output_dir/build.log"
 fi
@@ -210,7 +196,7 @@ if kind == 'primitive-probes':
         artifacts.append(path)
     if seen != allowed:
         raise RuntimeError('missing allowlisted primitive executable')
-report = {'source': str(source), 'kind': kind, 'cargo_target_dir': os.environ['CARGO_TARGET_DIR'],
+report = {'source': str(source), 'kind': kind, 'cargo_target_dir': str(source / ('components/ubus/target' if kind == 'ubus-tests' else 'components/dnsmasq/target')),
           'opt_level': os.environ['CARGO_PROFILE_RELEASE_OPT_LEVEL'],
           'features': os.environ.get('ORACLE_BUILD_FEATURES', ''),
           'rustflags': os.environ['RUSTFLAGS'], 'artifacts': [

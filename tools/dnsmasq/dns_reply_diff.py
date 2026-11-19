@@ -340,7 +340,7 @@ def main() -> int:
     parser.add_argument("--source", type=Path, default=SOURCE)
     parser.add_argument("--output", type=Path, default=ROOT / "private/dnsmasq-rewrite/dns-reply/run-01")
     parser.add_argument("--cc", default="cc")
-    parser.add_argument("--rustc", default=shutil.which("rustc") or str(Path.home() / ".rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/rustc"))
+    parser.add_argument("--rustc", default=shutil.which("rustc") or str(Path.home() / ".rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/rustc"))
     parser.add_argument("--seed", type=int, default=293003)
     parser.add_argument("--count", type=int, default=1200)
     args = parser.parse_args(); output = args.output.resolve()

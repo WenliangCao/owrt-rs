@@ -101,7 +101,9 @@ def inputs(root, version="25.12.5"):
              "components/dnsmasq/platform/Cargo.toml", "components/dnsmasq/platform/src"]
     # Historical frozen trees keep their original map; new snapshots bind the
     # compilation adapter as well as the SDK recipe that invokes it.
-    if (root / "tools/mbx_cargo.sh").exists():
+    if (root / "tools/cargo.sh").exists():
+        paths.append("tools/cargo.sh")
+    elif (root / "tools/mbx_cargo.sh").exists():
         paths.append("tools/mbx_cargo.sh")
     manifest = tomllib.loads((root / "components/dnsmasq/Cargo.toml").read_text())
     if any(target.get("path") == "platform/entry.rs" for target in manifest.get("bin", [])):
@@ -430,14 +432,15 @@ def audit_build(args, out, report):
         require(cargo.is_file() and os.access(cargo, os.X_OK), "cargo executable missing")
         report["build_mode"] = "compile-and-package"
         report["cargo_version"] = run([str(cargo), "--version"], out / "cargo-version.log", env=env).strip()
-        report["rustc_version"] = run([str(cargo.with_name("rustc")), "-Vv"], out / "rustc-version.log", env=env).strip()
+        require("huacnlee/cargo" in report["cargo_version"], "build requires huacnlee/cargo")
+        report["rustc_version"] = run(["rustc", "-Vv"], out / "rustc-version.log", env=env).strip()
         report["target_cc_version"] = run([str(toolchain / "bin/aarch64-openwrt-linux-musl-gcc"), "--version"], out / "target-cc-version.log").strip()
-        adapter_root = source if (source / "tools/mbx_cargo.sh").is_file() else ROOT
-        adapter = safe_path(adapter_root / "tools/mbx_cargo.sh")
-        require(adapter.is_file() and os.access(adapter, os.X_OK), "mbx Cargo adapter missing")
+        adapter_root = source if (source / "tools/cargo.sh").is_file() else ROOT
+        adapter = safe_path(adapter_root / "tools/cargo.sh")
+        require(adapter.is_file() and os.access(adapter, os.X_OK), "Cargo adapter missing")
         report["build_adapter"] = {"path": str(adapter), "sha256": sha(adapter)}
-        if "tools/mbx_cargo.sh" in source_hashes:
-            require(sha(adapter) == source_hashes["tools/mbx_cargo.sh"],
+        if "tools/cargo.sh" in source_hashes:
+            require(sha(adapter) == source_hashes["tools/cargo.sh"],
                     "build adapter differs from frozen source identity")
             report["build_adapter_compatibility"] = "source-snapshot-bound"
         else:

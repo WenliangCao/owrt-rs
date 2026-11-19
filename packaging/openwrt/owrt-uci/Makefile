@@ -52,7 +52,7 @@ endef
 define Build/Compile
 	# build from a host-independent path: cargo hashes the absolute path of path
 	# dependencies into symbol names, so this is what makes CI and build-host
-	# binaries byte-identical (target dir stays under PKG_BUILD_DIR for install)
+	# binaries byte-identical (Cargo publishes executable links in the source target directory)
 	rm -rf /tmp/owrt-build/$(PKG_NAME) && mkdir -p /tmp/owrt-build && cp -a $(PKG_BUILD_DIR) /tmp/owrt-build/$(PKG_NAME)
 	+RUSTUP_HOME="$(V1_RUSTUP_HOME)" \
 	CARGO_HOME="$(V1_CARGO_HOME)" \
@@ -62,12 +62,12 @@ define Build/Compile
 	AR_aarch64_unknown_linux_musl="$(TARGET_AR)" \
 	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
 	RUSTFLAGS="-Dwarnings --remap-path-prefix=/tmp/owrt-build/$(PKG_NAME)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
-	$(V1_CARGO) build --release --locked --manifest-path /tmp/owrt-build/$(PKG_NAME)/uci/Cargo.toml --target-dir $(PKG_BUILD_DIR)/uci/target
+	$(V1_CARGO) build --release --locked --manifest-path /tmp/owrt-build/$(PKG_NAME)/uci/Cargo.toml
 endef
 
 define Package/owrt-uci/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uci/target/$(RUST_TARGET)/release/uci-rs \
+	$(INSTALL_BIN) /tmp/owrt-build/$(PKG_NAME)/uci/target/$(RUST_TARGET)/release/uci-rs \
 		$(1)/usr/sbin/uci-rs
 	$(INSTALL_BIN) ./files/owrt-uci-switch $(1)/usr/sbin/owrt-uci-switch
 	$(INSTALL_DIR) $(1)/etc/init.d

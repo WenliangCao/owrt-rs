@@ -82,9 +82,9 @@ def main():
                         str(renamed), f"-L{deps}", f"-Wl,-rpath,{deps}", "-lubus", "-lubox", "-o", str(oracle)],
                        stdout=log, stderr=log, check=True)
         if not args.c_only:
-            subprocess.run([args.cargo, "+1.98.1", "build", "--manifest-path", str(ROOT / "components/dnsmasq/Cargo.toml"),
+            subprocess.run([args.cargo, "+1.100.0", "build", "--manifest-path", str(ROOT / "components/dnsmasq/Cargo.toml"),
                             "--lib", "--target-dir", str(out / "target")], stdout=log, stderr=log, check=True)
-            subprocess.run([str(Path(args.cargo).with_name("rustc")), "+1.98.1", "--edition=2021", str(out / "probe.rs"),
+            subprocess.run([str(Path(args.cargo).with_name("rustc")), "+1.100.0", "--edition=2021", str(out / "probe.rs"),
                             "--extern", f"dnsmasq_rs={out / 'target/debug/libdnsmasq_rs.rlib'}",
                             "-L", f"dependency={out / 'target/debug/deps'}", "-o", str(probe)], stdout=log, stderr=log, check=True)
     report = {"c_cache_sha256": base.CACHE_SHA, "tool_sha256": base.digest(Path(__file__)),

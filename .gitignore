@@ -20,6 +20,7 @@
 /target/
 /components/*/target/
 /components/dnsmasq/fuzz/target/
+/components/dnsmasq/platform/target/
 /tools/benchmark/target/
 
 # Python analysis-tool cache

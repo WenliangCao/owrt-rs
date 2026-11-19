@@ -96,9 +96,10 @@ deviation with the rule ID, concrete reason and a condition for revisiting it.
 ## Validation and incremental review
 
 For changed Rust code, run relevant tests and compiler/Clippy checks on the
-remote Linux host (`ssh oracle`) or CI, using `mbx` for every Cargo build,
-check, test, benchmark and lint invocation. Use locked dependencies and the
-pinned compiler. Diagnose apparent cache misses with `mbx explain --last`.
+remote Linux host (`ssh oracle`) or CI, using plain `cargo` for every build, check, test, benchmark and lint invocation.
+Before each invocation, verify that `cargo -V` identifies `huacnlee/cargo`.
+Use locked dependencies and the pinned compiler; the Cargo fork owns the shared
+build cache. Do not override its target directory or run `cargo clean`.
 The Mac is for editing, Git and formatting; do not compile there.
 
 `M-STATIC-VERIFICATION` is the target for our checks. Preserve existing
@@ -145,7 +146,7 @@ the detailed ledgers and their source identities at that review snapshot. The
 the earlier full-read ledger is not evidence that weakening `forbid` was valid.
 On Linux, `make test`,
 `make check-rust`, `make fmt-check` and `make check-benchmark` use the shared
-`mbx` cache. Default/all-feature targets, doctests and normal examples are
+`huacnlee/cargo` cache. Default/all-feature targets, doctests and normal examples are
 checked; process-owner tests run in private namespaces. Exact-C fixtures and
 hardware-dependent cases need their separately recorded inputs and results;
 an ignored test is never counted as executed merely because its binary built.

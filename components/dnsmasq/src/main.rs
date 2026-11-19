@@ -1940,7 +1940,7 @@ fn run_inner(
         // Address events and HUP both publish before new DNS admission.
         let signaled = !poll.reload_in_progress()
             && RELOAD_REQUESTED
-                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                .try_update(Ordering::AcqRel, Ordering::Acquire, |count| {
                     count.checked_sub(1)
                 })
                 .is_ok();
@@ -3577,15 +3577,16 @@ impl SinglePoll {
 
     fn dhcp_reload_in_progress(&self) -> bool {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self
-            .dhcp
-            .as_ref()
-            .and_then(|dhcp| dhcp.provider.as_ref())
-            .is_some_and(|provider| provider.borrow_mut().file_work_pending())
         {
-            return true;
+            self.dhcp
+                .as_ref()
+                .and_then(|dhcp| dhcp.provider.as_ref())
+                .is_some_and(|provider| provider.borrow_mut().file_work_pending())
         }
-        false
+        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+        {
+            false
+        }
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -4750,7 +4751,7 @@ impl SinglePoll {
         #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
         ALARM_REQUESTED.store(0, Ordering::Release);
         if CACHE_DUMP_REQUESTED
-            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+            .try_update(Ordering::AcqRel, Ordering::Acquire, |count| {
                 count.checked_sub(1)
             })
             .is_err()
@@ -4984,7 +4985,7 @@ impl SinglePoll {
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.logger {
             if LOG_REOPEN_REQUESTED
-                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                .try_update(Ordering::AcqRel, Ordering::Acquire, |count| {
                     count.checked_sub(1)
                 })
                 .is_ok()

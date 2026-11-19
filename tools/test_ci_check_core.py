@@ -58,10 +58,10 @@ class OdhcpdBuildBoundaryTests(unittest.TestCase):
                 self.assertEqual(script.count("/tmp/owrt-core-release/"), 1)
                 (tools / "ci_build_core.sh").write_text(script.replace(
                     "/tmp/owrt-core-release/", str(root / "source-slot") + "/"))
-                (root / "rust-toolchain.toml").write_text('channel = "1.98.1"\n')
+                (root / "rust-toolchain.toml").write_text('channel = "1.100.0"\n')
                 (tools / "toolchain_identity.sh").write_text("printf '%s\\n' 'official=yes'\n")
-                adapter = tools / "mbx_cargo.sh"
-                adapter.write_bytes((core.REPO / "tools/mbx_cargo.sh").read_bytes())
+                adapter = tools / "cargo.sh"
+                adapter.write_bytes((core.REPO / "tools/cargo.sh").read_bytes())
                 adapter.chmod(0o755)
                 (tools / "check_abi.sh").write_text("exit 0\n")
                 (tools / "ci_check_core.py").write_text("import sys; assert sys.argv[1] == 'warnings'\n")
@@ -83,14 +83,16 @@ class OdhcpdBuildBoundaryTests(unittest.TestCase):
                 stubs = {
                     "git": "import sys\nprint('1' if '--format=%ct' in sys.argv else 'a'*40)\n",
                     "rsync": "import sys,shutil\nshutil.copytree(sys.argv[-2],sys.argv[-1],dirs_exist_ok=True)\n",
-                    "mbx": """import os,sys
+                    "cargo": """import os,sys
 from pathlib import Path
 args=sys.argv[1:]
+if args == ['-V']:
+    print('cargo 1.102.0 (huacnlee/cargo 0.103.0-1)'); sys.exit(0)
 manifest=Path(args[args.index('--manifest-path')+1])
 component=manifest.parent.name
 if component=='odhcpd':
     assert (manifest.parent.parent/'netifd/Cargo.toml').is_file()
-target=Path(args[args.index('--target-dir')+1])/'aarch64-unknown-linux-musl/release'
+target=manifest.parent/'target/aarch64-unknown-linux-musl/release'
 target.mkdir(parents=True,exist_ok=True)
 (target/(component+'-rs')).write_bytes(('fixture '+component).encode())
 with open(os.environ['TEST_CARGO_LOG'],'a') as stream: stream.write(component+'\\n')
@@ -102,7 +104,7 @@ with open(os.environ['TEST_CARGO_LOG'],'a') as stream: stream.write(component+'\
                     path.chmod(0o755)
                 env = dict(os.environ, OPENWRT_VERSION="25.12.5",
                            PATH=str(commands) + os.pathsep + os.environ["PATH"],
-                           TEST_CARGO_LOG=str(root / "cargo.log"))
+                           TEST_CARGO_LOG=str(root / "cargo.log"), RUSTC="/fixture/rustc")
                 env.pop("OWRT_CORE_INCLUDE_ODHCPD", None)
                 if include is not None:
                     env["OWRT_CORE_INCLUDE_ODHCPD"] = include

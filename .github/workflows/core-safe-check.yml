@@ -4,7 +4,7 @@ name: core-safe-check
 on:
   workflow_dispatch:
   push:
-    branches: [main, research/core-safe-20261017]
+    branches: [main, ci/audit110-r3, research/core-safe-20261017]
     paths:
       - "components/platform/**"
       - "components/ubus/**"
@@ -25,8 +25,8 @@ on:
       - "tools/ci_build_core.sh"
       - "tools/ci_build_image.sh"
       - "tools/dnsmasq/compiler_warnings.py"
-      - "tools/mbx_cargo.sh"
-      - "tools/install_mbx.sh"
+      - "tools/cargo.sh"
+      - "tools/install_cargo.sh"
       - "rust-toolchain.toml"
       - ".github/workflows/core-safe-check.yml"
   pull_request:
@@ -50,8 +50,8 @@ on:
       - "tools/ci_build_core.sh"
       - "tools/ci_build_image.sh"
       - "tools/dnsmasq/compiler_warnings.py"
-      - "tools/mbx_cargo.sh"
-      - "tools/install_mbx.sh"
+      - "tools/cargo.sh"
+      - "tools/install_cargo.sh"
       - "rust-toolchain.toml"
       - ".github/workflows/core-safe-check.yml"
 
@@ -68,8 +68,6 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: install verified mr-boxington
-        run: sh tools/install_mbx.sh
       - name: pinned Rust toolchain
         id: rust
         run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
@@ -77,6 +75,8 @@ jobs:
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
           components: rustfmt
+      - name: install verified huacnlee/cargo
+        run: sh tools/install_cargo.sh
       - name: existing component test prerequisites
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables iproute2 util-linux
       - uses: actions/cache/restore@v4
@@ -85,8 +85,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cache/mbx
-          key: mbx-1.26.0-core-host-${{ hashFiles('components/*/Cargo.lock') }}
+            ~/.cargo/targets
+          key: cargo-0.103.0-1-core-host-${{ hashFiles('components/*/Cargo.lock') }}
       - name: run existing host tests and check normal diagnostic examples
         run: python3 tools/ci_check_core.py host "$GITHUB_WORKSPACE/work"
       - name: retain downloaded host dependencies after compile failures
@@ -96,7 +96,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cache/mbx
+            ~/.cargo/targets
           key: ${{ steps.host-registry.outputs.cache-primary-key }}
       - name: retain all host diagnostics
         if: always()
@@ -114,8 +114,6 @@ jobs:
       OPENWRT_VERSION: "25.12.6"
     steps:
       - uses: actions/checkout@v4
-      - name: install verified mr-boxington
-        run: sh tools/install_mbx.sh
       - name: pinned Rust toolchain
         id: rust
         run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
@@ -123,6 +121,8 @@ jobs:
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
           targets: aarch64-unknown-linux-musl
+      - name: install verified huacnlee/cargo
+        run: sh tools/install_cargo.sh
       - name: unmodified SDK and ImageBuilder prerequisites
         run: |
           sudo apt-get update -qq
@@ -140,8 +140,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cache/mbx
-          key: mbx-1.26.0-core-target-${{ hashFiles('components/*/Cargo.lock') }}
+            ~/.cargo/targets
+          key: cargo-0.103.0-1-core-target-${{ hashFiles('components/*/Cargo.lock') }}
       - name: verify the existing strict warning classifier
         env:
           PYTHONPATH: tools
@@ -166,7 +166,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cache/mbx
+            ~/.cargo/targets
           key: ${{ steps.target-registry.outputs.cache-primary-key }}
       - name: retain candidates and original SDK diagnostics
         if: always()

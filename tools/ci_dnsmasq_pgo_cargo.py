@@ -16,13 +16,12 @@ def prepare(plan, argv, env):
         return None
     build = Path(plan["build_dir"])
     expected_argv = ["build", "--release", "--frozen", "--manifest-path",
-                     str(build / "dnsmasq/Cargo.toml"), "--bin", "dnsmasq-rs",
-                     "--target-dir", str(build / "dnsmasq/target")]
+                     str(build / "dnsmasq/Cargo.toml"), "--bin", "dnsmasq-rs"]
     if argv != expected_argv:
         raise ValueError("unexpected SDK Cargo invocation")
     adapter = plan.get("build_adapter")
     if not adapter or sha(adapter["path"]) != adapter["sha256"]:
-        raise ValueError("mbx build adapter identity missing or changed")
+        raise ValueError("Cargo build adapter identity missing or changed")
     expected = plan["recipe_environment"]
     for name, value in expected.items():
         if env.get(name) != value:

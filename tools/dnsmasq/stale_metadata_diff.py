@@ -125,7 +125,7 @@ def main():
     before = source_hashes(source_root)
     # Bind the binary to this source snapshot. A caller-supplied old executable
     # must not be paired with hashes of newly edited, unbuilt Rust source.
-    build_command = [args.cargo, "+1.98.1", "test", "--manifest-path",
+    build_command = [args.cargo, "+1.100.0", "test", "--manifest-path",
                      str(source_root / "components/dnsmasq/Cargo.toml"),
                      "--lib", "--no-run", "--message-format=json"]
     build = subprocess.run(build_command, text=True, capture_output=True, cwd=source_root)

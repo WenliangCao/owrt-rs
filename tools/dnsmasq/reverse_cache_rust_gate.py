@@ -79,7 +79,7 @@ def build(args):
                 "entry_probe_sha256": digest(entry_path), "state_probe_sha256": digest(state_path),
                 "tool_sha256": digest(__file__)}
     save(out / "identity.json", identity)
-    command = [args.cargo, "+1.98.1", "build", "--frozen", "--release", "--manifest-path",
+    command = [args.cargo, "+1.100.0", "build", "--frozen", "--release", "--manifest-path",
                str(source / "components/dnsmasq/Cargo.toml"), "--bin", "reverse-cache-probe", "--target-dir", str(out / "target")]
     with (out / "build.log").open("w") as log:
         result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)

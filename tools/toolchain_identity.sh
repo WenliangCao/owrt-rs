@@ -96,8 +96,8 @@ case "$rustc_version" in
 *) echo "effective rustc is not the pinned $channel: $rustc_version ($rustc_bin)" >&2; fail=1 ;;
 esac
 case "$cargo_version" in
-*" $channel "*) ;;
-*) echo "effective cargo is not the pinned $channel: $cargo_version ($cargo_bin)" >&2; fail=1 ;;
+*"huacnlee/cargo"*) ;;
+*) echo "cargo must be huacnlee/cargo: $cargo_version ($cargo_bin)" >&2; fail=1 ;;
 esac
 [ "$fail" = 0 ] || exit 1
 if [ "$official" = no ] && [ "${OWRT_ALLOW_TOOLCHAIN_OVERRIDE:-0}" != 1 ]; then

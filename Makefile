@@ -63,7 +63,7 @@ check-tools:
 
 check-harnesses:
 	@python3 tools/test_rust_check.py
-	@python3 tools/test_mbx_cargo.py
+	@python3 tools/test_cargo.py
 	@python3 tools/test_r1_reference_oracle.py
 	@python3 tools/test_r92_logd_limits.py
 	@python3 tools/dnsmasq/test_build_package.py
@@ -82,7 +82,7 @@ check-benchmark:
 	python3 tools/rust_check.py check --benchmark
 	python3 tools/rust_check.py build --benchmark
 	@host=$$(rustc -vV | sed -n 's/^host: //p'); \
-		python3 tools/benchmark/test_fw4_cli.py "$${CARGO_TARGET_DIR:-tools/benchmark/target}/$$host/release/owrt-benchmark"
+		python3 tools/benchmark/test_fw4_cli.py "tools/benchmark/target/$$host/release/owrt-benchmark"
 	python3 tools/benchmark/test_http_client.py
 	python3 tools/benchmark/test_analyze.py
 	python3 tools/benchmark/test_httpd_analysis.py

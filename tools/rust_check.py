@@ -93,27 +93,31 @@ def commands(mode, manifest, host):
     isolated = manifest.parent.name in ("dnsmasq", "procd")
     runner = runner_config(host) if isolated else []
     if mode == "fmt-check":
-        yield "fmt", ["mbx", "fmt", "--manifest-path", str(manifest), "--check"]
+        yield "fmt", ["cargo", "fmt", "--manifest-path", str(manifest), "--check"]
     elif mode == "build":
-        yield "build", ["mbx", "build", *base, "--release"]
+        yield "build", ["cargo", "build", *base, "--release"]
     elif mode == "check":
         for flags, label in feature_sets:
-            yield f"check-{label}", ["mbx", "check", *base, *flags, "--all-targets"]
-            yield f"clippy-{label}", ["mbx", "clippy", *base, *flags, "--all-targets", "--", "-D", "warnings"]
+            yield f"check-{label}", ["cargo", "check", *base, *flags, "--all-targets"]
+            yield f"clippy-{label}", ["cargo", "clippy", *base, *flags, "--all-targets", "--", "-D", "warnings"]
             if any((manifest.parent / "examples").glob("*.rs")):
-                yield f"examples-{label}", ["mbx", "check", *base, *flags, "--examples"]
+                yield f"examples-{label}", ["cargo", "check", *base, *flags, "--examples"]
     else:
         for flags, label in feature_sets:
             yield f"test-{label}", [
-                "mbx", "test", *base, *flags, *runner, "--all-targets",
+                "cargo", "test", *base, *flags, *runner, "--all-targets",
                 "--", "--test-threads=1",
             ]
         if docs:
             flags = ["--all-features"] if features else []
-            yield "doc", ["mbx", "test", *base, *flags, "--doc"]
+            yield "doc", ["cargo", "test", *base, *flags, "--doc"]
 
 
 def execute(command, log, env):
+    if command[0] == "cargo":
+        version = subprocess.check_output(["cargo", "-V"], env=env, text=True)
+        if "huacnlee/cargo" not in version:
+            raise RuntimeError("Rust gates require huacnlee/cargo: " + version.strip())
     print("+ " + " ".join(command), flush=True)
     log.parent.mkdir(parents=True, exist_ok=True)
     with log.open("w") as stream:
@@ -128,7 +132,7 @@ def namespace_tests(manifest, host, output, env):
     # deliberately leave loopback aliases or process limits changed.
     for target in (["--lib"], ["--bin", "dnsmasq-rs"]):
         label = "lib" if target == ["--lib"] else "bin"
-        base = ["mbx", "test", "--locked", "--manifest-path", str(manifest), "--target", host,
+        base = ["cargo", "test", "--locked", "--manifest-path", str(manifest), "--target", host,
                 "--all-features", *runner_config(host), *target]
         listing = output / f"dnsmasq-ignored-{label}.log"
         execute([*base, "--", "--ignored", "--list"], listing, env)
@@ -156,13 +160,15 @@ def main(arguments):
     verify_business_boundaries()
     if os.geteuid() == 0:
         raise RuntimeError("run Rust gates as an ordinary user; only the test runner uses sudo")
-    if shutil.which("mbx") is None:
-        raise RuntimeError("mbx is required; CI installs the pinned verified release")
+    if shutil.which("cargo") is None:
+        raise RuntimeError("cargo is required; CI installs the verified huacnlee/cargo release")
     host = subprocess.check_output(["rustc", "-vV"], text=True).split("host: ", 1)[1].splitlines()[0]
     env = os.environ.copy()
+    env.setdefault("RUSTC", subprocess.check_output(["rustup", "which", "rustc"], text=True).strip())
     env["CARGO_INCREMENTAL"] = "0"
     for key in ("RUSTFLAGS", "RUSTDOCFLAGS"):
         env[key] = (env.get(key, "") + " -Dwarnings").strip()
+    env["RUSTFLAGS"] += " -Dnever-type-fallback-flowing-into-unsafe"
     manifests = [ROOT / "tools/benchmark/Cargo.toml"] if args.benchmark else [
         ROOT / "components" / name / "Cargo.toml" for name in COMPONENTS
     ]
@@ -179,10 +185,10 @@ def main(arguments):
         # their API/format checks separate from the 14 component test gates.
         fuzz = ROOT / "components/dnsmasq/fuzz/Cargo.toml"
         if args.mode == "check":
-            command = ["mbx", "check", "--locked", "--manifest-path", str(fuzz),
+            command = ["cargo", "check", "--locked", "--manifest-path", str(fuzz),
                        "--target", host, "--bins"]
         else:
-            command = ["mbx", "fmt", "--manifest-path", str(fuzz), "--check"]
+            command = ["cargo", "fmt", "--manifest-path", str(fuzz), "--check"]
         execute(command, args.output / f"dnsmasq-fuzz-{args.mode}.log", env)
         print(f"Rust fuzz {args.mode}: passed", flush=True)
     print(f"Rust {args.mode}: passed ({len(manifests)} crates)", flush=True)
