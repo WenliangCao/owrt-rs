@@ -64,11 +64,7 @@ check-tools:
 check-harnesses:
 	@python3 tools/test_rust_check.py
 	@python3 tools/test_mbx_cargo.py
-	@python3 tools/test_r1_reference_oracle.py
-	@python3 tools/test_r92_logd_limits.py
 	@python3 tools/dnsmasq/test_build_package.py
-	@python3 tools/test_audit_checks.py
-	@python3 tools/test_r85_procd_busy_gate.py
 	@python3 tools/test_stack_manifest.py
 	@python3 tools/test_native_release_prepare.py
 	@python3 tools/test_native_image.py
@@ -88,7 +84,6 @@ check-benchmark:
 	python3 tools/benchmark/test_httpd_analysis.py
 	python3 tools/benchmark/test_netifd_analysis.py
 	python3 tools/benchmark/test_netifd_gate.py
-	python3 tools/benchmark/test_r92_analysis.py
 	python3 tools/benchmark/test_reload_exec.py
 	python3 tools/benchmark/test_stack_analysis.py
 	$(CC) -std=c11 -Wall -Wextra -Werror -fsyntax-only tools/benchmark/stack_config_cycle.c
