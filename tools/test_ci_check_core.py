@@ -1,6 +1,5 @@
-"""Compiler warnings and standalone candidate selection have explicit gates."""
+"""Compiler warnings and the core recipe inventory have explicit gates."""
 import contextlib
-import hashlib
 import io
 import json
 import os
@@ -9,7 +8,6 @@ import subprocess
 import tarfile
 import tempfile
 import unittest
-from unittest import mock
 
 import ci_check_core as core
 from ci_check_core import warnings
@@ -116,44 +114,6 @@ with open(os.environ['TEST_CARGO_LOG'],'a') as stream: stream.write(component+'\
                 self.assertEqual(set(manifest["binary_sha256"]), names)
                 with tarfile.open(out / "core-binaries.tar.gz") as archive:
                     self.assertEqual(set(archive.getnames()), names)
-
-    def test_sdk_diagnostics_opt_in_and_require_actual_odhcpd_output(self):
-        for present in (True, False):
-            with self.subTest(present=present), tempfile.TemporaryDirectory() as directory:
-                work = Path(directory)
-                out = work / "out"
-                out.mkdir()
-                compiler = work / "openwrt-sdk-25.12.5-fixture/staging_dir/toolchain-aarch64_fixture/bin/aarch64-openwrt-linux-musl-gcc"
-                compiler.parent.mkdir(parents=True)
-                compiler.touch()
-                inventories = {
-                    "binary-sha256.txt": (work / "verify/rootfs/usr/sbin",
-                                          ["uci-rs", "reload_config_rs", "logd-rs", "httpd-rs", "fw4-rs", "rpcd-rs"]),
-                    "core-binary-sha256.txt": (out / "core-binaries",
-                                               ["procd-rs", "ubusd-rs", "netifd-rs"] + (["odhcpd-rs"] if present else [])),
-                }
-                for filename, (base, names) in inventories.items():
-                    base.mkdir(parents=True)
-                    rows = []
-                    for name in names:
-                        content = name.encode()
-                        (base / name).write_bytes(content)
-                        rows.append(hashlib.sha256(content).hexdigest() + "  " + name)
-                    (out / filename).write_text("\n".join(rows) + "\n")
-                env = {"OPENWRT_VERSION": "25.12.5", "RUSTFLAGS": "-Dwarnings"}
-                with mock.patch.object(core, "run", return_value=0) as run:
-                    if present:
-                        _, passed = core.sdk_check(work, env, {"commands": []})
-                        self.assertTrue(passed)
-                        self.assertEqual((out / "core-candidates/odhcpd-rs").read_bytes(), b"odhcpd-rs")
-                    else:
-                        with self.assertRaisesRegex(ValueError, "all ten actual"):
-                            core.sdk_check(work, env, {"commands": []})
-                    self.assertNotIn("OWRT_CORE_INCLUDE_ODHCPD", run.call_args_list[0].args[2])
-                    self.assertEqual(run.call_args_list[1].args[2]["OWRT_CORE_INCLUDE_ODHCPD"], "1")
-                    self.assertTrue(any("odhcpd" in str(call.args[0]) and "--tests" in call.args[0]
-                                        for call in run.call_args_list))
-                self.assertNotIn("OWRT_CORE_INCLUDE_ODHCPD", env)
 
 
 if __name__ == "__main__":
