@@ -66,7 +66,10 @@ macro_rules! bail {
 /// Returns early with an [`Error`] unless the condition holds.
 macro_rules! ensure {
     ($condition:expr, $($arg:tt)+) => {
-        if !$condition { $crate::util::bail!($($arg)+); }
+        match $condition {
+            true => {}
+            false => $crate::util::bail!($($arg)+),
+        }
     };
 }
 
@@ -268,11 +271,6 @@ pub fn set_mode(path: &Path, mode: u32) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(path, fs::Permissions::from_mode(mode))?;
     Ok(())
-}
-
-pub fn mode(path: &Path) -> Result<u32> {
-    use std::os::unix::fs::PermissionsExt;
-    Ok(fs::metadata(path)?.permissions().mode() & 0o7777)
 }
 
 /// A child environment: the variables a command will receive, in full.
@@ -503,10 +501,6 @@ impl Args {
             .get(name)
             .and_then(|values| values.last())
             .map(String::as_str)
-    }
-
-    pub fn values(&self, name: &str) -> &[String] {
-        self.values.get(name).map(Vec::as_slice).unwrap_or(&[])
     }
 
     pub fn required(&self, name: &str) -> Result<&str> {
@@ -865,6 +859,7 @@ pub struct TempDir {
 }
 
 impl TempDir {
+    #[cfg(test)]
     pub fn new(prefix: &str) -> Self {
         Self::try_new(prefix).expect("create temporary directory")
     }

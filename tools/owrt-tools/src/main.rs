@@ -5,9 +5,11 @@
 //! SDK recipe invokes a copy installed as `pgo-cargo` or `map-cc`.
 
 mod bench;
+mod core_manifest;
 mod device;
 mod dnsmasq_ci;
 mod dnsmasq_package;
+mod generate;
 mod history;
 mod native_check;
 mod native_image;
@@ -28,6 +30,9 @@ commands:
   ci-build-dnsmasq WORK            release dnsmasq build (frozen PGO)
   ci-check-dnsmasq-target WORK     diagnostic dnsmasq target build
   ci-check-dnsmasq-pgo-pipeline    canonical PGO stage build
+  core-manifest OUT COMMIT VERSION STAGING BINARY...  core binary identity record
+  gen-ethtool-modes MODES_H ETHTOOL_H  netifd ethtool_modes.rs
+  gen-netdev-types IF_ARP_H        netifd netdev_types.rs
   native-image ACTION WORK SPEC APK fetch|prepare|verify the native image
   native-image-check ROOTFS OUT    offline migration/recovery/reinstall checks
   native-package-reinstall-selftest ROOTFS APKS OUT
@@ -75,6 +80,9 @@ fn dispatch(program: &str, args: &[String]) -> util::Result<i32> {
         "ci-build-dnsmasq" => dnsmasq_ci::build_main(rest),
         "ci-check-dnsmasq-target" => dnsmasq_ci::target_main(rest),
         "ci-check-dnsmasq-pgo-pipeline" => dnsmasq_ci::pgo_pipeline_main(rest),
+        "core-manifest" => core_manifest::main(rest),
+        "gen-ethtool-modes" => generate::ethtool_main(rest),
+        "gen-netdev-types" => generate::netdev_main(rest),
         "native-image" => native_image::main(rest),
         "native-image-check" => native_check::check_main(rest),
         "native-package-reinstall-selftest" => native_check::reinstall_selftest_main(rest),

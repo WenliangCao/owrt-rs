@@ -1066,12 +1066,15 @@ fn freeze_source(out: &Path, spec: &Value) -> Result<PathBuf> {
     Ok(frozen)
 }
 
+/// Runs one SDK command (argv, working directory, optional log).
+type SdkRunner<'a> = dyn FnMut(&[String], &Path, Option<&Path>) -> Result<()> + 'a;
+
 fn prepare_sdk(
     work: &Path,
     out: &Path,
     frozen: &Path,
     spec: &Value,
-    run: &mut dyn FnMut(&[String], &Path, Option<&Path>) -> Result<()>,
+    run: &mut SdkRunner,
     sha: &dyn Fn(&Path) -> Result<String>,
 ) -> Result<()> {
     let version = spec["openwrt"].as_str().unwrap_or("25.12.5");

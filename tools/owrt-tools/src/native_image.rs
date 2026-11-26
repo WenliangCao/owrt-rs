@@ -183,8 +183,9 @@ pub fn verify_ax3000t_fit(kernel: &Path, original: &Path, metadata: &Value) -> R
     let fdtget = |file: &Path, kind: &str, node: &str, property: &str| {
         run(&strings(["fdtget", "-t", kind, &arg(file), node, property]))
     };
+    let epoch = metadata["source_date_epoch"].to_string();
     ensure!(
-        fdtget(kernel, "u", "/", "timestamp")? == metadata["source_date_epoch"].to_string(),
+        fdtget(kernel, "u", "/", "timestamp")? == epoch,
         "FIT timestamp differs"
     );
     let temp = util::TempDir::try_new("ax3000t-fit")?;

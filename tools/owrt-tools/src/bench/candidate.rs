@@ -2413,7 +2413,7 @@ fn markdown(result: &Value, label: &str) -> Result<String> {
         format!(
             "|{}|",
             std::iter::once("---")
-                .chain(std::iter::repeat("---:").take(headings.len() - 1))
+                .chain(std::iter::repeat_n("---:", headings.len() - 1))
                 .collect::<Vec<_>>()
                 .join("|")
         ),
