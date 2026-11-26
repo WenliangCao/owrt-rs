@@ -16,8 +16,11 @@ use crate::util::{self, ensure, strings, Args, JsonExt, Result};
 const REPO_URL: &str = "https://github.com/WenliangCao/owrt-rs";
 
 pub fn release_version(tag: &str) -> Result<String> {
-    let pattern = Regex::new(r"^ax3000t-rust9-v((?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*))$")?;
-    let captures = pattern.captures(tag).ok_or_else(|| util::Error::new("expected stable tag ax3000t-rust9-vMAJOR.MINOR.PATCH"))?;
+    let pattern =
+        Regex::new(r"^ax3000t-rust9-v((?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*))$")?;
+    let captures = pattern
+        .captures(tag)
+        .ok_or_else(|| util::Error::new("expected stable tag ax3000t-rust9-vMAJOR.MINOR.PATCH"))?;
     Ok(captures[1].to_owned())
 }
 
@@ -26,7 +29,10 @@ fn sha(path: &Path) -> Result<String> {
 }
 
 fn positive_count(value: &Value, what: &str) -> Result<u64> {
-    value.as_u64().filter(|count| *count > 0).ok_or_else(|| util::Error::new(format!("{what} must be a positive integer")))
+    value
+        .as_u64()
+        .filter(|count| *count > 0)
+        .ok_or_else(|| util::Error::new(format!("{what} must be a positive integer")))
 }
 
 fn git(args: &[&str]) -> Result<String> {
@@ -37,7 +43,10 @@ fn git(args: &[&str]) -> Result<String> {
 
 fn archive(output: &Path, inputs: &[PathBuf]) -> Result<()> {
     let file = fs::File::create(output)?;
-    let mut builder = tar::Builder::new(flate2::write::GzEncoder::new(file, flate2::Compression::default()));
+    let mut builder = tar::Builder::new(flate2::write::GzEncoder::new(
+        file,
+        flate2::Compression::default(),
+    ));
     let mut sums = String::new();
     for path in inputs {
         let name = path.file_name().unwrap();
@@ -54,32 +63,79 @@ fn archive(output: &Path, inputs: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-pub fn prepare(canonical: &Path, validation_path: &Path, tag: &str, evidence_commit: &str, out: &Path) -> Result<Value> {
+pub fn prepare(
+    canonical: &Path,
+    validation_path: &Path,
+    tag: &str,
+    evidence_commit: &str,
+    out: &Path,
+) -> Result<Value> {
     let manifest = util::read_json(&canonical.join("manifest.json"))?;
     let validation = util::read_json(validation_path)?;
-    ensure!(manifest["deployment_layout"] == "native-nine", "not a native-nine artifact");
-    ensure!(validation["status"] == "native_nine_firmware_qualified_and_cleaned", "firmware not qualified");
-    ensure!(validation["firmware_source_commit"] == manifest["source_commit"], "validation names another source commit");
-    ensure!(validation["firmware_sha256"] == manifest["image"]["sha256"], "validation names another firmware");
-    ensure!(validation["scope"]["physical_power_cycle_tested"] == true, "power cycle not tested");
-    ensure!(validation["cleanup"]["temporary_guard_removed"] == true, "temporary guard not removed");
-    ensure!(validation["cleanup"]["C_fallback_occurred"] == false, "C fallback occurred");
+    ensure!(
+        manifest["deployment_layout"] == "native-nine",
+        "not a native-nine artifact"
+    );
+    ensure!(
+        validation["status"] == "native_nine_firmware_qualified_and_cleaned",
+        "firmware not qualified"
+    );
+    ensure!(
+        validation["firmware_source_commit"] == manifest["source_commit"],
+        "validation names another source commit"
+    );
+    ensure!(
+        validation["firmware_sha256"] == manifest["image"]["sha256"],
+        "validation names another firmware"
+    );
+    ensure!(
+        validation["scope"]["physical_power_cycle_tested"] == true,
+        "power cycle not tested"
+    );
+    ensure!(
+        validation["cleanup"]["temporary_guard_removed"] == true,
+        "temporary guard not removed"
+    );
+    ensure!(
+        validation["cleanup"]["C_fallback_occurred"] == false,
+        "C fallback occurred"
+    );
     let version = release_version(tag)?;
-    ensure!(manifest["profile"] == "xiaomi_mi-router-ax3000t", "wrong hardware profile");
+    ensure!(
+        manifest["profile"] == "xiaomi_mi-router-ax3000t",
+        "wrong hardware profile"
+    );
     let openwrt = manifest.str_field("openwrt")?;
-    ensure!(Regex::new(r"^[0-9]+\.[0-9]+\.[0-9]+$")?.is_match(openwrt), "invalid OpenWrt version");
+    ensure!(
+        Regex::new(r"^[0-9]+\.[0-9]+\.[0-9]+$")?.is_match(openwrt),
+        "invalid OpenWrt version"
+    );
     let package_version = manifest["packages"].str_field("owrt-control-plane")?;
     let identity = &validation["firmware_identity"];
-    let rom_files = positive_count(&identity["ROM_regular_file_hashes_match_canonical"], "ROM file count")?;
-    let package_count = positive_count(&identity["installed_package_versions_match_canonical"], "package count")?;
+    let rom_files = positive_count(
+        &identity["ROM_regular_file_hashes_match_canonical"],
+        "ROM file count",
+    )?;
+    let package_count = positive_count(
+        &identity["installed_package_versions_match_canonical"],
+        "package count",
+    )?;
     let config_count = &validation["configuration"]["config_files_unchanged"];
     let protected_count = &validation["configuration"]["other_protected_files_unchanged"];
     let source = manifest.str_field("source_commit")?;
-    let evidence = git(&["rev-parse", &format!("{evidence_commit}^{{commit}}")])?.trim().to_owned();
+    let evidence = git(&["rev-parse", &format!("{evidence_commit}^{{commit}}")])?
+        .trim()
+        .to_owned();
     for line in util::read_text(&canonical.join("SHA256SUMS"))?.lines() {
-        let (digest, name) = line.split_once(char::is_whitespace).ok_or_else(|| util::Error::new("malformed SHA256SUMS"))?;
+        let (digest, name) = line
+            .split_once(char::is_whitespace)
+            .ok_or_else(|| util::Error::new("malformed SHA256SUMS"))?;
         let name = name.trim_start();
-        ensure!(Path::new(name).file_name().is_some_and(|n| n == name) && sha(&canonical.join(name))? == digest, "{name}");
+        ensure!(
+            Path::new(name).file_name().is_some_and(|n| n == name)
+                && sha(&canonical.join(name))? == digest,
+            "{name}"
+        );
     }
     fs::create_dir_all(out.parent().unwrap())?;
     fs::create_dir(out)?;
@@ -87,25 +143,54 @@ pub fn prepare(canonical: &Path, validation_path: &Path, tag: &str, evidence_com
     let filename = format!("owrt-rust9-v{version}-openwrt-{openwrt}-ax3000t-sysupgrade.bin");
     let firmware = out.join(&filename);
     util::copy2(&canonical.join(image.str_field("file")?), &firmware)?;
-    ensure!(image["sha256"] == sha(&firmware)?.as_str(), "firmware copy differs");
-    ensure!(image["size"] == fs::metadata(&firmware)?.len(), "firmware size differs");
+    ensure!(
+        image["sha256"] == sha(&firmware)?.as_str(),
+        "firmware copy differs"
+    );
+    ensure!(
+        image["size"] == fs::metadata(&firmware)?.len(),
+        "firmware size differs"
+    );
     let mut components = Map::new();
     for (name, data) in manifest.obj_field("components")? {
-        let cargo: toml::Value = toml::from_str(&git(&["show", &format!("{source}:components/{name}/Cargo.toml")])?)?;
+        let cargo: toml::Value = toml::from_str(&git(&[
+            "show",
+            &format!("{source}:components/{name}/Cargo.toml"),
+        ])?)?;
         let package = &cargo["package"];
         let mut record = json!({"crate": package["name"].as_str(), "crate_version": package["version"].as_str()});
-        for key in ["path", "rust_sha256", "rust_bytes", "stock_sha256", "stock_package", "recovery_path"] {
+        for key in [
+            "path",
+            "rust_sha256",
+            "rust_bytes",
+            "stock_sha256",
+            "stock_package",
+            "recovery_path",
+        ] {
             record[key] = data.field(key)?.clone();
         }
         components.insert(name.clone(), record);
     }
-    fs::write(out.join("components.sha256"), components.values()
-        .map(|c| format!("{}  {}\n", c["rust_sha256"].as_str().unwrap_or_default(), c["path"].as_str().unwrap_or_default()))
-        .collect::<String>())?;
+    fs::write(
+        out.join("components.sha256"),
+        components
+            .values()
+            .map(|c| {
+                format!(
+                    "{}  {}\n",
+                    c["rust_sha256"].as_str().unwrap_or_default(),
+                    c["path"].as_str().unwrap_or_default()
+                )
+            })
+            .collect::<String>(),
+    )?;
     util::copy2(validation_path, &out.join("validation-summary.json"))?;
     // Preserve the canonical build metadata unchanged, including its original
     // filename and build-time flashed:false field. Actual acceptance is separate.
-    let mut inputs: Vec<PathBuf> = ["manifest.json", "build-inputs.json", "binary-sha256.txt"].iter().map(|n| canonical.join(n)).collect();
+    let mut inputs: Vec<PathBuf> = ["manifest.json", "build-inputs.json", "binary-sha256.txt"]
+        .iter()
+        .map(|n| canonical.join(n))
+        .collect();
     let mut apks: Vec<&String> = manifest.obj_field("apk_sha256")?.keys().collect();
     apks.sort();
     inputs.extend(apks.iter().map(|name| canonical.join(name)));
@@ -129,14 +214,26 @@ pub fn prepare(canonical: &Path, validation_path: &Path, tag: &str, evidence_com
                           "physical_power_trials_observed": validation["physical_retest"]["successful_trials_observed"],
                           "temporary_trial_tools_removed": true, "private_configuration_included": false},
     });
-    fs::write(out.join("release-manifest.json"), util::pretty_json_unicode(&result) + "\n")?;
-    let rows: Vec<String> = components.iter().map(|(name, c)| format!(
-        "| {name} | {} | `{}` | `{}` |", c["crate_version"].as_str().unwrap_or_default(), c["path"].as_str().unwrap_or_default(),
-        &c["rust_sha256"].as_str().unwrap_or_default()[..12])).collect();
+    fs::write(
+        out.join("release-manifest.json"),
+        util::pretty_json_unicode(&result) + "\n",
+    )?;
+    let rows: Vec<String> = components
+        .iter()
+        .map(|(name, c)| {
+            format!(
+                "| {name} | {} | `{}` | `{}` |",
+                c["crate_version"].as_str().unwrap_or_default(),
+                c["path"].as_str().unwrap_or_default(),
+                &c["rust_sha256"].as_str().unwrap_or_default()[..12]
+            )
+        })
+        .collect();
     let rows = rows.join("\n");
     let size_mib = image["size"].as_f64().unwrap_or(0.0) / 1_048_576.0;
     let apk_count = manifest["apk_sha256"].as_object().map_or(0, Map::len);
-    let notes = format!(r#"# AX3000T Rust9 v{version} · OpenWrt {openwrt}
+    let notes = format!(
+        r#"# AX3000T Rust9 v{version} · OpenWrt {openwrt}
 
 完整九组件 Rust 固件回溯节点。已在 Xiaomi AX3000T 上保留配置刷入，客户端连续验收和用户断电/WAN 重接复测通过。发布镜像与真机已验收的文件逐字节相同。
 
@@ -166,11 +263,13 @@ pub fn prepare(canonical: &Path, validation_path: &Path, tag: &str, evidence_com
 `RECOVERY.md` 提供恢复说明；`build-inputs-and-packages.tar.gz` 保存原始构建 manifest、工具链输入和 {apk_count} 个镜像装配 APK。包用于归档与离线装配，日常安装入口为整份固件。
 
 这个标签固定在实际构建提交上，不重新指向后续研究代码；后续固件使用新的发布版本。此次直接发布原有正式构建产物，没有重新构建镜像。
-"#);
+"#
+    );
     fs::write(out.join("RELEASE_NOTES.md"), notes)?;
     let stock_url = manifest["stock_image"].str_field("url")?;
     let stock_sha = manifest["stock_image"].str_field("sha256")?;
-    let recovery = format!(r#"# AX3000T Rust9 v{version} 恢复说明
+    let recovery = format!(
+        r#"# AX3000T Rust9 v{version} 恢复说明
 
 回到已验证的九组件 Rust 固件：下载 `{filename}`，校验 SHA256 `{firmware_sha}`，保存当前配置后通过标准 sysupgrade/LuCI 保留配置刷入。
 
@@ -190,24 +289,47 @@ reboot
 - SHA256：`{stock_sha}`
 
 按键、failsafe 和 TFTP 的离线步骤见[对应验收提交的恢复手册]({REPO_URL}/blob/{evidence}/docs/RUNBOOK_AX3000T_RECOVERY.md)。当前正式运行状态没有临时试验自动回退服务。
-"#);
+"#
+    );
     fs::write(out.join("RECOVERY.md"), recovery)?;
-    let mut entries: Vec<PathBuf> = fs::read_dir(out)?.map(|e| e.map(|e| e.path())).collect::<Result<_, _>>()?;
+    let mut entries: Vec<PathBuf> = fs::read_dir(out)?
+        .map(|e| e.map(|e| e.path()))
+        .collect::<Result<_, _>>()?;
     entries.sort();
     let mut sums = String::new();
     for path in entries.iter().filter(|path| path.is_file()) {
-        sums += &format!("{}  {}\n", sha(path)?, path.file_name().unwrap().to_string_lossy());
+        sums += &format!(
+            "{}  {}\n",
+            sha(path)?,
+            path.file_name().unwrap().to_string_lossy()
+        );
     }
     fs::write(out.join("SHA256SUMS"), sums)?;
-    Ok(json!({"tag": tag, "build_source_commit": source, "evidence_commit": evidence, "firmware_sha256": firmware_sha,
-              "assets": fs::read_dir(out)?.count()}))
+    Ok(
+        json!({"tag": tag, "build_source_commit": source, "evidence_commit": evidence, "firmware_sha256": firmware_sha,
+              "assets": fs::read_dir(out)?.count()}),
+    )
 }
 
 pub fn main(raw: &[String]) -> Result<i32> {
     let args = Args::parse(raw, &[], &[])?;
-    let [canonical, validation, tag, evidence, output] =
-        args.exact(&["CANONICAL", "VALIDATION", "TAG", "EVIDENCE_COMMIT", "OUTPUT"])?.try_into().expect("five positionals");
-    let summary = prepare(&fs::canonicalize(&canonical)?, Path::new(&validation), &tag, &evidence, &std::path::absolute(&output)?)?;
+    let [canonical, validation, tag, evidence, output] = args
+        .exact(&[
+            "CANONICAL",
+            "VALIDATION",
+            "TAG",
+            "EVIDENCE_COMMIT",
+            "OUTPUT",
+        ])?
+        .try_into()
+        .expect("five positionals");
+    let summary = prepare(
+        &fs::canonicalize(&canonical)?,
+        Path::new(&validation),
+        &tag,
+        &evidence,
+        &std::path::absolute(&output)?,
+    )?;
     println!("{}", util::line_json(&summary));
     Ok(0)
 }
@@ -235,13 +357,19 @@ mod tests {
             let source = git(&["rev-parse", "HEAD"]).unwrap().trim().to_owned();
             let firmware = b"synthetic firmware fixture\n";
             fs::write(canonical.join("fixture.bin"), firmware).unwrap();
-            let mut components = util::read_json(&util::repo().join("packaging/image/native-25.12.5.json")).unwrap()["components"].clone();
+            let mut components =
+                util::read_json(&util::repo().join("packaging/image/native-25.12.5.json")).unwrap()
+                    ["components"]
+                    .clone();
             let map = components.as_object_mut().unwrap();
             map.shift_remove("dnsmasq"); // This helper retains the historical Rust9 tag contract.
             for value in map.values_mut() {
                 value["rust_sha256"] = json!("0".repeat(64));
                 value["rust_bytes"] = json!(1);
-                value["recovery_path"] = json!(format!("/usr/libexec/owrt-stock{}", value["path"].as_str().unwrap()));
+                value["recovery_path"] = json!(format!(
+                    "/usr/libexec/owrt-stock{}",
+                    value["path"].as_str().unwrap()
+                ));
             }
             let digest = util::sha256_bytes(firmware);
             let manifest = json!({
@@ -260,24 +388,56 @@ mod tests {
                 "continuous_client_health_s": 181, "physical_retest": {"successful_trials_observed": 2}});
             fs::write(canonical.join("build-inputs.json"), "{}\n").unwrap();
             fs::write(canonical.join("binary-sha256.txt"), "synthetic fixture\n").unwrap();
-            let fixture = Self { output: temp.path().join("release"), validation_path: temp.path().join("validation.json"),
-                                 canonical, _temp: temp, source, manifest, validation };
+            let fixture = Self {
+                output: temp.path().join("release"),
+                validation_path: temp.path().join("validation.json"),
+                canonical,
+                _temp: temp,
+                source,
+                manifest,
+                validation,
+            };
             fixture.save();
             fixture
         }
 
         fn save(&self) {
-            fs::write(self.canonical.join("manifest.json"), self.manifest.to_string()).unwrap();
+            fs::write(
+                self.canonical.join("manifest.json"),
+                self.manifest.to_string(),
+            )
+            .unwrap();
             fs::write(&self.validation_path, self.validation.to_string()).unwrap();
-            let mut entries: Vec<PathBuf> = fs::read_dir(&self.canonical).unwrap().map(|e| e.unwrap().path())
-                .filter(|p| p.file_name().unwrap() != "SHA256SUMS").collect();
+            let mut entries: Vec<PathBuf> = fs::read_dir(&self.canonical)
+                .unwrap()
+                .map(|e| e.unwrap().path())
+                .filter(|p| p.file_name().unwrap() != "SHA256SUMS")
+                .collect();
             entries.sort();
-            fs::write(self.canonical.join("SHA256SUMS"), entries.iter()
-                .map(|p| format!("{}  {}\n", sha(p).unwrap(), p.file_name().unwrap().to_string_lossy())).collect::<String>()).unwrap();
+            fs::write(
+                self.canonical.join("SHA256SUMS"),
+                entries
+                    .iter()
+                    .map(|p| {
+                        format!(
+                            "{}  {}\n",
+                            sha(p).unwrap(),
+                            p.file_name().unwrap().to_string_lossy()
+                        )
+                    })
+                    .collect::<String>(),
+            )
+            .unwrap();
         }
 
         fn run(&self, tag: &str) -> Result<Value> {
-            prepare(&self.canonical, &self.validation_path, tag, &self.source, &self.output)
+            prepare(
+                &self.canonical,
+                &self.validation_path,
+                tag,
+                &self.source,
+                &self.output,
+            )
         }
     }
 
@@ -289,9 +449,15 @@ mod tests {
         let release = util::read_json(&out.join("release-manifest.json")).unwrap();
         assert_eq!(release["unified_package"]["version"], "0.2.3-r4");
         assert_eq!(release["qualification"]["ROM_files_verified"], 923);
-        assert_eq!(release["qualification"]["installed_package_versions_verified"], 167);
+        assert_eq!(
+            release["qualification"]["installed_package_versions_verified"],
+            167
+        );
         let firmware = out.join("owrt-rust9-v0.2.3-openwrt-25.12.6-ax3000t-sysupgrade.bin");
-        assert_eq!(fs::read(firmware).unwrap(), fs::read(fixture.canonical.join("fixture.bin")).unwrap());
+        assert_eq!(
+            fs::read(firmware).unwrap(),
+            fs::read(fixture.canonical.join("fixture.bin")).unwrap()
+        );
         let notes = fs::read_to_string(out.join("RELEASE_NOTES.md")).unwrap();
         assert!(notes.contains("21 份系统配置及 11 份额外保护文件"));
         assert!(!notes.contains("v0.1.0") && !notes.contains("12.17 MiB"));

@@ -11,21 +11,36 @@ use crate::util::{self, ensure, is_hex, Result};
 const COMMIT_MAP: &str = "docs/history/commit-map-20261020.txt";
 
 pub fn resolve_commit(repo: &Path, commit: &str) -> Result<String> {
-    ensure!(is_hex(commit, 40), "source commit must be a full lowercase SHA1");
+    ensure!(
+        is_hex(commit, 40),
+        "source commit must be a full lowercase SHA1"
+    );
     let text = util::read_text(&repo.join(COMMIT_MAP))?;
     let mut lines = text.lines();
     let header: Vec<&str> = lines.next().unwrap_or("").split_whitespace().collect();
-    ensure!(header == ["old", "new"], "invalid privacy commit-map header");
+    ensure!(
+        header == ["old", "new"],
+        "invalid privacy commit-map header"
+    );
     let mut mapping = BTreeMap::new();
     for line in lines {
         let fields: Vec<&str> = line.split_whitespace().collect();
         ensure!(
-            fields.len() == 2 && fields.iter().all(|field| is_hex(field, 40) && *field != "0".repeat(40)),
+            fields.len() == 2
+                && fields
+                    .iter()
+                    .all(|field| is_hex(field, 40) && *field != "0".repeat(40)),
             "invalid privacy commit-map entry"
         );
-        ensure!(mapping.insert(fields[0], fields[1]).is_none(), "duplicate privacy commit-map entry");
+        ensure!(
+            mapping.insert(fields[0], fields[1]).is_none(),
+            "duplicate privacy commit-map entry"
+        );
     }
-    Ok(mapping.get(commit).map_or(commit, |sanitized| sanitized).to_owned())
+    Ok(mapping
+        .get(commit)
+        .map_or(commit, |sanitized| sanitized)
+        .to_owned())
 }
 
 #[cfg(test)]
