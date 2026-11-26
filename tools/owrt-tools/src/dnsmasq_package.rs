@@ -1175,14 +1175,15 @@ pub fn home_dir(env: &Env, name: &str, default: &str) -> PathBuf {
 }
 
 /// Runs `build` for a new task directory and always writes its manifest.
+/// `private` is the repository's `private/` (a test passes its own).
 fn attempt(
+    private: &Path,
     out: &Path,
     budget: &Path,
     build: impl FnOnce(&Path, &mut Value) -> Result<()>,
 ) -> Result<Value> {
-    let root = util::repo();
     ensure!(
-        out.starts_with(root.join("private")) && out != root.join("private"),
+        out.starts_with(private) && out != private,
         "output must be a new task directory below private/"
     );
     fs::create_dir_all(out.parent().unwrap())?;
@@ -1274,9 +1275,12 @@ pub fn main(raw: &[String]) -> Result<i32> {
     let out = safe_path(&std::path::absolute(out)?)?;
     let budget = safe_path(&std::path::absolute(args.required("--budget")?)?)?;
     util::trap_interrupts();
-    let report = attempt(&out, &budget, |out, report| {
-        audit_build(&options, out, report)
-    })?;
+    let report = attempt(
+        &util::repo().join("private"),
+        &out,
+        &budget,
+        |out, report| audit_build(&options, out, report),
+    )?;
     let summary = json!({"status": report["status"], "package": report["package"], "activation": report["activation"]});
     println!("{}", util::line_json(&summary));
     Ok(i32::from(report["status"] != "built-and-audited"))
@@ -1797,10 +1801,9 @@ mod tests {
             r#"{"schema": 1, "elf_max_bytes": 700000, "apk_max_bytes": 800000}"#,
         )
         .unwrap();
-        let out = util::repo()
-            .join("private")
-            .join(format!("owrt-tools-test-{}", std::process::id()));
-        let report = attempt(&out, &budget, |output, report| {
+        let private = temp.path().join("private");
+        let out = private.join("task");
+        let report = attempt(&private, &out, &budget, |output, report| {
             fs::write(output.join("dnsmasq.apk"), "artifact")?;
             report["artifact"] = json!({"size": 510000});
             report["elf"] = json!({"size": 980000});
@@ -1809,7 +1812,6 @@ mod tests {
         .unwrap();
         let written = util::read_json(&out.join("manifest.json")).unwrap();
         let retained = out.join("dnsmasq.apk").is_file();
-        fs::remove_dir_all(&out).unwrap();
         assert_eq!(report, written);
         assert_eq!(written["status"], "failed");
         assert_eq!(written["failure_boundary"], "size-target");
