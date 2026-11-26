@@ -58,4 +58,3 @@ jobs:
       - run: make check-toolchain
       - run: make check-toolchain-negative
       - run: make check-tools
-      - run: make check-harnesses

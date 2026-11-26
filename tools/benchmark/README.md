@@ -97,13 +97,13 @@ includes warm-up/startup and has `/proc/uptime` clock resolution. Never sum the
 overlapping daemon CPU intervals inside individual client files. The matrix's
 16-KiB `.dat` c1 file aliases the existing static measurement, not another run.
 
-`run_candidate.py --component procd --matrix` retains list32 and system.info,
+`owrt-tools run-candidate --component procd --matrix` retains list32 and system.info,
 adds four-client versions, then lists 128 services and queries one service by
 name at one and four clients. The generated 32/128-service expectations are
 checksummed across subjects; every service's data is validated. The base modes
 and frozen client binary remain available for the original R84 workloads.
 
-`run_candidate.py --component netifd --matrix` retains the four base queries,
+`owrt-tools run-candidate --component netifd --matrix` retains the four base queries,
 adds four-client versions and all-device status, then creates 30 additional
 static interfaces on the isolated bridge and measures the 32-interface dump
 and one named interface at one and four clients. Every interface's protocol,
@@ -121,7 +121,7 @@ acceptance. Early N00/N01 lacked the earlier callback/CPU gate too. The old N05
 and first R86 matrix are retained as diagnostics; R86 repeats all fourteen
 workloads with the complete gate and unchanged component binaries.
 
-`run_candidate.py --component ubusd --matrix` retains exact lookup, lookup of
+`owrt-tools run-candidate --component ubusd --matrix` retains exact lookup, lookup of
 64 objects and invoke, adds four-client versions, then prefix lookup of 64
 objects and lookup of 128 objects at one and four clients. Each provider phase
 checks the complete ordered object path set before and after measurement.
@@ -281,7 +281,7 @@ After the four windows and 72 component runs complete, derive allowlisted
 results (raw bodies, configurations, identifiers and tokens remain private):
 
 ```sh
-python3 tools/benchmark/analyze.py private/r84 \
+sh tools/owrt-tools.sh analyze private/r84 \
   --manifest work/r84/deployment/manifest.json --output /path/to/report/results.json
 # A separate plotting environment needs matplotlib; analysis itself uses stdlib.
 python3 tools/benchmark/render.py /path/to/report/results.json /path/to/report
@@ -358,7 +358,7 @@ the analysis itself does not query the device or establish current live health.
   not establish a routing-throughput speedup.
 
 R92 retains the frozen benchmark and explicitly selects the R89 bundle with
-`run_candidate.py --baseline-bundle /root/r89-before-r90 --baseline-label r89`.
+`owrt-tools run-candidate --baseline-bundle /root/r89-before-r90 --baseline-label r89`.
 `--cpus 0` applies the same affinity to each isolated subject and its clients;
 these follow-up runs are kept separate from the normal two-CPU matrix.
 
@@ -393,7 +393,7 @@ namespace's loopback only. Request gaps on the router do not measure RTT.
 64 clients and requires descriptors and threads to return each time.
 
 `OWRT_BENCH_TRACE=1` attaches a separately identified static `strace` to ubusd,
-procd or httpd; traced results are diagnostic only. `analyze_candidate.py`
+procd or httpd; traced results are diagnostic only. `owrt-tools analyze-candidate`
 rejects them. `analyze_diagnostics.py` verifies the raw HTTP series and exports
 latency/CPU for untraced diagnostics, clone counts for traced diagnostics, and
 RSS drift after repeated closes. Sampled thread births are lower bounds.
@@ -406,7 +406,7 @@ share physical pages. The result is neither exclusive RSS nor removable RAM.
 
 ## UCI independent process matrix
 
-`run_candidate.py --component uci --matrix` keeps `export_network`,
+`owrt-tools run-candidate --component uci --matrix` keeps `export_network`,
 `export_64`, `set_commit_get` and adds `get_network`, `export_multi` (four
 64-section packages), `show_long` (64 sections with 125-byte strings and
 8 × 128-byte list values), `delta_64` (32 deltas), and `batch_read16`.
@@ -436,7 +436,7 @@ clock; an empty after-exit resident list cannot establish zero memory.
 
 ## Reload-config prepared process matrix
 
-`run_candidate.py --component reload-config --matrix --reload-packages 24`
+`owrt-tools run-candidate --component reload-config --matrix --reload-packages 24`
 runs `first_baseline`, `unchanged_config`, `single_change`, `multi_change`,
 and `comment_only`. Select screening lanes with `--reload-workloads` and
 warm-up count with `--reload-warmup` (default 5). Measured invocations per lane

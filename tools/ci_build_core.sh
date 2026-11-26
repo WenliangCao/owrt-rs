@@ -17,7 +17,7 @@ mkdir -p "$out/core-binaries"
 finish_core_build() {
     core_build_status=$?
     trap - EXIT
-    python3 "$repo/tools/ci_check_core.py" warnings "$out/core-recipe-warnings.json" "$out"/*.log || core_build_status=1
+    sh "$repo/tools/owrt-tools.sh" warnings "$out/core-recipe-warnings.json" "$out"/*.log || core_build_status=1
     exit "$core_build_status"
 }
 trap finish_core_build EXIT
@@ -64,40 +64,4 @@ for component in $components; do set -- "$@" "$component-rs"; done
 tar --sort=name --owner=0 --group=0 --numeric-owner --mtime="@$epoch" \
     -cf "$work/core-binaries.tar" -C "$out/core-binaries" "$@"
 gzip -n -c "$work/core-binaries.tar" > "$out/core-binaries.tar.gz"
-python3 - "$out" "$commit" "$ver" "$staging" "$@" <<'PY'
-import hashlib
-import json
-from pathlib import Path
-import sys
-import tarfile
-
-out, commit, version, staging, *binaries = sys.argv[1:]
-out = Path(out)
-image = json.loads((out / "manifest.json").read_text())
-assert image["source_commit"] == commit and image["openwrt"] == version
-expected = set(binaries)
-hashes = {name: digest for digest, name in
-          (line.split() for line in (out / "core-binary-sha256.txt").read_text().splitlines())}
-assert set(hashes) == expected
-archive = out / "core-binaries.tar.gz"
-with tarfile.open(archive) as tar:
-    members = tar.getmembers()
-    assert len(members) == len(expected) and {m.name for m in members} == expected
-    for member in members:
-        assert member.isfile() and member.mode & 0o111
-        assert hashlib.sha256(tar.extractfile(member).read()).hexdigest() == hashes[member.name]
-manifest = {
-    "source_commit": commit,
-    "openwrt": version,
-    "target": "aarch64-unknown-linux-musl",
-    "sdk": Path(staging).parent.name,
-    "binary_sha256": hashes,
-    "archive": {"file": archive.name, "sha256": hashlib.sha256(archive.read_bytes()).hexdigest()},
-    "image_manifest_sha256": hashlib.sha256((out / "manifest.json").read_bytes()).hexdigest(),
-    "toolchain_identity_sha256": hashlib.sha256((out / "core-toolchain.log").read_bytes()).hexdigest(),
-    "deployment": "Standalone binaries; not activated by the generated image or by artifact creation.",
-    "flashed": False,
-}
-(out / "core-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-print(json.dumps(manifest, indent=2))
-PY
+sh "$repo/tools/owrt-tools.sh" core-manifest "$out" "$commit" "$ver" "$staging" "$@"

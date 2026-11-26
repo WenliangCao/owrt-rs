@@ -31,7 +31,7 @@ rm -f "$OUT/sdk-downloads-verified"
 finish_image_build() {
     image_build_status=$?
     trap - EXIT
-    python3 "$REPO/tools/ci_check_core.py" warnings "$OUT/image-recipe-warnings.json" "$OUT"/*.log || image_build_status=1
+    sh "$REPO/tools/owrt-tools.sh" warnings "$OUT/image-recipe-warnings.json" "$OUT"/*.log || image_build_status=1
     exit "$image_build_status"
 }
 trap finish_image_build EXIT

@@ -118,8 +118,8 @@ v0.2.1 的另外九个 ELF、dnsmasq init/ACL 与 v0.2.0 逐字节相同。历�
 |---|---|
 | SDK 与六个包 | `tools/ci_build_image.sh` 校验官方下载，按既有 SDK 配方构建六个 Rust 程序及中间镜像 |
 | 四个核心程序 | `tools/ci_build_core.sh` 在 `OWRT_CORE_INCLUDE_ODHCPD=1` 下构建 procd/ubusd/netifd/odhcpd，固定源码路径及工具链，核验 ABI 与归档身份 |
-| dnsmasq | `tools/ci_build_dnsmasq.py` 核验冻结产品的源码和 SDK 配方 digest，通过原 SDK recipe 新编译；记录实际 ELF、init、ACL 及参考 ELF 比较 |
-| 原位整合 | `tools/ci_integrate_image.sh`、`tools/native_image.py` 固定官方镜像与 LuCI 源码归档 SHA256，离线安装统一 APK 与四个中文包，以匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
+| dnsmasq | `owrt-tools ci-build-dnsmasq` 核验冻结产品的源码和 SDK 配方 digest，通过原 SDK recipe 新编译；记录实际 ELF、init、ACL 及参考 ELF 比较 |
+| 原位整合 | `tools/ci_integrate_image.sh`、`owrt-tools native-image` 固定官方镜像与 LuCI 源码归档 SHA256，离线安装统一 APK 与四个中文包，以匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
 | 内容审计 | 十一个程序、init/ACL、APK 所有权、十三份 stock 恢复文件、配置及其余原包内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
 
 最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 当前 v0.3.3 的 canonical 参考为 `b2192268615d7be8ec30397de2a4b67cc5efa292017237d03b47a55324e5aa41`；正式 CI 必须新编译并核对完整哈希，不能偷换为参考二进制。固定 PGO 从独立[构建输入 Release](https://github.com/WenliangCao/owrt-rs/releases/tag/dnsmasq-v033-pgo-inputs-20261023)下载并核验；SDK 构建槽路径也是 Cargo 外部依赖身份的输入。v0.3.3 完成新的11场景/50 profiles训练与231项输入冻结，不复用旧profile作为新资格。历史 v0.3.2 的 ELF 为 `2a22f6327d81e25c8bf9e891d21842e5ef0d33ec074e5004506388f3b616e2a2`；v0.3.0/v0.3.1 为 `0421a5d0…`。历史 v0.2.1 的 CI 精确复现 K，v0.2.2 的统一 generator/use 完成且 0 PGO missing/mismatch；这些资格保留各自原身份。历史 v0.2.0 发布 ELF `8472be5a…` 与早期性能 ELF `50e591a9…` 的资格也分别记录，不能混用。
@@ -234,7 +234,7 @@ gh release edit v0.2.0 --prerelease=false --latest
 
 更新同一 Release 的说明，加入实际构建提交、资产哈希、部署/正常重启/断电结果和日常占用对照。后续观察自然续租、新设备入网、长期资源趋势，以及性能报告中两处原因未明尾延迟；短期验收不等于消除这些边界。
 
-历史设备专用标签如 `ax3000t-rust9-v0.1.0` 保持不变。`tools/native_release_prepare.py` 的既有产物晋升流程仍是历史九组件节点的可追溯依据；不可直接假定其旧 schema 或固定恢复集合适用于本次十组件。v0.2.0 以当前 Actions 的 `native-ten` 正式资产和匹配的新验收记录为准。
+历史设备专用标签如 `ax3000t-rust9-v0.1.0` 保持不变。`owrt-tools native-release-prepare` 的既有产物晋升流程仍是历史九组件节点的可追溯依据；不可直接假定其旧 schema 或固定恢复集合适用于本次十组件。v0.2.0 以当前 Actions 的 `native-ten` 正式资产和匹配的新验收记录为准。
 
 ## 保留配置与首次迁移
 
@@ -262,7 +262,7 @@ reboot
 
 ## 验收边界
 
-`tools/native_image_check.py` 在 aarch64 Linux 独立 namespace 与镜像副本中运行精确 sysupgrade 备份、preinit 配置恢复、首次迁移、后续原生升级、错误身份拒绝、完整 C 恢复及 APK 重装。九组件或 `native-ten` 的历史通过记录不能自动成为十三恢复项的资格；当前须保存 `native-eleven` 实际执行结果。`tools/native_apk_fixtures.py` 从精确原镜像文件清单重建原包载荷，供 `--no-scripts` 所有权重装；它们不是原始签名 APK。测试须确认已删除文件恢复，拒绝 APK 成功却跳过载荷。
+`owrt-tools native-image-check` 在 aarch64 Linux 独立 namespace 与镜像副本中运行精确 sysupgrade 备份、preinit 配置恢复、首次迁移、后续原生升级、错误身份拒绝、完整 C 恢复及 APK 重装。九组件或 `native-ten` 的历史通过记录不能自动成为十三恢复项的资格；当前须保存 `native-eleven` 实际执行结果。`owrt-tools native-apk-fixtures` 从精确原镜像文件清单重建原包载荷，供 `--no-scripts` 所有权重装；它们不是原始签名 APK。测试须确认已删除文件恢复，拒绝 APK 成功却跳过载荷。
 
 `tools/native_boot_check.sh` 使用镜像内 PID1、总线及启动脚本验证模拟 LAN/WAN、RPCD、日志、HTTP/HTTPS、首次证书、UCI、reload_config、fw4。dnsmasq 还须验证实际最终 ELF 与 init/ACL 的 DNS/DHCP、helper/ubus、恢复与权限链路。物理无线、闪存写入、正常重启及断电行为由真机验收负责，隔离测试不能替代。
 
