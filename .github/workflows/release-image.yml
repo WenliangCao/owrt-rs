@@ -82,9 +82,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          python3 -m unittest discover -s tools -p test_ci_dnsmasq_pgo.py
-          python3 -m unittest discover -s tools -p test_native_image.py
-          python3 tools/ci_build_dnsmasq.py "$GITHUB_WORKSPACE/work"
+          cargo test --locked --manifest-path tools/owrt-tools/Cargo.toml -- dnsmasq_ci native_image
+          sh tools/owrt-tools.sh ci-build-dnsmasq "$GITHUB_WORKSPACE/work"
 
       - name: integrate eleven native components and verify the final image
         run: sh tools/ci_integrate_image.sh "$GITHUB_WORKSPACE/work"

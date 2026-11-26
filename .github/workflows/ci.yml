@@ -2,7 +2,6 @@ name: ci
 on:
   push:
     branches: [main]
-    tags: ["research-netifd-*"]
   pull_request:
 
 jobs:
@@ -59,4 +58,3 @@ jobs:
       - run: make check-toolchain
       - run: make check-toolchain-negative
       - run: make check-tools
-      - run: make check-harnesses

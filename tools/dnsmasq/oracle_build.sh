@@ -83,7 +83,7 @@ if [ "$build_kind" = release ]; then
     # Keep the shipped daemon static and select the matching PIE startup.
     # Test and diagnostic binaries retain their existing static linkage.
     export DNSMASQ_STATIC_PIE_CC="$CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER"
-    export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$source_dir/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"
+    export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$source_dir/packaging/openwrt/owrt-dnsmasq/static-pie-linker.sh"
     export RUSTFLAGS="$RUSTFLAGS -Crelocation-model=pie -Ctarget-feature=+crt-static"
 fi
 # Optional fault/attribution evidence. Only this fresh output can receive the

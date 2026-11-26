@@ -51,13 +51,13 @@ jobs:
           path: work/dl
           key: dnsmasq-target-sdk-${{ hashFiles('manifests/release-*.json') }}
       - name: validate PGO boundaries and compiler-warning gates
-        run: python3 -m unittest discover -s tools -p 'test_ci_dnsmasq*.py'
+        run: cargo test --locked --manifest-path tools/owrt-tools/Cargo.toml -- dnsmasq
       - name: build the explicitly frozen stage
         env:
           GH_TOKEN: ${{ github.token }}
           PGO_STAGE: ${{ inputs.stage }}
           PGO_SPEC: ${{ inputs.spec }}
-        run: python3 tools/ci_check_dnsmasq_pgo_pipeline.py "$GITHUB_WORKSPACE/work" --stage "$PGO_STAGE" --spec "$PGO_SPEC"
+        run: sh tools/owrt-tools.sh ci-check-dnsmasq-pgo-pipeline "$GITHUB_WORKSPACE/work" --stage "$PGO_STAGE" --spec "$PGO_SPEC"
       - name: preserve actual artifacts and original diagnostics
         if: always()
         uses: actions/upload-artifact@v4

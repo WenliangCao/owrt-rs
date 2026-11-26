@@ -21,6 +21,7 @@
 /components/*/target/
 /components/dnsmasq/fuzz/target/
 /tools/benchmark/target/
+/tools/owrt-tools/target/
 
 # Python analysis-tool cache
 __pycache__/
