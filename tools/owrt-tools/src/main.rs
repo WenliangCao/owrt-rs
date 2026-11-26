@@ -4,6 +4,7 @@
 //! The binary dispatches on its subcommand, or on its own file name when the
 //! SDK recipe invokes a copy installed as `pgo-cargo` or `map-cc`.
 
+mod bench;
 mod device;
 mod dnsmasq_ci;
 mod dnsmasq_package;
@@ -35,13 +36,20 @@ commands:
   native-trial-prepare CONFIG MANIFEST BOUNDED OUT --rootfs R ...
   native-deploy-window stage|activate|observe DIR  (Mac-side; authorized windows only)
   device-probe [--mode M] [--native-manifest F]    (Mac-side, read-only)
+  run-candidate CANDIDATE OUTPUT --interface IF [options]  (Mac-side; authorized windows only)
+  analyze PRIVATE --manifest M --output OUT [--partial]
+  analyze-candidate PRIVATE --output DIR --label LABEL
   json-field FILE KEY...           print one string field of a JSON file";
 
 fn json_field(raw: &[String]) -> util::Result<i32> {
-    let (file, keys) = raw.split_first().ok_or_else(|| util::Error::new("usage: json-field FILE KEY..."))?;
+    let (file, keys) = raw
+        .split_first()
+        .ok_or_else(|| util::Error::new("usage: json-field FILE KEY..."))?;
     let mut value = &util::read_json(Path::new(file))?;
     for key in keys {
-        value = value.get(key).ok_or_else(|| util::Error::new(format!("{file}: missing {key}")))?;
+        value = value
+            .get(key)
+            .ok_or_else(|| util::Error::new(format!("{file}: missing {key}")))?;
     }
     match value.as_str() {
         Some(text) => println!("{text}"),
@@ -75,6 +83,9 @@ fn dispatch(program: &str, args: &[String]) -> util::Result<i32> {
         "native-trial-prepare" => device::trial_main(rest),
         "native-deploy-window" => device::deploy_main(rest),
         "device-probe" => device::probe_main(rest),
+        "run-candidate" => bench::run_candidate::main(rest),
+        "analyze" => bench::analyze::main(rest),
+        "analyze-candidate" => bench::candidate::main(rest),
         "json-field" => json_field(rest),
         "-h" | "--help" | "help" => {
             println!("{USAGE}");
@@ -89,8 +100,15 @@ fn dispatch(program: &str, args: &[String]) -> util::Result<i32> {
 
 fn main() {
     let argv = util::os_args();
-    let program = argv.first().and_then(|arg| Path::new(arg).file_name()).map(|name| name.to_string_lossy().into_owned());
-    let code = dispatch(program.as_deref().unwrap_or_default(), argv.get(1..).unwrap_or_default()).unwrap_or_else(|error| {
+    let program = argv
+        .first()
+        .and_then(|arg| Path::new(arg).file_name())
+        .map(|name| name.to_string_lossy().into_owned());
+    let code = dispatch(
+        program.as_deref().unwrap_or_default(),
+        argv.get(1..).unwrap_or_default(),
+    )
+    .unwrap_or_else(|error| {
         eprintln!("owrt-tools: {error}");
         1
     });

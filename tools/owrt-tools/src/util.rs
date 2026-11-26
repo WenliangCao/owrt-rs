@@ -26,7 +26,9 @@ pub struct Error {
 
 impl Error {
     pub fn new(message: impl Into<String>) -> Self {
-        Self { message: message.into() }
+        Self {
+            message: message.into(),
+        }
     }
 }
 
@@ -47,8 +49,14 @@ macro_rules! from_error {
         }
     )*};
 }
-from_error!(io::Error, serde_json::Error, toml::de::Error, regex::Error,
-            std::num::ParseIntError, std::string::FromUtf8Error);
+from_error!(
+    io::Error,
+    serde_json::Error,
+    toml::de::Error,
+    regex::Error,
+    std::num::ParseIntError,
+    std::string::FromUtf8Error
+);
 
 /// Returns early with an [`Error`] built from a format string.
 macro_rules! bail {
@@ -67,7 +75,11 @@ pub(crate) use {bail, ensure};
 /// The repository root this binary was built from.
 pub fn repo() -> PathBuf {
     let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
-    manifest.parent().and_then(Path::parent).expect("crate lives in tools/owrt-tools").to_path_buf()
+    manifest
+        .parent()
+        .and_then(Path::parent)
+        .expect("crate lives in tools/owrt-tools")
+        .to_path_buf()
 }
 
 pub fn hex(bytes: &[u8]) -> String {
@@ -79,7 +91,8 @@ pub fn sha256_bytes(data: &[u8]) -> String {
 }
 
 pub fn sha256_file(path: &Path) -> Result<String> {
-    let mut file = File::open(path).map_err(|error| Error::new(format!("{}: {error}", path.display())))?;
+    let mut file =
+        File::open(path).map_err(|error| Error::new(format!("{}: {error}", path.display())))?;
     let mut hasher = Sha256::new();
     let mut buffer = vec![0; 1 << 20];
     loop {
@@ -93,7 +106,10 @@ pub fn sha256_file(path: &Path) -> Result<String> {
 
 /// A 64-digit lowercase SHA-256 (or `length`-digit) hexadecimal string.
 pub fn is_hex(value: &str, length: usize) -> bool {
-    value.len() == length && value.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    value.len() == length
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 pub fn read_text(path: &Path) -> Result<String> {
@@ -102,7 +118,8 @@ pub fn read_text(path: &Path) -> Result<String> {
 
 /// Reads text, replacing invalid UTF-8 like Python's `errors="replace"`.
 pub fn read_lossy(path: &Path) -> Result<String> {
-    let data = fs::read(path).map_err(|error| Error::new(format!("{}: {error}", path.display())))?;
+    let data =
+        fs::read(path).map_err(|error| Error::new(format!("{}: {error}", path.display())))?;
     Ok(String::from_utf8_lossy(&data).into_owned())
 }
 
@@ -113,8 +130,18 @@ pub fn splitlines(text: &str) -> Vec<&str> {
     let mut start = 0;
     let mut chars = text.char_indices().peekable();
     while let Some((index, character)) = chars.next() {
-        let boundary = matches!(character,
-            '\n' | '\r' | '\u{b}' | '\u{c}' | '\u{1c}' | '\u{1d}' | '\u{1e}' | '\u{85}' | '\u{2028}' | '\u{2029}');
+        let boundary = matches!(
+            character,
+            '\n' | '\r'
+                | '\u{b}'
+                | '\u{c}'
+                | '\u{1c}'
+                | '\u{1d}'
+                | '\u{1e}'
+                | '\u{85}'
+                | '\u{2028}'
+                | '\u{2029}'
+        );
         if boundary {
             lines.push(&text[start..index]);
             let mut end = index + character.len_utf8();
@@ -134,7 +161,8 @@ pub fn splitlines(text: &str) -> Vec<&str> {
 }
 
 pub fn read_json(path: &Path) -> Result<Value> {
-    serde_json::from_str(&read_text(path)?).map_err(|error| Error::new(format!("{}: {error}", path.display())))
+    serde_json::from_str(&read_text(path)?)
+        .map_err(|error| Error::new(format!("{}: {error}", path.display())))
 }
 
 /// Writes `value` as `json.dumps(value, indent=2) + "\n"`, creating parents.
@@ -148,7 +176,10 @@ pub fn write_json(path: &Path, value: &Value) -> Result<()> {
 
 /// Creates a new file exclusively (Python mode `"x"`) and writes JSON to it.
 pub fn write_json_new(path: &Path, value: &Value) -> Result<()> {
-    let mut file = fs::OpenOptions::new().write(true).create_new(true).open(path)?;
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)?;
     file.write_all((pretty_json(value) + "\n").as_bytes())?;
     Ok(())
 }
@@ -177,22 +208,42 @@ pub fn walk_sorted(root: &Path) -> Result<Vec<PathBuf>> {
     Ok(found)
 }
 
+/// Creates one directory with mode 0700 (Python `mkdir(mode=0o700)`).
+pub fn create_private_dir(path: &Path) -> Result<()> {
+    use std::os::unix::fs::DirBuilderExt;
+    fs::DirBuilder::new()
+        .mode(0o700)
+        .create(path)
+        .map_err(|error| Error::new(format!("{}: {error}", path.display())))
+}
+
 pub fn is_symlink(path: &Path) -> bool {
-    fs::symlink_metadata(path).map(|meta| meta.file_type().is_symlink()).unwrap_or(false)
+    fs::symlink_metadata(path)
+        .map(|meta| meta.file_type().is_symlink())
+        .unwrap_or(false)
 }
 
 /// Copies contents, permission bits and timestamps (Python `shutil.copy2`).
 pub fn copy2(source: &Path, target: &Path) -> Result<()> {
     fs::copy(source, target).map_err(|error| {
-        Error::new(format!("copy {} -> {}: {error}", source.display(), target.display()))
+        Error::new(format!(
+            "copy {} -> {}: {error}",
+            source.display(),
+            target.display()
+        ))
     })?;
     copy_times(source, target)
 }
 
 fn copy_times(source: &Path, target: &Path) -> Result<()> {
     let meta = fs::metadata(source)?;
-    let times = fs::FileTimes::new().set_accessed(meta.accessed()?).set_modified(meta.modified()?);
-    let file = File::options().write(true).open(target).or_else(|_| File::open(target))?;
+    let times = fs::FileTimes::new()
+        .set_accessed(meta.accessed()?)
+        .set_modified(meta.modified()?);
+    let file = File::options()
+        .write(true)
+        .open(target)
+        .or_else(|_| File::open(target))?;
     file.set_times(times)?;
     Ok(())
 }
@@ -248,14 +299,24 @@ pub fn command(argv: &[String], cwd: Option<&Path>, env: Option<&Env>) -> Comman
 
 /// Runs a command with stdout and stderr in `log`; fails on a nonzero exit.
 /// Returns the log text (Python `build_package.run`).
-pub fn run_logged(argv: &[String], log: &Path, cwd: Option<&Path>, env: Option<&Env>) -> Result<String> {
+pub fn run_logged(
+    argv: &[String],
+    log: &Path,
+    cwd: Option<&Path>,
+    env: Option<&Env>,
+) -> Result<String> {
     let code = run_to_log(argv, log, cwd, env)?;
     ensure!(code == 0, "command exited {code}; see {}", log.display());
     read_lossy(log)
 }
 
 /// Runs a command with stdout and stderr in `log` and returns its exit code.
-pub fn run_to_log(argv: &[String], log: &Path, cwd: Option<&Path>, env: Option<&Env>) -> Result<i32> {
+pub fn run_to_log(
+    argv: &[String],
+    log: &Path,
+    cwd: Option<&Path>,
+    env: Option<&Env>,
+) -> Result<i32> {
     let output = File::create(log)?;
     let errors = output.try_clone()?;
     let status = command(argv, cwd, env)
@@ -269,7 +330,9 @@ pub fn run_to_log(argv: &[String], log: &Path, cwd: Option<&Path>, env: Option<&
 
 pub fn exit_code(status: std::process::ExitStatus) -> i32 {
     use std::os::unix::process::ExitStatusExt;
-    status.code().unwrap_or_else(|| -status.signal().unwrap_or(1))
+    status
+        .code()
+        .unwrap_or_else(|| -status.signal().unwrap_or(1))
 }
 
 /// Runs a command, inheriting stdio, and fails unless it exits 0.
@@ -277,7 +340,12 @@ pub fn run_checked(argv: &[String], cwd: Option<&Path>, env: Option<&Env>) -> Re
     let status = command(argv, cwd, env)
         .status()
         .map_err(|error| Error::new(format!("{}: {error}", argv[0])))?;
-    ensure!(status.success(), "command {:?} exited {}", argv, exit_code(status));
+    ensure!(
+        status.success(),
+        "command {:?} exited {}",
+        argv,
+        exit_code(status)
+    );
     Ok(())
 }
 
@@ -287,7 +355,12 @@ pub fn output(argv: &[String], cwd: Option<&Path>, env: Option<&Env>) -> Result<
         .stderr(Stdio::inherit())
         .output()
         .map_err(|error| Error::new(format!("{}: {error}", argv[0])))?;
-    ensure!(result.status.success(), "command {:?} exited {}", argv, exit_code(result.status));
+    ensure!(
+        result.status.success(),
+        "command {:?} exited {}",
+        argv,
+        exit_code(result.status)
+    );
     Ok(String::from_utf8_lossy(&result.stdout).into_owned())
 }
 
@@ -300,7 +373,13 @@ where
 }
 
 pub fn git_head(repo: &Path) -> Result<String> {
-    Ok(output(&strings(["git", "-C", &display(repo), "rev-parse", "HEAD"]), None, None)?.trim().to_owned())
+    Ok(output(
+        &strings(["git", "-C", &display(repo), "rev-parse", "HEAD"]),
+        None,
+        None,
+    )?
+    .trim()
+    .to_owned())
 }
 
 pub fn is_linux() -> bool {
@@ -334,10 +413,18 @@ pub struct FileLock {
 impl FileLock {
     pub fn acquire(path: &Path) -> Result<Self> {
         use std::os::fd::AsRawFd;
-        let file = fs::OpenOptions::new().append(true).create(true).open(path)?;
+        let file = fs::OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(path)?;
         // SAFETY: the descriptor is owned by `file`, which outlives the lock.
         let result = unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) };
-        ensure!(result == 0, "{} is locked by another build: {}", path.display(), io::Error::last_os_error());
+        ensure!(
+            result == 0,
+            "{} is locked by another build: {}",
+            path.display(),
+            io::Error::last_os_error()
+        );
         Ok(Self { _file: file })
     }
 }
@@ -360,7 +447,10 @@ pub fn trap_interrupts() {
 }
 
 pub fn check_interrupted(what: &str) -> Result<()> {
-    ensure!(!INTERRUPTED.load(Ordering::SeqCst), "{what} interrupted by signal");
+    ensure!(
+        !INTERRUPTED.load(Ordering::SeqCst),
+        "{what} interrupted by signal"
+    );
     Ok(())
 }
 
@@ -395,7 +485,10 @@ impl Args {
             } else if value_options.contains(&name) {
                 let value = match inline {
                     Some(value) => value,
-                    None => items.next().cloned().ok_or_else(|| Error::new(format!("{name} needs a value")))?,
+                    None => items
+                        .next()
+                        .cloned()
+                        .ok_or_else(|| Error::new(format!("{name} needs a value")))?,
                 };
                 args.values.entry(name.to_owned()).or_default().push(value);
             } else {
@@ -406,7 +499,10 @@ impl Args {
     }
 
     pub fn value(&self, name: &str) -> Option<&str> {
-        self.values.get(name).and_then(|values| values.last()).map(String::as_str)
+        self.values
+            .get(name)
+            .and_then(|values| values.last())
+            .map(String::as_str)
     }
 
     pub fn values(&self, name: &str) -> &[String] {
@@ -414,7 +510,8 @@ impl Args {
     }
 
     pub fn required(&self, name: &str) -> Result<&str> {
-        self.value(name).ok_or_else(|| Error::new(format!("{name} is required")))
+        self.value(name)
+            .ok_or_else(|| Error::new(format!("{name} is required")))
     }
 
     pub fn flag(&self, name: &str) -> bool {
@@ -427,13 +524,19 @@ impl Args {
 
     /// Exactly `names.len()` positionals, or a usage error naming them.
     pub fn exact(&self, names: &[&str]) -> Result<Vec<String>> {
-        ensure!(self.positional.len() == names.len(), "usage: {}", names.join(" "));
+        ensure!(
+            self.positional.len() == names.len(),
+            "usage: {}",
+            names.join(" ")
+        );
         Ok(self.positional.clone())
     }
 }
 
 pub fn os_args() -> Vec<String> {
-    std::env::args_os().map(|arg: OsString| arg.to_string_lossy().into_owned()).collect()
+    std::env::args_os()
+        .map(|arg: OsString| arg.to_string_lossy().into_owned())
+        .collect()
 }
 
 // ---------------------------------------------------------------- JSON
@@ -448,23 +551,59 @@ struct Style {
 
 /// `json.dumps(value, indent=2)`.
 pub fn pretty_json(value: &Value) -> String {
-    serialize(value, &Style { indent: Some(2), sort_keys: false, item: ",", key: ": ", ascii: true })
+    serialize(
+        value,
+        &Style {
+            indent: Some(2),
+            sort_keys: false,
+            item: ",",
+            key: ": ",
+            ascii: true,
+        },
+    )
 }
 
 /// `json.dumps(value, ensure_ascii=False, indent=2)`.
 pub fn pretty_json_unicode(value: &Value) -> String {
-    serialize(value, &Style { indent: Some(2), sort_keys: false, item: ",", key: ": ", ascii: false })
+    serialize(
+        value,
+        &Style {
+            indent: Some(2),
+            sort_keys: false,
+            item: ",",
+            key: ": ",
+            ascii: false,
+        },
+    )
 }
 
 /// `json.dumps(value)`: one line with `", "` and `": "` separators.
 pub fn line_json(value: &Value) -> String {
-    serialize(value, &Style { indent: None, sort_keys: false, item: ", ", key: ": ", ascii: true })
+    serialize(
+        value,
+        &Style {
+            indent: None,
+            sort_keys: false,
+            item: ", ",
+            key: ": ",
+            ascii: true,
+        },
+    )
 }
 
 /// `json.dumps(value, sort_keys=True, separators=(",", ":"))`, the input
 /// form of every frozen source digest.
 pub fn canonical_json(value: &Value) -> String {
-    serialize(value, &Style { indent: None, sort_keys: true, item: ",", key: ":", ascii: true })
+    serialize(
+        value,
+        &Style {
+            indent: None,
+            sort_keys: true,
+            item: ",",
+            key: ":",
+            ascii: true,
+        },
+    )
 }
 
 /// SHA-256 of [`canonical_json`].
@@ -490,7 +629,9 @@ fn write_value(out: &mut String, value: &Value, style: &Style, depth: usize) {
         Value::Null => out.push_str("null"),
         Value::Bool(flag) => out.push_str(if *flag { "true" } else { "false" }),
         Value::Number(number) => match number.as_f64() {
-            Some(float) if !number.is_i64() && !number.is_u64() => out.push_str(&python_float(float)),
+            Some(float) if !number.is_i64() && !number.is_u64() => {
+                out.push_str(&python_float(float))
+            }
             _ => out.push_str(&number.to_string()),
         },
         Value::String(text) => write_string(out, text, style.ascii),
@@ -563,14 +704,22 @@ fn write_string(out: &mut String, text: &str, ascii: bool) {
 /// outside `1e-4 <= |x| < 1e16`.
 pub fn python_float(value: f64) -> String {
     if value == 0.0 {
-        return if value.is_sign_negative() { "-0.0".into() } else { "0.0".into() };
+        return if value.is_sign_negative() {
+            "-0.0".into()
+        } else {
+            "0.0".into()
+        };
     }
     let scientific = format!("{value:e}");
     let (mantissa, exponent) = scientific.split_once('e').expect("{:e} has an exponent");
     let exponent: i32 = exponent.parse().expect("{:e} exponent is an integer");
     if (-4..16).contains(&exponent) {
         let plain = format!("{value}");
-        if plain.contains('.') { plain } else { plain + ".0" }
+        if plain.contains('.') {
+            plain
+        } else {
+            plain + ".0"
+        }
     } else {
         let sign = if exponent < 0 { '-' } else { '+' };
         format!("{mantissa}e{sign}{:02}", exponent.abs())
@@ -583,12 +732,21 @@ where
     I: IntoIterator<Item = (K, Value)>,
     K: Into<String>,
 {
-    Value::Object(pairs.into_iter().map(|(key, value)| (key.into(), value)).collect())
+    Value::Object(
+        pairs
+            .into_iter()
+            .map(|(key, value)| (key.into(), value))
+            .collect(),
+    )
 }
 
 /// `{name: digest}` in the given order.
 pub fn string_map(pairs: &[(String, String)]) -> Value {
-    object(pairs.iter().map(|(key, value)| (key.clone(), Value::String(value.clone()))))
+    object(
+        pairs
+            .iter()
+            .map(|(key, value)| (key.clone(), Value::String(value.clone()))),
+    )
 }
 
 /// Field accessors that turn a missing or mistyped field into an [`Error`].
@@ -601,19 +759,26 @@ pub trait JsonExt {
 
 impl JsonExt for Value {
     fn field(&self, key: &str) -> Result<&Value> {
-        self.get(key).ok_or_else(|| Error::new(format!("missing JSON field: {key}")))
+        self.get(key)
+            .ok_or_else(|| Error::new(format!("missing JSON field: {key}")))
     }
 
     fn str_field(&self, key: &str) -> Result<&str> {
-        self.field(key)?.as_str().ok_or_else(|| Error::new(format!("JSON field is not a string: {key}")))
+        self.field(key)?
+            .as_str()
+            .ok_or_else(|| Error::new(format!("JSON field is not a string: {key}")))
     }
 
     fn u64_field(&self, key: &str) -> Result<u64> {
-        self.field(key)?.as_u64().ok_or_else(|| Error::new(format!("JSON field is not an integer: {key}")))
+        self.field(key)?
+            .as_u64()
+            .ok_or_else(|| Error::new(format!("JSON field is not an integer: {key}")))
     }
 
     fn obj_field(&self, key: &str) -> Result<&serde_json::Map<String, Value>> {
-        self.field(key)?.as_object().ok_or_else(|| Error::new(format!("JSON field is not an object: {key}")))
+        self.field(key)?
+            .as_object()
+            .ok_or_else(|| Error::new(format!("JSON field is not an object: {key}")))
     }
 }
 
@@ -630,12 +795,18 @@ mod tests {
             "{\n  \"b\": [\n    1,\n    {\n      \"x\": []\n    },\n    {}\n  ],\n  \"a\": \"\\u00e9\\\"\\n\",\n  \
              \"f\": 0.5,\n  \"g\": 1e-05,\n  \"h\": 1e+16\n}"
         );
-        assert_eq!(canonical_json(&value), "{\"a\":\"\\u00e9\\\"\\n\",\"b\":[1,{\"x\":[]},{}],\"f\":0.5,\"g\":1e-05,\"h\":1e+16}");
+        assert_eq!(
+            canonical_json(&value),
+            "{\"a\":\"\\u00e9\\\"\\n\",\"b\":[1,{\"x\":[]},{}],\"f\":0.5,\"g\":1e-05,\"h\":1e+16}"
+        );
         assert_eq!(line_json(&json!({"a": [1, 2]})), "{\"a\": [1, 2]}");
         assert_eq!(python_float(2.0), "2.0");
         assert_eq!(python_float(123.456), "123.456");
         assert_eq!(python_float(1.5e-7), "1.5e-07");
-        assert_eq!(write_string_for("\u{1f600}\u{7f}"), "\"\\ud83d\\ude00\\u007f\"");
+        assert_eq!(
+            write_string_for("\u{1f600}\u{7f}"),
+            "\"\\ud83d\\ude00\\u007f\""
+        );
     }
 
     fn write_string_for(text: &str) -> String {
@@ -646,7 +817,10 @@ mod tests {
 
     #[test]
     fn splitlines_matches_python() {
-        assert_eq!(splitlines("a\r\nb\rc\n\nd\u{c}e\n"), ["a", "b", "c", "", "d", "e"]);
+        assert_eq!(
+            splitlines("a\r\nb\rc\n\nd\u{c}e\n"),
+            ["a", "b", "c", "", "d", "e"]
+        );
         assert_eq!(splitlines(""), Vec::<&str>::new());
         assert_eq!(splitlines("x"), ["x"]);
     }
@@ -662,7 +836,12 @@ mod tests {
         let names: Vec<_> = walk_sorted(directory.path())
             .unwrap()
             .into_iter()
-            .map(|path| path.strip_prefix(directory.path()).unwrap().to_string_lossy().into_owned())
+            .map(|path| {
+                path.strip_prefix(directory.path())
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned()
+            })
             .collect();
         assert_eq!(names, ["a", "a/a", "a/b", "a-c"]);
     }
@@ -746,21 +925,39 @@ impl Output {
 /// Runs `argv` with optional stdin text and a wall-clock timeout (Python
 /// `subprocess.run(..., capture_output=True, timeout=...)`). A timeout kills
 /// the child and is an error.
-pub fn run_timeout(argv: &[String], input: Option<&str>, timeout: std::time::Duration) -> Result<Output> {
+pub fn run_timeout(
+    argv: &[String],
+    input: Option<&str>,
+    timeout: std::time::Duration,
+) -> Result<Output> {
     let mut child = Command::new(&argv[0])
         .args(&argv[1..])
-        .stdin(if input.is_some() { Stdio::piped() } else { Stdio::null() })
+        .stdin(if input.is_some() {
+            Stdio::piped()
+        } else {
+            Stdio::null()
+        })
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|error| Error::new(format!("{}: {error}", argv[0])))?;
     if let Some(text) = input {
-        child.stdin.take().expect("piped stdin").write_all(text.as_bytes())?;
+        child
+            .stdin
+            .take()
+            .expect("piped stdin")
+            .write_all(text.as_bytes())?;
     }
     let mut stdout = child.stdout.take().expect("piped stdout");
     let mut stderr = child.stderr.take().expect("piped stderr");
-    let out = std::thread::spawn(move || { let mut data = Vec::new(); stdout.read_to_end(&mut data).map(|_| data) });
-    let err = std::thread::spawn(move || { let mut data = Vec::new(); stderr.read_to_end(&mut data).map(|_| data) });
+    let out = std::thread::spawn(move || {
+        let mut data = Vec::new();
+        stdout.read_to_end(&mut data).map(|_| data)
+    });
+    let err = std::thread::spawn(move || {
+        let mut data = Vec::new();
+        stderr.read_to_end(&mut data).map(|_| data)
+    });
     let start = std::time::Instant::now();
     let status = loop {
         if let Some(status) = child.try_wait()? {
@@ -773,9 +970,17 @@ pub fn run_timeout(argv: &[String], input: Option<&str>, timeout: std::time::Dur
         }
         std::thread::sleep(std::time::Duration::from_millis(20));
     };
-    let stdout = out.join().map_err(|_| Error::new("stdout reader panicked"))??;
-    let stderr = err.join().map_err(|_| Error::new("stderr reader panicked"))??;
-    Ok(Output { code: exit_code(status), stdout, stderr })
+    let stdout = out
+        .join()
+        .map_err(|_| Error::new("stdout reader panicked"))??;
+    let stderr = err
+        .join()
+        .map_err(|_| Error::new("stderr reader panicked"))??;
+    Ok(Output {
+        code: exit_code(status),
+        stdout,
+        stderr,
+    })
 }
 
 pub fn seconds(value: f64) -> std::time::Duration {
@@ -784,7 +989,16 @@ pub fn seconds(value: f64) -> std::time::Duration {
 
 /// `json.dumps(value, sort_keys=True)`.
 pub fn sorted_line_json(value: &Value) -> String {
-    serialize(value, &Style { indent: None, sort_keys: true, item: ", ", key: ": ", ascii: true })
+    serialize(
+        value,
+        &Style {
+            indent: None,
+            sort_keys: true,
+            item: ", ",
+            key: ": ",
+            ascii: true,
+        },
+    )
 }
 
 /// `{path: digest}` from `sha256sum` output (Python
@@ -803,7 +1017,9 @@ pub fn sum_map(text: &str) -> Result<BTreeMap<String, String>> {
 
 /// `datetime.now(timezone.utc).isoformat()`.
 pub fn utc_now_iso() -> String {
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default();
     let (days, rest) = ((now.as_secs() / 86_400) as i64, now.as_secs() % 86_400);
     // Howard Hinnant's civil_from_days.
     let z = days + 719_468;
@@ -817,7 +1033,11 @@ pub fn utc_now_iso() -> String {
     let year = yoe + era * 400 + i64::from(month <= 2);
     let micros = now.subsec_micros();
     let time = format!("{:02}:{:02}:{:02}", rest / 3600, rest / 60 % 60, rest % 60);
-    let fraction = if micros == 0 { String::new() } else { format!(".{micros:06}") };
+    let fraction = if micros == 0 {
+        String::new()
+    } else {
+        format!(".{micros:06}")
+    };
     format!("{year:04}-{month:02}-{day:02}T{time}{fraction}+00:00")
 }
 
@@ -828,7 +1048,14 @@ pub fn uuid4() -> Result<String> {
     bytes[6] = (bytes[6] & 0x0f) | 0x40;
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
     let text = hex(&bytes);
-    Ok(format!("{}-{}-{}-{}-{}", &text[..8], &text[8..12], &text[12..16], &text[16..20], &text[20..]))
+    Ok(format!(
+        "{}-{}-{}-{}-{}",
+        &text[..8],
+        &text[8..12],
+        &text[12..16],
+        &text[16..20],
+        &text[20..]
+    ))
 }
 
 #[cfg(test)]
@@ -837,19 +1064,39 @@ mod process_tests {
 
     #[test]
     fn timed_run_captures_streams_and_enforces_timeout() {
-        let output = run_timeout(&strings(["sh", "-c", "cat; echo err >&2; exit 3"]), Some("in\n"), seconds(5.0)).unwrap();
-        assert_eq!((output.code, output.stdout, output.stderr), (3, b"in\n".to_vec(), b"err\n".to_vec()));
-        assert!(run_timeout(&strings(["sleep", "5"]), None, seconds(0.2)).unwrap_err().to_string().contains("timed out"));
+        let output = run_timeout(
+            &strings(["sh", "-c", "cat; echo err >&2; exit 3"]),
+            Some("in\n"),
+            seconds(5.0),
+        )
+        .unwrap();
+        assert_eq!(
+            (output.code, output.stdout, output.stderr),
+            (3, b"in\n".to_vec(), b"err\n".to_vec())
+        );
+        assert!(run_timeout(&strings(["sleep", "5"]), None, seconds(0.2))
+            .unwrap_err()
+            .to_string()
+            .contains("timed out"));
     }
 
     #[test]
     fn helpers_match_python_forms() {
-        assert_eq!(sum_map("aa  /x y\nbb /z\n").unwrap(), BTreeMap::from([("/x y".into(), "aa".into()), ("/z".into(), "bb".into())]));
+        assert_eq!(
+            sum_map("aa  /x y\nbb /z\n").unwrap(),
+            BTreeMap::from([("/x y".into(), "aa".into()), ("/z".into(), "bb".into())])
+        );
         assert!(sum_map("broken\n").is_err());
         let uuid = uuid4().unwrap();
         assert_eq!((uuid.len(), &uuid[14..15]), (36, "4"));
         let now = utc_now_iso();
-        assert!(now.ends_with("+00:00") && now.as_bytes()[10] == b'T', "{now}");
-        assert_eq!(sorted_line_json(&serde_json::json!({"b": 1, "a": {"d": 2, "c": 3}})), "{\"a\": {\"c\": 3, \"d\": 2}, \"b\": 1}");
+        assert!(
+            now.ends_with("+00:00") && now.as_bytes()[10] == b'T',
+            "{now}"
+        );
+        assert_eq!(
+            sorted_line_json(&serde_json::json!({"b": 1, "a": {"d": 2, "c": 3}})),
+            "{\"a\": {\"c\": 3, \"d\": 2}, \"b\": 1}"
+        );
     }
 }
