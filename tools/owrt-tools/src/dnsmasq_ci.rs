@@ -317,7 +317,7 @@ fn git_commit_time(commit: &str) -> Result<String> {
 
 /// Extracts the accepted product commit, so later shared-library edits on
 /// the release branch cannot change the frozen dnsmasq inputs.
-fn release_source(work: &Path, spec: &Value) -> Result<PathBuf> {
+pub fn release_source(work: &Path, spec: &Value) -> Result<PathBuf> {
     let names: Vec<String> = spec.obj_field("source_files")?.keys().cloned().collect();
     extract_commit(&work.join("out/dnsmasq-source.tar"), &work.join("out/dnsmasq-frozen-source"),
                    &resolve_commit(&util::repo(), spec.str_field("source_commit")?)?, &names)
@@ -932,7 +932,7 @@ mod tests {
     fn release_commit_does_not_replace_the_frozen_product_epoch() {
         let spec = json!({"source_commit": "a".repeat(40), "source_date_epoch": 1234});
         let mut asked = Vec::new();
-        let mut time = |answer: &'static str| {
+        let time = |answer: &'static str| {
             move |commit: &str| -> Result<String> { let _ = commit; Ok(answer.to_owned()) }
         };
         assert_eq!(source_epoch(&spec, &"b".repeat(40), &mut |commit| { asked.push(commit.to_owned()); Ok("1234\n".into()) }).unwrap(), "1234");

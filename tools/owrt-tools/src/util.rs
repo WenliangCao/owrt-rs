@@ -443,22 +443,28 @@ struct Style {
     sort_keys: bool,
     item: &'static str,
     key: &'static str,
+    ascii: bool,
 }
 
 /// `json.dumps(value, indent=2)`.
 pub fn pretty_json(value: &Value) -> String {
-    serialize(value, &Style { indent: Some(2), sort_keys: false, item: ",", key: ": " })
+    serialize(value, &Style { indent: Some(2), sort_keys: false, item: ",", key: ": ", ascii: true })
+}
+
+/// `json.dumps(value, ensure_ascii=False, indent=2)`.
+pub fn pretty_json_unicode(value: &Value) -> String {
+    serialize(value, &Style { indent: Some(2), sort_keys: false, item: ",", key: ": ", ascii: false })
 }
 
 /// `json.dumps(value)`: one line with `", "` and `": "` separators.
 pub fn line_json(value: &Value) -> String {
-    serialize(value, &Style { indent: None, sort_keys: false, item: ", ", key: ": " })
+    serialize(value, &Style { indent: None, sort_keys: false, item: ", ", key: ": ", ascii: true })
 }
 
 /// `json.dumps(value, sort_keys=True, separators=(",", ":"))`, the input
 /// form of every frozen source digest.
 pub fn canonical_json(value: &Value) -> String {
-    serialize(value, &Style { indent: None, sort_keys: true, item: ",", key: ":" })
+    serialize(value, &Style { indent: None, sort_keys: true, item: ",", key: ":", ascii: true })
 }
 
 /// SHA-256 of [`canonical_json`].
@@ -487,7 +493,7 @@ fn write_value(out: &mut String, value: &Value, style: &Style, depth: usize) {
             Some(float) if !number.is_i64() && !number.is_u64() => out.push_str(&python_float(float)),
             _ => out.push_str(&number.to_string()),
         },
-        Value::String(text) => write_string(out, text),
+        Value::String(text) => write_string(out, text, style.ascii),
         Value::Array(items) => {
             if items.is_empty() {
                 out.push_str("[]");
@@ -519,7 +525,7 @@ fn write_value(out: &mut String, value: &Value, style: &Style, depth: usize) {
                     out.push_str(style.item);
                 }
                 newline(out, style, depth + 1);
-                write_string(out, key);
+                write_string(out, key, style.ascii);
                 out.push_str(style.key);
                 write_value(out, item, style, depth + 1);
             }
@@ -529,7 +535,7 @@ fn write_value(out: &mut String, value: &Value, style: &Style, depth: usize) {
     }
 }
 
-fn write_string(out: &mut String, text: &str) {
+fn write_string(out: &mut String, text: &str, ascii: bool) {
     out.push('"');
     for character in text.chars() {
         match character {
@@ -541,6 +547,7 @@ fn write_string(out: &mut String, text: &str) {
             '\u{8}' => out.push_str("\\b"),
             '\u{c}' => out.push_str("\\f"),
             ' '..='~' => out.push(character),
+            other if !ascii && other > '\u{1f}' => out.push(other),
             other => {
                 let mut units = [0u16; 2];
                 for unit in other.encode_utf16(&mut units) {
@@ -633,7 +640,7 @@ mod tests {
 
     fn write_string_for(text: &str) -> String {
         let mut out = String::new();
-        write_string(&mut out, text);
+        write_string(&mut out, text, true);
         out
     }
 
@@ -716,5 +723,133 @@ impl TempDir {
 impl Drop for TempDir {
     fn drop(&mut self) {
         let _ = fs::remove_dir_all(&self.path);
+    }
+}
+
+// ------------------------------------------------- timed processes, misc
+
+/// Output of [`run_timeout`].
+#[derive(Debug)]
+pub struct Output {
+    pub code: i32,
+    pub stdout: Vec<u8>,
+    pub stderr: Vec<u8>,
+}
+
+impl Output {
+    /// Python `result.stdout.strip()` for text output.
+    pub fn text(&self) -> String {
+        String::from_utf8_lossy(&self.stdout).trim().to_owned()
+    }
+}
+
+/// Runs `argv` with optional stdin text and a wall-clock timeout (Python
+/// `subprocess.run(..., capture_output=True, timeout=...)`). A timeout kills
+/// the child and is an error.
+pub fn run_timeout(argv: &[String], input: Option<&str>, timeout: std::time::Duration) -> Result<Output> {
+    let mut child = Command::new(&argv[0])
+        .args(&argv[1..])
+        .stdin(if input.is_some() { Stdio::piped() } else { Stdio::null() })
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| Error::new(format!("{}: {error}", argv[0])))?;
+    if let Some(text) = input {
+        child.stdin.take().expect("piped stdin").write_all(text.as_bytes())?;
+    }
+    let mut stdout = child.stdout.take().expect("piped stdout");
+    let mut stderr = child.stderr.take().expect("piped stderr");
+    let out = std::thread::spawn(move || { let mut data = Vec::new(); stdout.read_to_end(&mut data).map(|_| data) });
+    let err = std::thread::spawn(move || { let mut data = Vec::new(); stderr.read_to_end(&mut data).map(|_| data) });
+    let start = std::time::Instant::now();
+    let status = loop {
+        if let Some(status) = child.try_wait()? {
+            break status;
+        }
+        if start.elapsed() > timeout {
+            let _ = child.kill();
+            let _ = child.wait();
+            bail!("{} timed out after {:.0}s", argv[0], timeout.as_secs_f64());
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    };
+    let stdout = out.join().map_err(|_| Error::new("stdout reader panicked"))??;
+    let stderr = err.join().map_err(|_| Error::new("stderr reader panicked"))??;
+    Ok(Output { code: exit_code(status), stdout, stderr })
+}
+
+pub fn seconds(value: f64) -> std::time::Duration {
+    std::time::Duration::from_secs_f64(value)
+}
+
+/// `json.dumps(value, sort_keys=True)`.
+pub fn sorted_line_json(value: &Value) -> String {
+    serialize(value, &Style { indent: None, sort_keys: true, item: ", ", key: ": ", ascii: true })
+}
+
+/// `{path: digest}` from `sha256sum` output (Python
+/// `dict(line.split(None, 1)[::-1] for line in text.splitlines())`).
+pub fn sum_map(text: &str) -> Result<BTreeMap<String, String>> {
+    let mut map = BTreeMap::new();
+    for line in splitlines(text) {
+        let mut parts = line.trim_start().splitn(2, char::is_whitespace);
+        let (Some(digest), Some(path)) = (parts.next(), parts.next()) else {
+            bail!("malformed checksum line");
+        };
+        map.insert(path.trim_start().to_owned(), digest.to_owned());
+    }
+    Ok(map)
+}
+
+/// `datetime.now(timezone.utc).isoformat()`.
+pub fn utc_now_iso() -> String {
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+    let (days, rest) = ((now.as_secs() / 86_400) as i64, now.as_secs() % 86_400);
+    // Howard Hinnant's civil_from_days.
+    let z = days + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = yoe + era * 400 + i64::from(month <= 2);
+    let micros = now.subsec_micros();
+    let time = format!("{:02}:{:02}:{:02}", rest / 3600, rest / 60 % 60, rest % 60);
+    let fraction = if micros == 0 { String::new() } else { format!(".{micros:06}") };
+    format!("{year:04}-{month:02}-{day:02}T{time}{fraction}+00:00")
+}
+
+/// A random RFC 4122 version 4 UUID (Python `str(uuid.uuid4())`).
+pub fn uuid4() -> Result<String> {
+    let mut bytes = [0u8; 16];
+    File::open("/dev/urandom")?.read_exact(&mut bytes)?;
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    let text = hex(&bytes);
+    Ok(format!("{}-{}-{}-{}-{}", &text[..8], &text[8..12], &text[12..16], &text[16..20], &text[20..]))
+}
+
+#[cfg(test)]
+mod process_tests {
+    use super::*;
+
+    #[test]
+    fn timed_run_captures_streams_and_enforces_timeout() {
+        let output = run_timeout(&strings(["sh", "-c", "cat; echo err >&2; exit 3"]), Some("in\n"), seconds(5.0)).unwrap();
+        assert_eq!((output.code, output.stdout, output.stderr), (3, b"in\n".to_vec(), b"err\n".to_vec()));
+        assert!(run_timeout(&strings(["sleep", "5"]), None, seconds(0.2)).unwrap_err().to_string().contains("timed out"));
+    }
+
+    #[test]
+    fn helpers_match_python_forms() {
+        assert_eq!(sum_map("aa  /x y\nbb /z\n").unwrap(), BTreeMap::from([("/x y".into(), "aa".into()), ("/z".into(), "bb".into())]));
+        assert!(sum_map("broken\n").is_err());
+        let uuid = uuid4().unwrap();
+        assert_eq!((uuid.len(), &uuid[14..15]), (36, "4"));
+        let now = utc_now_iso();
+        assert!(now.ends_with("+00:00") && now.as_bytes()[10] == b'T', "{now}");
+        assert_eq!(sorted_line_json(&serde_json::json!({"b": 1, "a": {"d": 2, "c": 3}})), "{\"a\": {\"c\": 3, \"d\": 2}, \"b\": 1}");
     }
 }

@@ -4,9 +4,13 @@
 //! The binary dispatches on its subcommand, or on its own file name when the
 //! SDK recipe invokes a copy installed as `pgo-cargo` or `map-cc`.
 
+mod device;
 mod dnsmasq_ci;
 mod dnsmasq_package;
 mod history;
+mod native_check;
+mod native_image;
+mod native_release;
 mod pgo_wrappers;
 mod rust_check;
 mod util;
@@ -23,6 +27,14 @@ commands:
   ci-build-dnsmasq WORK            release dnsmasq build (frozen PGO)
   ci-check-dnsmasq-target WORK     diagnostic dnsmasq target build
   ci-check-dnsmasq-pgo-pipeline    canonical PGO stage build
+  native-image ACTION WORK SPEC APK fetch|prepare|verify the native image
+  native-image-check ROOTFS OUT    offline migration/recovery/reinstall checks
+  native-package-reinstall-selftest ROOTFS APKS OUT
+  native-apk-fixtures ROOTFS NATIVE_APK APK OUT
+  native-release-prepare CANONICAL VALIDATION TAG EVIDENCE OUT
+  native-trial-prepare CONFIG MANIFEST BOUNDED OUT --rootfs R ...
+  native-deploy-window stage|activate|observe DIR  (Mac-side; authorized windows only)
+  device-probe [--mode M] [--native-manifest F]    (Mac-side, read-only)
   json-field FILE KEY...           print one string field of a JSON file";
 
 fn json_field(raw: &[String]) -> util::Result<i32> {
@@ -55,6 +67,14 @@ fn dispatch(program: &str, args: &[String]) -> util::Result<i32> {
         "ci-build-dnsmasq" => dnsmasq_ci::build_main(rest),
         "ci-check-dnsmasq-target" => dnsmasq_ci::target_main(rest),
         "ci-check-dnsmasq-pgo-pipeline" => dnsmasq_ci::pgo_pipeline_main(rest),
+        "native-image" => native_image::main(rest),
+        "native-image-check" => native_check::check_main(rest),
+        "native-package-reinstall-selftest" => native_check::reinstall_selftest_main(rest),
+        "native-apk-fixtures" => native_check::apk_fixtures_main(rest),
+        "native-release-prepare" => native_release::main(rest),
+        "native-trial-prepare" => device::trial_main(rest),
+        "native-deploy-window" => device::deploy_main(rest),
+        "device-probe" => device::probe_main(rest),
         "json-field" => json_field(rest),
         "-h" | "--help" | "help" => {
             println!("{USAGE}");
