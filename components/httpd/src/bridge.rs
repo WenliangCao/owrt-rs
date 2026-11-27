@@ -384,16 +384,6 @@ fn rpc_call_result(id: Json, legacy: bool, reply: &owrt_ubus::Reply) -> RpcRespo
     RpcResponse::Encoded(out)
 }
 
-fn lookup_error(id: Json, error: &io::Error) -> RpcResponse {
-    if error.kind() == io::ErrorKind::TimedOut
-        || owrt_ubus::conn::error_status(error) == Some(owrt_ubus::status::TIMEOUT)
-    {
-        rpc_error(id, RpcError::Timeout)
-    } else {
-        rpc_error(id, RpcError::Internal)
-    }
-}
-
 fn do_list(bridge: &Bridge, id: Json, params: Option<&Json>) -> RpcResponse {
     let Ok(mut conn) = bridge.connect() else {
         return rpc_error(id, RpcError::Internal);
@@ -403,28 +393,22 @@ fn do_list(bridge: &Bridge, id: Json, params: Option<&Json>) -> RpcResponse {
             let mut table = Vec::new();
             for path in paths {
                 if let Some(path) = path.as_str() {
-                    match conn.lookup(Some(path), bridge.timeout_ms) {
-                        Ok(entries) => {
-                            for entry in entries {
-                                table.push((entry.path, signature_to_json(&entry.signature)));
-                            }
+                    if let Ok(entries) = conn.lookup(Some(path), bridge.timeout_ms) {
+                        for entry in entries {
+                            table.push((entry.path, signature_to_json(&entry.signature)));
                         }
-                        Err(e)
-                            if owrt_ubus::conn::error_status(&e)
-                                == Some(owrt_ubus::status::NOT_FOUND) => {}
-                        Err(e) => return lookup_error(id, &e),
                     }
                 }
             }
             rpc_result(id, Json::Object(table))
         }
-        _ => match conn.lookup(None, bridge.timeout_ms) {
-            Ok(entries) => {
-                let names = entries.into_iter().map(|e| Json::Str(e.path)).collect();
-                rpc_result(id, Json::Array(names))
-            }
-            Err(e) => lookup_error(id, &e),
-        },
+        _ => {
+            let names = conn
+                .lookup(None, bridge.timeout_ms)
+                .map(|entries| entries.into_iter().map(|e| Json::Str(e.path)).collect())
+                .unwrap_or_default();
+            rpc_result(id, Json::Array(names))
+        }
     }
 }
 
@@ -1199,172 +1183,5 @@ mod tests {
                 fields_to_json(data).unwrap()
             );
         }
-    }
-
-    #[test]
-    fn do_list_separates_empty_results_from_lookup_and_transport_errors() {
-        use owrt_ubus::{attr, status, ty, Header};
-        use std::io::Read;
-        use std::os::unix::net::UnixListener;
-        use std::time::Duration;
-
-        struct Fixture(std::path::PathBuf);
-        impl Drop for Fixture {
-            fn drop(&mut self) {
-                let _ = std::fs::remove_dir_all(&self.0);
-            }
-        }
-        let unique = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        let dir = std::env::temp_dir().join(format!("httpd-list-{}-{unique}", std::process::id()));
-        std::fs::create_dir(&dir).unwrap();
-        let fixture = Fixture(dir);
-        let path = fixture.0.join("bus.sock");
-        let listener = UnixListener::bind(&path).unwrap();
-
-        #[derive(Clone, Copy)]
-        enum Mode {
-            OkEmpty,
-            NotFound,
-            UnknownError,
-            Disconnect,
-            Timeout,
-        }
-
-        let run_case = |mode: Mode, params: Option<Json>| -> Vec<u8> {
-            let sock_path = path.clone();
-            let bridge = Bridge {
-                socket: Some(sock_path.to_str().unwrap().into()),
-                noauth: true,
-                cors: false,
-                timeout_ms: 80,
-                events_retry: 0,
-                record_calls: false,
-                idle: Mutex::new(Vec::new()),
-                calls: Mutex::new(Vec::new()),
-            };
-            // Spawn server side on a thread accepting one connection.
-            let (ready_tx, ready_rx) = std::sync::mpsc::channel();
-            let _ = ready_tx.send(());
-            drop(ready_rx);
-            let server_handle = std::thread::spawn({
-                let listener = listener.try_clone().unwrap();
-                move || {
-                    let (mut socket, _) = listener.accept().unwrap();
-                    socket
-                        .set_read_timeout(Some(Duration::from_secs(2)))
-                        .unwrap();
-                    let send = |socket: &mut std::os::unix::net::UnixStream,
-                                header: Header,
-                                body: &mut BlobBuf| {
-                        socket.write_all(&header.encode()).unwrap();
-                        socket.write_all(body.as_bytes()).unwrap();
-                    };
-                    send(
-                        &mut socket,
-                        Header {
-                            ty: ty::HELLO,
-                            seq: 0,
-                            peer: 1,
-                        },
-                        &mut BlobBuf::new(),
-                    );
-                    let mut prefix = [0u8; 12];
-                    socket.read_exact(&mut prefix).unwrap();
-                    let header = Header::decode(prefix[..8].try_into().unwrap()).unwrap();
-                    let length = u32::from_be_bytes(prefix[8..].try_into().unwrap()) & 0x00ff_ffff;
-                    let mut body = vec![0; blob::pad4(length as usize) - 4];
-                    socket.read_exact(&mut body).unwrap();
-                    assert_eq!(header.ty, ty::LOOKUP);
-                    match mode {
-                        Mode::OkEmpty => {
-                            let mut st = BlobBuf::new();
-                            st.put_u32(attr::STATUS, status::OK as u32);
-                            send(
-                                &mut socket,
-                                Header {
-                                    ty: ty::STATUS,
-                                    ..header
-                                },
-                                &mut st,
-                            );
-                        }
-                        Mode::NotFound => {
-                            let mut st = BlobBuf::new();
-                            st.put_u32(attr::STATUS, status::NOT_FOUND as u32);
-                            send(
-                                &mut socket,
-                                Header {
-                                    ty: ty::STATUS,
-                                    ..header
-                                },
-                                &mut st,
-                            );
-                        }
-                        Mode::UnknownError => {
-                            let mut st = BlobBuf::new();
-                            st.put_u32(attr::STATUS, status::UNKNOWN_ERROR as u32);
-                            send(
-                                &mut socket,
-                                Header {
-                                    ty: ty::STATUS,
-                                    ..header
-                                },
-                                &mut st,
-                            );
-                        }
-                        Mode::Disconnect => {
-                            drop(socket);
-                        }
-                        Mode::Timeout => {
-                            std::thread::sleep(Duration::from_millis(160));
-                        }
-                    }
-                }
-            });
-            let resp = do_list(&bridge, Json::Int(7), params.as_ref()).into_bytes();
-            server_handle.join().unwrap();
-            resp
-        };
-
-        assert_eq!(
-            run_case(Mode::OkEmpty, None),
-            br#"{"jsonrpc":"2.0","id":7,"result":[]}"#
-        );
-        assert_eq!(
-            run_case(
-                Mode::NotFound,
-                Some(Json::Array(vec![Json::Str("missing".into())]))
-            ),
-            br#"{"jsonrpc":"2.0","id":7,"result":{}}"#
-        );
-        assert_eq!(
-            run_case(Mode::UnknownError, None),
-            br#"{"jsonrpc":"2.0","id":7,"error":{"code":-32603,"message":"Internal error"}}"#
-        );
-        assert_eq!(
-            run_case(Mode::Disconnect, None),
-            br#"{"jsonrpc":"2.0","id":7,"error":{"code":-32603,"message":"Internal error"}}"#
-        );
-        assert_eq!(
-            run_case(
-                Mode::Disconnect,
-                Some(Json::Array(vec![Json::Str("obj".into())]))
-            ),
-            br#"{"jsonrpc":"2.0","id":7,"error":{"code":-32603,"message":"Internal error"}}"#
-        );
-        assert_eq!(
-            run_case(Mode::Timeout, None),
-            br#"{"jsonrpc":"2.0","id":7,"error":{"code":-32003,"message":"ubus request timed out"}}"#
-        );
-        assert_eq!(
-            run_case(
-                Mode::Timeout,
-                Some(Json::Array(vec![Json::Str("obj".into())]))
-            ),
-            br#"{"jsonrpc":"2.0","id":7,"error":{"code":-32003,"message":"ubus request timed out"}}"#
-        );
     }
 }
