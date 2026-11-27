@@ -1028,7 +1028,7 @@ mod tests {
         let _ = script_deadline(u64::MAX);
         let (out, _) = run_script("printf 'Status: 200 OK\\r\\n\\r\\nok'", u64::MAX);
         assert!(
-            out.contains("HTTP/1.1 200 OK") && out.ends_with("ok"),
+            out.starts_with("HTTP/1.0 200 OK") && out.ends_with("ok"),
             "{out:?}"
         );
     }
