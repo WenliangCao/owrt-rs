@@ -9,7 +9,6 @@
 //! records are read back through the borrowed `Record` view.
 
 use std::collections::VecDeque;
-use std::io;
 
 pub const HEAD: usize = 32; // sizeof(struct log_head) on 64-bit
 pub const LINE_SIZE: usize = 1024;
@@ -62,32 +61,15 @@ const H_SOURCE: usize = 12;
 const H_TIME: usize = 16;
 
 impl Ring {
-    /// Allocate a log ring of `capacity` bytes without aborting on OOM or
-    /// unrepresentable `u32` offsets.
-    pub fn try_new(capacity: usize) -> io::Result<Self> {
+    pub fn new(capacity: usize) -> Self {
         let capacity = capacity.max(HEAD + 4);
-        if capacity > u32::MAX as usize {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "ring capacity exceeds u32 offset range",
-            ));
-        }
-        let mut arena = Vec::new();
-        arena
-            .try_reserve_exact(capacity)
-            .map_err(|e| io::Error::new(io::ErrorKind::OutOfMemory, e))?;
-        arena.resize(capacity, 0);
-        Ok(Self {
-            arena,
+        Self {
+            arena: vec![0u8; capacity],
             capacity,
             offsets: VecDeque::new(),
             newest: 0,
             next_id: 0,
-        })
-    }
-
-    pub fn new(capacity: usize) -> Self {
-        Self::try_new(capacity).expect("ring allocation failed")
+        }
     }
 
     /// Retained record count.
@@ -566,21 +548,5 @@ mod tests {
         // the ring stores what it is given, LF as space.
         assert_eq!(rec.msg(), b"a b\xff\x00c");
         assert_eq!(rec.text, b"a b\xff\x00c\0");
-    }
-
-    #[test]
-    fn try_new_rejects_oversized_capacity_without_aborting() {
-        assert!(Ring::try_new(4096).is_ok());
-        assert_eq!(
-            Ring::try_new(usize::MAX).err().map(|e| e.kind()),
-            Some(io::ErrorKind::InvalidInput)
-        );
-        #[cfg(target_pointer_width = "64")]
-        assert_eq!(
-            Ring::try_new((u32::MAX as usize) + 1)
-                .err()
-                .map(|e| e.kind()),
-            Some(io::ErrorKind::InvalidInput)
-        );
     }
 }

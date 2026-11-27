@@ -35,19 +35,15 @@ struct Options {
     user: Option<String>,
 }
 
-/// Bound `-S` to a 64 MiB router cap (which also stays well inside `u32` offsets).
-const MAX_LOG_SIZE: usize = 64 * 1024 * 1024;
-
-/// Ring offsets are stored as u32; reject sizes above the router cap or
-/// outside `u32` addressability.
+/// Ring offsets are stored as u32; reject sizes their representation cannot hold.
 fn parse_log_size(value: &str) -> Result<usize, String> {
     let kib: i64 = value.parse().map_err(|_| "-S must be an integer")?;
     let kib = if kib < 1 { 16 } else { kib };
     usize::try_from(kib)
         .ok()
         .and_then(|kib| kib.checked_mul(1024))
-        .filter(|size| *size <= MAX_LOG_SIZE)
-        .ok_or_else(|| "-S exceeds the maximum 64 MiB ring capacity".into())
+        .filter(|size| *size <= u32::MAX as usize)
+        .ok_or_else(|| "-S exceeds the ring's addressable capacity".into())
 }
 
 fn parse_args() -> Result<Options, String> {
@@ -777,21 +773,11 @@ fn main() {
             }
         }
     }
-    let ring = match Ring::try_new(options.log_size) {
-        Ok(ring) => ring,
-        Err(error) => {
-            let _ = writeln!(
-                std::io::stderr(),
-                "logd-rs: cannot allocate log ring: {error}"
-            );
-            std::process::exit(1);
-        }
-    };
     let mut daemon = Daemon {
         ubus_socket: options.ubus_socket.clone(),
         conn,
         objid,
-        ring,
+        ring: Ring::new(options.log_size),
         max_stream_pending: stream_pending_limit(options.log_size),
         clients: Vec::new(),
         has_subscribers: false,
@@ -819,10 +805,7 @@ mod stream_tests {
             assert_eq!(parse_log_size(value).unwrap(), 16 * 1024);
         }
         assert_eq!(parse_log_size("2048").unwrap(), 2 * 1024 * 1024);
-        assert_eq!(parse_log_size("65536").unwrap(), 64 * 1024 * 1024);
         for value in [
-            "65537",
-            "1048576",
             "4194304",
             "18014398509481984",
             "9223372036854775807",
