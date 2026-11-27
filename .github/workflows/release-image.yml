@@ -125,7 +125,7 @@ jobs:
     env:
       OPENWRT_VERSION: ${{ github.event.inputs.openwrt_version || '25.12.6' }}
     steps:
-      - uses: actions/qeqmczar@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: owrt-image-${{ env.OPENWRT_VERSION }}-${{ github.sha }}
           path: release-assets
