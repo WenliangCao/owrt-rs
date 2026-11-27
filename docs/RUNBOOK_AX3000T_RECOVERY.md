@@ -3,8 +3,9 @@
 **当前状态：已刷入 v0.3.3 `native-eleven` 原生 Rust 固件，当前恢复入口以[发布说明](RELEASE.md#恢复路径)为准。**
 `owrt-recover-c` 从 `/usr/libexec/owrt-stock/` 成套恢复十一个 C 程序及 dnsmasq 原 init/ACL，共十三份文件；
 `/rom` 内对应路径已是集成 Rust 版本，不能作为 C 原件。该操作不等同于刷回 v0.3.2；本次版本回滚使用已核验的
-v0.3.2 镜像和当次配置备份。验收期临时自动回退守卫以 v0.3.2 为目标，最终验收后撤除并另取干净配置备份；
-历史 v0.2.1／v0.2.2 回滚材料不与本次混用。
+v0.3.2 镜像和独立配置备份（离线归档位于 `private/backup/`，详见 `docs/reviews/V033_DEPLOY_20261023.md`）。验收期临时自动回退守卫以
+v0.3.2 为目标，最终验收后撤除并另取干净配置备份；历史 v0.2.1／v0.2.2 回滚材料不与本次混用。
+v0.3.2 回滚固件 SHA256 为 `9f8e4b10225ca9c49e0e08d096cf645667c5687b1b42784adab50d3751a3e179`；
 TFTP 救援镜像 `private/images/stock-rd03/miwifi_rd03_firmware_ef0ee_1.0.47.bin`，SHA256 为
 `77bf35b27b6ec29fbfe2c3f4280618cd70bade5e9998d407b634ce8a12825cc6`。
 本页第 1–3 节针对历史 stock/overlay，第 7 节针对历史九组件镜像；不要将其旧文件集合套用到 `native-eleven`。
