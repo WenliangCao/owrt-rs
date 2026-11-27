@@ -187,6 +187,12 @@ fn spawn_failed<W: Sink>(
     resp.finish()
 }
 
+fn script_deadline(script_timeout: u64) -> Option<Instant> {
+    (script_timeout > 0)
+        .then(|| Instant::now().checked_add(Duration::from_secs(script_timeout)))
+        .flatten()
+}
+
 pub fn run<W: Sink, R: io::BufRead>(
     ctx: &CgiContext,
     request: &Request,
@@ -262,8 +268,7 @@ pub fn run<W: Sink, R: io::BufRead>(
     // From here the relay owns readiness: `write` only queues.
     resp.sink().set_deferred(true);
     // proc.c arms the timeout only when -t is positive; zero disables it.
-    let deadline =
-        (ctx.script_timeout > 0).then(|| Instant::now() + Duration::from_secs(ctx.script_timeout));
+    let deadline = script_deadline(ctx.script_timeout);
     // One small staging window between the client and the script: the body is
     // pulled only when the script's stdin has room, so an upload of any size
     // costs this buffer, and a script that stops reading back-pressures the
@@ -1014,5 +1019,17 @@ mod tests {
         assert!(!close, "{text:?}");
         assert!(text.starts_with("HTTP/1.1 502 Bad Gateway"), "{text:?}");
         assert!(text.contains("Connection: Keep-Alive"), "{text:?}");
+    }
+
+    #[test]
+    fn extreme_script_timeout_never_panics() {
+        assert!(script_deadline(0).is_none());
+        assert!(script_deadline(5).is_some());
+        let _ = script_deadline(u64::MAX);
+        let (out, _) = run_script("printf 'Status: 200 OK\\r\\n\\r\\nok'", u64::MAX);
+        assert!(
+            out.contains("HTTP/1.1 200 OK") && out.ends_with("ok"),
+            "{out:?}"
+        );
     }
 }

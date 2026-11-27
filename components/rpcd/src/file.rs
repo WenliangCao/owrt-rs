@@ -315,13 +315,13 @@ pub fn write(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
         Some(Json::Int(m)) => *m as u32,
         _ => 0o666,
     };
-    let mut f =
-        open_for_write(&path, mode, arg_bool(args, "append")).map_err(|e| errno_status(&e))?;
-    let bytes: Vec<u8> = if !data.is_empty() && arg_bool(args, "base64") {
-        util::b64_decode(data).ok_or(status::UNKNOWN_ERROR)?
+    let append = arg_bool(args, "append");
+    let bytes: std::borrow::Cow<'_, [u8]> = if !data.is_empty() && arg_bool(args, "base64") {
+        std::borrow::Cow::Owned(util::b64_decode(data).ok_or(status::UNKNOWN_ERROR)?)
     } else {
-        data.to_vec()
+        std::borrow::Cow::Borrowed(data)
     };
+    let mut f = open_for_write(&path, mode, append).map_err(|e| errno_status(&e))?;
     let mut rv = Ok(());
     if f.write_all(&bytes).is_err() {
         rv = Err(status::UNKNOWN_ERROR);
@@ -1276,6 +1276,58 @@ mod tests {
         );
         assert_eq!(r.unwrap_err(), status::NOT_SUPPORTED);
         assert!(ms < 1500, "took {ms} ms");
+    }
+
+    #[test]
+    fn write_validates_and_decodes_base64_before_truncating_existing_file() {
+        let dir = TestDir::new();
+        let path = dir.0.join("existing");
+        let missing = dir.0.join("missing");
+        std::fs::write(&path, b"keep-me").unwrap();
+        let ctx = context();
+        let sid = ctx.sessions.borrow_mut().create(60).unwrap();
+        grant(&ctx, &sid, &path, "write");
+        grant(&ctx, &sid, &missing, "write");
+
+        let bad_b64 = crate::Json::Object(vec![
+            (
+                "path".into(),
+                crate::Json::Str(path.to_str().unwrap().into()),
+            ),
+            ("data".into(), crate::Json::Str("not!valid!b64".into())),
+            ("base64".into(), crate::Json::Bool(true)),
+            ("ubus_rpc_session".into(), crate::Json::Str(sid.clone())),
+        ]);
+        assert_eq!(super::write(&ctx, &bad_b64), Err(status::UNKNOWN_ERROR));
+        assert_eq!(
+            std::fs::read(&path).unwrap(),
+            b"keep-me",
+            "invalid base64 must not truncate an existing file"
+        );
+
+        let bad_b64_new = crate::Json::Object(vec![
+            (
+                "path".into(),
+                crate::Json::Str(missing.to_str().unwrap().into()),
+            ),
+            ("data".into(), crate::Json::Str("abc".into())),
+            ("base64".into(), crate::Json::Bool(true)),
+            ("ubus_rpc_session".into(), crate::Json::Str(sid.clone())),
+        ]);
+        assert_eq!(super::write(&ctx, &bad_b64_new), Err(status::UNKNOWN_ERROR));
+        assert!(!missing.exists(), "invalid base64 must not create file");
+
+        let good_b64 = crate::Json::Object(vec![
+            (
+                "path".into(),
+                crate::Json::Str(path.to_str().unwrap().into()),
+            ),
+            ("data".into(), crate::Json::Str("aGVsbG8=".into())),
+            ("base64".into(), crate::Json::Bool(true)),
+            ("ubus_rpc_session".into(), crate::Json::Str(sid)),
+        ]);
+        assert_eq!(super::write(&ctx, &good_b64), Ok(None));
+        assert_eq!(std::fs::read(&path).unwrap(), b"hello");
     }
 
     #[test]

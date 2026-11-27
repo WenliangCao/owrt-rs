@@ -2,16 +2,84 @@
 //! listing, conditional requests and MIME table.
 
 use crate::http::{self, Method, Request, Response};
+use rustix::fs::{Mode, OFlags, RawDir, ResolveFlags};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::fs;
 use std::io::{self, Read, Write};
+use std::mem::MaybeUninit;
+use std::os::fd::OwnedFd;
 use std::os::unix::fs::{FileExt, MetadataExt, PermissionsExt};
 use std::path::Path;
+use std::sync::Arc;
+
+/// Anchored directory descriptor for the HTTP document root. All path lookups
+/// and file opens go through `dirfd` with `openat2(RESOLVE_BENEATH)` so no
+/// symlink or race can escape the document root.
+#[derive(Clone)]
+pub struct Docroot {
+    path: Arc<str>,
+    dirfd: Arc<OwnedFd>,
+}
+
+impl Docroot {
+    /// Open `path` and probe `openat2(RESOLVE_BENEATH)` at startup. Fails
+    /// explicitly if `openat2` returns `ENOSYS` or `EPERM`.
+    pub fn open(path: &str) -> io::Result<Self> {
+        let dirfd = rustix::fs::openat(
+            rustix::fs::CWD,
+            path,
+            OFlags::RDONLY | OFlags::DIRECTORY | OFlags::CLOEXEC,
+            Mode::empty(),
+        )?;
+        check_openat2_probe(rustix::fs::openat2(
+            &dirfd,
+            c".",
+            OFlags::RDONLY | OFlags::DIRECTORY | OFlags::CLOEXEC,
+            Mode::empty(),
+            ResolveFlags::BENEATH,
+        ))?;
+        Ok(Self {
+            path: Arc::from(path),
+            dirfd: Arc::new(dirfd),
+        })
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.path
+    }
+}
+
+fn check_openat2_probe(probe: Result<OwnedFd, rustix::io::Errno>) -> io::Result<()> {
+    match probe {
+        Ok(_fd) => Ok(()),
+        Err(errno) if matches!(errno, rustix::io::Errno::NOSYS | rustix::io::Errno::PERM) => {
+            Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                format!("openat2(RESOLVE_BENEATH) unsupported or blocked: {errno}"),
+            ))
+        }
+        Err(errno) => Err(errno.into()),
+    }
+}
+
+fn open_beneath(
+    dirfd: &OwnedFd,
+    rel: &str,
+    oflags: OFlags,
+    no_symlinks: bool,
+) -> Result<OwnedFd, rustix::io::Errno> {
+    let target = if rel.is_empty() { "." } else { rel };
+    let mut resolve = ResolveFlags::BENEATH;
+    if no_symlinks {
+        resolve |= ResolveFlags::NO_SYMLINKS;
+    }
+    rustix::fs::openat2(dirfd, target, oflags, Mode::empty(), resolve)
+}
 
 pub struct PathInfo {
     /// Canonical physical path (valid UTF-8: built from the docroot and the
-    /// decoded URL, or from `canonicalize` lossily).
+    /// decoded URL).
     pub phys: String,
     /// Where the docroot-relative name starts inside `phys`.
     name_start: usize,
@@ -21,6 +89,9 @@ pub struct PathInfo {
     pub info: Option<String>,
     pub query: Option<String>,
     pub meta: fs::Metadata,
+    docroot: Option<Docroot>,
+    rel: String,
+    no_symlinks: bool,
 }
 
 impl PathInfo {
@@ -44,6 +115,7 @@ impl PathInfo {
     /// A regular file whose name starts `name_start` bytes into `phys`.
     #[cfg(test)]
     pub fn for_test(phys: String, name_start: usize, meta: fs::Metadata) -> Self {
+        let rel = phys[name_start..].trim_start_matches('/').to_owned();
         PathInfo {
             phys,
             name_start,
@@ -51,6 +123,16 @@ impl PathInfo {
             info: None,
             query: None,
             meta,
+            docroot: None,
+            rel,
+            no_symlinks: false,
+        }
+    }
+
+    fn mime_type(&self) -> &'static str {
+        match &self.docroot {
+            Some(docroot) => file_mime_type_at(docroot, &self.rel, &self.phys),
+            None => file_mime_type(&self.phys),
         }
     }
 }
@@ -133,7 +215,8 @@ fn canonpath(path: &str) -> String {
 }
 
 /// uhttpd's `uh_path_lookup`: longest existing prefix wins, rest is PATH_INFO.
-pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -> Lookup {
+/// All resolution is anchored on `docroot`'s dirfd via `openat2(RESOLVE_BENEATH)`.
+pub fn lookup(docroot: &Docroot, url: &str, no_symlinks: bool, indexes: &[String]) -> Lookup {
     let (path_part, query) = match url.split_once('?') {
         Some((p, q)) => (
             p,
@@ -158,72 +241,69 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         Cow::Borrowed(path_part)
     };
     let trailing_slash = decoded.ends_with('/');
-    let mut full = String::with_capacity(docroot.len() + decoded.len());
-    full.push_str(docroot);
-    full.push_str(&decoded);
-    let mut found: Option<(String, String, fs::Metadata)> = None;
-    if !no_symlinks {
-        // Nearly every request names an existing file: canonicalize the
-        // whole path in place and stat it once, allocating nothing more.
-        // Only a miss rebuilds the original for the prefix walk below.
-        canonpath_in_place(&mut full);
-        match fs::metadata(&full) {
-            Ok(meta) => found = Some((std::mem::take(&mut full), String::new(), meta)),
-            Err(_) => {
-                full = String::with_capacity(docroot.len() + decoded.len());
-                full.push_str(docroot);
-                full.push_str(&decoded);
-            }
-        }
-    }
-    if found.is_none() {
-        // try progressively shorter prefixes ending at '/' boundaries
-        let bytes = full.as_bytes();
-        let mut i = bytes.len();
-        loop {
-            if i == bytes.len() || bytes[i] == b'/' {
-                let candidate = if no_symlinks {
-                    fs::canonicalize(&full[..i])
-                        .ok()
-                        .map(|p| p.to_string_lossy().into_owned())
-                } else if i == bytes.len() {
-                    // Already tried above.
-                    None
-                } else {
-                    Some(canonpath(&full[..i]))
-                };
-                if let Some(candidate) = candidate {
-                    if let Ok(meta) = fs::metadata(&candidate) {
-                        found = Some((candidate, full[i..].to_owned(), meta));
+    let mut canonical = decoded.into_owned();
+    canonpath_in_place(&mut canonical);
+
+    let mut found: Option<(&str, &str, fs::Metadata)> = None;
+    let bytes = canonical.as_bytes();
+    let mut i = bytes.len();
+    loop {
+        if i == bytes.len() || bytes[i] == b'/' {
+            let prefix = &canonical[..i];
+            let rel = prefix.strip_prefix('/').unwrap_or(prefix);
+            match open_beneath(
+                &docroot.dirfd,
+                rel,
+                OFlags::PATH | OFlags::CLOEXEC,
+                no_symlinks,
+            ) {
+                Ok(fd) => {
+                    if let Ok(meta) = fs::File::from(fd).metadata() {
+                        found = Some((prefix, &canonical[i..], meta));
                         break;
                     }
                 }
+                Err(rustix::io::Errno::XDEV | rustix::io::Errno::LOOP) => {
+                    return Lookup::NotFound;
+                }
+                Err(_) => {}
             }
-            if i == 0 {
-                break;
-            }
-            i -= 1;
         }
+        if i == 0 {
+            break;
+        }
+        i -= 1;
     }
-    let Some((phys, info, meta)) = found else {
+    let Some((prefix, info, meta)) = found else {
         return Lookup::NotFound;
     };
-    if !(phys == docroot
-        || phys
-            .strip_prefix(docroot)
-            .is_some_and(|tail| tail.starts_with('/')))
-    {
-        return Lookup::NotFound;
-    }
-    let name_start = docroot.len();
+    let rel = prefix.strip_prefix('/').unwrap_or(prefix);
+    let root_prefix = if docroot.as_str() == "/" {
+        ""
+    } else {
+        docroot.as_str()
+    };
+    let name_start = root_prefix.len();
+    let phys = if prefix.is_empty() {
+        docroot.as_str().to_owned()
+    } else {
+        format!("{root_prefix}{prefix}")
+    };
     if meta.is_file() {
         return Lookup::Found(PathInfo {
             phys,
             name_start,
             dir_name: None,
-            info: if info.is_empty() { None } else { Some(info) },
+            info: if info.is_empty() {
+                None
+            } else {
+                Some(info.to_owned())
+            },
             query,
             meta,
+            docroot: Some(docroot.clone()),
+            rel: rel.to_owned(),
+            no_symlinks,
         });
     }
     if !meta.is_dir() || !info.is_empty() {
@@ -243,17 +323,36 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         return Lookup::Redirect(location);
     }
     for index in indexes {
-        let candidate = format!("{phys}/{index}");
-        if let Ok(m) = fs::metadata(&candidate) {
-            if m.is_file() {
-                return Lookup::Found(PathInfo {
-                    phys: candidate,
-                    name_start,
-                    dir_name: None,
-                    info: None,
-                    query,
-                    meta: m,
-                });
+        let idx_rel = if rel.is_empty() {
+            index.clone()
+        } else {
+            format!("{rel}/{index}")
+        };
+        if let Ok(fd) = open_beneath(
+            &docroot.dirfd,
+            &idx_rel,
+            OFlags::PATH | OFlags::CLOEXEC,
+            no_symlinks,
+        ) {
+            if let Ok(m) = fs::File::from(fd).metadata() {
+                if m.is_file() {
+                    let idx_phys = if phys.ends_with('/') {
+                        format!("{phys}{index}")
+                    } else {
+                        format!("{phys}/{index}")
+                    };
+                    return Lookup::Found(PathInfo {
+                        phys: idx_phys,
+                        name_start,
+                        dir_name: None,
+                        info: None,
+                        query,
+                        meta: m,
+                        docroot: Some(docroot.clone()),
+                        rel: idx_rel,
+                        no_symlinks,
+                    });
+                }
             }
         }
     }
@@ -264,6 +363,9 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         info: None,
         query,
         meta,
+        docroot: Some(docroot.clone()),
+        rel: rel.to_owned(),
+        no_symlinks,
     })
 }
 
@@ -353,6 +455,15 @@ fn file_mime_type(path: &str) -> &'static str {
     }
 }
 
+fn file_mime_type_at(docroot: &Docroot, rel: &str, phys: &str) -> &'static str {
+    if !rel.is_empty() {
+        if let Ok(target) = rustix::fs::readlinkat(&docroot.dirfd, rel, Vec::new()) {
+            return mime_type(&target.to_string_lossy());
+        }
+    }
+    mime_type(phys)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{canonpath, mime_type};
@@ -406,7 +517,7 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("httpd-reuse-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
-        let docroot = dir.to_str().unwrap().to_owned();
+        let docroot = super::Docroot::open(dir.to_str().unwrap()).unwrap();
         std::fs::write(dir.join("f.txt"), b"first").unwrap();
         let body = |expect: &[u8]| {
             let super::Lookup::Found(pi) = super::lookup(&docroot, "/f.txt", false, &[]) else {
@@ -520,23 +631,152 @@ mod tests {
         std::fs::create_dir(&dir).unwrap();
         let fixture = Fixture(dir);
         let dir = &fixture.0;
+        let docroot = super::Docroot::open(dir.to_str().unwrap()).unwrap();
+        std::fs::create_dir(dir.join("sub")).unwrap();
         std::fs::write(dir.join("actual.css"), b"body {}").unwrap();
         symlink("actual.css", dir.join("alias.dat")).unwrap();
+        symlink("../actual.css", dir.join("sub/rel.dat")).unwrap();
         symlink(dir.join("actual.css"), dir.join("absolute.dat")).unwrap();
         symlink("alias.dat", dir.join("chain.txt")).unwrap();
-        for (name, expected) in [
-            ("actual.css", "text/css"),
-            ("alias.dat", "text/css"),
-            ("absolute.dat", "text/css"),
-            ("chain.txt", "application/octet-stream"),
+        for (url, expected) in [
+            ("/actual.css", "text/css"),
+            ("/alias.dat", "text/css"),
+            ("/sub/rel.dat", "text/css"),
+            ("/chain.txt", "application/octet-stream"),
         ] {
-            let super::Lookup::Found(pi) =
-                super::lookup(dir.to_str().unwrap(), &format!("/{name}"), false, &[])
-            else {
-                panic!("file lookup failed for {name}");
+            let super::Lookup::Found(pi) = super::lookup(&docroot, url, false, &[]) else {
+                panic!("file lookup failed for {url}");
             };
-            assert_eq!(super::file_mime_type(&pi.phys), expected, "{name}");
+            assert_eq!(pi.mime_type(), expected, "{url}");
         }
+        assert!(matches!(
+            super::lookup(&docroot, "/absolute.dat", false, &[]),
+            super::Lookup::NotFound
+        ));
+    }
+
+    #[test]
+    fn openat2_probe_fails_explicitly_on_enosys_and_eperm() {
+        for errno in [rustix::io::Errno::NOSYS, rustix::io::Errno::PERM] {
+            let err = super::check_openat2_probe(Err(errno)).unwrap_err();
+            assert_eq!(err.kind(), std::io::ErrorKind::Unsupported);
+            assert!(err.to_string().contains("openat2(RESOLVE_BENEATH)"));
+        }
+        assert!(super::Docroot::open("/nonexistent-docroot-path-for-test").is_err());
+    }
+
+    #[test]
+    fn lookup_blocks_docroot_escapes_and_preserves_internal_symlinks() {
+        use std::os::unix::fs::symlink;
+        struct Fixture(std::path::PathBuf);
+        impl Drop for Fixture {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let base =
+            std::env::temp_dir().join(format!("httpd-escape-{}-{unique}", std::process::id()));
+        let docroot_dir = base.join("www");
+        let outside = base.join("outside");
+        std::fs::create_dir_all(docroot_dir.join("sub")).unwrap();
+        std::fs::create_dir_all(&outside).unwrap();
+        let _fixture = Fixture(base);
+
+        std::fs::write(outside.join("secret.txt"), b"secret").unwrap();
+        std::fs::write(docroot_dir.join("real.txt"), b"public").unwrap();
+        symlink("real.txt", docroot_dir.join("internal.txt")).unwrap();
+        symlink("../real.txt", docroot_dir.join("sub/up.txt")).unwrap();
+        symlink("../outside/secret.txt", docroot_dir.join("escape_rel.txt")).unwrap();
+        symlink("../outside", docroot_dir.join("escape_dir")).unwrap();
+        symlink(
+            outside.join("secret.txt"),
+            docroot_dir.join("escape_abs.txt"),
+        )
+        .unwrap();
+
+        let docroot = super::Docroot::open(docroot_dir.to_str().unwrap()).unwrap();
+        for url in [
+            "/escape_rel.txt",
+            "/escape_dir/secret.txt",
+            "/escape_abs.txt",
+            "/../outside/secret.txt",
+        ] {
+            assert!(
+                matches!(
+                    super::lookup(&docroot, url, false, &[]),
+                    super::Lookup::NotFound
+                ),
+                "escape path {url} must return NotFound"
+            );
+        }
+        assert!(matches!(
+            super::lookup(&docroot, "/internal.txt", false, &[]),
+            super::Lookup::Found(_)
+        ));
+        assert!(matches!(
+            super::lookup(&docroot, "/sub/up.txt", false, &[]),
+            super::Lookup::Found(_)
+        ));
+        assert!(matches!(
+            super::lookup(&docroot, "/internal.txt", true, &[]),
+            super::Lookup::NotFound
+        ));
+    }
+
+    #[test]
+    fn open_file_acquire_rejects_toctou_swap_and_escape() {
+        use std::os::unix::fs::symlink;
+        struct Fixture(std::path::PathBuf);
+        impl Drop for Fixture {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let base =
+            std::env::temp_dir().join(format!("httpd-toctou-{}-{unique}", std::process::id()));
+        let docroot_dir = base.join("www");
+        let outside = base.join("outside");
+        std::fs::create_dir_all(&docroot_dir).unwrap();
+        std::fs::create_dir_all(&outside).unwrap();
+        let _fixture = Fixture(base);
+
+        std::fs::write(outside.join("secret.txt"), b"secret").unwrap();
+        std::fs::write(docroot_dir.join("target.txt"), b"original").unwrap();
+        std::fs::write(docroot_dir.join("other.txt"), b"other").unwrap();
+        let docroot = super::Docroot::open(docroot_dir.to_str().unwrap()).unwrap();
+
+        // Replace with a different inode inside docroot after lookup.
+        let super::Lookup::Found(pi) = super::lookup(&docroot, "/target.txt", false, &[]) else {
+            panic!("lookup");
+        };
+        std::fs::rename(
+            docroot_dir.join("other.txt"),
+            docroot_dir.join("target.txt"),
+        )
+        .unwrap();
+        assert!(
+            super::OpenFile::acquire(&pi, false).is_none(),
+            "swapped inode must be rejected"
+        );
+
+        // Replace with an escaping symlink after lookup.
+        let super::Lookup::Found(pi) = super::lookup(&docroot, "/target.txt", false, &[]) else {
+            panic!("lookup");
+        };
+        std::fs::remove_file(docroot_dir.join("target.txt")).unwrap();
+        symlink("../outside/secret.txt", docroot_dir.join("target.txt")).unwrap();
+        assert!(
+            super::OpenFile::acquire(&pi, false).is_none(),
+            "escaping symlink swap must be rejected"
+        );
     }
 }
 
@@ -593,9 +833,7 @@ impl OpenFile {
     }
 
     /// Reuse the thread's open file when it is the object `pi` names, else
-    /// open it. The identity is recorded from the opened descriptor itself,
-    /// so a file replaced between lookup's stat and the open is never
-    /// mistaken for the one that was stat'ed.
+    /// open it via the anchored docroot dirfd and verify `fstat` matches `pi.meta`.
     fn acquire(pi: &PathInfo, reuse: bool) -> Option<OpenFile> {
         if reuse {
             if let Some(last) = LAST_OPEN.with(|slot| slot.borrow_mut().take()) {
@@ -604,7 +842,7 @@ impl OpenFile {
                 }
             }
         }
-        let file = open_readonly(pi.path()).ok()?;
+        let file = open_file_for_read(pi).ok()?;
         let meta = file.metadata().ok()?;
         Some(OpenFile {
             file,
@@ -619,6 +857,30 @@ impl OpenFile {
             LAST_OPEN.with(|slot| *slot.borrow_mut() = Some(self));
         }
     }
+}
+
+fn open_file_for_read(pi: &PathInfo) -> io::Result<fs::File> {
+    let Some(docroot) = &pi.docroot else {
+        return open_readonly(pi.path());
+    };
+    let fd = open_beneath(
+        &docroot.dirfd,
+        &pi.rel,
+        OFlags::RDONLY | OFlags::NONBLOCK | OFlags::CLOEXEC,
+        pi.no_symlinks,
+    )?;
+    let file = fs::File::from(fd);
+    let meta = file.metadata()?;
+    if meta.dev() != pi.meta.dev()
+        || meta.ino() != pi.meta.ino()
+        || (meta.ctime(), meta.ctime_nsec()) != (pi.meta.ctime(), pi.meta.ctime_nsec())
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "file changed between lookup and open",
+        ));
+    }
+    Ok(file)
 }
 
 /// Positional reads leave the shared descriptor's offset alone, so a reused
@@ -738,7 +1000,7 @@ pub fn serve<W: http::Sink>(
         }
         resp.status(200, "OK")?;
         ok_headers(resp, Some(&pi.meta))?;
-        resp.header("Content-Type", file_mime_type(&pi.phys))?;
+        resp.header("Content-Type", pi.mime_type())?;
         resp.header("Content-Length", pi.meta.size())?;
         resp.end_headers()?;
         let mut body = ReadAt {
@@ -818,7 +1080,54 @@ fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io
     resp.body(format!("<html><head><title>Index of {escaped}</title></head><body><h1>Index of {escaped}</h1><hr /><ol>").as_bytes())?;
     // (name, is_dir from d_type without following symlinks, stat following)
     let mut entries: Vec<(String, bool, fs::Metadata)> = Vec::new();
-    if let Ok(read) = fs::read_dir(pi.path()) {
+    if let Some(docroot) = &pi.docroot {
+        if let Ok(dir_fd) = open_beneath(
+            &docroot.dirfd,
+            &pi.rel,
+            OFlags::RDONLY | OFlags::DIRECTORY | OFlags::CLOEXEC,
+            pi.no_symlinks,
+        ) {
+            let mut buf = [MaybeUninit::<u8>::uninit(); 4096];
+            let mut names: Vec<(String, bool)> = Vec::new();
+            let mut iter = RawDir::new(&dir_fd, &mut buf);
+            while let Some(Ok(entry)) = iter.next() {
+                let fname = entry.file_name();
+                if fname == c"." || fname == c".." {
+                    continue;
+                }
+                let name = fname.to_string_lossy().into_owned();
+                let is_dir = entry.file_type() == rustix::fs::FileType::Directory;
+                names.push((name, is_dir));
+            }
+            for (name, is_dir) in names {
+                let entry_rel = if pi.rel.is_empty() {
+                    name.clone()
+                } else {
+                    format!("{}/{name}", pi.rel)
+                };
+                if let Ok(entry_fd) = open_beneath(
+                    &docroot.dirfd,
+                    &entry_rel,
+                    OFlags::PATH | OFlags::CLOEXEC,
+                    pi.no_symlinks,
+                ) {
+                    if let Ok(meta) = fs::File::from(entry_fd).metadata() {
+                        entries.push((name, is_dir, meta));
+                    }
+                }
+            }
+            if let Ok(parent_fd) = rustix::fs::openat(
+                &dir_fd,
+                c"..",
+                OFlags::PATH | OFlags::CLOEXEC,
+                Mode::empty(),
+            ) {
+                if let Ok(parent) = fs::File::from(parent_fd).metadata() {
+                    entries.push(("..".to_owned(), true, parent));
+                }
+            }
+        }
+    } else if let Ok(read) = fs::read_dir(pi.path()) {
         for entry in read.flatten() {
             let name = entry.file_name().to_string_lossy().into_owned();
             let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
@@ -826,9 +1135,9 @@ fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io
                 entries.push((name, is_dir, meta));
             }
         }
-    }
-    if let Ok(parent) = fs::metadata(pi.path().join("..")) {
-        entries.push(("..".to_owned(), true, parent));
+        if let Ok(parent) = fs::metadata(pi.path().join("..")) {
+            entries.push(("..".to_owned(), true, parent));
+        }
     }
     entries.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
     for (name, is_dir, meta) in entries {
@@ -844,9 +1153,19 @@ fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io
                 meta.size() as f64 / 1024.0
             ).as_bytes())?;
         } else {
+            let mime = match &pi.docroot {
+                Some(docroot) => {
+                    let entry_rel = if pi.rel.is_empty() {
+                        name.clone()
+                    } else {
+                        format!("{}/{name}", pi.rel)
+                    };
+                    file_mime_type_at(docroot, &entry_rel, &name)
+                }
+                None => file_mime_type(&format!("{}/{name}", pi.phys)),
+            };
             resp.body(format!(
-                "<li><strong><a href='{escaped}{escaped_name}'>{escaped_name}</a></strong><br /><small>modified: {modified}<br />{} - {:.2} kbyte<br /><br /></small></li>",
-                file_mime_type(&format!("{}/{name}", pi.phys)),
+                "<li><strong><a href='{escaped}{escaped_name}'>{escaped_name}</a></strong><br /><small>modified: {modified}<br />{mime} - {:.2} kbyte<br /><br /></small></li>",
                 meta.size() as f64 / 1024.0
             ).as_bytes())?;
         }
