@@ -107,9 +107,8 @@ fn silence_stdio() {
 /// Exit code of the ucode interpreter when an uncaught exception aborts
 /// `main.uc`; the shell `/sbin/fw4` propagates it through `set -o pipefail`.
 const UCODE_ABORT: i32 = 254;
-const STATEFILE_PENDING: &str = "/var/run/fw4.state.pending";
 
-/// `ACTION=start|print`: render the ruleset; with `state_path` also write
+/// `ACTION=start|print`: render the ruleset; with `use_statefile` also write
 /// the state file like ucode's `load(true)`.  `None` is ucode aborting inside
 /// `load()` — nothing is rendered and no state file is written.
 /// Only reload requests comparison/certification inputs.
@@ -118,14 +117,14 @@ struct Rendered {
     effective: Option<reload::Eligible>,
 }
 
-fn render(quiet: bool, state_path: Option<&str>, compare_rules: bool) -> Option<Rendered> {
+fn render(quiet: bool, use_statefile: bool, compare_rules: bool) -> Option<Rendered> {
     let mut fw = new_fw4(quiet);
     fw.load().ok()?;
-    if let Some(path) = state_path {
+    if use_statefile {
         let json = statefile::to_json(&fw.state).to_compact();
-        if let Err(error) = fw.inputs.write_file(path, &json) {
+        if let Err(error) = fw.inputs.write_file(STATEFILE, &json) {
             fw.raw_warn(&format!(
-                "Unable to write '{path}': {}\n",
+                "Unable to write '{STATEFILE}': {}\n",
                 input::fs_error(&error)
             ));
         }
@@ -395,67 +394,6 @@ fn usage(argv0: &str) -> i32 {
     0
 }
 
-fn promote_pending_state(
-    quiet: bool,
-    pending_statefile: &std::path::Path,
-    statefile: &std::path::Path,
-) {
-    if pending_statefile.exists() {
-        if let Err(error) = std::fs::rename(pending_statefile, statefile) {
-            if !quiet {
-                let _ = writeln!(
-                    std::io::stderr(),
-                    "Unable to write '{}': {}",
-                    statefile.display(),
-                    input::fs_error(&error)
-                );
-            }
-        }
-    }
-}
-
-fn run_reload_transaction<RenderFn, LoadFn, IncludesFn>(
-    quiet: bool,
-    statefile: &std::path::Path,
-    pending_statefile: &std::path::Path,
-    render_fn: RenderFn,
-    load_fn: LoadFn,
-    includes_fn: IncludesFn,
-) -> i32
-where
-    RenderFn: FnOnce(&std::path::Path) -> Option<Rendered>,
-    LoadFn: FnOnce(&str) -> bool,
-    IncludesFn: FnOnce() -> i32,
-{
-    if !statefile.is_file() {
-        return 1;
-    }
-    let _ = std::fs::remove_file(pending_statefile);
-    let Some(rendered) = render_fn(pending_statefile) else {
-        reload::invalidate();
-        let _ = std::fs::remove_file(pending_statefile);
-        return 1;
-    };
-    let effective = rendered.effective.as_ref();
-    if effective.is_some_and(reload::unchanged) {
-        promote_pending_state(quiet, pending_statefile, statefile);
-        return includes_fn();
-    }
-    // Never certify a failed/partial apply, including a renderer abort.
-    reload::invalidate();
-    let generation = effective.and_then(|_| reload::generation());
-    let applied = load_fn(&rendered.ruleset);
-    if !applied {
-        let _ = std::fs::remove_file(pending_statefile);
-        return 1;
-    }
-    promote_pending_state(quiet, pending_statefile, statefile);
-    if let (Some(effective), Some(generation)) = (effective, generation) {
-        reload::remember(effective, generation);
-    }
-    includes_fn()
-}
-
 fn start(quiet: bool, verbose: bool, mode: &str, sigpipe: SignalDisposition) -> i32 {
     let _lock = lock();
     match mode {
@@ -466,19 +404,7 @@ fn start(quiet: bool, verbose: bool, mode: &str, sigpipe: SignalDisposition) -> 
             if !std::path::Path::new(STATEFILE).is_file() {
                 die(quiet, "The fw4 firewall does not appear to be loaded.");
             }
-            return run_reload_transaction(
-                quiet,
-                std::path::Path::new(STATEFILE),
-                std::path::Path::new(STATEFILE_PENDING),
-                |pending| {
-                    let rendered = render(quiet, pending.to_str(), true);
-                    // nft and includes are separate children of the stock shell wrapper.
-                    let _ = unix::restore_signal(owrt_ubus::sys::SIGPIPE, sigpipe);
-                    rendered
-                },
-                |ruleset| nft_load(ruleset, verbose, false, false, sigpipe) == 0,
-                || run_includes(quiet),
-            );
+            let _ = std::fs::remove_file(STATEFILE);
         }
         _ => {}
     }
@@ -486,16 +412,26 @@ fn start(quiet: bool, verbose: bool, mode: &str, sigpipe: SignalDisposition) -> 
     // aborted. With no state file this supplies the observed exit code 1.
     // Starting/restarting must apply. Avoid preparing a reload certificate on
     // that path; the first subsequent reload can establish one safely.
-    let rendered = render(quiet, Some(STATEFILE), false);
+    let rendered = render(quiet, true, mode == "reload");
     // nft and includes are separate children of the stock shell wrapper.
     let _ = unix::restore_signal(owrt_ubus::sys::SIGPIPE, sigpipe);
+    let effective = rendered.as_ref().and_then(|r| r.effective.as_ref());
+    if mode == "reload" && effective.is_some_and(reload::unchanged) {
+        return run_includes(quiet);
+    }
     // Never certify a failed/partial apply, including a renderer abort.
     reload::invalidate();
     let ruleset = rendered
         .as_ref()
         .map(|r| r.ruleset.as_str())
         .unwrap_or_default();
-    let _ = nft_load(ruleset, verbose, false, false, sigpipe);
+    let generation = effective.and_then(|_| reload::generation());
+    let applied = nft_load(ruleset, verbose, false, false, sigpipe) == 0;
+    if applied {
+        if let (Some(effective), Some(generation)) = (effective, generation) {
+            reload::remember(effective, generation);
+        }
+    }
     run_includes(quiet)
 }
 
@@ -568,7 +504,7 @@ pub fn run(mut args: Vec<String>, owner: &owrt_platform::process_owner::ProcessO
         "restart" => {
             // the shell runs `QUIET=1 print` in a pipeline, so an abort there
             // reaches `die` just like a ruleset nft rejects.
-            let rendered = render(true, None, false);
+            let rendered = render(true, false, false);
             // The shell itself retains its original disposition.
             let _ = unix::restore_signal(owrt_ubus::sys::SIGPIPE, sigpipe);
             let Some(ruleset) = rendered else {
@@ -592,7 +528,7 @@ pub fn run(mut args: Vec<String>, owner: &owrt_platform::process_owner::ProcessO
             if quiet {
                 silence_stdio();
             }
-            let Some(ruleset) = render(quiet, None, false) else {
+            let Some(ruleset) = render(quiet, false, false) else {
                 std::process::exit(UCODE_ABORT)
             };
             // The success message is the stock wrapper's shell builtin echo,
@@ -612,7 +548,7 @@ pub fn run(mut args: Vec<String>, owner: &owrt_platform::process_owner::ProcessO
             rc
         }
         "print" => {
-            let Some(out) = render(quiet, None, false) else {
+            let Some(out) = render(quiet, false, false) else {
                 std::process::exit(UCODE_ABORT)
             };
             let _ = std::io::stdout().write_all(out.ruleset.as_bytes());
@@ -649,98 +585,4 @@ pub fn run(mut args: Vec<String>, owner: &owrt_platform::process_owner::ProcessO
         _ => usage(&argv0),
     };
     std::process::exit(code);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::path::PathBuf;
-    use std::sync::atomic::{AtomicU32, Ordering};
-
-    struct TempDir(PathBuf);
-    impl TempDir {
-        fn new(tag: &str) -> Self {
-            static SEQ: AtomicU32 = AtomicU32::new(0);
-            let dir = std::env::temp_dir().join(format!(
-                "fw4-reload-{tag}-{}-{}",
-                std::process::id(),
-                SEQ.fetch_add(1, Ordering::Relaxed)
-            ));
-            let _ = std::fs::remove_dir_all(&dir);
-            std::fs::create_dir_all(&dir).unwrap();
-            Self(dir)
-        }
-    }
-    impl Drop for TempDir {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.0);
-        }
-    }
-
-    #[test]
-    fn reload_preserves_old_statefile_when_render_aborts_or_nft_load_fails_then_allows_retry() {
-        let dir = TempDir::new("preserve");
-        let statefile = dir.0.join("fw4.state");
-        let pending = dir.0.join("fw4.state.pending");
-        std::fs::write(&statefile, b"old-state").unwrap();
-
-        // 1. Render abort keeps old statefile intact and cleans up pending.
-        let rc = run_reload_transaction(
-            true,
-            &statefile,
-            &pending,
-            |_| None,
-            |_| panic!("nft_load must not run when render aborts"),
-            || panic!("includes must not run when render aborts"),
-        );
-        assert_eq!(rc, 1);
-        assert_eq!(std::fs::read(&statefile).unwrap(), b"old-state");
-        assert!(!pending.exists());
-
-        // 2. nft_load failure preserves old statefile so reload can retry.
-        let rc = run_reload_transaction(
-            true,
-            &statefile,
-            &pending,
-            |p| {
-                std::fs::write(p, b"new-failed-state").unwrap();
-                Some(Rendered {
-                    ruleset: "bad ruleset".into(),
-                    effective: None,
-                })
-            },
-            |_| false,
-            || panic!("includes must not run when nft_load fails"),
-        );
-        assert_eq!(rc, 1);
-        assert_eq!(std::fs::read(&statefile).unwrap(), b"old-state");
-        assert!(!pending.exists());
-
-        // 3. Retry succeeds: pending state is promoted to statefile.
-        let rc = run_reload_transaction(
-            true,
-            &statefile,
-            &pending,
-            |p| {
-                std::fs::write(p, b"new-good-state").unwrap();
-                Some(Rendered {
-                    ruleset: "good ruleset".into(),
-                    effective: None,
-                })
-            },
-            |rules| {
-                assert_eq!(rules, "good ruleset");
-                assert_eq!(
-                    std::fs::read(&statefile).unwrap(),
-                    b"old-state",
-                    "statefile must not be overwritten before nft_load succeeds"
-                );
-                true
-            },
-            || 0,
-        );
-        assert_eq!(rc, 0);
-        assert_eq!(std::fs::read(&statefile).unwrap(), b"new-good-state");
-        assert!(!pending.exists());
-    }
 }
