@@ -49,14 +49,12 @@ fn fixture() -> Fixture {
         .map(str::to_owned),
     )
     .unwrap();
-    let docroot_handle = files::Docroot::open(&config.docroot).unwrap();
     let cgi_physical_prefix = config
         .cgi_prefix
         .as_ref()
         .map(|prefix| format!("{}{}", config.docroot, prefix));
     let server = Arc::new(Server {
         config,
-        docroot: docroot_handle,
         tls_addresses: Vec::new(),
         cgi_physical_prefix,
         bridge: Bridge {

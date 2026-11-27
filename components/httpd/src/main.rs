@@ -537,7 +537,6 @@ const OUT_WINDOW: usize = 16 * 1024;
 
 struct Server {
     config: Config,
-    docroot: files::Docroot,
     tls_addresses: Vec<SocketAddr>,
     cgi_physical_prefix: Option<String>,
     bridge: Bridge,
@@ -848,7 +847,7 @@ impl Server {
         let mut remote_user: Option<String> = None;
         loop {
             match files::lookup(
-                &self.docroot,
+                &self.config.docroot,
                 &url,
                 self.config.no_symlinks,
                 &self.config.index_files,
@@ -1301,17 +1300,6 @@ fn main() {
             std::process::exit(64);
         }
     };
-    let docroot = match files::Docroot::open(&config.docroot) {
-        Ok(docroot) => docroot,
-        Err(error) => {
-            let _ = writeln!(
-                std::io::stderr(),
-                "httpd-rs: cannot initialize document root {}: {error}",
-                config.docroot
-            );
-            std::process::exit(1);
-        }
-    };
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
     let tls_config = match (&config.cert, &config.key, config.https.is_empty()) {
         (Some(cert), Some(key), false) => {
@@ -1367,7 +1355,6 @@ fn main() {
         }
     }
     let server = Arc::new(Server {
-        docroot,
         tls_addresses,
         cgi_physical_prefix: config
             .cgi_prefix
@@ -1430,10 +1417,8 @@ mod connection_tests {
                 .chain([limit.to_string()]),
         )
         .unwrap();
-        let docroot = files::Docroot::open(&config.docroot).unwrap();
         Server {
             config,
-            docroot,
             tls_addresses: Vec::new(),
             cgi_physical_prefix: None,
             bridge: Bridge {

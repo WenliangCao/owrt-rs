@@ -239,7 +239,7 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
         return Event::Handoff;
     }
     let pi = match files::lookup(
-        &server.docroot,
+        &config.docroot,
         &request.url,
         config.no_symlinks,
         &config.index_files,
