@@ -62,6 +62,9 @@ unsafe extern "C" fn protect_main_image(
         if info.headers.is_null() {
             return Err(io::Error::other("missing main image program headers"));
         }
+        // SAFETY: info.headers was checked non-null above, and dl_iterate_phdr
+        // guarantees it points to an aligned array of info.header_count
+        // repr(C) ProgramHeader elements readable for the callback lifetime.
         let headers = unsafe { std::slice::from_raw_parts(info.headers, info.header_count.into()) };
         const PT_GNU_RELRO: u32 = 0x6474_e552;
         let mut ranges = headers.iter().filter(|header| header.kind == PT_GNU_RELRO);

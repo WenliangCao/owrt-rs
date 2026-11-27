@@ -443,6 +443,12 @@ impl Instance {
             b.msg_u32("retry", r.retry);
             b.msg_close(t);
         }
+        if self.respawn_count > 0 {
+            b.msg_u32("respawn_count", self.respawn_count);
+        }
+        if self.crash_looped {
+            b.msg_bool("crash_looped", true);
+        }
         if self.trace {
             b.msg_bool("trace", true);
         }
@@ -1319,6 +1325,35 @@ mod dump_tests {
         assert!(setns > jail, "{top:?}");
         let entries = dumped_names(&i, false, &["setns"]);
         assert_eq!(entries.len(), 2, "both entries, valid or not");
+    }
+
+    #[test]
+    fn dump_exposes_respawn_count_and_crash_looped_when_active() {
+        let mut i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+        });
+        assert!(!dumped_names(&i, false, &[])
+            .iter()
+            .any(|n| n == "respawn_count" || n == "crash_looped"));
+
+        i.respawn_count = 3;
+        i.crash_looped = true;
+        let mut b = BlobBuf::new();
+        i.dump(&mut b, false);
+        let table = fields(b.payload()).next().expect("instance table");
+        let dumped: Vec<_> = owrt_ubus::blob::fields(table.data).collect();
+        let count = dumped
+            .iter()
+            .find(|f| f.name == "respawn_count")
+            .expect("respawn_count should be dumped when non-zero");
+        assert_eq!(u32::from_be_bytes(count.data.try_into().unwrap()), 3);
+        let looped = dumped
+            .iter()
+            .find(|f| f.name == "crash_looped")
+            .expect("crash_looped should be dumped when true");
+        assert_eq!(looped.data, [1]);
     }
 }
 

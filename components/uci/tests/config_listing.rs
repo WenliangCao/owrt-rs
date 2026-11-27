@@ -91,3 +91,14 @@ fn names_survive_directory_buffer_refills_and_long_record_boundaries() {
         Err(Error::NotFound)
     );
 }
+
+#[test]
+fn non_directory_confdir_returns_io_error() {
+    let f = Fixture::new();
+    let file_path = f.dir.join("not_a_dir");
+    fs::write(&file_path, "config x\n").unwrap();
+    assert_eq!(
+        file::list_config_files_in(file_path.to_str().unwrap()),
+        Err(Error::Io)
+    );
+}

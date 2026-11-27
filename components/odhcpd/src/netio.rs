@@ -107,6 +107,7 @@ pub struct Socket {
     fd: OwnedFd,
     kind: Kind,
     interface: u32,
+    trunc_log: std::cell::Cell<(Option<std::time::Instant>, u64)>,
 }
 
 impl Socket {
@@ -141,6 +142,7 @@ impl Socket {
             fd,
             kind,
             interface: link.index,
+            trunc_log: std::cell::Cell::new((None, 0)),
         };
         result.set_bytes(1, 25, name.as_bytes_with_nul())?; // SO_BINDTODEVICE
         result.set_int(IPPROTO_IPV6, 49, 1)?; // IPV6_RECVPKTINFO
@@ -222,8 +224,23 @@ impl Socket {
                 Err(error)
             };
         }
-        if message.flags & (MSG_TRUNC | MSG_CTRUNC) != 0
-            || length as usize > bytes.len()
+        if message.flags & (MSG_TRUNC | MSG_CTRUNC) != 0 {
+            let now = std::time::Instant::now();
+            let (last, suppressed) = self.trunc_log.get();
+            if last.is_none_or(|t| {
+                now.saturating_duration_since(t) >= std::time::Duration::from_secs(60)
+            }) {
+                eprintln!(
+                    "odhcpd-rs: warning: dropping truncated packet on interface {} (flags={:#x}, len={length}, control_len={}, suppressed={suppressed})",
+                    self.interface, message.flags, message.control_len
+                );
+                self.trunc_log.set((Some(now), 0));
+            } else {
+                self.trunc_log.set((last, suppressed.saturating_add(1)));
+            }
+            return Ok(None);
+        }
+        if length as usize > bytes.len()
             || message.name_len as usize != size_of::<SockAddr6>()
             || source.family != AF_INET6 as u16
             || message.control_len > control.0.len()

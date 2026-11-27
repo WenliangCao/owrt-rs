@@ -16,6 +16,8 @@ const EVENT_BUFFER: i32 = 65535;
 // Growth is only a mitigation; correctness comes from a fresh link dump.
 // Bound requests even on a kernel with a very large rmem_max.
 const MAX_EVENT_BUFFER: i32 = 4 * 1024 * 1024;
+const REQUEST_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+const POLLIN: i16 = 1;
 pub const ENOBUFS: i32 = 105;
 
 pub const NLMSG_NOOP: u16 = 1;
@@ -177,6 +179,7 @@ pub struct Netlink {
     /// Reply storage for `dump_one`, kept across calls: a fresh 64 KiB
     /// allocation per query cost an mmap/munmap pair and a page fault.
     reply: Vec<u8>,
+    request_timeout: std::time::Duration,
 }
 
 impl Netlink {
@@ -199,11 +202,25 @@ impl Netlink {
             seq: 0,
             event_buffer: EVENT_BUFFER,
             reply: Vec::new(),
+            request_timeout: REQUEST_TIMEOUT,
         };
         if groups != 0 {
             socket.set_event_buffer(EVENT_BUFFER)?;
         }
         Ok(socket)
+    }
+
+    /// Wrap an existing socket descriptor with an explicit request deadline.
+    #[doc(hidden)]
+    #[allow(dead_code)]
+    pub fn from_fd(fd: OwnedFd, request_timeout: std::time::Duration) -> Self {
+        Self {
+            fd,
+            seq: 0,
+            event_buffer: EVENT_BUFFER,
+            reply: Vec::new(),
+            request_timeout,
+        }
     }
 
     pub fn as_raw_fd(&self) -> i32 {
@@ -259,11 +276,37 @@ impl Netlink {
     /// One request that is acknowledged: `NLM_F_REQUEST | NLM_F_ACK | flags`.
     /// Returns the kernel's errno as an `io::Error` when the ACK is negative,
     /// which is how netifd distinguishes "already exists" from a real failure.
+    /// Bounds waiting with a poll deadline and returns `TimedOut` if no
+    /// matching ACK arrives.
     pub fn request(&mut self, ty: u16, flags: u16, hdr: &[u8], attrs: &[u8]) -> io::Result<()> {
         let seq = self.send_msg(ty, flags | NLM_F_REQUEST | NLM_F_ACK, hdr, attrs)?;
+        let deadline = std::time::Instant::now() + self.request_timeout;
         let mut buf = vec![0u8; 32768];
         loop {
-            let (_, n) = rustix::net::recv(&self.fd, &mut buf, RecvFlags::empty())?;
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            if remaining.is_zero() {
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "netlink request timed out waiting for ACK",
+                ));
+            }
+            let timeout_ms = remaining.as_millis().clamp(1, i32::MAX as u128) as i32;
+            let mut pfd = owrt_platform::unix::PollFd {
+                fd: self.fd.as_raw_fd(),
+                events: POLLIN,
+                revents: 0,
+            };
+            if owrt_platform::unix::poll_fds(std::slice::from_mut(&mut pfd), timeout_ms)? == 0 {
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "netlink request timed out waiting for ACK",
+                ));
+            }
+            let n = match rustix::net::recv(&self.fd, &mut buf, RecvFlags::empty()) {
+                Ok((_, n)) => n,
+                Err(rustix::io::Errno::INTR | rustix::io::Errno::AGAIN) => continue,
+                Err(err) => return Err(err.into()),
+            };
             for m in split(&buf[..n]) {
                 if m.seq != seq {
                     continue;
@@ -446,12 +489,7 @@ mod tests {
                 peer.send(&response).unwrap();
             }
         });
-        let mut netlink = Netlink {
-            fd: socket.into(),
-            seq: 0,
-            event_buffer: EVENT_BUFFER,
-            reply: Vec::new(),
-        };
+        let mut netlink = Netlink::from_fd(socket.into(), REQUEST_TIMEOUT);
         let result = netlink.dump(18, &[0; 16]);
         sender.join().unwrap();
         let mut leftover = [0; 256];
@@ -607,5 +645,42 @@ mod tests {
         let got = parse_attrs(a.as_bytes());
         assert_eq!(attr_str(&got, 3), Some("wan"));
         assert_eq!(attr(&got, 3).unwrap(), b"wan\0");
+    }
+
+    #[test]
+    fn request_times_out_when_ack_is_missing() {
+        use std::os::unix::net::UnixDatagram;
+        let (socket, peer) = UnixDatagram::pair().unwrap();
+        let mut netlink = Netlink::from_fd(socket.into(), std::time::Duration::from_millis(20));
+        let err = netlink
+            .request(24, 0, &[0; 12], &[])
+            .expect_err("missing ACK must time out");
+        assert_eq!(err.kind(), io::ErrorKind::TimedOut);
+        drop(peer);
+    }
+
+    #[test]
+    fn request_times_out_when_only_unrelated_seq_arrives() {
+        use std::os::unix::net::UnixDatagram;
+        let (socket, peer) = UnixDatagram::pair().unwrap();
+        let sender = std::thread::spawn(move || {
+            let mut req = [0; 256];
+            peer.recv(&mut req).unwrap();
+            let mut stale = Vec::new();
+            stale.extend_from_slice(&20u32.to_le_bytes());
+            stale.extend_from_slice(&NLMSG_ERROR.to_le_bytes());
+            stale.extend_from_slice(&0u16.to_le_bytes());
+            stale.extend_from_slice(&999u32.to_le_bytes());
+            stale.extend_from_slice(&0u32.to_le_bytes());
+            stale.extend_from_slice(&0i32.to_le_bytes());
+            peer.send(&stale).unwrap();
+            std::thread::sleep(std::time::Duration::from_millis(60));
+        });
+        let mut netlink = Netlink::from_fd(socket.into(), std::time::Duration::from_millis(30));
+        let err = netlink
+            .request(24, 0, &[0; 12], &[])
+            .expect_err("unrelated seq must not satisfy request");
+        assert_eq!(err.kind(), io::ErrorKind::TimedOut);
+        sender.join().unwrap();
     }
 }
