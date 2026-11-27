@@ -401,12 +401,7 @@ pub fn list_config_files(ctx: &Context) -> Result<Vec<String>> {
 pub fn list_config_files_in(confdir: &str) -> Result<Vec<String>> {
     let entries = match fs::read_dir(confdir) {
         Ok(e) => e,
-        Err(err) => {
-            return Err(match err.kind() {
-                std::io::ErrorKind::NotFound | std::io::ErrorKind::InvalidInput => Error::NotFound,
-                _ => Error::Io,
-            });
-        }
+        Err(_) => return Err(Error::NotFound),
     };
     let mut matched = false;
     let mut out = Vec::new();
@@ -487,10 +482,7 @@ mod directory {
                 out.push(name.to_owned());
             }
         })
-        .map_err(|err| match err.kind() {
-            std::io::ErrorKind::NotFound | std::io::ErrorKind::InvalidInput => Error::NotFound,
-            _ => Error::Io,
-        })?;
+        .map_err(|_| Error::NotFound)?;
         if !matched {
             return Err(Error::NotFound);
         }
