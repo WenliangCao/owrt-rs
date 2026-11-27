@@ -33,7 +33,6 @@ use owrt_ubus::{status, Connection, Incoming, MsgType, Request};
 use std::cell::RefCell;
 use std::os::fd::RawFd;
 use std::os::unix::fs::DirBuilderExt;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::{Duration, Instant};
 
@@ -73,141 +72,63 @@ impl Ctx {
     }
 }
 
-/// Global cap on concurrently deferred worker threads and unconsumed `Done`
-/// replies across `serve()` reconnects.
-pub const MAX_DEFERRED_IN_FLIGHT: usize = 32;
-
-static DEFERRED_IN_FLIGHT: AtomicUsize = AtomicUsize::new(0);
-
-struct InFlightPermit(&'static AtomicUsize);
-
-impl InFlightPermit {
-    fn acquire(counter: &'static AtomicUsize, limit: usize) -> Option<Self> {
-        let mut current = counter.load(Ordering::Acquire);
-        loop {
-            if current >= limit {
-                return None;
-            }
-            match counter.compare_exchange_weak(
-                current,
-                current + 1,
-                Ordering::AcqRel,
-                Ordering::Acquire,
-            ) {
-                Ok(_) => return Some(Self(counter)),
-                Err(actual) => current = actual,
-            }
-        }
-    }
-}
-
-impl Drop for InFlightPermit {
-    fn drop(&mut self) {
-        self.0.fetch_sub(1, Ordering::Release);
-    }
-}
-
 /// A finished deferred request coming back from a worker thread.
 pub struct Done {
     pub req: Request,
     pub reply: session::Reply,
-    _permit: Option<InFlightPermit>,
 }
 
 #[derive(Clone)]
 pub struct Deferrer {
     tx: Sender<Done>,
-    in_flight: &'static AtomicUsize,
-    limit: usize,
 }
 
 impl Deferrer {
     fn channel() -> (Self, Receiver<Done>) {
-        Self::channel_with(&DEFERRED_IN_FLIGHT, MAX_DEFERRED_IN_FLIGHT)
-    }
-
-    fn channel_with(in_flight: &'static AtomicUsize, limit: usize) -> (Self, Receiver<Done>) {
         let (tx, rx) = mpsc::channel();
-        (
-            Self {
-                tx,
-                in_flight,
-                limit,
-            },
-            rx,
-        )
+        (Self { tx }, rx)
     }
 
     pub fn finish(&self, req: Request, reply: session::Reply) {
-        self.finish_with_permit(req, reply, None);
-    }
-
-    fn finish_with_permit(
-        &self,
-        req: Request,
-        reply: session::Reply,
-        permit: Option<InFlightPermit>,
-    ) {
-        if self
-            .tx
-            .send(Done {
-                req,
-                reply,
-                _permit: permit,
-            })
-            .is_ok()
-        {
+        if self.tx.send(Done { req, reply }).is_ok() {
             rpcd_signals::wake();
         }
     }
 
     /// Run `work` on a worker thread and finish `req` with its reply; None
-    /// means the request is now deferred. When the global in-flight cap is
-    /// saturated or the thread cannot be created, the request comes back with
-    /// an UNKNOWN_ERROR reply to answer at once, as the C answers a failed
-    /// fork with rpc_errno_status(); the release profile is panic=abort, so an
-    /// unchecked spawn would have taken the daemon down instead (R88 rpcd F1).
+    /// means the request is now deferred. When the thread cannot be created
+    /// the request comes back with an UNKNOWN_ERROR reply to answer at once,
+    /// as the C answers a failed fork with rpc_errno_status();
+    /// the release profile is panic=abort, so an unchecked spawn would have
+    /// taken the daemon down instead (R88 rpcd F1).
     pub fn defer<F>(&self, req: Request, work: F) -> Option<(Request, session::Reply)>
     where
         F: FnOnce() -> session::Reply + Send + 'static,
     {
-        self.defer_with(req, work, |task| {
-            std::thread::Builder::new().spawn(task).map(|_| ())
-        })
-    }
-
-    fn defer_with<F, S>(&self, req: Request, work: F, spawn: S) -> Option<(Request, session::Reply)>
-    where
-        F: FnOnce() -> session::Reply + Send + 'static,
-        S: FnOnce(Box<dyn FnOnce() + Send>) -> std::io::Result<()>,
-    {
-        let Some(permit) = InFlightPermit::acquire(self.in_flight, self.limit) else {
-            return Some((req, session::Reply::empty(owrt_ubus::status::UNKNOWN_ERROR)));
-        };
-        let slot = std::sync::Arc::new(std::sync::Mutex::new(Some((req, permit))));
+        let slot = std::sync::Arc::new(std::sync::Mutex::new(Some(req)));
         let taken = std::sync::Arc::clone(&slot);
         let d = self.clone();
-        let spawned = spawn(Box::new(move || {
-            let entry = taken
+        let spawned = std::thread::Builder::new().spawn(move || {
+            let req = taken
                 .lock()
                 .expect("shared daemon state poisoned by a panic")
                 .take();
-            if let Some((req, permit)) = entry {
-                let reply = work();
-                d.finish_with_permit(req, reply, Some(permit));
+            if let Some(req) = req {
+                d.finish(req, work());
             }
-        }));
+        });
         match spawned {
-            Ok(()) => None,
+            Ok(_) => None,
             Err(error) => {
                 eprintln!("rpcd-rs: cannot create worker thread: {error}");
-                let (req, permit) = slot
+                let req = slot
                     .lock()
                     .expect("shared daemon state poisoned by a panic")
-                    .take()
-                    .expect("unstarted worker keeps its request");
-                drop(permit);
-                Some((req, session::Reply::empty(owrt_ubus::status::UNKNOWN_ERROR)))
+                    .take();
+                Some((
+                    req.expect("unstarted worker keeps its request"),
+                    session::Reply::empty(owrt_ubus::status::UNKNOWN_ERROR),
+                ))
             }
         }
     }
@@ -673,9 +594,18 @@ mod reconnect_tests {
         drop(receiver);
         let (_current, receiver) = Deferrer::channel();
         let done = Done {
-            req: dummy_req(42),
+            req: Request {
+                peer: 42,
+                seq: 7,
+                objid: 99,
+                method: "exec".into(),
+                user: None,
+                group: None,
+                data: vec![],
+                fd: None,
+                no_reply: false,
+            },
             reply: session::Reply::empty(0),
-            _permit: None,
         };
         // A worker's captured Sender stays on the old generation even if the
         // new daemon happens to reuse the same peer/sequence/object numbers.
@@ -684,107 +614,5 @@ mod reconnect_tests {
             receiver.try_recv(),
             Err(mpsc::TryRecvError::Empty)
         ));
-    }
-
-    fn dummy_req(peer: u32) -> Request {
-        Request {
-            peer,
-            seq: 7,
-            objid: 99,
-            method: "exec".into(),
-            user: None,
-            group: None,
-            data: vec![],
-            fd: None,
-            no_reply: false,
-        }
-    }
-
-    #[test]
-    fn defer_enforces_in_flight_limit_and_releases_only_on_done_consume_or_spawn_fail() {
-        static TEST_COUNTER: AtomicUsize = AtomicUsize::new(0);
-        let (deferrer, rx) = Deferrer::channel_with(&TEST_COUNTER, 2);
-
-        // 1. Spawn failure releases permit immediately and returns UNKNOWN_ERROR.
-        let failed = deferrer.defer_with(
-            dummy_req(1),
-            || session::Reply::empty(status::OK),
-            |_task| Err(std::io::Error::other("spawn failed")),
-        );
-        let (req, reply) = failed.expect("spawn failure must reply immediately");
-        assert_eq!(req.peer, 1);
-        assert_eq!(reply.code, status::UNKNOWN_ERROR);
-        assert_eq!(TEST_COUNTER.load(Ordering::Acquire), 0);
-
-        // 2. Acquire 2 permits; worker finishes into channel, permit stays held until Done is consumed.
-        let (tx1, rx1) = mpsc::channel::<()>();
-        assert!(deferrer
-            .defer(dummy_req(2), move || {
-                let _ = rx1.recv();
-                session::Reply::empty(status::OK)
-            })
-            .is_none());
-        assert!(deferrer
-            .defer(dummy_req(3), || session::Reply::empty(status::OK))
-            .is_none());
-        assert_eq!(TEST_COUNTER.load(Ordering::Acquire), 2);
-
-        // Wait until worker #3 has pushed its Done into rx, proving permit is not released before consumption.
-        let done3 = rx.recv().unwrap();
-        assert_eq!(done3.req.peer, 3);
-        assert_eq!(
-            TEST_COUNTER.load(Ordering::Acquire),
-            2,
-            "permit must stay held while Done is still alive"
-        );
-        // Saturated while done3 is unconsumed and worker #2 is still running.
-        let saturated = deferrer
-            .defer(dummy_req(4), || session::Reply::empty(status::OK))
-            .expect("saturated deferrer must reject");
-        assert_eq!(saturated.1.code, status::UNKNOWN_ERROR);
-
-        // Consuming/dropping done3 releases one permit.
-        drop(done3);
-        assert_eq!(TEST_COUNTER.load(Ordering::Acquire), 1);
-
-        // Unblock worker #2 and drop rx without receiving, simulating reconnect cleanup.
-        let _ = tx1.send(());
-        drop(rx);
-        let deadline = Instant::now() + Duration::from_secs(2);
-        while TEST_COUNTER.load(Ordering::Acquire) != 0 && Instant::now() < deadline {
-            std::thread::sleep(Duration::from_millis(5));
-        }
-        assert_eq!(TEST_COUNTER.load(Ordering::Acquire), 0);
-    }
-
-    #[test]
-    fn global_deferrer_channel_caps_at_max_deferred_in_flight() {
-        let (deferrer, rx) = Deferrer::channel();
-        let (gate_tx, gate_rx) = std::sync::mpsc::channel::<()>();
-        let gate_rx = std::sync::Arc::new(std::sync::Mutex::new(gate_rx));
-        let mut accepted = 0;
-        for i in 0..MAX_DEFERRED_IN_FLIGHT {
-            let rx_shared = std::sync::Arc::clone(&gate_rx);
-            if deferrer
-                .defer(dummy_req(i as u32), move || {
-                    let _ = rx_shared.lock().unwrap().recv();
-                    session::Reply::empty(status::OK)
-                })
-                .is_none()
-            {
-                accepted += 1;
-            }
-        }
-        assert_eq!(accepted, MAX_DEFERRED_IN_FLIGHT);
-        let rejected = deferrer
-            .defer(dummy_req(999), || session::Reply::empty(status::OK))
-            .expect("global limit must reject at MAX_DEFERRED_IN_FLIGHT");
-        assert_eq!(rejected.1.code, status::UNKNOWN_ERROR);
-
-        drop(gate_tx);
-        for _ in 0..accepted {
-            let _ = rx.recv().unwrap();
-        }
-        assert_eq!(DEFERRED_IN_FLIGHT.load(Ordering::Acquire), 0);
     }
 }
