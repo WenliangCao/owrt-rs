@@ -95,8 +95,7 @@ pub fn apply_limit(name: &str, value: &str) -> io::Result<()> {
             maximum: (maximum != u64::MAX).then_some(maximum),
         }
     };
-    let _ = rustix::process::setrlimit(resource, limit);
-    Ok(())
+    rustix::process::setrlimit(resource, limit).map_err(io::Error::from)
 }
 
 /// C `atoi()`, which procd uses for the respawn and watchdog string

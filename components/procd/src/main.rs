@@ -1765,13 +1765,11 @@ impl Procd {
         let mut paths: Vec<String> = Vec::new();
         if let Some(s) = self.services.get(svc) {
             for i in s.instances.values() {
-                for w in &i.watch {
-                    if !paths.contains(w) {
-                        paths.push(w.clone());
-                    }
-                }
+                paths.extend(i.watch.iter().cloned());
             }
         }
+        paths.sort_unstable();
+        paths.dedup();
         if paths.is_empty() {
             self.resubscribe();
             return;
@@ -1785,12 +1783,18 @@ impl Procd {
     /// call runs on the config/collection/reconnect stack.
     fn resubscribe(&mut self) {
         let mut wanted: Vec<String> = self.watches.values().flatten().cloned().collect();
-        wanted.sort();
+        wanted.sort_unstable();
         wanted.dedup();
         self.watch_pending
             .retain(|(path, _)| wanted.binary_search(path).is_ok());
+        let mut pending: std::collections::HashSet<String> =
+            self.watch_pending.iter().map(|(p, _)| p.clone()).collect();
+        let now = self.now_ms();
         for path in wanted {
-            self.queue_watch(&path);
+            if !pending.contains(&path) {
+                pending.insert(path.clone());
+                self.watch_pending.push_back((path, now));
+            }
         }
     }
 

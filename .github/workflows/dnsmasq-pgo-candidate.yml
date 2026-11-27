@@ -25,12 +25,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
       - name: install verified mr-boxington
         run: sh tools/install_mbx.sh
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master (pinned SHA)
         with:
           toolchain: "1.98.1"
           targets: aarch64-unknown-linux-musl
@@ -46,7 +46,7 @@ jobs:
             libncurses-dev libssl-dev python3-setuptools rsync unzip zlib1g-dev file curl zstd
           stamp 'package installation completed'
       - name: cache pinned SDK download only
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: work/dl
           key: dnsmasq-target-sdk-${{ hashFiles('manifests/release-*.json') }}
@@ -60,7 +60,7 @@ jobs:
         run: sh tools/owrt-tools.sh ci-check-dnsmasq-pgo-pipeline "$GITHUB_WORKSPACE/work" --stage "$PGO_STAGE" --spec "$PGO_SPEC"
       - name: preserve actual artifacts and original diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dnsmasq-pgo-${{ inputs.stage }}-${{ github.sha }}-${{ github.run_id }}
           path: |

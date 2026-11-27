@@ -108,7 +108,9 @@ impl Process {
                     let _ = rustix::process::setpriority_process(None, setup.nice);
                 }
                 for (name, value) in &setup.limits {
-                    let _ = apply_limit(name, value);
+                    if let Err(error) = apply_limit(name, value) {
+                        warning(name, &error);
+                    }
                 }
                 if let Some((user, gid)) = &setup.user_groups {
                     if !super::identity::init_groups(user, *gid) {

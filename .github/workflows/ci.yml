@@ -4,18 +4,22 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   host-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # Release input tests archive the exact frozen product revisions.
           fetch-depth: 0
       - name: rust toolchain (pinned by rust-toolchain.toml)
         id: rust
         run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master (pinned SHA)
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
           components: rustfmt, clippy
@@ -34,7 +38,7 @@ jobs:
       - name: host deps (rpcd, fw4 and dnsmasq namespace tests)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables iproute2 util-linux
       - name: cache shared Rust artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             ~/.cargo/registry
@@ -43,13 +47,14 @@ jobs:
           key: mbx-1.26.0-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/**/Cargo.lock', 'tools/benchmark/Cargo.lock') }}-${{ github.sha }}
           restore-keys: |
             mbx-1.26.0-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/**/Cargo.lock', 'tools/benchmark/Cargo.lock') }}-
+            mbx-1.26.0-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.channel }}-
       - name: default and feature tests, isolated process tests, examples and Clippy
         env:
           MBX_DISPLAY: plain
         run: make test check-rust fmt-check check-benchmark
       - name: preserve host warning and test diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: rust-host-${{ github.sha }}
           path: work/out/rust-host/*

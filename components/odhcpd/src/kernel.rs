@@ -376,4 +376,35 @@ mod tests {
         new.addresses[0].address = "2001:db8:1::1".parse().unwrap();
         assert!(ra_addresses_changed(Some(&old), &new, 100));
     }
+
+    #[test]
+    fn route_returns_timed_out_when_netlink_ack_is_missing() {
+        use std::os::unix::net::UnixDatagram;
+        let (cmd_sock, _cmd_peer) = UnixDatagram::pair().unwrap();
+        let (evt_sock, _evt_peer) = UnixDatagram::pair().unwrap();
+        let mut kernel = Kernel {
+            commands: Netlink::from_fd(cmd_sock.into(), std::time::Duration::from_millis(20)),
+            events: Netlink::from_fd(evt_sock.into(), std::time::Duration::from_millis(20)),
+        };
+        let route = Route {
+            destination: Prefix {
+                address: "2001:db8:2::".parse().unwrap(),
+                length: 64,
+            },
+            source: Prefix {
+                address: Ipv6Addr::UNSPECIFIED,
+                length: 0,
+            },
+            gateway: None,
+            interface: 2,
+            metric: 1024,
+            table: 254,
+            protocol: 16,
+            kind: 1,
+        };
+        let err = kernel
+            .route(&route, true)
+            .expect_err("missing rtnetlink ACK must return TimedOut");
+        assert_eq!(err.kind(), io::ErrorKind::TimedOut);
+    }
 }

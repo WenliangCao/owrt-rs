@@ -866,7 +866,11 @@ fn read_request_into<R: Read>(
                 }
             }
             "connection" => {
-                if value.eq_ignore_ascii_case("close") {
+                if value.split(',').any(|token| {
+                    token
+                        .trim_matches([' ', '\t'])
+                        .eq_ignore_ascii_case("close")
+                }) {
                     request.connection_close = true;
                 }
             }
@@ -1046,7 +1050,10 @@ impl<'a, T: Read + Write> Out<'a, T> {
     /// Push until the window is empty. The budget covers the whole drain, not
     /// one write, so many small partial writes cannot extend it.
     fn drain_blocking(&mut self) -> io::Result<()> {
-        self.drain_until(Instant::now() + self.timeout)
+        let deadline = Instant::now()
+            .checked_add(self.timeout)
+            .unwrap_or_else(|| Instant::now() + Duration::from_secs(86_400 * 365));
+        self.drain_until(deadline)
     }
 
     fn drain_until(&mut self, deadline: Instant) -> io::Result<()> {
@@ -1152,7 +1159,9 @@ impl<T: Read + Write> Write for Out<'_, T> {
     fn write(&mut self, mut data: &[u8]) -> io::Result<usize> {
         let length = data.len();
         let deadline = if self.plain_vectored && !self.deferred && length >= self.window {
-            let deadline = Instant::now() + self.timeout;
+            let deadline = Instant::now()
+                .checked_add(self.timeout)
+                .unwrap_or_else(|| Instant::now() + Duration::from_secs(86_400 * 365));
             let queued = self.pending();
             let result = borrow(self.client)?.get_mut().write_vectored(&[
                 IoSlice::new(&self.buf[self.start..self.end]),
@@ -3032,6 +3041,30 @@ mod tests {
             "&#x3c;a href=&#x27;x&#x27;&#x3e;&#x26;&#x22;&#x3c;/a&#x3e;"
         );
         assert_eq!(html_escape("/nope.txt?a=1"), "/nope.txt?a=1");
+    }
+
+    #[test]
+    fn connection_header_parses_comma_separated_close_tokens() {
+        let parses_close = |header_val: &str| -> bool {
+            let raw = format!("GET / HTTP/1.1\r\nHost: x\r\nConnection: {header_val}\r\n\r\n");
+            let mut input = BufReader::new(io::Cursor::new(raw.into_bytes()));
+            let ParseOutcome::Request(r) = read_request(&mut input, true, None).unwrap() else {
+                panic!("request failed to parse");
+            };
+            r.connection_close
+        };
+        for should_close in [
+            "close",
+            "Close",
+            "keep-alive, close",
+            "TE, ClOsE, Upgrade",
+            " , close , ",
+        ] {
+            assert!(parses_close(should_close), "{should_close:?} should close");
+        }
+        for keep_open in ["keep-alive", "x-close", "close-wait", "upgrade", ""] {
+            assert!(!parses_close(keep_open), "{keep_open:?} should stay open");
+        }
     }
 }
 

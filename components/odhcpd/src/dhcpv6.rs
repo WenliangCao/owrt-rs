@@ -687,259 +687,295 @@ impl Dhcpv6 {
         }
         let mut ias = Vec::new();
         let mut write_state = false;
+        let mut rollback = None;
         if message == 11 {
             push_option(&mut ias, 32, &600u32.to_be_bytes());
         } else if let Some(duid) = client.filter(|client| (10..=130).contains(&client.len())) {
+            let saved = (self.leases.clone(), self.installed_routes.clone());
             let hostname = request_hostname(&parsed);
             let mut confirm_on_link = true;
-            for ia in parsed
-                .iter()
-                .filter(|option| matches!(option.code, IA_NA | IA_PD))
-            {
-                let kind = if ia.code == IA_NA {
-                    LeaseKind::Na
-                } else {
-                    LeaseKind::Pd
-                };
-                let iaid = u32::from_be_bytes(ia.value[..4].try_into().ok()?);
-                let suboptions = options(&ia.value[12..])?;
-                let host = host_for(context.config, duid, iaid);
-                if host.is_some_and(|host| host.ignore_v6) {
-                    return None;
-                }
-                let mut existing = self.leases.iter().position(|lease| {
-                    lease.pool == context.pool.name
-                        && lease.kind == kind
-                        && lease.duid == duid
-                        && lease.iaid == iaid
-                        && lease.valid(context.clock.seconds())
-                });
-                if let Some(index) = existing {
-                    if !refresh_host(&mut self.leases[index], context.config, context.pool) {
-                        self.leases.remove(index);
-                        existing = None;
-                    }
-                }
-                if message == 4 {
-                    let has_address = kind == LeaseKind::Na
-                        && suboptions
-                            .iter()
-                            .any(|option| option.code == IA_ADDR && option.value.len() >= 24);
-                    if has_address && !on_link(&suboptions, kind, &context) {
-                        confirm_on_link = false;
-                    } else if !has_address
-                        || !existing.is_some_and(|index| self.leases[index].bound)
-                    {
+            let loop_res = (|| -> Option<()> {
+                for ia in parsed
+                    .iter()
+                    .filter(|option| matches!(option.code, IA_NA | IA_PD))
+                {
+                    let kind = if ia.code == IA_NA {
+                        LeaseKind::Na
+                    } else {
+                        LeaseKind::Pd
+                    };
+                    let iaid = u32::from_be_bytes(ia.value[..4].try_into().ok()?);
+                    let suboptions = options(&ia.value[12..])?;
+                    let host = host_for(context.config, duid, iaid);
+                    if host.is_some_and(|host| host.ignore_v6) {
                         return None;
                     }
-                    continue;
-                }
-                let status = if matches!(message, 5 | 8 | 9) && existing.is_none() {
-                    3
-                } else {
-                    0
-                };
-                let mut candidate = existing.map(|index| self.leases[index].clone());
-                if matches!(message, 8 | 9) && status == 0 {
-                    let index = existing?;
-                    let fixed_iid = self.leases[index]
-                        .configured_host
-                        .as_ref()
-                        .is_some_and(|host| host.host_id == self.leases[index].assigned);
-                    if message == 8 || kind == LeaseKind::Na && fixed_iid {
-                        self.leases.remove(index);
-                    } else if kind == LeaseKind::Na {
-                        let lease = &mut self.leases[index];
-                        lease.bound = false;
-                        lease.duid.fill(0);
-                        lease.valid_until = context.clock.seconds() + 3600;
-                        lease.addresses = addresses_for(
-                            lease,
-                            context.link,
-                            context.pool,
-                            context.clock.seconds(),
-                            false,
-                        );
-                    }
-                    continue;
-                }
-                let mut status = status;
-                if status == 0 && candidate.is_none() {
-                    // A configured DUID without IAID permits an NA to move from
-                    // one client interface/IAID to another, as in C's host match.
-                    if kind == LeaseKind::Na
-                        && host.is_some_and(|host| {
-                            host.duids
-                                .iter()
-                                .any(|entry| entry.duid == duid && entry.iaid.is_none())
-                        })
-                    {
-                        self.leases.retain(|lease| {
-                            !(lease.pool == context.pool.name
-                                && lease.kind == kind
-                                && lease.duid == duid
-                                && lease.is_static)
-                        });
-                        existing = None;
-                    }
-                    let permitted = if kind == LeaseKind::Na {
-                        context.pool.dhcpv6_na && (context.pool.dynamic_dhcp || host.is_some())
-                    } else {
-                        context.pool.dhcpv6_pd && context.pool.dynamic_dhcp
-                    };
-                    if permitted && self.leases.len() < MAX_LEASES {
-                        let assignment = if kind == LeaseKind::Na {
-                            self.allocate_na(&context, duid, host.map_or(0, |host| host.host_id))
-                                .map(|id| (id, 128))
-                        } else {
-                            let hint = suboptions.iter().rfind(|option| {
-                                option.code == IA_PREFIX && option.value.len() >= 25
-                            });
-                            let length = hint
-                                .filter(|option| option.value[8] != 0)
-                                .map_or(62, |option| option.value[8])
-                                .min(64);
-                            let hint = hint.map_or(0, |option| {
-                                u32::from_be_bytes(
-                                    option.value[13..17]
-                                        .try_into()
-                                        .expect("prefix option length"),
-                                )
-                            });
-                            self.allocate_pd(&context, length, hint)
-                        };
-                        if let Some((assigned, prefix_length)) = assignment {
-                            candidate = Some(Lease {
-                                pool: context.pool.name.clone(),
-                                device: context.link.name.clone(),
-                                interface_index: context.link.index,
-                                duid: duid.to_vec(),
-                                iaid,
-                                kind,
-                                assigned,
-                                prefix_length,
-                                hostname: None,
-                                hostname_valid: false,
-                                bound: false,
-                                is_static: host.is_some(),
-                                configured_host: host.cloned(),
-                                lease_time: host
-                                    .and_then(|host| host.lease_time)
-                                    .unwrap_or(context.pool.lease_time),
-                                valid_until: context.clock.seconds(),
-                                preferred_until: context.clock.seconds(),
-                                peer: context.source,
-                                addresses: Vec::new(),
-                            });
+                    let mut existing = self.leases.iter().position(|lease| {
+                        lease.pool == context.pool.name
+                            && lease.kind == kind
+                            && lease.duid == duid
+                            && lease.iaid == iaid
+                            && lease.valid(context.clock.seconds())
+                    });
+                    if let Some(index) = existing {
+                        if !refresh_host(&mut self.leases[index], context.config, context.pool) {
+                            self.leases.remove(index);
+                            existing = None;
                         }
                     }
-                    if candidate.is_none() {
-                        status = if kind == LeaseKind::Na { 2 } else { 6 };
-                    }
-                }
-                if status == 0 && message == 3 && !on_link(&suboptions, kind, &context) {
-                    status = 4;
-                }
-                if let Some(lease) = candidate.as_mut().filter(|_| status == 0) {
-                    // C resolves a host override or the current interface
-                    // default on every reply. A pool reload must affect an
-                    // existing binding's next Renew/Rebind without rewriting
-                    // the deadline it was previously promised.
-                    lease.lease_time = host
-                        .and_then(|host| host.lease_time)
-                        .unwrap_or(context.pool.lease_time);
-                    lease.interface_index = context.link.index;
-                    lease.device = context.link.name.clone();
-                    lease.addresses = addresses_for(
-                        lease,
-                        context.link,
-                        context.pool,
-                        context.clock.seconds(),
-                        true,
-                    );
-                    if kind == LeaseKind::Pd && lease.addresses.is_empty() {
-                        if let Some((assigned, length)) =
-                            self.allocate_pd(&context, lease.prefix_length, 0)
+                    if message == 4 {
+                        let has_address = kind == LeaseKind::Na
+                            && suboptions
+                                .iter()
+                                .any(|option| option.code == IA_ADDR && option.value.len() >= 24);
+                        if has_address && !on_link(&suboptions, kind, &context) {
+                            confirm_on_link = false;
+                        } else if !has_address
+                            || !existing.is_some_and(|index| self.leases[index].bound)
                         {
-                            lease.assigned = assigned;
-                            lease.prefix_length = length;
+                            return None;
+                        }
+                        continue;
+                    }
+                    let status = if matches!(message, 5 | 8 | 9) && existing.is_none() {
+                        3
+                    } else {
+                        0
+                    };
+                    let mut candidate = existing.map(|index| self.leases[index].clone());
+                    if matches!(message, 8 | 9) && status == 0 {
+                        let index = existing?;
+                        let fixed_iid = self.leases[index]
+                            .configured_host
+                            .as_ref()
+                            .is_some_and(|host| host.host_id == self.leases[index].assigned);
+                        if message == 8 || kind == LeaseKind::Na && fixed_iid {
+                            self.leases.remove(index);
+                        } else if kind == LeaseKind::Na {
+                            let lease = &mut self.leases[index];
+                            lease.bound = false;
+                            lease.duid.fill(0);
+                            lease.valid_until = context.clock.seconds() + 3600;
                             lease.addresses = addresses_for(
                                 lease,
                                 context.link,
                                 context.pool,
                                 context.clock.seconds(),
-                                true,
+                                false,
                             );
                         }
+                        continue;
                     }
-                    if lease.addresses.is_empty()
-                        && !(existing.is_some() && matches!(message, 5 | 6))
-                    {
-                        status = if kind == LeaseKind::Na { 2 } else { 6 };
-                    } else {
-                        lease.valid_until = lease
-                            .addresses
-                            .iter()
-                            .map(|address| address.valid_until)
-                            .fold(
-                                deadline(
-                                    context.clock.seconds(),
-                                    cap(lease.lease_time, context.pool.max_valid_lifetime),
-                                ),
-                                u64::min,
-                            );
-                        lease.preferred_until = lease
-                            .addresses
-                            .iter()
-                            .map(|address| address.preferred_until)
-                            .fold(
-                                deadline(
-                                    context.clock.seconds(),
-                                    cap(lease.lease_time, context.pool.max_preferred_lifetime),
-                                ),
-                                u64::min,
-                            );
-                        lease.bound = message != 1 || rapid;
-                        if matches!(message, 1 | 3 | 6) {
-                            let name = host
-                                .and_then(|host| host.hostname.as_ref())
-                                .map(|name| name.as_bytes().to_vec())
-                                .or_else(|| hostname.clone());
-                            if let Some(name) = name {
-                                lease.hostname_valid = hostname_valid(&name);
-                                lease.hostname = Some(name);
+                    let mut status = status;
+                    if status == 0 && candidate.is_none() {
+                        // A configured DUID without IAID permits an NA to move from
+                        // one client interface/IAID to another, as in C's host match.
+                        if kind == LeaseKind::Na
+                            && host.is_some_and(|host| {
+                                host.duids
+                                    .iter()
+                                    .any(|entry| entry.duid == duid && entry.iaid.is_none())
+                            })
+                        {
+                            self.leases.retain(|lease| {
+                                !(lease.pool == context.pool.name
+                                    && lease.kind == kind
+                                    && lease.duid == duid
+                                    && lease.is_static)
+                            });
+                            existing = None;
+                        }
+                        let permitted = if kind == LeaseKind::Na {
+                            context.pool.dhcpv6_na && (context.pool.dynamic_dhcp || host.is_some())
+                        } else {
+                            context.pool.dhcpv6_pd && context.pool.dynamic_dhcp
+                        };
+                        if permitted && self.leases.len() < MAX_LEASES {
+                            let assignment = if kind == LeaseKind::Na {
+                                self.allocate_na(
+                                    &context,
+                                    duid,
+                                    host.map_or(0, |host| host.host_id),
+                                )
+                                .map(|id| (id, 128))
+                            } else {
+                                let hint = suboptions.iter().rfind(|option| {
+                                    option.code == IA_PREFIX && option.value.len() >= 25
+                                });
+                                let length = hint
+                                    .filter(|option| option.value[8] != 0)
+                                    .map_or(62, |option| option.value[8])
+                                    .min(64);
+                                let hint = hint.map_or(0, |option| {
+                                    u32::from_be_bytes(
+                                        option.value[13..17]
+                                            .try_into()
+                                            .expect("prefix option length"),
+                                    )
+                                });
+                                self.allocate_pd(&context, length, hint)
+                            };
+                            if let Some((assigned, prefix_length)) = assignment {
+                                candidate = Some(Lease {
+                                    pool: context.pool.name.clone(),
+                                    device: context.link.name.clone(),
+                                    interface_index: context.link.index,
+                                    duid: duid.to_vec(),
+                                    iaid,
+                                    kind,
+                                    assigned,
+                                    prefix_length,
+                                    hostname: None,
+                                    hostname_valid: false,
+                                    bound: false,
+                                    is_static: host.is_some(),
+                                    configured_host: host.cloned(),
+                                    lease_time: host
+                                        .and_then(|host| host.lease_time)
+                                        .unwrap_or(context.pool.lease_time),
+                                    valid_until: context.clock.seconds(),
+                                    preferred_until: context.clock.seconds(),
+                                    peer: context.source,
+                                    addresses: Vec::new(),
+                                });
                             }
                         }
-                        if self.install_routes(lease, apply).is_err() {
-                            status = 6;
+                        if candidate.is_none() {
+                            status = if kind == LeaseKind::Na { 2 } else { 6 };
+                        }
+                    }
+                    if status == 0 && message == 3 && !on_link(&suboptions, kind, &context) {
+                        status = 4;
+                    }
+                    if let Some(lease) = candidate.as_mut().filter(|_| status == 0) {
+                        // C resolves a host override or the current interface
+                        // default on every reply. A pool reload must affect an
+                        // existing binding's next Renew/Rebind without rewriting
+                        // the deadline it was previously promised.
+                        lease.lease_time = host
+                            .and_then(|host| host.lease_time)
+                            .unwrap_or(context.pool.lease_time);
+                        lease.interface_index = context.link.index;
+                        lease.device = context.link.name.clone();
+                        lease.addresses = addresses_for(
+                            lease,
+                            context.link,
+                            context.pool,
+                            context.clock.seconds(),
+                            true,
+                        );
+                        if kind == LeaseKind::Pd && lease.addresses.is_empty() {
+                            if let Some((assigned, length)) =
+                                self.allocate_pd(&context, lease.prefix_length, 0)
+                            {
+                                lease.assigned = assigned;
+                                lease.prefix_length = length;
+                                lease.addresses = addresses_for(
+                                    lease,
+                                    context.link,
+                                    context.pool,
+                                    context.clock.seconds(),
+                                    true,
+                                );
+                            }
+                        }
+                        if lease.addresses.is_empty()
+                            && !(existing.is_some() && matches!(message, 5 | 6))
+                        {
+                            status = if kind == LeaseKind::Na { 2 } else { 6 };
+                        } else {
+                            lease.valid_until = lease
+                                .addresses
+                                .iter()
+                                .map(|address| address.valid_until)
+                                .fold(
+                                    deadline(
+                                        context.clock.seconds(),
+                                        cap(lease.lease_time, context.pool.max_valid_lifetime),
+                                    ),
+                                    u64::min,
+                                );
+                            lease.preferred_until = lease
+                                .addresses
+                                .iter()
+                                .map(|address| address.preferred_until)
+                                .fold(
+                                    deadline(
+                                        context.clock.seconds(),
+                                        cap(lease.lease_time, context.pool.max_preferred_lifetime),
+                                    ),
+                                    u64::min,
+                                );
+                            lease.bound = message != 1 || rapid;
+                            if matches!(message, 1 | 3 | 6) {
+                                let name = host
+                                    .and_then(|host| host.hostname.as_ref())
+                                    .map(|name| name.as_bytes().to_vec())
+                                    .or_else(|| hostname.clone());
+                                if let Some(name) = name {
+                                    lease.hostname_valid = hostname_valid(&name);
+                                    lease.hostname = Some(name);
+                                }
+                            }
+                        }
+                    }
+                    let mut encoded = encode_ia(
+                        ia.code,
+                        iaid,
+                        status,
+                        candidate.as_ref(),
+                        &suboptions,
+                        matches!(message, 5 | 6),
+                        context.clock.seconds(),
+                    );
+                    if ias.len() + encoded.len() > IA_REPLY_LIMIT {
+                        break;
+                    }
+                    if status == 0 {
+                        if let Some(lease) = candidate.as_ref() {
+                            if self.install_routes(lease, apply).is_err() {
+                                status = 6;
+                                encoded = encode_ia(
+                                    ia.code,
+                                    iaid,
+                                    status,
+                                    candidate.as_ref(),
+                                    &suboptions,
+                                    matches!(message, 5 | 6),
+                                    context.clock.seconds(),
+                                );
+                                if ias.len() + encoded.len() > IA_REPLY_LIMIT {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    ias.extend(encoded);
+                    if status == 0 {
+                        let mut lease = candidate?;
+                        if !lease.bound {
+                            lease.valid_until = context.clock.seconds() + 60;
+                        }
+                        if let Some(index) = existing {
+                            self.leases[index] = lease;
+                        } else {
+                            self.leases.push(lease);
                         }
                     }
                 }
-                let encoded = encode_ia(
-                    ia.code,
-                    iaid,
-                    status,
-                    candidate.as_ref(),
-                    &suboptions,
-                    matches!(message, 5 | 6),
-                    context.clock.seconds(),
-                );
-                if ias.len() + encoded.len() > IA_REPLY_LIMIT {
-                    break;
-                }
-                ias.extend(encoded);
-                if status == 0 {
-                    let mut lease = candidate?;
-                    if !lease.bound {
-                        lease.valid_until = context.clock.seconds() + 60;
-                    }
-                    if let Some(index) = existing {
-                        self.leases[index] = lease;
-                    } else {
-                        self.leases.push(lease);
+                Some(())
+            })();
+            if loop_res.is_none() {
+                for route in &self.installed_routes {
+                    if !saved.1.contains(route) {
+                        let _ = apply(route, false);
                     }
                 }
+                self.leases = saved.0;
+                self.installed_routes = saved.1;
+                return None;
             }
+            rollback = Some(saved);
             if message == 4 {
                 status_option(&mut ias, if confirm_on_link { 0 } else { 4 });
             } else if matches!(message, 8 | 9) {
@@ -947,15 +983,15 @@ impl Dhcpv6 {
             }
             write_state = true;
         }
-        self.leases.sort_by_key(|lease| {
-            (
-                lease.pool.clone(),
-                lease.kind == LeaseKind::Pd,
-                lease.assigned,
-            )
-        });
-        let _ = self.remove_unused_routes(apply);
         if matches!(message, 4 | 6) && ias.is_empty() {
+            self.leases.sort_by_key(|lease| {
+                (
+                    lease.pool.clone(),
+                    lease.kind == LeaseKind::Pd,
+                    lease.assigned,
+                )
+            });
+            let _ = self.remove_unused_routes(apply);
             return Some(DhcpOutcome {
                 reply: None,
                 write_state,
@@ -984,8 +1020,31 @@ impl Dhcpv6 {
                 }
             }
         }
+        if reply.len() > MAX_UDP_PAYLOAD {
+            if let Some((saved_leases, saved_routes)) = rollback {
+                for route in &self.installed_routes {
+                    if !saved_routes.contains(route) {
+                        let _ = apply(route, false);
+                    }
+                }
+                self.leases = saved_leases;
+                self.installed_routes = saved_routes;
+            }
+            return Some(DhcpOutcome {
+                reply: None,
+                write_state: false,
+            });
+        }
+        self.leases.sort_by_key(|lease| {
+            (
+                lease.pool.clone(),
+                lease.kind == LeaseKind::Pd,
+                lease.assigned,
+            )
+        });
+        let _ = self.remove_unused_routes(apply);
         Some(DhcpOutcome {
-            reply: (reply.len() <= MAX_UDP_PAYLOAD).then_some(reply),
+            reply: Some(reply),
             write_state,
         })
     }
@@ -2104,5 +2163,80 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn ia_reply_limit_overflow_does_not_install_orphan_routes() {
+        let (config, link) = fixture();
+        let mut engine = Dhcpv6::default();
+        let mut request = vec![3, 1, 2, 3];
+        push_option(&mut request, CLIENT_ID, CLIENT);
+        for iaid in 1u32..=20 {
+            let mut ia = Vec::new();
+            ia.extend_from_slice(&iaid.to_be_bytes());
+            ia.extend_from_slice(&[0; 8]);
+            push_option(&mut request, IA_PD, &ia);
+        }
+        let mut applied_adds = 0usize;
+        let outcome = engine.handle(&request, context(&config, &link), &mut |_, add| {
+            if add {
+                applied_adds += 1;
+            }
+            Ok(())
+        });
+        assert!(outcome.reply.is_some());
+        assert!(engine.leases().len() < 20);
+        assert_eq!(
+            applied_adds,
+            engine.leases().len(),
+            "overflowing IA_PDs must not install routes without committing leases"
+        );
+    }
+
+    #[test]
+    fn max_udp_payload_overflow_rolls_back_routes_and_leases() {
+        let (mut config, link) = fixture();
+        config.enable_tz = true;
+        config.timezone = Some("x".repeat(MAX_UDP_PAYLOAD));
+        let mut engine = Dhcpv6::default();
+        let mut request = packet(3, IA_PD, 1, None);
+        push_option(&mut request, ORO, &41u16.to_be_bytes());
+        let mut net_routes = 0isize;
+        let outcome = engine.handle(&request, context(&config, &link), &mut |_, add| {
+            net_routes += if add { 1 } else { -1 };
+            Ok(())
+        });
+        assert!(outcome.reply.is_none());
+        assert!(!outcome.write_state);
+        assert!(engine.leases().is_empty());
+        assert_eq!(net_routes, 0);
+    }
+
+    #[test]
+    fn multi_ia_ignore_v6_early_return_rolls_back_prior_routes_and_leases() {
+        let (mut config, link) = fixture();
+        config.hosts.push(HostConfig {
+            duids: vec![HostDuid {
+                duid: CLIENT.to_vec(),
+                iaid: Some(2),
+            }],
+            ignore_v6: true,
+            ..HostConfig::default()
+        });
+        let mut engine = Dhcpv6::default();
+        let mut request = packet(3, IA_PD, 1, None);
+        let mut ia2 = Vec::new();
+        ia2.extend_from_slice(&2u32.to_be_bytes());
+        ia2.extend_from_slice(&[0; 8]);
+        push_option(&mut request, IA_PD, &ia2);
+        let mut net_routes = 0isize;
+        let outcome = engine.handle(&request, context(&config, &link), &mut |_, add| {
+            net_routes += if add { 1 } else { -1 };
+            Ok(())
+        });
+        assert!(outcome.reply.is_none());
+        assert!(!outcome.write_state);
+        assert!(engine.leases().is_empty());
+        assert_eq!(net_routes, 0);
     }
 }

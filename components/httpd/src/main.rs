@@ -29,6 +29,16 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex, Weak};
 use std::time::{Duration, Instant};
 
+/// Upper bound for `-t` and `-T` timeouts (1 year in seconds) so extreme CLI
+/// values fail cleanly instead of overflowing `Instant::now() + Duration`.
+const MAX_TIMEOUT_SECS: u64 = 86_400 * 365;
+
+fn deadline_after(duration: Duration) -> Instant {
+    Instant::now()
+        .checked_add(duration)
+        .unwrap_or_else(|| Instant::now() + Duration::from_secs(MAX_TIMEOUT_SECS))
+}
+
 struct Config {
     docroot: String,
     cgi_prefix: Option<String>,
@@ -142,8 +152,18 @@ fn parse_args_from(mut args: impl Iterator<Item = String>) -> Result<Config, Str
             "-x" => c.cgi_prefix = Some(trim_prefix(value("-x")?)),
             "-u" => c.ubus_prefix = Some(trim_prefix(value("-u")?)),
             "-U" => c.ubus_socket = Some(value("-U")?),
-            "-t" => c.script_timeout = value("-t")?.parse().map_err(|_| "-t must be a number")?,
-            "-T" => c.network_timeout = value("-T")?.parse().map_err(|_| "-T must be a number")?,
+            "-t" => {
+                c.script_timeout = value("-t")?.parse().map_err(|_| "-t must be a number")?;
+                if c.script_timeout > MAX_TIMEOUT_SECS {
+                    return Err(format!("-t must be at most {MAX_TIMEOUT_SECS}"));
+                }
+            }
+            "-T" => {
+                c.network_timeout = value("-T")?.parse().map_err(|_| "-T must be a number")?;
+                if c.network_timeout > MAX_TIMEOUT_SECS {
+                    return Err(format!("-T must be at most {MAX_TIMEOUT_SECS}"));
+                }
+            }
             "-k" => c.http_keepalive = value("-k")?.parse().map_err(|_| "-k must be a number")?,
             "-A" => c.tcp_keepalive = value("-A")?.parse().map_err(|_| "-A must be a number")?,
             "-n" => {
@@ -570,7 +590,7 @@ impl Server {
         // whole head, network_timeout for the first request on the
         // connection and http_keepalive for the ones after it. Without it
         // a client that dribbles one byte per read holds its slot forever.
-        let mut head_deadline = resume.unwrap_or_else(|| Instant::now() + network_timeout);
+        let mut head_deadline = resume.unwrap_or_else(|| deadline_after(network_timeout));
         // The socket's receive timeout is LINGER for the connection's whole
         // life (set at accept); the thread's ReadWait mode says what a timed
         // out read means in each phase. Handshake and bodies get the network
@@ -675,7 +695,7 @@ impl Server {
                 return Outcome::Closed;
             }
             heads.recycle(request);
-            head_deadline = Instant::now() + keepalive;
+            head_deadline = deadline_after(keepalive);
         }
     }
 
@@ -1103,7 +1123,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
                         fast::Event::Writing => {
                             let p = parked.get_mut(&token).expect("entry retained");
                             if !was_writing {
-                                p.deadline = Instant::now() + write_budget;
+                                p.deadline = deadline_after(write_budget);
                                 if poller.set_interest(p.conn.fd, token, false, true).is_err() {
                                     // Cannot watch for output: drop the reply.
                                     let p = parked.remove(&token).expect("entry retained");
@@ -1114,7 +1134,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
                         }
                         fast::Event::Served => {
                             let p = parked.get_mut(&token).expect("entry retained");
-                            p.deadline = Instant::now() + keepalive;
+                            p.deadline = deadline_after(keepalive);
                             if was_writing
                                 && poller.set_interest(p.conn.fd, token, true, false).is_err()
                             {
@@ -1555,5 +1575,40 @@ mod connection_tests {
                 .count(),
             2
         );
+    }
+
+    #[test]
+    fn timeout_flags_reject_extreme_values_and_deadline_never_panics() {
+        for flag in ["-t", "-T"] {
+            for bad in ["18446744073709551615", "31536001", "notanumber"] {
+                let err = parse_args_from(
+                    ["-p", "127.0.0.1:0", "-c", "/r93-no-httpd-config", flag, bad]
+                        .into_iter()
+                        .map(str::to_owned),
+                )
+                .err()
+                .unwrap_or_else(|| panic!("{flag} {bad} must fail"));
+                assert!(!err.is_empty());
+            }
+            let ok = parse_args_from(
+                [
+                    "-p",
+                    "127.0.0.1:0",
+                    "-c",
+                    "/r93-no-httpd-config",
+                    flag,
+                    "31536000",
+                ]
+                .into_iter()
+                .map(str::to_owned),
+            )
+            .unwrap();
+            if flag == "-t" {
+                assert_eq!(ok.script_timeout, MAX_TIMEOUT_SECS);
+            } else {
+                assert_eq!(ok.network_timeout, MAX_TIMEOUT_SECS);
+            }
+        }
+        let _ = deadline_after(Duration::from_secs(u64::MAX));
     }
 }

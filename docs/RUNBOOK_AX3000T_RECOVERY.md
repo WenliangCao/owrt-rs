@@ -1,14 +1,12 @@
 # AX3000T 救援手册（离线可用）
 
-**当前状态（2026-10-17）：已刷入 v0.2.1 十组件原生 Rust 固件，当前恢复入口以[发布说明](RELEASE.md#恢复路径)为准。**
-`owrt-recover-c` 从 `/usr/libexec/owrt-stock/` 成套恢复十个 C 程序及 dnsmasq 原 init/ACL，共十二份文件；
-`/rom` 内对应入口也是 Rust，不能作为 C 原件。该操作不等同于刷回 v0.2.0；本次版本回滚使用已核验的
-v0.2.0 镜像和独立配置备份，保存在 `private/backup/release-v0.2.1/`。验收期临时自动回退守卫以
-v0.2.0 为目标，最终验收后移除并另取干净配置备份，完成状态见[部署记录](reviews/DEPLOYMENT_V0_2_1_20261017.md)。
-回滚固件 SHA256 为 `2f8083e44a548802de1738ecd8ef5231f74fda950a0a69a44f0e10e2e1d30ffd`；
+**当前状态：已刷入 v0.3.3 `native-eleven` 原生 Rust 固件，当前恢复入口以[发布说明](RELEASE.md#恢复路径)为准。**
+`owrt-recover-c` 从 `/usr/libexec/owrt-stock/` 成套恢复十一个 C 程序及 dnsmasq 原 init/ACL，共十三份文件；
+`/rom` 内对应路径已是集成 Rust 版本，不能作为 C 原件。该操作不等同于刷回 v0.3.2；本次版本回滚使用从 GitHub Release [v0.3.2](https://github.com/WenliangCao/owrt-rs/releases/tag/v0.3.2)（见[发布页](releases/v0.3.2.md)）下载并按下方 SHA256 核对的 `openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin` 镜像，以及本机现存配置备份目录 `private/router-config-latest/`（历史 v0.2.1／v0.2.2 回滚材料不与本次混用）。
+v0.3.2 回滚固件 SHA256 为 `9f8e4b10225ca9c49e0e08d096cf645667c5687b1b42784adab50d3751a3e179`；
 TFTP 救援镜像 `private/images/stock-rd03/miwifi_rd03_firmware_ef0ee_1.0.47.bin`，SHA256 为
 `77bf35b27b6ec29fbfe2c3f4280618cd70bade5e9998d407b634ce8a12825cc6`。
-本页第 1–3 节针对历史 stock/overlay，第 7 节针对历史九组件镜像；不要将其旧文件集合套用到十组件。
+本页第 1–3 节针对历史 stock/overlay，第 7 节针对历史九组件镜像；不要将其旧文件集合套用到 `native-eleven`。
 按键、lan4 和 TFTP 步骤继续作为硬件恢复参考。
 
 适用：Xiaomi AX3000T（RD03，MT7981，原厂小米 bootloader），OpenWrt 25.12.5 stock 布局，

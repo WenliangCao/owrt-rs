@@ -76,7 +76,8 @@ check-benchmark:
 	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/ns_exec.c
 	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/socket_constants.c
 
-# Release pipeline (runs on the build host, see docs/RELEASE.md)
+# Legacy differential build targets (non-canonical since decision 0018;
+# requires OWRT_ALLOW_LEGACY_RELEASE=1, use `ci-image` for canonical builds).
 apk:
 	sh tools/release.sh apk $(VERSION)
 
