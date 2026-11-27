@@ -15,7 +15,7 @@ on:
     tags: ["v*"]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-image-${{ github.ref }}
@@ -29,7 +29,7 @@ jobs:
       OPENWRT_VERSION: ${{ github.event.inputs.openwrt_version || '25.12.6' }}
       OWRT_CORE_INCLUDE_ODHCPD: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -39,7 +39,7 @@ jobs:
         id: rust
         run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
 
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master
         with:
           toolchain: ${{ steps.rust.outputs.channel }}
           targets: aarch64-unknown-linux-musl
@@ -58,13 +58,13 @@ jobs:
           stamp 'package installation completed'
 
       - name: cache SDK and ImageBuilder downloads
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: work/dl
           key: openwrt-dl-${{ env.OPENWRT_VERSION }}
 
       - name: cache cargo registry
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ~/.cargo/registry
@@ -92,7 +92,7 @@ jobs:
         run: |
           { echo '### Native eleven-component image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/native/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/native/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/native/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: owrt-image-${{ env.OPENWRT_VERSION }}-${{ github.sha }}
           path: work/native/out/*
@@ -101,7 +101,7 @@ jobs:
 
       - name: preserve failed build evidence
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: owrt-image-failed-${{ github.sha }}
           path: |
@@ -113,17 +113,35 @@ jobs:
             work/out/dnsmasq/pgo-compilation/*
             work/native/*.log
             work/native/build-inputs.json
-            work/native/bin/*-sysupgrade.bin
           retention-days: 90
 
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      OPENWRT_VERSION: ${{ github.event.inputs.openwrt_version || '25.12.6' }}
+    steps:
+      - uses: actions/qeqmczar@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: owrt-image-${{ env.OPENWRT_VERSION }}-${{ github.sha }}
+          path: release-assets
+
+      - name: verify artifact checksums
+        working-directory: release-assets
+        run: sha256sum -c SHA256SUMS
+
       - name: github release (tags only)
-        if: startsWith(github.ref, 'refs/tags/v')
+        working-directory: release-assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME} (OpenWrt ${OPENWRT_VERSION})" \
             --prerelease --latest=false \
             --notes "Build candidate from ${GITHUB_SHA}; hardware qualification is separate. See docs/RELEASE.md." \
-            work/native/out/*.apk work/native/out/*-sysupgrade.bin work/native/out/SHA256SUMS \
-            work/native/out/binary-sha256.txt work/native/out/manifest.json work/native/out/build-inputs.json \
-            work/native/out/dnsmasq-build-manifest.json
+            *.apk *-sysupgrade.bin SHA256SUMS \
+            binary-sha256.txt manifest.json build-inputs.json \
+            dnsmasq-build-manifest.json

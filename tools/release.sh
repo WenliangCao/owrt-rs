@@ -17,6 +17,12 @@
 # when PKGLIST is not given.
 set -eu
 cmd=${1:?apk|image|fetch}; ver=${2:?openwrt version, e.g. 25.12.5}
+if [ "${OWRT_ALLOW_LEGACY_RELEASE:-0}" != "1" ]; then
+	echo "error: tools/release.sh is legacy and non-canonical (decision 0018)." >&2
+	echo "       Canonical releases are built by the release-image GitHub Actions workflow." >&2
+	echo "       Set OWRT_ALLOW_LEGACY_RELEASE=1 to run remote fetch/apk/image actions for regression comparison." >&2
+	exit 1
+fi
 BUILD_HOST=${BUILD_HOST:-oracle}
 ROUTER=${ROUTER:-openwrt}
 REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)

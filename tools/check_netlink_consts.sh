@@ -19,7 +19,7 @@ trap 'rm -rf "$tmp"' EXIT
 
 # Only names that exist in the UAPI headers; anything else in the file (our own
 # helpers, netlink group numbers used as `1 << (n-1)`) is skipped by the filter.
-grep -hoE '^(pub )?const (RTM_[A-Z0-9_]+|IFLA_[A-Z0-9_]+|IFA_[A-Z0-9_]+|RTA_[A-Z0-9_]+|RTAX_[A-Z0-9_]+|RT_TABLE_[A-Z]+|RT_SCOPE_[A-Z]+|RTN_[A-Z]+|RTPROT_[A-Z]+|RTNH_F_[A-Z]+|IFF_[A-Z_]+|NLM_F_[A-Z]+|NLMSG_[A-Z]+|NLA_F_[A-Z]+|AF_[A-Z0-9]+|RTNLGRP_[A-Z0-9_]+|NDA_[A-Z0-9_]+|NUD_[A-Z0-9_]+|SIOC[A-Z0-9_]+|ETHTOOL_[A-Z0-9_]+): [a-z0-9]+ = [^;]+;' \
+grep -hoE '^(pub )?const (RTM_[A-Z0-9_]+|IFLA_[A-Z0-9_]+|IFA_[A-Z0-9_]+|RTA_[A-Z0-9_]+|RTAX_[A-Z0-9_]+|RT_TABLE_[A-Z]+|RT_SCOPE_[A-Z]+|RTN_[A-Z0-9_]+|RTPROT_[A-Z]+|RTNH_F_[A-Z]+|IFF_[A-Z_]+|NLM_F_[A-Z0-9_]+|NLMSG_[A-Z]+|NLA_F_[A-Z]+|AF_[A-Z0-9]+|RTNLGRP_[A-Z0-9_]+|NDA_[A-Z0-9_]+|NUD_[A-Z0-9_]+|SIOC[A-Z0-9_]+|ETHTOOL_[A-Z0-9_]+): [a-z0-9]+ = [^;]+;' \
 	"$src"/netlink.rs "$src"/sys.rs "$src"/ethtool.rs \
 	| sed -E 's/^(pub )?const ([A-Z0-9_]+): [a-z0-9]+ = (.*);$/\2 \3/' \
 	| sort -u > "$tmp/rust.txt"
